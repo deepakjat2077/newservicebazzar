@@ -1,0 +1,3135 @@
+@extends($themeView.'layouts.site')
+@section('title','Free - Listing')
+@section('content')
+
+
+   <section class="py-5 free-listing-page">
+        <div class="container">
+              <div class="contact-with-author mb-4">
+              <button type="button" id="openAdminChat" class="btn btn__base w-100">
+    <i class="las la-comments"></i> Chat with admin
+</button>
+                </div>
+
+            <div class="row justify-content-center align-items-start">
+              <div class="col-lg-5 mb-4 mb-lg-0 d-flex justify-content-center align-items-center free-listing-left">
+                    <img src="{{ asset('assets/images/image.png') }}" class="shadow rounded img-fluid" style="width:350px;"
+                        alt="Business Preview">
+                </div>
+
+                
+             <div class="col-lg-7 free-listing-form-scroll">
+                    <div class="card shadow border-0 listing-card">
+                        <div class="card-body p-4 p-md-5">
+
+                            @if (session('success'))
+                                <div class="alert alert-success">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+                                
+                            @if ($errors->any())
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0 ps-3">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            <style>
+@media (max-width: 767px){
+    .free-listing-left{
+        display: none !important;
+    }
+}
+.contact-with-author{
+    display:none;
+}
+.free-listing-page {
+    padding-top: 0;
+   
+}
+@media (min-width: 992px) {
+    .free-listing-form-scroll {
+        max-height: calc(100vh - 150px);
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .free-listing-form-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .free-listing-form-scroll .wizard-step {
+        padding-bottom: 100px;
+    }
+}                 
+
+
+                                #area,
+select[name="location_id"]{
+    height: 48px;
+    line-height: 48px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+                                .listing-card {
+                                    border-radius: 18px;
+                                    overflow: hidden;
+                                }
+
+                                .step-progress {
+                                    display: flex;
+                                    gap: 10px;
+                                    margin-bottom: 28px;
+                                    flex-wrap: wrap;
+                                }
+
+                                .step-progress .step-dot {
+                                    flex: 1;
+                                    min-width: 60px;
+                                    height: 8px;
+                                    border-radius: 30px;
+                                    background: #e9ecef;
+                                    transition: .3s;
+                                }
+
+                                .step-progress .step-dot.active {
+                                    background: #0d6efd;
+                                }
+
+                                .step-title {
+                                    font-size: 28px;
+                                    font-weight: 700;
+                                    margin-bottom: 6px;
+                                    color: #1f1f1f;
+                                }
+
+                                .step-subtitle {
+                                    font-size: 14px;
+                                    color: #6c757d;
+                                    margin-bottom: 24px;
+                                    line-height: 1.6;
+                                }
+
+                                .wizard-step {
+                                    display: none;
+                                }
+
+                                .wizard-step.active {
+                                    display: block;
+                                }
+
+                                .form-control,
+                                .form-select {
+                                    height: 48px;
+                                    border-radius: 10px;
+                                    box-shadow: none !important;
+                                }
+
+                                textarea.form-control {
+                                    height: auto;
+                                }
+
+                                .btn-main {
+                                    background: #0d6efd;
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 8px;
+                                    height: 46px;
+                                    font-weight: 600;
+                                }
+
+                                .btn-main:hover {
+                                    background: #0b5ed7;
+                                    color: #fff;
+                                }
+
+                                .btn-outline-light-custom {
+                                    border: 1px solid #d9d9d9;
+                                    background: #fff;
+                                    color: #333;
+                                    border-radius: 8px;
+                                    height: 46px;
+                                    font-weight: 600;
+                                }
+
+                                .btn-outline-light-custom:hover {
+                                    background: #f8f9fa;
+                                }
+
+                                .add-link {
+                                    display: inline-block;
+                                    color: #0d6efd;
+                                    font-size: 14px;
+                                    font-weight: 600;
+                                    text-decoration: none;
+                                    margin-top: 8px;
+                                    margin-bottom: 10px;
+                                }
+
+                                .add-link:hover {
+                                    text-decoration: underline;
+                                    color: #0d6efd;
+                                }
+
+                                .phone-group {
+                                    display: flex;
+                                    gap: 10px;
+                                    margin-bottom: 12px;
+                                }
+
+                                .country-code {
+                                    width: 95px;
+                                    min-width: 95px;
+                                }
+
+                                .input-remove {
+                                    width: 42px;
+                                    min-width: 42px;
+                                    height: 48px;
+                                    border: none;
+                                    border-radius: 10px;
+                                    background: #ffe5e5;
+                                    color: #dc3545;
+                                    font-weight: 700;
+                                }
+
+                                .weekday-list {
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    gap: 10px;
+                                    margin-bottom: 12px;
+                                }
+
+                                .weekday-item {
+                                    position: relative;
+                                }
+
+                                .weekday-item input {
+                                    display: none;
+                                }
+
+                                .weekday-item label {
+                                    min-width: 48px;
+                                    height: 38px;
+                                    border-radius: 30px;
+                                    border: 1px solid #d8d8d8;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    padding: 0 14px;
+                                    font-size: 13px;
+                                    cursor: pointer;
+                                    color: #555;
+                                    background: #fff;
+                                    transition: .2s;
+                                }
+
+                                .weekday-item input:checked+label {
+                                    background: #e7f1ff;
+                                    color: #0d6efd;
+                                    border-color: #0d6efd;
+                                    font-weight: 600;
+                                }
+
+                                .time-slot-box {
+                                    border: 1px solid #ececec;
+                                    border-radius: 14px;
+                                    padding: 14px;
+                                    margin-bottom: 15px;
+                                    background: #fafafa;
+                                }
+
+                                .section-label {
+                                    font-size: 14px;
+                                    font-weight: 600;
+                                    margin-bottom: 8px;
+                                    color: #333;
+                                }
+
+                                .category-tags,
+                                .suggested-tags {
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    gap: 10px;
+                                }
+
+                                .selected-tag {
+                                    background: #0d6efd;
+                                    color: #fff;
+                                    border-radius: 30px;
+                                    padding: 8px 16px;
+                                    font-size: 14px;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                }
+
+                                .selected-tag .remove-tag {
+                                    cursor: pointer;
+                                    font-weight: 700;
+                                }
+
+                                .suggested-tag {
+                                    border: 1px solid #0d6efd;
+                                    color: #0d6efd;
+                                    background: #fff;
+                                    border-radius: 30px;
+                                    padding: 8px 16px;
+                                    font-size: 14px;
+                                    cursor: pointer;
+                                    transition: .2s;
+                                }
+
+                                .suggested-tag:hover {
+                                    background: #eef5ff;
+                                }
+
+                                .photo-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(2, 1fr);
+                                    gap: 16px;
+                                }
+
+                                .photo-upload-card {
+                                    height: 120px;
+                                    border: 2px dashed #9ed0ff;
+                                    border-radius: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    flex-direction: column;
+                                    text-align: center;
+                                    cursor: pointer;
+                                    background: #fafdff;
+                                    color: #0d6efd;
+                                    font-weight: 600;
+                                    overflow: hidden;
+                                    position: relative;
+                                }
+
+                                .photo-upload-card input {
+                                    display: none;
+                                }
+
+                                .photo-upload-card img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                    position: absolute;
+                                    inset: 0;
+                                }
+
+                                .photo-sample {
+                                    position: relative;
+                                    height: 120px;
+                                    border-radius: 12px;
+                                    overflow: hidden;
+                                    background: #f1f1f1;
+                                }
+
+                                .photo-sample img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                }
+
+                                .photo-badge {
+                                    position: absolute;
+                                    left: 10px;
+                                    bottom: 10px;
+                                    background: #fff;
+                                    padding: 3px 10px;
+                                    border-radius: 4px;
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                }
+
+                                .wizard-actions {
+                                    display: flex;
+                                    gap: 12px;
+                                    margin-top: 28px;
+                                }
+
+                                .wizard-actions .btn {
+                                    flex: 1;
+                                }
+
+                                .checkbox-text {
+                                    font-size: 14px;
+                                    color: #0d6efd;
+                                    font-weight: 600;
+                                    cursor: pointer;
+                                }
+
+                                .search-icon-input {
+                                    position: relative;
+                                }
+
+                                .search-icon-input i {
+                                    position: absolute;
+                                    top: 50%;
+                                    left: 14px;
+                                    transform: translateY(-50%);
+                                    color: #a0a0a0;
+                                }
+
+                                .search-icon-input input {
+                                    padding-left: 40px;
+                                }
+
+                                @media(max-width:767px) {
+                                    .step-title {
+                                        font-size: 24px;
+                                    }
+
+                                    .phone-group {
+                                        flex-wrap: wrap;
+                                    }
+
+                                    .country-code {
+                                        width: 100%;
+                                    }
+
+                                    .wizard-actions {
+                                        flex-direction: column;
+                                    }
+                                }
+
+                                .field-error {
+    border-color: #dc3545;
+}
+
+.error-text {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+                            </style>
+
+                            <form action="{{ route('user.listing.store') }}" method="POST" enctype="multipart/form-data"
+                                id="multiStepForm">
+                                @csrf
+
+
+                            
+<div id="autoGeneratedListingFields" style="display:none !important;">
+
+    <input type="hidden"
+           name="meta_title"
+           id="auto_meta_title"
+           value="{{ old('meta_title') }}">
+
+    <input type="hidden"
+           name="meta_keywords"
+           id="auto_meta_keywords"
+           value="{{ old('meta_keywords') }}">
+
+    <input type="hidden"
+           name="meta_description"
+           id="auto_meta_description"
+           value="{{ old('meta_description') }}">
+
+    <textarea name="details"
+              id="auto_details">{{ old('details') }}</textarea>
+
+    <div id="autoFaqFields"></div>
+</div>
+
+                                <div class="step-progress mb-4">
+                                    <div class="step-dot active" data-step-dot="1"></div>
+                                    <div class="step-dot" data-step-dot="2"></div>
+                                    <div class="step-dot" data-step-dot="3"></div>
+                                    <div class="step-dot" data-step-dot="4"></div>
+                                    <div class="step-dot" data-step-dot="5"></div>
+                                </div>
+
+                                {{-- STEP 1 --}}
+                                <div class="wizard-step active" data-step="1">
+                                    <h3 class="step-title">Enter Your Business Details</h3>
+                                    <p class="step-subtitle">Add your basic business information to get started.</p>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Business Name</label>
+                                        <input type="text" class="form-control" name="name"
+                                            value="{{ old('business_name') }}" placeholder="Enter Business Name" required>
+                                    </div>
+
+                                   
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Pincode</label>
+                                        <input type="text" id="pincode" class="form-control" placeholder="Pincode"
+                                            name="pincode" value="{{ old('pincode') }}" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Plot No. / Shop No. / Floor</label>
+                                        <input type="text" class="form-control" placeholder="Plot No. / Shop No. / Floor"
+                                            name="plot_no" value="{{ old('plot_no') }}">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Building Name / Market / Colony</label>
+                                        <input type="text" class="form-control"
+                                            placeholder="Building Name / Market / Colony" name="building_name"
+                                            value="{{ old('building_name') }}">
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Street / Road Name</label>
+                                            <input type="text" class="form-control" placeholder="Street / Road Name"
+                                                name="street_name" value="{{ old('street_name') }}">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Landmark</label>
+                                            <input type="text" class="form-control" placeholder="Landmark"
+                                                name="landmark" value="{{ old('landmark') }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label">Area</label>
+                                            <select class="form-control" id="area" name="area" required>
+                                                <option value="">Select Area</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+<div class="mb-3">
+    <label class="form-label">Location</label>
+    <select class="form-control" name="location_id"  id="location_id" required>
+        <option value="">Select Location</option>
+
+        @foreach($locations as $location)
+            <option value="{{ $location->id }}">
+                {{ $location->name }}
+            </option>
+        @endforeach
+
+    </select>
+</div>
+
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">City</label>
+                                            <input type="text" id="city" class="form-control" placeholder="City"
+                                                name="city" value="{{ old('city') }}" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">State</label>
+                                            <input type="text" id="state" class="form-control"
+                                                placeholder="State" name="state" value="{{ old('state') }}" readonly>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+                                    <input type="hidden" name="longitude" id="longitude"
+                                        value="{{ old('longitude') }}">
+
+                                    <div class="wizard-actions">
+                                        <button type="button" class="btn btn-main next-step">Save and Continue</button>
+                                    </div>
+                                </div>
+
+                                {{-- STEP 2 --}}
+                                <div class="wizard-step" data-step="2">
+                                    <h3 class="step-title">Add Contact Details</h3>
+                                    <p class="step-subtitle">Add contact person, phone, WhatsApp, landline and emails.</p>
+
+
+
+                                    <div id="contactPersonWrapper">
+                                        <label class="form-label">Contact Person</label>
+
+                                        <div class="phone-group">
+                                            <select class="form-select country-code" name="contact_title">
+                                                <option value="Mr">Mr</option>
+                                                <option value="Mrs">Mrs</option>
+                                                <option value="Miss">Miss</option>
+                                                <option value="Dr">Dr</option>
+                                            </select>
+
+                                            <input type="text" class="form-control" name="contact_person"
+                                                placeholder="Contact Person">
+                                        </div>
+                                    </div>
+                                    <div id="mobileNumbersWrapper">
+                                        <label class="form-label">Mobile Number</label>
+                                        <div class="phone-group mobile-number-item">
+                                            <select class="form-select country-code" name="mobile_country_code[]">
+                                                <option value="+91">🇮🇳 +91</option>
+                                            </select>
+                                            <input type="text" class="form-control" name="mobile_numbers[]"
+                                                placeholder="Mobile Number" required >
+                                        </div>
+                                    </div>
+                                    <a href="javascript:void(0)" class="add-link" id="addMobileNumber">+ Add Another
+                                        Mobile Number</a>
+
+                                    <div id="whatsappNumbersWrapper">
+                                        <label class="form-label">WhatsApp Number</label>
+                                        <div class="phone-group whatsapp-number-item">
+                                            <select class="form-select country-code" name="whatsapp_country_code[]">
+                                                <option value="+91">🇮🇳 +91</option>
+                                            </select>
+                                            <input type="text" class="form-control whatsapp-input"
+                                                name="whatsapp_numbers[]" placeholder="WhatsApp Number">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="sameAsMobile">
+                                        <label class="form-check-label checkbox-text" for="sameAsMobile">
+                                            Same As Mobile Number
+                                        </label>
+                                    </div>
+
+                                    <a href="javascript:void(0)" class="add-link" id="addWhatsappNumber">+ Add WhatsApp
+                                        Number</a>
+
+                                    <div id="landlineNumbersWrapper">
+                                        <label class="form-label">Landline Number</label>
+                                        <div class="phone-group landline-number-item">
+                                            <select class="form-select country-code" name="landline_country_code[]">
+                                                <option value="+91">🇮🇳 +91</option>
+                                            </select>
+                                            <input type="text" class="form-control" name="landline_numbers[]"
+                                                placeholder="Landline Number">
+                                        </div>
+                                    </div>
+
+                                    <a href="javascript:void(0)" class="add-link" id="addLandlineNumber">+ Add Landline
+                                        Number</a>
+
+                                   <div class="phone-group email-item">
+                <input id="addAnotherEmail" type="email" class="form-control" name="extra_emails[]" placeholder="Email" required>
+               
+            </div>
+                                  
+
+                                    <div class="wizard-actions">
+                                        <button type="button"
+                                            class="btn btn-outline-light-custom prev-step">Back</button>
+                                        <button type="button" class="btn btn-main next-step">Save and Continue</button>
+                                    </div>
+                                </div>
+
+                                {{-- STEP 3 --}}
+                                <div class="wizard-step" data-step="3">
+                                    <h3 class="step-title">Add Business Timings</h3>
+                                    <p class="step-subtitle">Let your customers know when you are open for business.</p>
+
+                                    <label class="section-label">Select Days Of The Week</label>
+                                    <div class="weekday-list">
+                                        @php
+                                            $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                                        @endphp
+                                        @foreach ($days as $day)
+                                            <div class="weekday-item">
+                                                <input type="checkbox" id="day_{{ $day }}"
+                                                    name="business_days[]" value="{{ $day }}">
+                                                <label for="day_{{ $day }}">{{ $day }}</label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="selectAllDays">
+                                        <label class="form-check-label checkbox-text" for="selectAllDays">Select All
+                                            Days</label>
+                                    </div>
+
+                                  <!-- 24 Hours checkbox -->
+<div class="form-check mb-3">
+    <input
+        class="form-check-input"
+        type="checkbox"
+        id="open24Hours"
+        name="open_24_hours"
+        value="1"
+    >
+
+    <label class="form-check-label checkbox-text" for="open24Hours">
+        Open 24 Hours
+    </label>
+</div>
+
+<!-- Normal business timings -->
+<div id="timeSlotsWrapper">
+    <div class="time-slot-box time-slot-item">
+        <div class="row">
+
+            <!-- Open time -->
+          <div class="col-md-6 mb-3">
+    <label class="form-label">Open at</label>
+
+    <select
+        class="form-select business-open-time"
+        name="open_time[]"
+        required
+    >
+        <option value="">Select Time</option>
+    </select>
+</div>
+
+<div class="col-md-6 mb-3">
+    <label class="form-label">Close at</label>
+
+    <select
+        class="form-select business-close-time"
+        name="close_time[]"
+        required
+    >
+        <option value="">Select Time</option>
+    </select>
+</div>
+
+
+        </div>
+
+        <div class="time-slot-error error-text d-none"></div>
+    </div>
+</div>
+
+                                    <a href="javascript:void(0)" class="add-link" id="addTimeSlot">+ Add Another Time
+                                        Slot</a>
+
+                                           <div >
+                                        <label class="form-label">Since (Year)</label>
+                                        <div class="email-item mb-2">
+                                           <input type="number" name="established_year" class="form-control"
+       min="1900" max="{{ date('Y') }}"
+       oninput="if(this.value.length>4)this.value=this.value.slice(0,4)"
+       placeholder="e.g. 2015">
+                                        </div>
+                                    </div>
+
+
+                                    <div class="wizard-actions">
+                                        <button type="button"
+                                            class="btn btn-outline-light-custom prev-step">Back</button>
+                                        <button type="button" class="btn btn-main next-step">Save and Continue</button>
+                                    </div>
+                                </div>
+
+                                {{-- STEP 4 --}}
+                                <div class="wizard-step" data-step="4">
+                                    <h3 class="step-title">Add Business Category</h3>
+                                    <p class="step-subtitle">Choose the right business categories so your customer can
+                                        easily find you.</p>
+
+                                    <div class="search-icon-input mb-4 position-relative">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" class="form-control" id="categorySearch"
+                                            placeholder="Type Business Category">
+
+                                        <div id="categorySearchResults" class="category-search-results"></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="section-label">Selected Category</div>
+                                        <div class="category-tags" id="selectedMainCategory"></div>
+                                    </div>
+
+                                  
+
+                               
+
+                                    <div id="hiddenCategoryInputs"></div>
+
+                                    <div class="wizard-actions">
+                                        <button type="button"
+                                            class="btn btn-outline-light-custom prev-step">Back</button>
+                                        <button type="button" class="btn btn-main next-step">Save and Continue</button>
+                                    </div>
+                                </div>
+
+                                {{-- STEP 5 --}}
+                                <div class="wizard-step" data-step="5">
+                                    <h3 class="step-title">Add Photos</h3>
+                                    <p class="step-subtitle">Showcase photos of your business to look authentic.</p>
+
+                                    <div class="photo-grid">
+                                        <label class="photo-upload-card">
+                                            <input type="file" name="thumb" class="photo-input" accept="image/*">
+                                            <div class="upload-text">
+                                                <div style="font-size:28px;line-height:1;">📷</div>
+                                                <div>Add Photo</div>
+                                            </div>
+                                            <img src="" alt="preview" class="preview-image d-none">
+                                        </label>
+
+                                        <div class="photo-sample">
+                                            <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=800&auto=format&fit=crop"
+                                                alt="sample">
+                                            <span class="photo-badge">Example</span>
+                                        </div>
+
+                                        <div class="photo-sample">
+                                            <img src="https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=800&auto=format&fit=crop"
+                                                alt="sample">
+                                            <span class="photo-badge">Example</span>
+                                        </div>
+
+                                        <div class="photo-sample">
+                                            <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=800&auto=format&fit=crop"
+                                                alt="sample">
+                                            <span class="photo-badge">Example</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="wizard-actions">
+                                        <button type="button"
+                                            class="btn btn-outline-light-custom prev-step">Back</button>
+                                        <button type="button" class="btn btn-outline-light-custom"
+                                            id="skipPhotos">Skip</button>
+                                        <button type="submit" class="btn btn-main">Save and Continue</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    let currentStep = 1;
+    const totalSteps = 5;
+
+    /* =====================================================
+       WIZARD STEPS
+    ===================================================== */
+
+    function showStep(step) {
+        document.querySelectorAll(".wizard-step").forEach(function (item) {
+            item.classList.remove("active");
+        });
+
+        const selectedStep = document.querySelector(
+            '.wizard-step[data-step="' + step + '"]'
+        );
+
+        if (selectedStep) {
+            selectedStep.classList.add("active");
+        }
+
+        document.querySelectorAll(".step-dot").forEach(function (dot) {
+            dot.classList.remove("active");
+        });
+
+        for (let i = 1; i <= step; i++) {
+            const activeDot = document.querySelector(
+                '.step-dot[data-step-dot="' + i + '"]'
+            );
+
+            if (activeDot) {
+                activeDot.classList.add("active");
+            }
+        }
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    }
+
+
+    /* =====================================================
+       FORM ERRORS
+    ===================================================== */
+
+    function clearStepErrors(stepEl) {
+        if (!stepEl) {
+            return;
+        }
+
+        stepEl.querySelectorAll(".field-error").forEach(function (element) {
+            element.classList.remove("field-error");
+        });
+
+        stepEl.querySelectorAll(".error-text:not(.time-slot-error)")
+            .forEach(function (element) {
+                element.remove();
+            });
+
+        stepEl.querySelectorAll(".time-slot-error").forEach(function (element) {
+            element.textContent = "";
+            element.classList.add("d-none");
+        });
+    }
+
+
+    function showFieldError(field, message) {
+        if (!field) {
+            return;
+        }
+
+        field.classList.add("field-error");
+
+        const parent = field.parentElement;
+
+        if (!parent.querySelector(".error-text")) {
+            const error = document.createElement("div");
+
+            error.className = "error-text";
+            error.innerText = message;
+
+            parent.appendChild(error);
+        }
+    }
+
+
+    /* =====================================================
+       BUSINESS TIME OPTIONS
+    ===================================================== */
+
+    /*
+     * 30 minute interval par timing options:
+     *
+     * 12:00 AM
+     * 12:30 AM
+     * 01:00 AM
+     * ...
+     * 11:30 PM
+     */
+    function createBusinessTimeOptions() {
+        let options = '<option value="">Select Time</option>';
+
+        for (let hour = 0; hour < 24; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+
+                const period = hour >= 12 ? "PM" : "AM";
+
+                let displayHour = hour % 12;
+
+                if (displayHour === 0) {
+                    displayHour = 12;
+                }
+
+                const formattedHour = String(displayHour).padStart(2, "0");
+                const formattedMinute = String(minute).padStart(2, "0");
+
+                const displayTime =
+                    formattedHour + ":" + formattedMinute + " " + period;
+
+                options +=
+                    '<option value="' + displayTime + '">' +
+                    displayTime +
+                    '</option>';
+            }
+        }
+
+        return options;
+    }
+
+
+    /*
+     * Existing aur newly-added timing dropdowns me options load karega.
+     */
+    function initializeBusinessTimeDropdowns(container) {
+        const target = container || document;
+
+        target.querySelectorAll(
+            ".business-open-time, .business-close-time"
+        ).forEach(function (select) {
+
+            if (select.dataset.timeInitialized === "1") {
+                return;
+            }
+
+            const previousValue = select.value;
+
+            select.innerHTML = createBusinessTimeOptions();
+            select.dataset.timeInitialized = "1";
+
+            if (previousValue) {
+                select.value = previousValue;
+            }
+        });
+    }
+
+
+    /*
+     * Time ko minutes me convert karta hai.
+     *
+     * 07:00 PM = 1140
+     * 12:00 AM = 0
+     * 12:00 PM = 720
+     */
+    function timeToMinutes(timeValue) {
+        if (!timeValue) {
+            return null;
+        }
+
+        const timeParts = timeValue.trim().split(" ");
+
+        if (timeParts.length !== 2) {
+            return null;
+        }
+
+        const time = timeParts[0];
+        const period = timeParts[1].toUpperCase();
+
+        const parts = time.split(":");
+
+        let hour = parseInt(parts[0], 10);
+        const minute = parseInt(parts[1], 10);
+
+        if (
+            Number.isNaN(hour) ||
+            Number.isNaN(minute) ||
+            !["AM", "PM"].includes(period)
+        ) {
+            return null;
+        }
+
+        if (period === "AM") {
+            /*
+             * 12:00 AM midnight hota hai.
+             */
+            if (hour === 12) {
+                hour = 0;
+            }
+        } else {
+            /*
+             * 12:00 PM noon hota hai.
+             */
+            if (hour !== 12) {
+                hour += 12;
+            }
+        }
+
+        return (hour * 60) + minute;
+    }
+
+
+    /*
+     * Single timing slot validate karega.
+     *
+     * 07:00 PM - 12:00 AM valid hoga.
+     * Close time ko next day maana jayega.
+     */
+    function validateTimeSlot(slot) {
+        const openSelect = slot.querySelector(
+            'select[name="open_time[]"]'
+        );
+
+        const closeSelect = slot.querySelector(
+            'select[name="close_time[]"]'
+        );
+
+        const errorBox = slot.querySelector(".time-slot-error");
+
+        if (!openSelect || !closeSelect) {
+            return true;
+        }
+
+        openSelect.classList.remove("field-error");
+        closeSelect.classList.remove("field-error");
+
+        if (errorBox) {
+            errorBox.textContent = "";
+            errorBox.classList.add("d-none");
+        }
+
+        const openTime = openSelect.value;
+        const closeTime = closeSelect.value;
+
+        if (!openTime || !closeTime) {
+            if (!openTime) {
+                openSelect.classList.add("field-error");
+            }
+
+            if (!closeTime) {
+                closeSelect.classList.add("field-error");
+            }
+
+            if (errorBox) {
+                errorBox.textContent =
+                    "Please select opening and closing time.";
+
+                errorBox.classList.remove("d-none");
+            }
+
+            return false;
+        }
+
+        const openMinutes = timeToMinutes(openTime);
+        let closeMinutes = timeToMinutes(closeTime);
+
+        if (openMinutes === null || closeMinutes === null) {
+            if (errorBox) {
+                errorBox.textContent = "Please select a valid timing.";
+                errorBox.classList.remove("d-none");
+            }
+
+            return false;
+        }
+
+        /*
+         * Same opening aur closing time allowed nahi hai.
+         *
+         * Example:
+         * 07:00 PM - 07:00 PM invalid.
+         *
+         * 24 hours ke liye checkbox use hoga.
+         */
+        if (openMinutes === closeMinutes) {
+            openSelect.classList.add("field-error");
+            closeSelect.classList.add("field-error");
+
+            if (errorBox) {
+                errorBox.textContent =
+                    "Opening and closing time cannot be the same. Select Open 24 Hours if the business stays open all day.";
+
+                errorBox.classList.remove("d-none");
+            }
+
+            return false;
+        }
+
+        /*
+         * Close time open time se chhota ho to closing next day hogi.
+         *
+         * Example:
+         *
+         * Open:  07:00 PM = 1140
+         * Close: 12:00 AM = 0
+         *
+         * 0 + 1440 = next day 12:00 AM
+         */
+        if (closeMinutes < openMinutes) {
+            closeMinutes += 24 * 60;
+        }
+
+        const duration = closeMinutes - openMinutes;
+
+        /*
+         * Duration zero ya 24 hours se zyada nahi honi chahiye.
+         */
+        if (duration <= 0 || duration >= (24 * 60)) {
+            openSelect.classList.add("field-error");
+            closeSelect.classList.add("field-error");
+
+            if (errorBox) {
+                errorBox.textContent =
+                    "Please select a valid business timing.";
+
+                errorBox.classList.remove("d-none");
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /*
+     * Saare timing slots validate karega.
+     */
+    function validateAllTimeSlots() {
+        const open24Hours = document.getElementById("open24Hours");
+
+        /*
+         * 24 Hours checked hai to Open/Close validation nahi hogi.
+         */
+        if (open24Hours && open24Hours.checked) {
+            return true;
+        }
+
+        const slots = document.querySelectorAll(".time-slot-item");
+
+        if (!slots.length) {
+            return false;
+        }
+
+        let valid = true;
+
+        slots.forEach(function (slot) {
+            if (!validateTimeSlot(slot)) {
+                valid = false;
+            }
+        });
+
+        return valid;
+    }
+
+
+    /* =====================================================
+       OPEN 24 HOURS
+    ===================================================== */
+
+    function toggleOpen24Hours() {
+        const checkbox = document.getElementById("open24Hours");
+        const wrapper = document.getElementById("timeSlotsWrapper");
+        const addTimeSlotButton = document.getElementById("addTimeSlot");
+
+        if (!checkbox || !wrapper) {
+            return;
+        }
+
+        const isOpen24Hours = checkbox.checked;
+
+        /*
+         * Checked hone par timing section hide hoga.
+         */
+        wrapper.style.display = isOpen24Hours ? "none" : "";
+
+        if (addTimeSlotButton) {
+            addTimeSlotButton.style.display =
+                isOpen24Hours ? "none" : "inline-block";
+        }
+
+        wrapper.querySelectorAll(
+            'select[name="open_time[]"], select[name="close_time[]"]'
+        ).forEach(function (field) {
+            field.disabled = isOpen24Hours;
+
+            if (isOpen24Hours) {
+                field.classList.remove("field-error");
+            }
+        });
+
+        wrapper.querySelectorAll(".time-slot-error")
+            .forEach(function (errorBox) {
+                errorBox.textContent = "";
+                errorBox.classList.add("d-none");
+            });
+    }
+
+
+    const open24HoursCheckbox =
+        document.getElementById("open24Hours");
+
+    if (open24HoursCheckbox) {
+        open24HoursCheckbox.addEventListener(
+            "change",
+            toggleOpen24Hours
+        );
+    }
+
+
+    /* =====================================================
+       STEP VALIDATION
+    ===================================================== */
+
+    function validateCurrentStep() {
+        const stepEl = document.querySelector(
+            '.wizard-step[data-step="' + currentStep + '"]'
+        );
+
+        if (!stepEl) {
+            return false;
+        }
+
+        clearStepErrors(stepEl);
+
+        let valid = true;
+
+        /*
+         * Disabled fields validate nahi honge.
+         */
+        stepEl.querySelectorAll(
+            "input[required]:not(:disabled), " +
+            "select[required]:not(:disabled), " +
+            "textarea[required]:not(:disabled)"
+        ).forEach(function (field) {
+
+            if (!String(field.value).trim()) {
+                showFieldError(field, "This field is required");
+                valid = false;
+            }
+        });
+
+
+        /*
+         * Contact details validation.
+         */
+        if (currentStep === 2) {
+            const mobile = stepEl.querySelector(
+                'input[name="mobile_numbers[]"]'
+            );
+
+            const email = stepEl.querySelector(
+                'input[name="extra_emails[]"]'
+            );
+
+            if (
+                mobile &&
+                !/^[6-9][0-9]{9}$/.test(mobile.value.trim())
+            ) {
+                showFieldError(
+                    mobile,
+                    "Enter valid 10 digit mobile number"
+                );
+
+                valid = false;
+            }
+
+            if (
+                email &&
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                    email.value.trim()
+                )
+            ) {
+                showFieldError(
+                    email,
+                    "Enter valid email address"
+                );
+
+                valid = false;
+            }
+        }
+
+
+        /*
+         * Business days aur timing validation.
+         */
+        if (currentStep === 3) {
+            const selectedDays = stepEl.querySelectorAll(
+                'input[name="business_days[]"]:checked'
+            );
+
+            if (selectedDays.length === 0) {
+                const daysWrapper =
+                    stepEl.querySelector(".weekday-list");
+
+                if (daysWrapper) {
+                    const error = document.createElement("div");
+
+                    error.className = "error-text";
+                    error.innerText =
+                        "Please select at least one business day.";
+
+                    daysWrapper.insertAdjacentElement(
+                        "afterend",
+                        error
+                    );
+                }
+
+                valid = false;
+            }
+
+            if (!validateAllTimeSlots()) {
+                valid = false;
+            }
+        }
+
+
+        /*
+         * Category validation.
+         */
+        if (
+            currentStep === 4 &&
+            typeof selectedCategory !== "undefined" &&
+            !selectedCategory
+        ) {
+            const categoryField =
+                document.getElementById("categorySearch");
+
+            showFieldError(
+                categoryField,
+                "Please select category from list"
+            );
+
+            valid = false;
+        }
+
+        return valid;
+    }
+
+
+    document.querySelectorAll(".next-step").forEach(function (button) {
+        button.addEventListener("click", function () {
+
+            if (!validateCurrentStep()) {
+                return;
+            }
+
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        });
+    });
+
+
+    document.querySelectorAll(".prev-step").forEach(function (button) {
+        button.addEventListener("click", function () {
+
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        });
+    });
+
+
+    /* =====================================================
+       PINCODE
+    ===================================================== */
+
+    const pincodeInput = document.getElementById("pincode");
+
+    if (pincodeInput) {
+        pincodeInput.addEventListener("keyup", async function () {
+
+           const match = this.value.match(/^\s*(\d{6})\s*$/);
+
+if (!match) {
+    return;
+}
+
+const pin = match[1];
+
+            try {
+                const response = await fetch(
+                    "/admin/pincode/" + pin
+                );
+
+                const data = await response.json();
+
+                const cityField =
+                    document.getElementById("city");
+
+                const stateField =
+                    document.getElementById("state");
+
+                const areaDropdown =
+                    document.getElementById("area");
+
+                const latitudeField =
+                    document.getElementById("latitude");
+
+                const longitudeField =
+                    document.getElementById("longitude");
+
+                if (cityField) {
+                    cityField.value = "";
+                }
+
+                if (stateField) {
+                    stateField.value = "";
+                }
+
+                if (areaDropdown) {
+                    areaDropdown.innerHTML =
+                        '<option value="">Select Area</option>';
+                }
+
+                if (latitudeField) {
+                    latitudeField.value = "";
+                }
+
+                if (longitudeField) {
+                    longitudeField.value = "";
+                }
+
+                if (
+                    data &&
+                    data[0] &&
+                    data[0].Status === "Success" &&
+                    data[0].PostOffice &&
+                    data[0].PostOffice.length > 0
+                ) {
+                    const postOffices = data[0].PostOffice;
+
+                    if (cityField) {
+                        cityField.value =
+                            postOffices[0].District || "";
+                    }
+
+                    if (stateField) {
+                        stateField.value =
+                            postOffices[0].State || "";
+                    }
+
+                    if (areaDropdown) {
+                        postOffices.forEach(function (office) {
+                            const option =
+                                document.createElement("option");
+
+                            option.value = office.Name;
+                            option.textContent = office.Name;
+
+                            areaDropdown.appendChild(option);
+                        });
+                    }
+
+                    const searchText =
+                        pin + ", " +
+                        (cityField ? cityField.value : "") + ", " +
+                        (stateField ? stateField.value : "") +
+                        ", India";
+
+                    try {
+                        const geoResponse = await fetch(
+                            "{{ route('geocode.address') }}" +
+                            "?address=" +
+                            encodeURIComponent(searchText)
+                        );
+
+                        const locationData =
+                            await geoResponse.json();
+
+                        if (
+                            locationData.latitude &&
+                            locationData.longitude
+                        ) {
+                            if (latitudeField) {
+                                latitudeField.value =
+                                    locationData.latitude;
+                            }
+
+                            if (longitudeField) {
+                                longitudeField.value =
+                                    locationData.longitude;
+                            }
+                        }
+
+                    } catch (error) {
+                        console.error(
+                            "Geocoding error:",
+                            error
+                        );
+                    }
+
+                } else {
+                    alert("Invalid Pincode");
+                }
+
+            } catch (error) {
+                console.error(
+                    "Error fetching pincode data:",
+                    error
+                );
+            }
+        });
+    }
+
+
+    /* =====================================================
+       PHONE ROWS
+    ===================================================== */
+
+    function createPhoneRow(name, wrapperClass) {
+        return `
+            <div class="phone-group ${wrapperClass}">
+                <select
+                    class="form-select country-code"
+                    name="${name}_country_code[]"
+                >
+                    <option value="+91">🇮🇳 +91</option>
+                </select>
+
+                <input
+                    type="text"
+                    class="form-control"
+                    name="${name}_numbers[]"
+                    placeholder="${name.replace("_", " ")}"
+                >
+
+                <button
+                    type="button"
+                    class="input-remove remove-row"
+                >
+                    ×
+                </button>
+            </div>
+        `;
+    }
+
+
+    const addMobileButton =
+        document.getElementById("addMobileNumber");
+
+    if (addMobileButton) {
+        addMobileButton.addEventListener("click", function () {
+            const wrapper =
+                document.getElementById("mobileNumbersWrapper");
+
+            if (wrapper) {
+                wrapper.insertAdjacentHTML(
+                    "beforeend",
+                    createPhoneRow(
+                        "mobile",
+                        "mobile-number-item"
+                    )
+                );
+            }
+        });
+    }
+
+
+    const addWhatsappButton =
+        document.getElementById("addWhatsappNumber");
+
+    if (addWhatsappButton) {
+        addWhatsappButton.addEventListener("click", function () {
+            const wrapper =
+                document.getElementById("whatsappNumbersWrapper");
+
+            if (wrapper) {
+                wrapper.insertAdjacentHTML(
+                    "beforeend",
+                    createPhoneRow(
+                        "whatsapp",
+                        "whatsapp-number-item"
+                    )
+                );
+            }
+        });
+    }
+
+
+    const addLandlineButton =
+        document.getElementById("addLandlineNumber");
+
+    if (addLandlineButton) {
+        addLandlineButton.addEventListener("click", function () {
+            const wrapper =
+                document.getElementById("landlineNumbersWrapper");
+
+            if (wrapper) {
+                wrapper.insertAdjacentHTML(
+                    "beforeend",
+                    createPhoneRow(
+                        "landline",
+                        "landline-number-item"
+                    )
+                );
+            }
+        });
+    }
+
+
+    const addAnotherEmail =
+        document.getElementById("addAnotherEmail");
+
+    /*
+     * Ye tab chalega jab addAnotherEmail koi button/link ho.
+     */
+    if (
+        addAnotherEmail &&
+        (
+            addAnotherEmail.tagName === "BUTTON" ||
+            addAnotherEmail.tagName === "A"
+        )
+    ) {
+        addAnotherEmail.addEventListener("click", function () {
+            const wrapper =
+                document.getElementById("emailsWrapper");
+
+            if (wrapper) {
+                wrapper.insertAdjacentHTML(
+                    "beforeend",
+                    `
+                    <div class="phone-group email-item">
+                        <input
+                            type="email"
+                            class="form-control"
+                            name="extra_emails[]"
+                            placeholder="Email"
+                        >
+
+                        <button
+                            type="button"
+                            class="input-remove remove-row"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    `
+                );
+            }
+        });
+    }
+
+
+    document.addEventListener("click", function (event) {
+        if (event.target.classList.contains("remove-row")) {
+            const row = event.target.closest(".phone-group");
+
+            if (row) {
+                row.remove();
+            }
+        }
+    });
+
+
+    /* =====================================================
+       SAME AS MOBILE
+    ===================================================== */
+
+    const sameAsMobile =
+        document.getElementById("sameAsMobile");
+
+    if (sameAsMobile) {
+        sameAsMobile.addEventListener("change", function () {
+            const mobileInput = document.querySelector(
+                'input[name="mobile_numbers[]"]'
+            );
+
+            const whatsappInput =
+                document.querySelector(".whatsapp-input");
+
+            if (
+                this.checked &&
+                mobileInput &&
+                whatsappInput
+            ) {
+                whatsappInput.value = mobileInput.value;
+            } else if (whatsappInput) {
+                whatsappInput.value = "";
+            }
+        });
+    }
+
+
+    /* =====================================================
+       SELECT ALL DAYS
+    ===================================================== */
+
+    const selectAllDays =
+        document.getElementById("selectAllDays");
+
+    if (selectAllDays) {
+        selectAllDays.addEventListener("change", function () {
+            document.querySelectorAll(
+                'input[name="business_days[]"]'
+            ).forEach(function (day) {
+                day.checked = selectAllDays.checked;
+            });
+        });
+    }
+
+
+    /* =====================================================
+       ADD ANOTHER TIME SLOT
+    ===================================================== */
+
+    const addTimeSlotButton =
+        document.getElementById("addTimeSlot");
+
+    if (addTimeSlotButton) {
+        addTimeSlotButton.addEventListener("click", function () {
+            const wrapper =
+                document.getElementById("timeSlotsWrapper");
+
+            if (!wrapper) {
+                return;
+            }
+
+            wrapper.insertAdjacentHTML(
+                "beforeend",
+                `
+                <div class="time-slot-box time-slot-item">
+                    <div class="row">
+
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">
+                                Open at
+                            </label>
+
+                            <select
+                                class="form-select business-open-time"
+                                name="open_time[]"
+                            >
+                                <option value="">
+                                    Select Time
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">
+                                Close at
+                            </label>
+
+                            <select
+                                class="form-select business-close-time"
+                                name="close_time[]"
+                            >
+                                <option value="">
+                                    Select Time
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end mb-3">
+                            <button
+                                type="button"
+                                class="input-remove remove-time-slot w-100"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="time-slot-error error-text d-none"
+                    ></div>
+                </div>
+                `
+            );
+
+            const newlyAddedSlot =
+                wrapper.lastElementChild;
+
+            initializeBusinessTimeDropdowns(
+                newlyAddedSlot
+            );
+        });
+    }
+
+
+    /*
+     * Time slot remove.
+     */
+    document.addEventListener("click", function (event) {
+        if (
+            !event.target.classList.contains(
+                "remove-time-slot"
+            )
+        ) {
+            return;
+        }
+
+        const allSlots =
+            document.querySelectorAll(".time-slot-item");
+
+        /*
+         * Kam se kam ek timing slot rahega.
+         */
+        if (allSlots.length <= 1) {
+            return;
+        }
+
+        const slot =
+            event.target.closest(".time-slot-item");
+
+        if (slot) {
+            slot.remove();
+        }
+    });
+
+
+    /*
+     * User time change kare to us slot ka error clear ho.
+     */
+    document.addEventListener("change", function (event) {
+        if (
+            !event.target.matches(
+                ".business-open-time, .business-close-time"
+            )
+        ) {
+            return;
+        }
+
+        const slot =
+            event.target.closest(".time-slot-item");
+
+        if (!slot) {
+            return;
+        }
+
+        event.target.classList.remove("field-error");
+
+        const errorBox =
+            slot.querySelector(".time-slot-error");
+
+        if (errorBox) {
+            errorBox.textContent = "";
+            errorBox.classList.add("d-none");
+        }
+    });
+
+
+    /* =====================================================
+       PHOTO PREVIEW
+    ===================================================== */
+
+    document.querySelectorAll(".photo-input")
+        .forEach(function (input) {
+
+            input.addEventListener("change", function () {
+                const file = this.files[0];
+
+                const parent =
+                    this.closest(".photo-upload-card");
+
+                if (!parent) {
+                    return;
+                }
+
+                const preview =
+                    parent.querySelector(".preview-image");
+
+                const text =
+                    parent.querySelector(".upload-text");
+
+                if (!file || !preview || !text) {
+                    return;
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    preview.src = event.target.result;
+                    preview.classList.remove("d-none");
+                    text.classList.add("d-none");
+                };
+
+                reader.readAsDataURL(file);
+            });
+        });
+
+
+    /* =====================================================
+       SKIP PHOTOS
+    ===================================================== */
+
+    const skipPhotos =
+        document.getElementById("skipPhotos");
+
+    if (skipPhotos) {
+        skipPhotos.addEventListener("click", function () {
+            const form =
+                document.getElementById("multiStepForm");
+
+            if (form) {
+                form.submit();
+            }
+        });
+    }
+
+
+    /* =====================================================
+       INITIALIZATION
+    ===================================================== */
+
+   initializeBusinessTimeDropdowns();
+toggleOpen24Hours();
+
+
+/* =====================================================
+   PREVENT HALF-CUT FORM FIELDS
+===================================================== */
+
+const formScrollBox = document.querySelector(
+    ".free-listing-form-scroll"
+);
+
+if (formScrollBox && window.innerWidth >= 992) {
+
+    let scrollTimer = null;
+    let lastScrollTop = formScrollBox.scrollTop;
+    let automaticScrolling = false;
+
+    formScrollBox.addEventListener("scroll", function () {
+
+        if (automaticScrolling) {
+            return;
+        }
+
+        clearTimeout(scrollTimer);
+
+        scrollTimer = setTimeout(function () {
+
+            const currentScrollTop = formScrollBox.scrollTop;
+
+            const scrollingDown =
+                currentScrollTop >= lastScrollTop;
+
+            lastScrollTop = currentScrollTop;
+
+            const containerRect =
+                formScrollBox.getBoundingClientRect();
+
+            const activeStep = formScrollBox.querySelector(
+                ".wizard-step.active"
+            );
+
+            if (!activeStep) {
+                return;
+            }
+
+            const fieldBlocks = activeStep.querySelectorAll(
+                ":scope > .mb-3, " +
+                ":scope > .row, " +
+                ":scope > .wizard-actions"
+            );
+
+            let targetBlock = null;
+
+            fieldBlocks.forEach(function (block) {
+
+                if (targetBlock) {
+                    return;
+                }
+
+                const blockRect =
+                    block.getBoundingClientRect();
+
+                if (
+                    scrollingDown &&
+                    blockRect.top < containerRect.bottom &&
+                    blockRect.bottom > containerRect.bottom
+                ) {
+                    targetBlock = block;
+                }
+
+                if (
+                    !scrollingDown &&
+                    blockRect.top < containerRect.top &&
+                    blockRect.bottom > containerRect.top
+                ) {
+                    targetBlock = block;
+                }
+            });
+
+            if (!targetBlock) {
+                return;
+            }
+
+            automaticScrolling = true;
+
+            const targetRect =
+                targetBlock.getBoundingClientRect();
+
+            let scrollAmount = 0;
+
+            if (scrollingDown) {
+                scrollAmount =
+                    targetRect.top -
+                    containerRect.top -
+                    20;
+            } else {
+                scrollAmount =
+                    targetRect.bottom -
+                    containerRect.bottom +
+                    20;
+            }
+
+            formScrollBox.scrollBy({
+                top: scrollAmount,
+                behavior: "smooth"
+            });
+
+            setTimeout(function () {
+                automaticScrolling = false;
+                lastScrollTop = formScrollBox.scrollTop;
+            }, 450);
+
+        }, 150);
+    });
+}
+
+
+});
+
+</script>
+    <style>
+        .search-icon-input {
+            position: relative;
+        }
+
+        .category-search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-top: 6px;
+            z-index: 999;
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .category-result-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .category-result-item:hover {
+            background: #f8f9fa;
+        }
+
+        .category-tags,
+        .suggested-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .selected-tag,
+        .selected-main-tag,
+        .suggested-tag {
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .selected-main-tag {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+        .selected-tag {
+            background: #198754;
+            color: #fff;
+        }
+
+        .suggested-tag {
+            background: #f1f3f5;
+            border: 1px solid #ddd;
+            color: #222;
+        }
+
+        .remove-tag {
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        const categories = @json($categories);
+        const subcategories = @json($subcategories);
+
+        let selectedCategory = null;
+        let selectedSubcategories = [];
+
+        const categorySearch = document.getElementById('categorySearch');
+        const categorySearchResults = document.getElementById('categorySearchResults');
+        const selectedMainCategory = document.getElementById('selectedMainCategory');
+        const selectedCategories = document.getElementById('selectedCategories');
+        const suggestedCategories = document.getElementById('suggestedCategories');
+        const hiddenCategoryInputs = document.getElementById('hiddenCategoryInputs');
+
+        categorySearch.addEventListener('keyup', function() {
+            let keyword = this.value.toLowerCase().trim();
+
+            if (keyword === '') {
+                categorySearchResults.style.display = 'none';
+                categorySearchResults.innerHTML = '';
+                return;
+            }
+
+            let filtered = categories.filter(category =>
+                category.name.toLowerCase().includes(keyword)
+            );
+
+            let html = '';
+
+            if (filtered.length > 0) {
+                filtered.forEach(category => {
+                    html += `
+                    <div class="category-result-item"
+                         data-id="${category.id}"
+                         data-name="${category.name}">
+                        ${category.name}
+                    </div>
+                `;
+                });
+            } else {
+                html = `<div class="category-result-item">No category found</div>`;
+            }
+
+            categorySearchResults.innerHTML = html;
+            categorySearchResults.style.display = 'block';
+        });
+
+        document.addEventListener('click', function(e) {
+
+            if (e.target.classList.contains('category-result-item') && e.target.dataset.id) {
+                const id = e.target.dataset.id;
+                const name = e.target.dataset.name;
+
+                selectedCategory = {
+                    id,
+                    name
+                };
+                selectedSubcategories = [];
+
+                categorySearch.value = name;
+                categorySearchResults.style.display = 'none';
+
+                renderSelectedCategory();
+               
+                renderHiddenInputs();
+            }
+
+            if (e.target.classList.contains('suggested-tag')) {
+                const id = e.target.dataset.id;
+                const name = e.target.dataset.name;
+
+                let exists = selectedSubcategories.some(item => item.id == id);
+
+                if (!exists) {
+                    selectedSubcategories.push({
+                        id,
+                        name
+                    });
+                  
+                    renderHiddenInputs();
+                }
+            }
+
+            if (e.target.classList.contains('remove-tag')) {
+                const id = e.target.dataset.id;
+
+                selectedSubcategories = selectedSubcategories.filter(item => item.id != id);
+
+              
+                renderHiddenInputs();
+            }
+
+            if (!e.target.closest('.search-icon-input')) {
+                categorySearchResults.style.display = 'none';
+            }
+        });
+
+        function renderSelectedCategory() {
+            if (!selectedCategory) {
+                selectedMainCategory.innerHTML = '';
+                return;
+            }
+
+            selectedMainCategory.innerHTML = `
+            <span class="selected-main-tag">${selectedCategory.name}</span>
+        `;
+        }
+
+      
+
+       
+
+        function renderHiddenInputs() {
+            let html = '';
+
+            if (selectedCategory) {
+                html += `<input type="hidden" name="category_id" value="${selectedCategory.id}">`;
+            }
+
+            selectedSubcategories.forEach(sub => {
+                html += `<input type="hidden" name="subcategory_ids[]" value="${sub.id}">`;
+            });
+
+            hiddenCategoryInputs.innerHTML = html;
+        }
+    </script>
+
+
+
+<div class="modal fade guest-chat-modal" id="guestChatModal" tabindex="-1" role="dialog" aria-labelledby="guestChatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="guestChatModalLabel">@lang('Chat with owner')</h5>
+<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+</button>
+            </div>
+            <div class="modal-body">
+                <div id="guestChatLoading" class="guest-chat-loading d-flex align-items-center justify-content-center is-hidden">
+                    <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                    <span class="ml-2">@lang('Checking your session...')</span>
+                </div>
+
+                <div class="guest-chat-step d-none" data-step="1">
+                    <div class="guest-chat-alert alert alert-danger d-none"></div>
+                   <form id="guestChatStartForm">
+    @csrf
+
+    <input type="hidden" name="listing_id" value="0">
+
+   <div class="form-group">
+    <label>@lang('Your name')</label>
+    <input type="text"
+           name="name"
+           class="form-control form-control-sm"
+           value="{{ trim((auth()->user()->first_name ?? '') . ' ' . (auth()->user()->last_name ?? '')) }}"
+           readonly>
+</div>
+
+    <div class="form-group">
+        <label>@lang('Your email')</label>
+        <input type="email" name="email" class="form-control form-control-sm"
+               value="{{ auth()->user()->email ?? '' }}" readonly>
+    </div>
+
+    <div class="form-group">
+        <label>@lang('Phone (optional)')</label>
+        <input type="text" name="phone" class="form-control form-control-sm">
+    </div>
+
+    <div class="form-group">
+        <label>@lang('Message')</label>
+        <textarea name="first_message" class="form-control form-control-sm" rows="3" maxlength="1000"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn__base w-100">@lang('Start Chat')</button>
+</form>
+                </div>
+
+                <div class="guest-chat-step d-none" data-step="2">
+                    <div class="guest-chat-alert alert alert-danger d-none"></div>
+                    <p class="text-muted mb-3">@lang('We sent a 6-digit code to') <strong id="guestChatEmailPreview"></strong></p>
+                    <form id="guestChatVerifyForm">
+                        @csrf
+                      
+                        <div class="form-group">
+                            <label>@lang('Verification code')</label>
+                            <input type="text" name="otp" class="form-control form-control-sm guest-chat-otp" maxlength="6" required>
+                        </div>
+                        <button type="submit" class="btn btn__base w-100">@lang('Verify & start chat')</button>
+                        <button type="button" id="guestChatResend" class="btn btn-link btn-sm mt-2">@lang('Resend code')</button>
+                    </form>
+                </div>
+
+                <div class="guest-chat-step d-none" data-step="3">
+                    <div class="guest-chat-head d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                        
+                            <div class="guest-chat-status" id="guestChatOwnerStatus"></div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-light guest-chat-sound" id="guestChatSoundToggle">
+                            <i class="las la-volume-up"></i>
+                            <span>@lang('Sound on')</span>
+                        </button>
+                    </div>
+                    <div class="guest-chat-note text-muted mb-2" id="guestChatNote">@lang('Replies may take a few minutes.')</div>
+                    <div id="guestChatMessages" class="guest-chat-messages mb-3">
+                        <div class="text-center text-muted" id="guestChatEmpty">@lang('No messages yet')</div>
+                    </div>
+                    <form id="guestChatSendForm">
+                        @csrf
+                        <div class="input-group">
+                            <textarea name="body" id="guestChatMessage" class="form-control form-control-sm" rows="2" placeholder="@lang('Type your message')"></textarea>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn__base">@lang('Send')</button>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">@lang('Press Enter to send, Shift + Enter for new line')</small>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+<style>
+    	
+    .guest-chat-messages{
+        max-height: 280px;
+        overflow-y: auto;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 12px;
+        background: #fafafa;
+    }
+    .guest-chat-message{
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+    .guest-chat-message.is-guest{
+        align-items: flex-end;
+    }
+    .guest-chat-message .bubble{
+        max-width: 75%;
+        padding: 8px 12px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    .guest-chat-message.is-guest .bubble{
+        background: #e8f7ff;
+        border-color: #cfe9f6;
+    }
+    .guest-chat-message .meta{
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+    .guest-chat-modal .modal-dialog{
+        max-width: 520px;
+    }
+    .guest-chat-modal .modal-body{
+        padding: 20px;
+    }
+    .guest-chat-modal .form-group label{
+        font-size: 0.9rem;
+        margin-bottom: 0.35rem;
+    }
+    .guest-chat-loading{
+        min-height: 220px;
+        font-weight: 500;
+        color: #495057;
+    }
+    .guest-chat-loading.is-hidden{
+        display: none !important;
+    }
+    .guest-chat-head{
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 8px;
+    }
+    .guest-chat-owner{
+        font-weight: 600;
+    }
+    .guest-chat-status{
+        font-size: 12px;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .guest-chat-status .dot{
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        background: #adb5bd;
+    }
+    .guest-chat-status .dot.online{
+        background: #2ecc71;
+    }
+    .guest-chat-status .dot.offline{
+        background: #ff6b6b;
+    }
+    .guest-chat-note{
+        font-size: 12px;
+    }
+    .guest-chat-sound{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .guest-chat-otp{
+        letter-spacing: 6px;
+        text-align: center;
+        font-weight: 600;
+    }
+    .guest-chat-modal .input-group .form-control{
+        border-right: 0;
+    }
+    .guest-chat-modal .input-group-append .btn{
+        border-radius: 0 .25rem .25rem 0;
+    }
+    .guest-chat-modal .input-group{
+        border: 1px solid #e3e7ed;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .guest-chat-modal .input-group .form-control{
+        border: 0;
+        box-shadow: none;
+    }
+    .guest-chat-modal .input-group-append .btn{
+        border-radius: 0;
+    }
+</style>
+
+@push('js')
+    
+<script>
+
+    
+(function($){
+    "use strict";
+
+    var listingId = 0;
+    var ownerName = "Admin";
+
+    var $modal = $('#guestChatModal');
+    var $steps = $modal.find('.guest-chat-step');
+    var $messages = $('#guestChatMessages');
+
+    var conversationId = null;
+    var afterId = 0;
+    var polling = null;
+    var guestEmail = "{{ auth()->user()->email ?? '' }}";
+    var csrfToken = '{{ csrf_token() }}';
+
+    var emptyText = @json(__('No messages yet'));
+    var genericError = @json(__('Something went wrong. Please try again.'));
+    var textYou = @json(__('You'));
+    var soundUrl = @json(asset($themeAsset.'sound/message.wav'));
+    var soundAudio = null;
+    var soundEnabled = true;
+
+    function showStep(step){
+        $steps.addClass('d-none');
+        $steps.filter('[data-step="' + step + '"]').removeClass('d-none');
+        $modal.find('.guest-chat-alert').addClass('d-none').text('');
+        $('#guestChatLoading').addClass('is-hidden');
+    }
+
+    function showError(step, message){
+        var $alert = $steps.filter('[data-step="' + step + '"]').find('.guest-chat-alert');
+        $alert.removeClass('d-none').text(message || genericError);
+    }
+
+    function resetChat(){
+        $('#guestChatEmailPreview').text('');
+        $messages.html('<div class="text-center text-muted" id="guestChatEmpty">' + emptyText + '</div>');
+        conversationId = null;
+        afterId = 0;
+        stopPolling();
+    }
+
+    function scrollToBottom(){
+        $messages.scrollTop($messages.prop('scrollHeight'));
+    }
+
+    function appendMessage(message){
+        $('#guestChatEmpty').remove();
+
+        var isGuest = message.sender_type === 'guest' || message.sender_type === 'user';
+        var label = isGuest ? textYou : ownerName;
+
+        var html =
+            '<div class="guest-chat-message ' + (isGuest ? 'is-guest' : 'is-owner') + '" data-id="' + message.id + '">' +
+                '<div class="bubble"></div>' +
+                '<div class="meta"><span class="mr-2">' + label + '</span>' + (message.created_at || '') + '</div>' +
+            '</div>';
+
+        var $node = $(html);
+        $node.find('.bubble').text(message.body);
+        $messages.append($node);
+
+        afterId = message.id;
+        scrollToBottom();
+    }
+
+    function fetchMessages(){
+        if (!conversationId) return;
+
+        $.get('{{ route('guest-chat.messages') }}', {
+            conversation_id: conversationId,
+            after_id: afterId
+        }).done(function(resp){
+            if (!resp || !resp.ok) return;
+
+            if (resp.messages && resp.messages.length) {
+                resp.messages.forEach(function(message){
+                    appendMessage(message);
+                });
+            }
+        });
+    }
+
+    function startPolling(){
+        if (polling) return;
+        polling = setInterval(fetchMessages, 2000);
+    }
+
+    function stopPolling(){
+        if (polling) {
+            clearInterval(polling);
+            polling = null;
+        }
+    }
+
+    function parseError(xhr){
+        if (xhr.responseJSON) {
+            if (xhr.responseJSON.message) return xhr.responseJSON.message;
+            if (xhr.responseJSON.errors) {
+                return Object.values(xhr.responseJSON.errors).flat().join(' ');
+            }
+        }
+        return genericError;
+    }
+
+    function getSound(){
+        if (!soundAudio) {
+            soundAudio = new Audio(soundUrl);
+            soundAudio.preload = 'auto';
+        }
+        return soundAudio;
+    }
+
+    function syncSoundToggle(){
+        var $btn = $('#guestChatSoundToggle');
+        if (!$btn.length) return;
+
+        if (soundEnabled) {
+            $btn.find('span').text(@json(__('Sound on')));
+            $btn.find('i').removeClass('la-volume-mute').addClass('la-volume-up');
+        } else {
+            $btn.find('span').text(@json(__('Sound off')));
+            $btn.find('i').removeClass('la-volume-up').addClass('la-volume-mute');
+        }
+    }
+
+    function createAdminChat(){
+      var name = "{{ trim((auth()->user()->first_name ?? '') . ' ' . (auth()->user()->last_name ?? '')) }}";
+        var email = "{{ auth()->user()->email ?? '' }}";
+
+        $('#guestChatStartForm input[name=name]').val(name);
+        $('#guestChatStartForm input[name=email]').val(email);
+
+        $.ajax({
+            method: 'POST',
+            url: '{{ route('guest-chat.start') }}',
+            data: {
+               
+                admin_chat: 1,
+                name: name,
+                email: email,
+                phone: '',
+                first_message: 'Free listing user chat',
+                _token: csrfToken
+            }
+        }).done(function(resp){
+            if (resp && resp.ok) {
+                guestEmail = email;
+                conversationId = resp.conversation_id || null;
+
+                if (conversationId) {
+                    showStep(3);
+                    fetchMessages();
+                    startPolling();
+                } else {
+                    $('#guestChatEmailPreview').text(guestEmail);
+                    showStep(2);
+                }
+            } else {
+                showStep(1);
+            }
+        }).fail(function(xhr){
+            showStep(1);
+            showError(1, parseError(xhr));
+        });
+    }
+
+    $('#guestChatStartForm').on('submit', function(e){
+        e.preventDefault();
+
+        var $form = $(this);
+        var data = {
+            listing_id: 0,
+            admin_chat: 1,
+            name: $form.find('input[name=name]').val(),
+            email: $form.find('input[name=email]').val(),
+            phone: $form.find('input[name=phone]').val(),
+            first_message: $form.find('textarea[name=first_message]').val(),
+            _token: csrfToken
+        };
+
+        $.ajax({
+            method: 'POST',
+            url: '{{ route('guest-chat.start') }}',
+            data: data
+        }).done(function(resp){
+            if (resp && resp.ok) {
+                guestEmail = data.email;
+                conversationId = resp.conversation_id || null;
+
+                if (conversationId) {
+                    showStep(3);
+                    fetchMessages();
+                    startPolling();
+                } else {
+                    $('#guestChatEmailPreview').text(guestEmail);
+                    showStep(2);
+                }
+            }
+        }).fail(function(xhr){
+            showError(1, parseError(xhr));
+        });
+    });
+
+    $('#guestChatVerifyForm').on('submit', function(e){
+        e.preventDefault();
+
+        $.ajax({
+            method: 'POST',
+            url: '{{ route('guest-chat.verify') }}',
+            data: {
+                listing_id: 0,
+                admin_chat: 1,
+                email: guestEmail,
+                otp: $(this).find('input[name=otp]').val(),
+                _token: csrfToken
+            }
+        }).done(function(resp){
+            if (resp && resp.ok) {
+                conversationId = resp.conversation_id;
+                showStep(3);
+                fetchMessages();
+                startPolling();
+            }
+        }).fail(function(xhr){
+            showError(2, parseError(xhr));
+        });
+    });
+
+    $('#guestChatSendForm').on('submit', function(e){
+        e.preventDefault();
+
+        var body = $('#guestChatMessage').val().trim();
+        if (!body || !conversationId) return;
+
+        $.ajax({
+            method: 'POST',
+            url: '{{ route('guest-chat.send') }}',
+            data: {
+                conversation_id: conversationId,
+                body: body,
+                _token: csrfToken
+            }
+        }).done(function(resp){
+            if (resp && resp.ok) {
+                $('#guestChatMessage').val('');
+                appendMessage(resp.message);
+            }
+        });
+    });
+
+    $('#guestChatMessage').on('keydown', function(e){
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            $('#guestChatSendForm').submit();
+        }
+    });
+
+    $('#guestChatSoundToggle').on('click', function(){
+        soundEnabled = !soundEnabled;
+        syncSoundToggle();
+    });
+
+    $modal.on('hidden.bs.modal', function(){
+        window.guestChatActive = false;
+        stopPolling();
+    });
+
+   $modal.on('shown.bs.modal', function(){
+    window.guestChatActive = true;
+});
+$(document).on('click', '#openAdminChat', function(e){
+    e.preventDefault();
+
+    resetChat();
+    syncSoundToggle();
+
+    $steps.addClass('d-none');
+    $('#guestChatLoading').removeClass('is-hidden');
+
+    if ($.fn.modal) {
+        $('#guestChatModal').modal('show');
+    } else {
+        $('#guestChatModal').addClass('show').show();
+        $('body').addClass('modal-open');
+        $('<div class="modal-backdrop fade show"></div>').appendTo(document.body);
+    }
+
+    setTimeout(function(){
+        createAdminChat();
+    }, 300);
+});
+})(jQuery);
+</script>
+
+
+@endpush
+
+<style>
+    body:has(.free-listing-page) a[href*="wa.me"],
+body:has(.free-listing-page) a[href*="whatsapp"],
+body:has(.free-listing-page) .whatsapp-btn,
+body:has(.free-listing-page) .whatsapp-float,
+body:has(.free-listing-page) .floating-whatsapp,
+body:has(.free-listing-page) .floating-contact,
+body:has(.free-listing-page) .float-whatsapp {
+    display: none !important;
+}
+
+/* only free listing page */
+.free-listing-page ~ .whatsapp-btn,
+.free-listing-page ~ .whatsapp-float,
+.free-listing-page ~ .floating-whatsapp,
+.free-listing-page ~ a[href*="wa.me"],
+.free-listing-page ~ a[href*="whatsapp"]{
+    display: none;
+}
+
+.free-listing-chat-float {
+    position: fixed;
+    right: 15px;
+    bottom: 150px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: #25d366;
+    color: #fff;
+    border: 0;
+    z-index: 9999;
+}
+
+</style>
+
+<button type="button" id="freeListingChatFloat" class="free-listing-chat-float">
+    <i class="las la-comments"></i>
+</button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (!document.querySelector('.free-listing-page')) return;
+
+    document.querySelectorAll(
+        'a[href*="wa.me"], a[href*="whatsapp"], .whatsapp-btn, .whatsapp-float, .floating-whatsapp, .float-whatsapp'
+    ).forEach(function(el){
+        el.remove();
+    });
+
+    const chatBtn = document.getElementById('freeListingChatFloat');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            document.getElementById('openAdminChat')?.click();
+        });
+    }
+});
+</script> 
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const listingForm = document.getElementById('multiStepForm');
+
+    if (!listingForm) {
+        return;
+    }
+
+    let aiGenerated = false;
+    let aiRequestRunning = false;
+    let finalSubmitAllowed = false;
+
+    function getSelectedCategoryName() {
+        if (
+            typeof selectedCategory !== 'undefined' &&
+            selectedCategory &&
+            selectedCategory.name
+        ) {
+            return selectedCategory.name;
+        }
+
+        const categorySearch = document.getElementById('categorySearch');
+
+        return categorySearch ? categorySearch.value.trim() : '';
+    }
+
+    function getSelectedSubcategoryNames() {
+        if (
+            typeof selectedSubcategories !== 'undefined' &&
+            Array.isArray(selectedSubcategories)
+        ) {
+            return selectedSubcategories
+                .map(function (subcategory) {
+                    return subcategory.name || '';
+                })
+                .filter(Boolean);
+        }
+
+        return [];
+    }
+
+    function getCheckedValues(name) {
+        return Array.from(
+            document.querySelectorAll(
+                'input[name="' + name + '[]"]:checked'
+            )
+        ).map(function (input) {
+            return input.value;
+        });
+    }
+
+    function getSelectValues(name) {
+        return Array.from(
+            document.querySelectorAll(
+                'select[name="' + name + '[]"]:not(:disabled)'
+            )
+        ).map(function (select) {
+            return select.value;
+        }).filter(Boolean);
+    }
+
+    function buildAiPayload() {
+        const token = listingForm.querySelector(
+            'input[name="_token"]'
+        );
+
+        const fieldValue = function (selector) {
+            const field = listingForm.querySelector(selector);
+            return field ? field.value.trim() : '';
+        };
+
+        return {
+            _token: token ? token.value : '',
+
+            name: fieldValue('input[name="name"]'),
+            established_year: fieldValue(
+                'input[name="established_year"]'
+            ),
+
+            plot_no: fieldValue('input[name="plot_no"]'),
+            building_name: fieldValue(
+                'input[name="building_name"]'
+            ),
+            street_name: fieldValue(
+                'input[name="street_name"]'
+            ),
+            landmark: fieldValue('input[name="landmark"]'),
+
+            pincode: fieldValue('input[name="pincode"]'),
+            area: fieldValue('select[name="area"]'),
+            location_id: fieldValue(
+                'select[name="location_id"]'
+            ),
+            city: fieldValue('input[name="city"]'),
+            state: fieldValue('input[name="state"]'),
+
+            category_id: fieldValue(
+                'input[name="category_id"]'
+            ),
+            category_name: getSelectedCategoryName(),
+            subcategories: getSelectedSubcategoryNames(),
+
+            business_days: getCheckedValues('business_days'),
+            open_time: getSelectValues('open_time'),
+            close_time: getSelectValues('close_time'),
+
+            open_24_hours: document.getElementById('open24Hours')
+                ?.checked ? 1 : 0
+        };
+    }
+
+    function hasMinimumAiData(payload) {
+        return Boolean(
+            payload.name &&
+            payload.city &&
+            payload.category_name
+        );
+    }
+
+    function setHiddenFaqs(faqs) {
+        const faqContainer =
+            document.getElementById('autoFaqFields');
+
+        if (!faqContainer) {
+            return;
+        }
+
+        faqContainer.innerHTML = '';
+
+        if (!Array.isArray(faqs)) {
+            return;
+        }
+
+        faqs.forEach(function (faq) {
+            const question =
+                String(faq.question || '').trim();
+
+            const answer =
+                String(faq.answer || '').trim();
+
+            if (!question || !answer) {
+                return;
+            }
+
+            const questionInput =
+                document.createElement('input');
+
+            questionInput.type = 'hidden';
+            questionInput.name = 'question[]';
+            questionInput.value = question;
+
+            const answerInput =
+                document.createElement('input');
+
+            answerInput.type = 'hidden';
+            answerInput.name = 'answer[]';
+            answerInput.value = answer;
+
+            faqContainer.appendChild(questionInput);
+            faqContainer.appendChild(answerInput);
+        });
+    }
+
+    function applyAiGeneratedData(data) {
+        document.getElementById('auto_meta_title').value =
+            data.meta_title || '';
+
+        document.getElementById('auto_meta_keywords').value =
+            data.meta_keywords || '';
+
+        document.getElementById('auto_meta_description').value =
+            data.meta_description || '';
+
+        document.getElementById('auto_details').value =
+            data.details || '';
+
+        setHiddenFaqs(data.faqs || []);
+
+        aiGenerated = true;
+    }
+
+    async function generateHiddenListingContent() {
+        if (aiRequestRunning) {
+            return false;
+        }
+
+        const payload = buildAiPayload();
+
+        if (!hasMinimumAiData(payload)) {
+            console.warn(
+                'Business name, city and category are required for AI generation.'
+            );
+
+            return false;
+        }
+
+        aiRequestRunning = true;
+
+        // Give up before the server in front of PHP does, so a slow provider
+        // surfaces as a failed generation the form recovers from rather than
+        // a raw 408 from LiteSpeed.
+        const aiTimeout = new AbortController();
+        const aiTimer = setTimeout(() => aiTimeout.abort(), 60000);
+
+        try {
+            const response = await fetch(
+                "{{ route('admin.listing.ai.generate') }}",
+                {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type':
+                            'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                    signal: aiTimeout.signal
+                }
+            );
+
+            const result = await response.json();
+
+            if (
+                !response.ok ||
+                !result ||
+                !result.status ||
+                !result.data
+            ) {
+                throw new Error(
+                    result.message ||
+                    'Automatic content generation failed.'
+                );
+            }
+
+            applyAiGeneratedData(result.data);
+
+            return true;
+
+        } catch (error) {
+            console.error(
+                'Listing AI generation error:',
+                error
+            );
+
+            return false;
+
+        } finally {
+            clearTimeout(aiTimer);
+            aiRequestRunning = false;
+        }
+    }
+
+    listingForm.addEventListener('submit', async function (event) {
+        if (finalSubmitAllowed) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const submitButton = listingForm.querySelector(
+            'button[type="submit"]'
+        );
+
+        const originalButtonHtml =
+            submitButton ? submitButton.innerHTML : '';
+
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.innerHTML =
+                '<span class="spinner-border spinner-border-sm mr-1"></span> Saving...';
+        }
+
+        /*
+         * Har final submit par latest form data se
+         * FAQ, SEO aur details generate honge.
+         */
+        aiGenerated = false;
+
+        const generated =
+            await generateHiddenListingContent();
+
+        if (!generated) {
+            /*
+             * Decide karo:
+             *
+             * true  = AI fail hone par bhi listing save hogi.
+             * false = AI fail hone par submit rok diya jayega.
+             */
+            const saveEvenIfAiFails = true;
+
+            if (!saveEvenIfAiFails) {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML =
+                        originalButtonHtml;
+                }
+
+                alert(
+                    'Listing content generate nahi hua. Please try again.'
+                );
+
+                return;
+            }
+        }
+
+        finalSubmitAllowed = true;
+        listingForm.submit();
+    });
+});
+</script>
+
+
+@endsection

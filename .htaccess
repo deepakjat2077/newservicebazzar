@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # non-www to www with HTTPS
+    RewriteCond %{HTTP_HOST} ^servicebazzar\.com$ [NC]
+    RewriteRule ^(.*)$ https://www.servicebazzar.com/$1 [R=301,L]
+
+    # Remove /public from URL
+    RewriteCond %{THE_REQUEST} \s/+public(?:/([^\s?]*))? [NC]
+    RewriteRule ^public/?(.*)$ /$1 [R=301,L]
+
+    # Internally route to public folder
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule (.*) public/$1 [L]
+</IfModule>

@@ -1,0 +1,313 @@
+/**
+ * Shared styles for the footer's "Popular Categories" and "Popular Cities"
+ * sections (resources/views/themes/servicebazzar/partials/
+ * popular_categories_ajax.blade.php and popular_cities.blade.php).
+ *
+ * Consolidated from two previously separate, overlapping <style> blocks
+ * (one inline in index.blade.php, one inline in popular_categories_ajax's
+ * own partial) into this one file so there is a single source of truth —
+ * every desktop value below is unchanged from what was already rendering.
+ */
+
+/* ===================================================
+   DESKTOP (unchanged from the pre-existing appearance)
+=================================================== */
+
+.popular-city-section {
+    width: 100%;
+    background: #fff;
+    padding: 0px 15px 18px;
+}
+
+.popular-city-list {
+    font-size: 13px;
+    line-height: 2;
+    color: #666;
+}
+
+.popular-city-list a {
+    color: #666;
+    text-decoration: none;
+    margin: 0 4px;
+}
+
+.popular-city-list a:hover {
+    color: #0d6efd;
+}
+
+.popular-category-section {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    background: #fff;
+    padding: 18px 15px;
+    border-top: 1px solid #eee;
+}
+
+.popular-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.popular-category-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px;
+    width: 100%;
+}
+
+.popular-category-tabs::-webkit-scrollbar {
+    height: 6px;
+}
+
+.popular-category-tabs::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 20px;
+}
+
+.popular-cat-tab {
+    border: 1px solid #e5e5e5;
+    background: #f8f8f8;
+    padding: 12px 22px;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+    cursor: pointer;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.popular-cat-tab.active {
+    background: #fff;
+    border-color: #ddd;
+    color: #000;
+}
+
+.popular-subcategory-area {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.popular-subcat-box {
+    display: none;
+    width: 100%;
+    max-width: 100%;
+    font-size: 13px;
+    line-height: 2;
+    color: #666;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.popular-subcat-box.active {
+    display: block;
+}
+
+.no-subcategory {
+    color: #777777;
+    font-size: 12px;
+}
+
+/* Mobile-only toggle buttons stay invisible on desktop */
+.popular-mobile-main-toggle,
+.popular-mobile-category-toggle {
+    display: none;
+}
+
+/* =====================================================
+   MOBILE (<=767px) — accordion behavior, additive only
+===================================================== */
+
+@media screen and (max-width: 767px) {
+
+    .popular-category-section,
+    .popular-city-section {
+        width: 100%;
+        margin-top: 15px !important;
+        padding: 0 !important;
+        border-top: 1px solid #eeeeee;
+        border-bottom: 1px solid #eeeeee;
+        background: #ffffff;
+    }
+
+    /* Desktop-only elements hidden on mobile */
+    .popular-category-section .popular-title,
+    .popular-category-section .popular-category-tabs,
+    .popular-city-section .popular-title {
+        display: none !important;
+    }
+
+    /* Main heading buttons: "Popular Categories" / "Popular Cities".
+       padding-left is 20px (not 10px like the other sides) to line up
+       with the rest of the footer's content (Site Link / Follow us on /
+       etc.), which all sit at a 20px left inset — this section was 10px
+       further left than everything else around it. */
+    .popular-category-section .popular-mobile-main-toggle,
+    .popular-city-section .popular-mobile-main-toggle {
+        display: flex !important;
+        width: 100%;
+        min-height: 54px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 10px 14px 20px;
+        margin: 0;
+        border: 0;
+        outline: none;
+        background: #ffffff;
+        color: #222222;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.4;
+        text-align: left;
+        cursor: pointer;
+        box-shadow: none;
+    }
+
+    /* Plus/minus icon shared by every toggle button */
+    .popular-toggle-icon,
+    .category-toggle-icon {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        align-items: center;
+        justify-content: center;
+        margin-left: 10px;
+        color: #111111;
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    /* Category subcategory list stays closed until the main heading is tapped */
+    #popularSubcategoryArea {
+        display: none !important;
+        width: 100%;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 10px 10px 20px !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        overflow: visible !important;
+    }
+
+    #popularSubcategoryArea.mobile-open {
+        display: block !important;
+    }
+
+    .popular-mobile-category {
+        width: 100%;
+        margin: 0;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    /* Individual category row button */
+    .popular-category-section .popular-mobile-category-toggle {
+        display: flex !important;
+        width: 100%;
+        min-height: 48px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 5px 12px 20px;
+        margin: 0;
+        border: 0;
+        outline: none;
+        background: #ffffff;
+        color: #222222;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.4;
+        text-align: left;
+        cursor: pointer;
+        box-shadow: none;
+    }
+
+    /* Desktop's .active class must not open anything on mobile — only
+       .mobile-active (set by popular-accordion.js) does */
+    #popularSubcategoryArea .popular-subcat-box,
+    #popularSubcategoryArea .popular-subcat-box.active {
+        display: none !important;
+        width: 100%;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        overflow: visible !important;
+    }
+
+    #popularSubcategoryArea .popular-subcat-box.mobile-active {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 7px;
+        padding: 2px 5px 14px !important;
+    }
+
+    /* Subcategory pills */
+    #popularSubcategoryArea .popular-subcategory-link {
+        display: inline-flex !important;
+        width: auto !important;
+        min-height: 29px;
+        align-items: center;
+        margin: 0 !important;
+        padding: 6px 10px;
+        border: 1px solid #e4e4e4;
+        border-radius: 4px;
+        background: #f8f8f8;
+        color: #555555;
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 1.25;
+        text-decoration: none;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: anywhere;
+    }
+
+    #popularSubcategoryArea a.popular-subcategory-link:hover,
+    #popularSubcategoryArea a.popular-subcategory-link:focus {
+        color: #222222;
+        text-decoration: none;
+    }
+
+    .popular-category-section .desktop-separator {
+        display: none !important;
+    }
+
+    .popular-category-section .no-subcategory {
+        width: 100%;
+        margin: 0;
+        padding: 5px 0;
+        color: #777777;
+        font-size: 12px;
+    }
+
+    /* Popular Cities: single-level — the whole city list is the toggle
+       target, no per-city nesting */
+    .popular-city-section .popular-city-list {
+        display: none !important;
+        width: 100%;
+        margin: 0 !important;
+        padding: 0 10px 14px 20px !important;
+    }
+
+    .popular-city-section .popular-city-list.mobile-open {
+        display: block !important;
+    }
+
+    .popular-city-section .popular-city-list a.popular-city-link {
+        display: inline-block;
+        margin: 4px 6px 4px 0;
+    }
+}

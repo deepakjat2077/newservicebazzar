@@ -1,0 +1,34 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /my-profile
+Disallow: /messages
+Disallow: /login
+Disallow: /register
+Disallow: /admin
+Disallow: /user
+Disallow: /profile
+
+# Internal AJAX/utility endpoints — JSON responses, not content pages, and
+# some can't carry a noindex meta tag since they never render HTML.
+Disallow: /ajax/
+Disallow: /set-location-session
+Disallow: /set-category-session
+Disallow: /geocode-address
+Disallow: /category/search
+Disallow: /search-locations
+Disallow: /nearby-location-suggestions
+Disallow: /category-suggestions
+
+# Sorted and filtered views are the same listings in a different order, and
+# the canonical tag on each already points back at the plain URL. Left
+# crawlable they multiply every city/category page by every sort and filter
+# combination, which is crawl budget spent to re-read pages already indexed.
+Disallow: /*?sort=
+Disallow: /*?filter=
+Disallow: /*?rating=
+Disallow: /*?page=
+Disallow: /*?order=
+
+Allow: /
+
+Sitemap: https://servicebazzar.com/sitemap.xml

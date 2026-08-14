@@ -1,0 +1,116 @@
+/**
+ * Mobile-only accordion behavior for the site-wide footer's "Site Link",
+ * "Useful Links", "Services", and "Contact Info" columns
+ * (resources/views/themes/servicebazzar/includes/footer.blade.php).
+ *
+ * Desktop/tablet: untouched — all four columns stay always-visible, no
+ * toggle icon shown, exactly as before this file existed.
+ */
+
+.footer-widget-toggle-icon {
+    display: none;
+}
+
+/*
+ * On the home page specifically, this wrapper (directly inside
+ * <footer>, holding Site Link/Useful Links/Services/Contact Info plus
+ * the copyright line) was computing `overflow: hidden auto` with a
+ * `height` a few pixels shorter than its own content — enough to show
+ * a real, visible internal scrollbar cutting across the footer. No
+ * stylesheet rule setting that height/overflow could be found even via
+ * a full scan of every loaded stylesheet, so this forces normal block
+ * sizing back regardless of the underlying cause. Applies everywhere
+ * (not just mobile) since this wrapper should never scroll internally
+ * on any page.
+ */
+.footer-area .container-fulde {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+@media (max-width: 767px) {
+
+    /* The logo + description column (the only .footer-widget without a
+       .widget-title/.widget-body pair) isn't part of the accordion — its
+       logo image is simply hidden on mobile. */
+    .footer-area .footer-widget .site-logo {
+        display: none;
+    }
+
+    /* style.css gives every .footer-widget a 30px margin-bottom — barely
+       noticeable on desktop where columns sit side by side, but on
+       mobile the columns stack, so that 30px lands between every
+       accordion row and adds up to a large gap. The widget-title's own
+       padding + border-bottom (below) is already enough separation. */
+    .footer-area .footer-widget {
+        margin-bottom: 0;
+    }
+
+    .footer-area .footer-widget .widget-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        margin-bottom: 0;
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* Desktop's decorative underline pseudo-elements would otherwise
+       double up with the accordion header's own border-bottom above. */
+    .footer-area .footer-widget .widget-title:before,
+    .footer-area .footer-widget .widget-title:after {
+        display: none;
+    }
+
+    .footer-area .footer-widget .widget-title h5 {
+        margin-bottom: 0;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .footer-widget-toggle-icon {
+        display: inline-flex;
+        width: 20px;
+        height: 20px;
+        flex: 0 0 20px;
+        align-items: center;
+        justify-content: center;
+        margin-left: 10px;
+        color: #222;
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    /* Collapsed by default; JS (footer-accordion.js) toggles
+       .mobile-open on click. */
+    .footer-area .footer-widget .widget-body {
+        display: none;
+        padding: 10px 0 14px;
+    }
+
+    .footer-area .footer-widget .widget-body.mobile-open {
+        display: block;
+    }
+
+    /*
+     * Large empty space after "Contact Info" (last accordion row) came
+     * from two unrelated things stacking up below the row:
+     *   - the row's wrapper (.footer-area .just — a one-off class used
+     *     nowhere else, so safe to target directly) carries Bootstrap's
+     *     pb-5 utility, 48px of bottom padding, sized for desktop.
+     *   - .footer-bottom (the copyright line) adds another 30px
+     *     margin-top on top of that.
+     * Both cut down for mobile only; desktop keeps pt-5/pb-5 and
+     * .footer-bottom's 30px exactly as before.
+     */
+    .footer-area .just {
+        /* Bootstrap's .pb-5 utility (also on this element) sets
+           padding-bottom with !important, so this override needs it too. */
+        padding-bottom: 15px !important;
+    }
+
+    .footer-bottom {
+        margin-top: 10px;
+    }
+}
