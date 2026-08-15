@@ -12,6 +12,7 @@ use App\Models\Location;
 use App\Models\PageView;
 use App\Models\Visitor;
 use App\Models\VisitorSession;
+use App\Support\Tracking\TrafficFilter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -89,12 +90,12 @@ class AnalyticsController extends Controller
         $data = [];
 
         // ---- Visitor totals ----
-        $data['totalVisitors'] = Visitor::whereBetween('last_visit_at', [$from, $to])->count();
-        $data['returningVisitors'] = Visitor::whereBetween('last_visit_at', [$from, $to])->where('total_visits', '>', 1)->count();
-        $data['activeVisitors'] = Visitor::where('last_visit_at', '>=', now()->subMinutes(5))->count();
+        $data['totalVisitors'] = $this->visitorQuery()->whereBetween('last_visit_at', [$from, $to])->count();
+        $data['returningVisitors'] = $this->visitorQuery()->whereBetween('last_visit_at', [$from, $to])->where('total_visits', '>', 1)->count();
+        $data['activeVisitors'] = $this->visitorQuery()->where('last_visit_at', '>=', now()->subMinutes(5))->count();
 
         // ---- Daily / weekly / monthly visitor trend (for the range chart) ----
-        $data['dailyVisitors'] = VisitorSession::whereBetween('started_at', [$from, $to])
+        $data['dailyVisitors'] = $this->sessionQuery()->whereBetween('started_at', [$from, $to])
             ->selectRaw('DATE(started_at) as day')
             ->selectRaw('COUNT(DISTINCT visitor_id) as visitors')
             ->groupBy('day')
@@ -102,7 +103,7 @@ class AnalyticsController extends Controller
             ->get();
 
         // ---- Top categories (by listing_view events) ----
-        $data['topCategories'] = AnalyticsEvent::query()
+        $data['topCategories'] = $this->eventQuery()
             ->join('categories', 'categories.id', '=', 'analytics_events.category_id')
             ->where('analytics_events.event_type', 'listing_view')
             ->whereBetween('analytics_events.created_at', [$from, $to])
@@ -115,7 +116,7 @@ class AnalyticsController extends Controller
             ->get();
 
         // ---- Top locations (by listing_view events) ----
-        $data['topLocations'] = AnalyticsEvent::query()
+        $data['topLocations'] = $this->eventQuery()
             ->join('locations', 'locations.id', '=', 'analytics_events.location_id')
             ->where('analytics_events.event_type', 'listing_view')
             ->whereBetween('analytics_events.created_at', [$from, $to])
@@ -129,35 +130,20 @@ class AnalyticsController extends Controller
         // ---- Top listings (from the daily rollup where available, falling
         // back to raw events for "today", which the nightly rollup hasn't
         // processed yet) ----
-        $data['topListings'] = ListingDailyStats::query()
-            ->join('listings', 'listings.id', '=', 'listing_daily_stats.listing_id')
-            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+        $data['topListings'] = $this->eventQuery()
+            ->join('listings', 'listings.id', '=', 'analytics_events.listing_id')
+            ->where('analytics_events.event_type', 'listing_view')
+            ->whereBetween('analytics_events.created_at', [$from, $to])
             ->select('listings.id', 'listings.name')
-            ->selectRaw('SUM(views) as total_views')
-            ->selectRaw('SUM(unique_views) as total_unique_views')
+            ->selectRaw('COUNT(*) as total_views')
+            ->selectRaw('COUNT(DISTINCT analytics_events.visitor_id) as total_unique_views')
             ->groupBy('listings.id', 'listings.name')
             ->orderByDesc('total_views')
             ->limit(10)
             ->get();
 
-        if ($data['topListings']->isEmpty()) {
-            // Rollup hasn't run yet for this range (e.g. viewing "today") —
-            // fall back to a live (bounded, indexed) query.
-            $data['topListings'] = AnalyticsEvent::query()
-                ->join('listings', 'listings.id', '=', 'analytics_events.listing_id')
-                ->where('analytics_events.event_type', 'listing_view')
-                ->whereBetween('analytics_events.created_at', [$from, $to])
-                ->select('listings.id', 'listings.name')
-                ->selectRaw('COUNT(*) as total_views')
-                ->selectRaw('COUNT(DISTINCT analytics_events.visitor_id) as total_unique_views')
-                ->groupBy('listings.id', 'listings.name')
-                ->orderByDesc('total_views')
-                ->limit(10)
-                ->get();
-        }
-
         // ---- Search keywords ----
-        $data['topKeywords'] = AnalyticsEvent::where('event_type', 'search_performed')
+        $data['topKeywords'] = $this->eventQuery()->where('event_type', 'search_performed')
             ->whereBetween('created_at', [$from, $to])
             ->whereNotNull('keyword')
             ->where('keyword', '!=', '')
@@ -168,7 +154,7 @@ class AnalyticsController extends Controller
             ->limit(20)
             ->get();
 
-        $data['noResultSearches'] = AnalyticsEvent::where('event_type', 'search_performed')
+        $data['noResultSearches'] = $this->eventQuery()->where('event_type', 'search_performed')
             ->where('results_count', 0)
             ->whereBetween('created_at', [$from, $to])
             ->whereNotNull('keyword')
@@ -181,7 +167,7 @@ class AnalyticsController extends Controller
             ->get();
 
         // ---- Top pages ----
-        $data['topPages'] = PageView::whereBetween('opened_at', [$from, $to])
+        $data['topPages'] = $this->pageViewQuery()->whereBetween('opened_at', [$from, $to])
             ->whereNotNull('page_name')
             ->select('page_name')
             ->selectRaw('COUNT(*) as views')
@@ -193,18 +179,18 @@ class AnalyticsController extends Controller
 
         // ---- Bounce rate + avg session duration (cheap thanks to the
         // page_view_count counter cache maintained on every page-view-open) ----
-        $totalSessions = VisitorSession::whereBetween('started_at', [$from, $to])->count();
-        $bouncedSessions = VisitorSession::whereBetween('started_at', [$from, $to])->where('page_view_count', 1)->count();
+        $totalSessions = $this->sessionQuery()->whereBetween('started_at', [$from, $to])->count();
+        $bouncedSessions = $this->sessionQuery()->whereBetween('started_at', [$from, $to])->where('page_view_count', 1)->count();
         $data['totalSessions'] = $totalSessions;
         $data['bounceRate'] = $totalSessions ? round($bouncedSessions / $totalSessions * 100, 1) : 0;
 
-        $data['avgSessionDuration'] = (int) round(VisitorSession::whereBetween('started_at', [$from, $to])
+        $data['avgSessionDuration'] = (int) round($this->sessionQuery()->whereBetween('started_at', [$from, $to])
             ->whereNotNull('ended_at')
             ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, started_at, ended_at)) as avg_seconds')
             ->value('avg_seconds') ?? 0);
 
         // ---- Distributions ----
-        $data['deviceDistribution'] = VisitorSession::whereBetween('started_at', [$from, $to])
+        $data['deviceDistribution'] = $this->sessionQuery()->whereBetween('started_at', [$from, $to])
             ->whereNotNull('device_type')
             ->select('device_type')
             ->selectRaw('COUNT(*) as total')
@@ -212,7 +198,7 @@ class AnalyticsController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        $data['browserDistribution'] = VisitorSession::whereBetween('started_at', [$from, $to])
+        $data['browserDistribution'] = $this->sessionQuery()->whereBetween('started_at', [$from, $to])
             ->whereNotNull('browser')
             ->select('browser')
             ->selectRaw('COUNT(*) as total')
@@ -221,7 +207,7 @@ class AnalyticsController extends Controller
             ->limit(8)
             ->get();
 
-        $data['countryDistribution'] = VisitorSession::whereBetween('started_at', [$from, $to])
+        $data['countryDistribution'] = $this->sessionQuery()->whereBetween('started_at', [$from, $to])
             ->whereNotNull('country')
             ->where('country', '!=', '')
             ->select('country')
@@ -234,25 +220,25 @@ class AnalyticsController extends Controller
         // ---- Conversion funnel: distinct visitors reaching each stage in
         // range (a simplification, not a strict same-session ordered
         // funnel — documented in the plan) ----
-        $stageVisitors = fn (string $type) => AnalyticsEvent::where('event_type', $type)
+        $stageVisitors = fn (string $type) => $this->eventQuery()->where('event_type', $type)
             ->whereBetween('created_at', [$from, $to])
             ->distinct('visitor_id')
             ->count('visitor_id');
 
         $data['funnel'] = [
-            'visited' => VisitorSession::whereBetween('started_at', [$from, $to])->distinct('visitor_id')->count('visitor_id'),
+            'visited' => $this->sessionQuery()->whereBetween('started_at', [$from, $to])->distinct('visitor_id')->count('visitor_id'),
             'viewed_listing' => $stageVisitors('listing_view'),
-            'engaged' => AnalyticsEvent::whereIn('event_type', ['whatsapp_click', 'call_click', 'enquiry'])
+            'engaged' => $this->eventQuery()->whereIn('event_type', ['whatsapp_click', 'call_click', 'enquiry'])
                 ->whereBetween('created_at', [$from, $to])
                 ->distinct('visitor_id')->count('visitor_id'),
-            'account' => AnalyticsEvent::whereIn('event_type', ['registration', 'login'])
+            'account' => $this->eventQuery()->whereIn('event_type', ['registration', 'login'])
                 ->whereBetween('created_at', [$from, $to])
                 ->distinct('visitor_id')->count('visitor_id'),
             'paid' => $stageVisitors('payment_success'),
         ];
 
         // ---- Conversion totals by type ----
-        $data['conversionTotals'] = AnalyticsEvent::where('event_category', 'conversion')
+        $data['conversionTotals'] = $this->eventQuery()->where('event_category', 'conversion')
             ->whereBetween('created_at', [$from, $to])
             ->select('event_type')
             ->selectRaw('COUNT(*) as total')
@@ -261,6 +247,26 @@ class AnalyticsController extends Controller
             ->get();
 
         return $data;
+    }
+
+    protected function visitorQuery()
+    {
+        return TrafficFilter::applyCleanScope(Visitor::query(), 'visitors', true);
+    }
+
+    protected function sessionQuery()
+    {
+        return TrafficFilter::applyCleanScope(VisitorSession::query(), 'visitor_sessions', true);
+    }
+
+    protected function eventQuery()
+    {
+        return TrafficFilter::applyCleanScope(AnalyticsEvent::query(), 'analytics_events');
+    }
+
+    protected function pageViewQuery()
+    {
+        return TrafficFilter::applyCleanScope(PageView::query(), 'page_views');
     }
 
     public function exportExcel(Request $request)

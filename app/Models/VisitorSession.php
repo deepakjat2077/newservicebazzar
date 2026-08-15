@@ -13,11 +13,13 @@ class VisitorSession extends Model
         'device_type', 'browser', 'os', 'screen_resolution',
         'country', 'state', 'city',
         'started_at', 'ended_at', 'page_view_count',
+        'is_bot', 'user_agent',
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
+        'is_bot' => 'boolean',
     ];
 
     public function visitor()

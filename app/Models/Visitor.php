@@ -9,11 +9,13 @@ class Visitor extends Model
     protected $fillable = [
         'visitor_id', 'user_id', 'ip_address', 'country', 'state', 'city',
         'device_type', 'browser', 'os', 'first_visit_at', 'last_visit_at', 'total_visits',
+        'is_bot', 'user_agent',
     ];
 
     protected $casts = [
         'first_visit_at' => 'datetime',
         'last_visit_at' => 'datetime',
+        'is_bot' => 'boolean',
     ];
 
     public function user()

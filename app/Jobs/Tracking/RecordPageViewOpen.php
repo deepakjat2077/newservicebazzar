@@ -5,6 +5,7 @@ namespace App\Jobs\Tracking;
 use App\Models\PageView;
 use App\Models\Visitor;
 use App\Models\VisitorSession;
+use App\Support\Tracking\TrafficFilter;
 use App\Support\Tracking\UserAgentParser;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,6 +31,8 @@ class RecordPageViewOpen implements ShouldQueue
     {
         $d = $this->data;
         $ua = UserAgentParser::parse($d['user_agent'] ?? null);
+        $isBot = TrafficFilter::isBotUserAgent($d['user_agent'] ?? null)
+            || TrafficFilter::isExcludedIp($d['ip_address'] ?? null);
         $now = now();
 
         $visitor = Visitor::firstOrNew(['visitor_id' => $d['visitor_id']]);
@@ -43,6 +46,8 @@ class RecordPageViewOpen implements ShouldQueue
             'browser' => $ua['browser'],
             'os' => $ua['os'],
             'last_visit_at' => $now,
+            'is_bot' => $isBot,
+            'user_agent' => $d['user_agent'] ?? null,
         ]);
 
         if ($visitorIsNew) {
@@ -69,6 +74,8 @@ class RecordPageViewOpen implements ShouldQueue
             $session->device_type = $ua['device_type'];
             $session->browser = $ua['browser'];
             $session->os = $ua['os'];
+            $session->is_bot = $isBot;
+            $session->user_agent = $d['user_agent'] ?? null;
             $session->screen_resolution = $d['screen_resolution'] ?? null;
             $session->started_at = $now;
             $session->page_view_count = 0;
@@ -95,6 +102,8 @@ class RecordPageViewOpen implements ShouldQueue
                 'url' => $d['url'] ?? '',
                 'page_name' => $d['page_name'] ?? null,
                 'opened_at' => $now,
+                'is_bot' => $isBot,
+                'user_agent' => $d['user_agent'] ?? null,
             ]
         );
 

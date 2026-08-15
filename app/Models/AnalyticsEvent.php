@@ -13,12 +13,13 @@ class AnalyticsEvent extends Model
         'visitor_id', 'session_uuid', 'user_id',
         'event_category', 'event_type',
         'listing_id', 'category_id', 'subcategory_id', 'location_id',
-        'keyword', 'results_count', 'url', 'meta',
+        'keyword', 'results_count', 'url', 'meta', 'is_bot', 'user_agent',
     ];
 
     protected $casts = [
         'meta' => 'array',
         'created_at' => 'datetime',
+        'is_bot' => 'boolean',
     ];
 
     public function listing()

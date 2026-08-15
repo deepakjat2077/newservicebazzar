@@ -3,6 +3,7 @@
 namespace App\Jobs\Tracking;
 
 use App\Models\AnalyticsEvent;
+use App\Support\Tracking\TrafficFilter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -31,6 +32,7 @@ class RecordAnalyticsEvent implements ShouldQueue
     public function handle()
     {
         $d = $this->data;
+        $isBot = TrafficFilter::isBotUserAgent($d['user_agent'] ?? null);
 
         AnalyticsEvent::create([
             'visitor_id' => $d['visitor_id'],
@@ -46,6 +48,8 @@ class RecordAnalyticsEvent implements ShouldQueue
             'results_count' => $d['results_count'] ?? null,
             'url' => $d['url'] ?? null,
             'meta' => $d['meta'] ?? null,
+            'is_bot' => $isBot,
+            'user_agent' => $d['user_agent'] ?? null,
         ]);
     }
 }

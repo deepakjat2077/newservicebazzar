@@ -4,6 +4,7 @@ namespace App\Jobs\Tracking;
 
 use App\Models\PageView;
 use App\Models\VisitorSession;
+use App\Support\Tracking\TrafficFilter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -25,6 +26,8 @@ class RecordPageViewClose implements ShouldQueue
     public function handle()
     {
         $d = $this->data;
+        $isBot = TrafficFilter::isBotUserAgent($d['user_agent'] ?? null)
+            || TrafficFilter::isExcludedIp($d['ip_address'] ?? null);
         $now = now();
 
         // updateOrCreate rather than a plain update(): the close beacon can
@@ -50,6 +53,11 @@ class RecordPageViewClose implements ShouldQueue
         $pageView->closed_at = $now;
         $pageView->time_spent_seconds = max(0, (int) ($d['time_spent_seconds'] ?? 0));
         $pageView->is_exit = (bool) ($d['is_exit'] ?? false);
+        $pageView->is_bot = $isBot;
+
+        if (!empty($d['user_agent'])) {
+            $pageView->user_agent = $d['user_agent'];
+        }
 
         if (empty($pageView->opened_at)) {
             $pageView->opened_at = $now;

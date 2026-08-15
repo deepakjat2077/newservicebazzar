@@ -6,6 +6,7 @@ use App\Jobs\Tracking\RecordAnalyticsEvent;
 use App\Jobs\Tracking\RecordPageViewClose;
 use App\Jobs\Tracking\RecordPageViewOpen;
 use App\Http\Middleware\EnsureVisitorId;
+use App\Support\Tracking\TrafficFilter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -28,6 +29,10 @@ class TrackingController extends Controller
 {
     public function pageViewOpen(Request $request)
     {
+        if (TrafficFilter::shouldIgnoreRequest($request)) {
+            return response()->json(null, 204);
+        }
+
         $data = $request->validate([
             'client_page_view_id' => 'required|uuid',
             'session_uuid' => 'required|uuid',
@@ -66,6 +71,10 @@ class TrackingController extends Controller
 
     public function pageViewClose(Request $request)
     {
+        if (TrafficFilter::shouldIgnoreRequest($request)) {
+            return response()->json(null, 204);
+        }
+
         $data = $request->validate([
             'client_page_view_id' => 'required|uuid',
             'session_uuid' => 'nullable|uuid',
@@ -81,6 +90,8 @@ class TrackingController extends Controller
             RecordPageViewClose::dispatch(array_merge($data, [
                 'visitor_id' => $visitorId,
                 'user_id' => Auth::guard('web')->id(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
             ]));
         } catch (\Throwable $e) {
             Log::warning('Tracking: page-view close failed', ['error' => $e->getMessage()]);
@@ -91,6 +102,10 @@ class TrackingController extends Controller
 
     public function event(Request $request)
     {
+        if (TrafficFilter::shouldIgnoreRequest($request)) {
+            return response()->json(null, 204);
+        }
+
         $data = $request->validate([
             'event_category' => 'required|string|in:click,search,conversion,view',
             'event_type' => 'required|string|max:100',
@@ -115,6 +130,7 @@ class TrackingController extends Controller
             RecordAnalyticsEvent::dispatch(array_merge($data, [
                 'visitor_id' => $visitorId,
                 'user_id' => Auth::guard('web')->id(),
+                'user_agent' => $request->userAgent(),
             ]));
         } catch (\Throwable $e) {
             Log::warning('Tracking: event failed', ['error' => $e->getMessage()]);
