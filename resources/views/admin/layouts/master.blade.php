@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}">
   <!-- Rich Editor  -->
   <link rel="stylesheet" href="{{asset('assets/admin/summernote/summernote-lite.min.css') }}">
+  @include('admin.partials.editor-styles')
 
   <meta name="csrf-token" content="{{ csrf_token() }}">
   @stack('css-link')

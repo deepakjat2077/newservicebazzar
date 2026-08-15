@@ -14,14 +14,16 @@
 <style>
     .rich-content{
         color:#3b3f45;
-        font-size:15px;
-        line-height:1.7;
+        font-size:17px;
+        line-height:1.75;
     }
 
     /* Har child ka apna margin hone se hi gaps alag-alag ho rahe the.
-       Pehle sab reset, phir sirf neeche ek consistent gap. */
+       Pehle sab reset, phir sirf neeche ek consistent gap.
+       10px = ek line se thoda kam, taki Enter dabane par paragraph alag to
+       dikhe par beech me khaali jagah na lage. */
     .rich-content > *{
-        margin:0 0 14px;
+        margin:0 0 10px;
     }
 
     .rich-content > *:last-child{
@@ -44,18 +46,18 @@
         margin-top:0;
     }
 
-    .rich-content h2{ font-size:22px; }
-    .rich-content h3{ font-size:18px; }
+    .rich-content h2{ font-size:24px; }
+    .rich-content h3{ font-size:20px; }
     .rich-content h4,
-    .rich-content h5{ font-size:16px; }
+    .rich-content h5{ font-size:18px; }
 
     .rich-content p{
-        margin:0 0 14px;
+        margin:0 0 10px;
     }
 
     .rich-content ul,
     .rich-content ol{
-        margin:0 0 14px;
+        margin:0 0 10px;
         padding-left:22px;
     }
 
@@ -90,24 +92,26 @@
     /*
      * Tables.
      *
-     * Ye wo hissa hai jo mobile par toot raha tha: table apni natural width par
-     * table-layout:auto ke saath render hoti thi, container use clip kar deta
-     * tha, aur aakhri column bina kisi scroll ke gayab ho jaata tha.
+     * Mobile par table toot rahi thi: apni natural width par render hoti thi,
+     * container use clip kar deta tha, aur aakhri column gayab ho jaata tha.
      *
-     * Isliye table ko hamesha ek scroll karne wale wrapper me rakha jaata hai
-     * (ContentHtml har table ke around .rich-content-table daal deta hai), aur
-     * mobile par columns ko ek minimum width di jaati hai — taki wo sikudne ke
-     * bajaye scroll karein.
+     * Wrapper (ContentHtml har table ke around .rich-content-table daal deta
+     * hai) sirf safety ke liye hai — bahut zyada columns wali table ke liye.
+     * Aam table mobile par scroll nahi karti, balki table-layout:fixed se
+     * sikud kar poori screen me fit ho jaati hai: 3 columns padhne ke liye
+     * side me swipe karna padhne se zyada takleef deta hai.
      */
     .rich-content .rich-content-table{
         width:100%;
+        max-width:100%;
         overflow-x:auto;
         -webkit-overflow-scrolling:touch;
-        margin:0 0 14px;
+        margin:0 0 10px;
     }
 
     .rich-content table{
         width:100%;
+        max-width:100%;
         border-collapse:collapse;
         margin:0;
         display:table;
@@ -130,14 +134,14 @@
 
     @media (max-width:767px){
         .rich-content{
-            font-size:14px;
-            line-height:1.65;
+            font-size:15.5px;
+            line-height:1.7;
         }
 
-        .rich-content h2{ font-size:19px; }
-        .rich-content h3{ font-size:17px; }
+        .rich-content h2{ font-size:21px; }
+        .rich-content h3{ font-size:18px; }
         .rich-content h4,
-        .rich-content h5{ font-size:15px; }
+        .rich-content h5{ font-size:16px; }
 
         .rich-content h2,
         .rich-content h3,
@@ -146,22 +150,25 @@
             margin:20px 0 8px;
         }
 
-        /* Columns ko sikudne se rokta hai, taki wrapper me scroll aaye aur
-           aakhri column cut hone ke bajaye swipe karke dikhe. */
+        /*
+         * Table screen me fit hoti hai, scroll nahi karti.
+         *
+         * table-layout:fixed columns ko barabar baant deta hai, aur text wrap
+         * hokar neeche chala jaata hai — isliye teeno columns ek saath dikhte
+         * hain, bas font thoda chhota ho jaata hai.
+         */
+        .rich-content table{
+            table-layout:fixed;
+        }
+
         .rich-content table th,
         .rich-content table td{
-            min-width:140px;
-            padding:10px 12px;
-        }
-
-        .rich-content table th:first-child,
-        .rich-content table td:first-child{
-            min-width:120px;
-        }
-
-        /* Scroll kar sakne wali table ka ishara. */
-        .rich-content .rich-content-table{
-            border-right:1px solid #eceef0;
+            padding:8px 7px;
+            font-size:13px;
+            line-height:1.45;
+            word-wrap:break-word;
+            overflow-wrap:break-word;
+            hyphens:auto;
         }
     }
 </style>
