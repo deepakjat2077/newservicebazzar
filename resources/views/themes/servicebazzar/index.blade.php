@@ -1,6 +1,7 @@
 @extends($themeView.'layouts.site')
 @section('content')
 @section('title','Find Businesses Near You')
+@include($themeView.'includes.rich-content')
 <!-- Banner Section -->
 @php
     $currentLocationName = request('location_name');
@@ -5080,8 +5081,8 @@ color: #555;
          <h4 class="cod mb-0">
             {{ $homeContent->title }}
             </h4>
-            <div class="home-top-content-text">
-              <span class="spn">  {!! $homeContent->content !!}</span>
+            <div class="home-top-content-text rich-content">
+              {!! \App\Support\ContentHtml::cleanCached($homeContent->content ?? '') !!}
             </div>
 
         </div>

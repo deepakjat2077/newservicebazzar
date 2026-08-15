@@ -1,6 +1,7 @@
 @extends($themeView.'layouts.site')
     @section('content')
     @section('title','Listing Details')
+    @include($themeView.'includes.rich-content')
 
     @push('css')
 
@@ -4950,8 +4951,9 @@
                     </div>
 
 
-                    <div class="orrrr" id="overview_view">
-                        {!! $listing->details ?? 'No overview available.' !!}
+                    <div class="orrrr rich-content" id="overview_view">
+                        {!! \App\Support\ContentHtml::cleanCached($listing->details ?? '')
+                            ?: 'No overview available.' !!}
                     </div>
 
                     @auth

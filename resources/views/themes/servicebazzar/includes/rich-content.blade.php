@@ -78,14 +78,35 @@
         margin:0 0 12px;
     }
 
+    /*
+     * Theme globally `ul, ol { list-style: none; padding: 0 }` karta hai
+     * (style.css:412). Content ki lists me bullets zaroori hain, isliye yahan
+     * wapas laaye ja rahe hain — bina iske list ke items sirf indent hoke
+     * plain lines jaise dikhte hain.
+     */
     .rich-content ul,
     .rich-content ol{
         margin:0 0 12px;
-        padding-left:20px;
+        padding-left:22px;
+        list-style-position:outside;
+    }
+
+    .rich-content ul{
+        list-style-type:disc;
+    }
+
+    .rich-content ol{
+        list-style-type:decimal;
     }
 
     .rich-content li{
+        display:list-item;
         margin:0 0 6px;
+    }
+
+    .rich-content ul ul{
+        list-style-type:circle;
+        margin:6px 0 0;
     }
 
     .rich-content li:last-child{

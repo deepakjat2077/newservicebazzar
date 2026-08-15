@@ -17,11 +17,10 @@
 
     $seoUrl = url()->current();
 
-    $cleanDescription = preg_replace(
-        '/<(p|div)[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/\1>/i',
-        '',
-        $keyword->description
-    );
+    // Empty-tag stripping used to be a regex here. ContentHtml does that and
+    // the rest of the Word cleanup, so the page matches every other content
+    // page on the site.
+    $cleanDescription = \App\Support\ContentHtml::cleanCached($keyword->description ?? '');
 
     $sidebarKeywords = $relatedKeywords->take(10);
     $sidebarCategories = $relatedCategories->take(10);
