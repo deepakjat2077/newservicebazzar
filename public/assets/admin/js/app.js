@@ -93,9 +93,13 @@ $(function() {
             .replace(/&nbsp;/gi, ' ')
             .replace(/ /g, ' ')
             .replace(/[ \t]*\n[ \t]*/g, ' ')
-            .replace(/[ \t]{2,}/g, ' ')
-            // Blank paragraphs are the vertical gaps people complain about.
-            .replace(/<p>(\s|<br\s*\/?>)*<\/p>/gi, '');
+            .replace(/[ \t]{2,}/g, ' ');
+    }
+
+    function normaliseSavedEditorSpacers(html) {
+        return String(html || '')
+            .replace(/<div\b[^>]*class=(["'])[^"']*\brich-content-spacer\b[^"']*\1[^>]*>\s*<\/div>/gi, '<p><br></p>')
+            .replace(/<p\b[^>]*>\s*<br\s*\/?>\s*<\/p>/gi, '<p><br></p>');
     }
 
     if ($.fn.summernote) {
@@ -111,6 +115,15 @@ $(function() {
                 ['view', ['fullscreen', 'codeview', 'help']]
             ],
             callbacks: {
+                onInit: function () {
+                    var $editor = $(this);
+                    var code = $editor.summernote('code');
+                    var normalised = normaliseSavedEditorSpacers(code);
+
+                    if (code !== normalised) {
+                        $editor.summernote('code', normalised);
+                    }
+                },
                 onPaste: function (e) {
                     var clipboard = (e.originalEvent || e).clipboardData;
 
@@ -131,21 +144,40 @@ $(function() {
                     // Plain text still needs its blank lines turned into real
                     // paragraphs, or the whole thing arrives as one block.
                     var paragraphs = String(text || '')
+                        .replace(/\r\n?/g, '\n')
                         .split(/\n{2,}/)
                         .map(function (block) {
                             return block.trim();
                         })
-                        .filter(Boolean)
                         .map(function (block) {
+                            if (!block) {
+                                return '<p><br></p>';
+                            }
+
                             return '<p>' + $('<div>').text(block).html().replace(/\n/g, ' ') + '</p>';
                         })
-                        .join('');
+                        .filter(Boolean)
+                        .join('<p><br></p>');
 
                     $(this).summernote('pasteHTML', paragraphs);
                 }
             }
         });
     }
+
+    $('form').on('submit', function () {
+        if (!$.fn.summernote) {
+            return;
+        }
+
+        $(this).find('.richEditor').not('[data-editor="manual"]').each(function () {
+            var $editor = $(this);
+
+            if ($editor.next('.note-editor').length) {
+                $editor.val(normaliseSavedEditorSpacers($editor.summernote('code')));
+            }
+        });
+    });
 
     $('.copyBtn').on('click',function(){
 		/* Get the text field */

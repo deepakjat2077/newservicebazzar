@@ -101,6 +101,13 @@
         margin-bottom: 0;
     }
 
+    .privacy-policy-content.rich-content.rich-content .rich-content-spacer {
+        display: block;
+        height: 28px;
+        min-height: 28px;
+        margin: 0;
+    }
+
     .privacy-policy-content strong,
     .privacy-policy-content b {
         display: inline;

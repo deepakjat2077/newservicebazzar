@@ -26,7 +26,7 @@ use DOMXPath;
  */
 class ContentHtml
 {
-    protected const CACHE_VERSION = 'v2';
+    protected const CACHE_VERSION = 'v4';
 
     /** Block tags kept as-is. */
     protected const BLOCKS = [
@@ -94,6 +94,8 @@ class ContentHtml
         static::promoteLooseInlineContent($body);
         static::normaliseTypedBulletParagraphs($xpath);
         static::stripTypedBullets($xpath);
+        static::normaliseParagraphBreakSpacers($xpath);
+        static::preserveEditorSpacers($xpath);
         static::dropEmptyNodes($xpath);
         static::wrapTables($xpath);
 
@@ -123,6 +125,15 @@ class ContentHtml
             now()->addDays(30),
             fn () => static::clean($html)
         );
+    }
+
+    public static function flushPublicPageCache(): void
+    {
+        try {
+            \Illuminate\Support\Facades\Cache::store(config('cache.public_pages.store', 'file'))->flush();
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**
@@ -363,6 +374,110 @@ class ContentHtml
             if (!$removed) {
                 return;
             }
+        }
+    }
+
+    /**
+     * Keep intentional blank lines from the admin editor.
+     *
+     * Editors usually save a user-made blank line as <p><br></p> or an empty
+     * paragraph. The cleaner used to remove those paragraphs completely, so the
+     * frontend ignored spacing that the admin deliberately added.
+     */
+    protected static function preserveEditorSpacers(DOMXPath $xpath): void
+    {
+        foreach (iterator_to_array($xpath->query('//body/p') ?: []) as $paragraph) {
+            if (!$paragraph->parentNode || trim($paragraph->textContent) !== '') {
+                continue;
+            }
+
+            if ($paragraph->getElementsByTagName('img')->length > 0) {
+                continue;
+            }
+
+            $spacer = $paragraph->ownerDocument->createElement('div');
+            $spacer->setAttribute('class', 'rich-content-spacer');
+
+            $paragraph->parentNode->replaceChild($spacer, $paragraph);
+        }
+    }
+
+    /**
+     * Summernote can store a manual gap inside the same paragraph as
+     * <br><br>. Split that into real blocks plus spacer nodes, otherwise later
+     * whitespace normalisation makes the admin's gap look ignored.
+     */
+    protected static function normaliseParagraphBreakSpacers(DOMXPath $xpath): void
+    {
+        foreach (iterator_to_array($xpath->query('//body/p[br]') ?: []) as $paragraph) {
+            if (!$paragraph->parentNode || trim($paragraph->textContent) === '') {
+                continue;
+            }
+
+            $doc = $paragraph->ownerDocument;
+            $parent = $paragraph->parentNode;
+            $replacement = [];
+            $current = $doc->createElement('p');
+            $brRun = 0;
+
+            $flushBreaks = function () use (&$brRun, &$replacement, $doc): void {
+                if ($brRun < 2) {
+                    $brRun = 0;
+                    return;
+                }
+
+                for ($i = 1; $i < $brRun; $i++) {
+                    $spacer = $doc->createElement('div');
+                    $spacer->setAttribute('class', 'rich-content-spacer');
+                    $replacement[] = $spacer;
+                }
+
+                $brRun = 0;
+            };
+
+            $pushCurrent = function () use (&$current, &$replacement, $doc): void {
+                if (trim($current->textContent) === '' && $current->getElementsByTagName('img')->length === 0) {
+                    $current = $doc->createElement('p');
+                    return;
+                }
+
+                $replacement[] = $current;
+                $current = $doc->createElement('p');
+            };
+
+            foreach (iterator_to_array($paragraph->childNodes) as $child) {
+                if ($child instanceof DOMElement && $child->nodeName === 'br') {
+                    $brRun++;
+                    continue;
+                }
+
+                if ($brRun >= 2) {
+                    $pushCurrent();
+                    $flushBreaks();
+                } elseif ($brRun === 1) {
+                    $current->appendChild($doc->createTextNode(' '));
+                    $brRun = 0;
+                }
+
+                $current->appendChild($child->cloneNode(true));
+            }
+
+            if ($brRun >= 2) {
+                $pushCurrent();
+                $flushBreaks();
+            }
+
+            $pushCurrent();
+
+            if (!$replacement) {
+                continue;
+            }
+
+            foreach ($replacement as $node) {
+                $parent->insertBefore($node, $paragraph);
+            }
+
+            $parent->removeChild($paragraph);
         }
     }
 

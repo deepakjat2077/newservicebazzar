@@ -130,6 +130,7 @@ public function create(Request $request)
         $category->description = \App\Support\ContentHtml::clean($request->description);
         $category->status = $request->has('status') ? 1 : 0;
         $category->save();
+        \App\Support\ContentHtml::flushPublicPageCache();
 
         // Save Filters
         if ($request->has('filters') && is_array($request->filters)) {
@@ -235,6 +236,7 @@ public function edit(Request $request, $id)
     // Same normalising as create — see ContentHtml.
     $category->description = \App\Support\ContentHtml::clean($request->description);
     $category->save();
+    \App\Support\ContentHtml::flushPublicPageCache();
 
     CategoryFilter::where('category_id', $category->id)->delete();
 

@@ -274,6 +274,10 @@ public function elementSave(Request $request, $id = null)
     $element->theme_name = $setting->theme;
     $element->save();
 
+    if (collect($fields)->contains(fn ($data) => !empty($data['rich']))) {
+        ContentHtml::flushPublicPageCache();
+    }
+
     $alert = ['success', 'Element saved successfully'];
     return back()->withAlert($alert);
 }

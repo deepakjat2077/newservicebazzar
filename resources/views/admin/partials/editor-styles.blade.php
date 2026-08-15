@@ -13,7 +13,7 @@
 <style>
     .note-editor .note-editable{
         color:#333;
-        font-size:15px;
+        font-size:13px;
         line-height:1.6;
         padding:16px 18px;
     }
@@ -30,6 +30,21 @@
 
     .note-editor .note-editable p{
         margin:0 0 12px;
+        font-size:13px;
+        font-weight:400;
+        color:#333;
+    }
+
+    .note-editor .note-editable p:empty,
+    .note-editor .note-editable p:has(> br:only-child){
+        min-height:28px;
+        margin:0;
+    }
+
+    .note-editor .note-editable .rich-content-spacer{
+        display:block;
+        min-height:28px;
+        margin:0;
     }
 
     .note-editor .note-editable h2,
@@ -61,7 +76,7 @@
     .note-editor .note-editable h2{ font-size:18px; }
     .note-editor .note-editable h3{ font-size:16px; }
     .note-editor .note-editable h4,
-    .note-editor .note-editable h5{ font-size:15px; }
+    .note-editor .note-editable h5{ font-size:13px; }
 
     .note-editor .note-editable ul,
     .note-editor .note-editable ol{
@@ -71,6 +86,9 @@
 
     .note-editor .note-editable li{
         margin:0 0 6px;
+        font-size:13px;
+        font-weight:400;
+        color:#333;
     }
 
     .note-editor .note-editable a{

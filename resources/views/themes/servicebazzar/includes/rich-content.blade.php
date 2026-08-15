@@ -140,6 +140,13 @@
         margin-bottom:0;
     }
 
+    .rich-content.rich-content .rich-content-spacer{
+        display:block;
+        height:28px;
+        min-height:28px;
+        margin:0;
+    }
+
     /*
      * Links underline ke saath, taki paragraph ke beech me wo click karne
      * layak dikhein — sirf rang se pata nahi chalta.

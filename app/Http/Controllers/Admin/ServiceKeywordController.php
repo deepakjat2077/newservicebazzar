@@ -51,6 +51,7 @@ public function create()
             'description' => ContentHtml::clean($request->description),
             'status' => $request->status ?? 1,
         ]);
+        ContentHtml::flushPublicPageCache();
 
         return redirect()->route('admin.service-keywords.index')->with('success', 'Service keyword added successfully');
     }
@@ -95,6 +96,7 @@ public function create()
             'description' => ContentHtml::clean($request->description),
             'status' => $request->status ?? 1,
         ]);
+        ContentHtml::flushPublicPageCache();
 
         return redirect()->route('admin.service-keywords.index')->with('success', 'Service keyword updated successfully');
     }
