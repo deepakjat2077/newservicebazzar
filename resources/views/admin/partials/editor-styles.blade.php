@@ -12,16 +12,16 @@
 --}}
 <style>
     .note-editor .note-editable{
-        color:#3b3f45;
-        font-size:17px;
-        line-height:1.75;
+        color:#333;
+        font-size:15px;
+        line-height:1.65;
         padding:16px 18px;
     }
 
     /* Ek Enter = ek paragraph. Gap ek line se thoda kam, taki paragraph alag
        to dikhe par beech me khaali jagah na lage. */
     .note-editor .note-editable > *{
-        margin:0 0 10px;
+        margin:0 0 12px;
     }
 
     .note-editor .note-editable > *:last-child{
@@ -29,7 +29,7 @@
     }
 
     .note-editor .note-editable p{
-        margin:0 0 10px;
+        margin:0 0 12px;
     }
 
     .note-editor .note-editable h2,
@@ -60,17 +60,17 @@
 
     .note-editor .note-editable ul,
     .note-editor .note-editable ol{
-        margin:0 0 10px;
-        padding-left:22px;
+        margin:0 0 12px;
+        padding-left:20px;
     }
 
     .note-editor .note-editable li{
-        margin:0 0 7px;
+        margin:0 0 6px;
     }
 
     .note-editor .note-editable a{
         color:#1a73e8;
-        text-decoration:none;
+        text-decoration:underline;
     }
 
     .note-editor .note-editable strong{

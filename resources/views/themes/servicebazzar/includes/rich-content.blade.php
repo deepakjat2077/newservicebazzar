@@ -12,18 +12,25 @@
 --}}
 @once
 <style>
+    /*
+     * Body text headings se chhota hona chahiye.
+     *
+     * Pehle ye 17px tha jabki h3 16px hai — yaani paragraph heading se bada,
+     * aur isi wajah se headings alag hi nahi lag rahi thi. 15px rakhne se
+     * scale sahi ban jaati hai: 18 (h2) > 16 (h3) > 15 (body).
+     */
     .rich-content{
-        color:#3b3f45;
-        font-size:17px;
-        line-height:1.75;
+        color:#333;
+        font-size:15px;
+        line-height:1.65;
     }
 
     /* Har child ka apna margin hone se hi gaps alag-alag ho rahe the.
        Pehle sab reset, phir sirf neeche ek consistent gap.
-       10px = ek line se thoda kam, taki Enter dabane par paragraph alag to
+       12px = ek line se thoda kam, taki Enter dabane par paragraph alag to
        dikhe par beech me khaali jagah na lage. */
     .rich-content > *{
-        margin:0 0 10px;
+        margin:0 0 12px;
     }
 
     .rich-content > *:last-child{
@@ -58,27 +65,30 @@
     .rich-content h5{ font-size:15px; }
 
     .rich-content p{
-        margin:0 0 10px;
+        margin:0 0 12px;
     }
 
     .rich-content ul,
     .rich-content ol{
-        margin:0 0 10px;
-        padding-left:22px;
+        margin:0 0 12px;
+        padding-left:20px;
     }
 
     .rich-content li{
-        margin:0 0 7px;
+        margin:0 0 6px;
     }
 
     .rich-content li:last-child{
         margin-bottom:0;
     }
 
-    /* Pasted content me links poore paragraph ko apna rang de deti thi. */
+    /*
+     * Links underline ke saath, taki paragraph ke beech me wo click karne
+     * layak dikhein — sirf rang se pata nahi chalta.
+     */
     .rich-content a{
         color:#1a73e8;
-        text-decoration:none;
+        text-decoration:underline;
     }
 
     .rich-content a:hover{
@@ -140,8 +150,8 @@
 
     @media (max-width:767px){
         .rich-content{
-            font-size:15.5px;
-            line-height:1.7;
+            font-size:14.5px;
+            line-height:1.65;
         }
 
         /*
