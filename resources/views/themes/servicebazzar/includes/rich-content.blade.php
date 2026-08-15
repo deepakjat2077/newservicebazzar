@@ -46,7 +46,8 @@
     .rich-content.rich-content span,
     .rich-content.rich-content div,
     .rich-content.rich-content blockquote{
-        font-size:15px;
+        font-size:13px;
+        font-weight:400;
         line-height:1.6;
         color:#333;
     }

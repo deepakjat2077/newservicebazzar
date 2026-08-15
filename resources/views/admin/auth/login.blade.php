@@ -8,7 +8,7 @@
         </div>
         <div class="auth-card">
           <div class="auth-card-body">
-            <form action="{{ route('admin.login') }}" method="post">
+            <form action="{{ route('admin.login.submit') }}" method="post">
               @csrf
               <div class="form-group">
                 <label>@lang('Username')</label>

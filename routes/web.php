@@ -41,7 +41,7 @@ Route::get('/jaipur/maintenance', function () {
 
         Route::namespace('Auth')->group(function () {
             Route::get('/', 'LoginController@showLoginForm')->name('login');
-            Route::post('/', 'LoginController@login')->name('login');
+            Route::post('/', 'LoginController@login')->name('login.submit');
             Route::get('/logout', 'LoginController@logout')->name('logout');
 
             Route::name('password.')->prefix('password')->group(function () {
@@ -796,4 +796,3 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->where('pin', '[0-9]{4,10}')
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
-

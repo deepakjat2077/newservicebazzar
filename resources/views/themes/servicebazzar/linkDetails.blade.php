@@ -17,7 +17,8 @@
         width: 100%;
         max-width: 100%;
         overflow-x: hidden;
-        font-size: 16px;
+        font-size: 13px;
+        font-weight: 400;
         line-height: 1.55;
         text-align: left;
     }
@@ -28,18 +29,21 @@
     .privacy-policy-content.rich-content.rich-content span,
     .privacy-policy-content.rich-content.rich-content div,
     .privacy-policy-content.rich-content.rich-content blockquote {
+        font-size: 13px;
+        font-weight: 400;
+        color: #333;
         line-height: 1.45;
     }
 
     .privacy-policy-content.rich-content.rich-content > * {
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
 
     .privacy-policy-content.rich-content.rich-content h2,
     .privacy-policy-content.rich-content.rich-content h3,
     .privacy-policy-content.rich-content.rich-content h4,
     .privacy-policy-content.rich-content.rich-content h5 {
-        margin: 10px 0 3px;
+        margin: 8px 0 2px;
         line-height: 1.25;
     }
 
@@ -59,28 +63,42 @@
     }
 
     .privacy-policy-content p {
-        margin-bottom: 6px;
+        margin: 0 0 4px;
+    }
+
+    .privacy-policy-content.rich-content.rich-content p {
+        margin: 0 0 4px;
     }
 
     .privacy-policy-content p:has(strong),
-    .privacy-policy-content p:has(b) {
-        margin-bottom: 3px;
+    .privacy-policy-content p:has(b),
+    .privacy-policy-content.rich-content.rich-content p:has(strong),
+    .privacy-policy-content.rich-content.rich-content p:has(b) {
+        margin: 6px 0 1px;
     }
 
     .privacy-policy-content ul,
-    .privacy-policy-content ol {
+    .privacy-policy-content ol,
+    .privacy-policy-content.rich-content.rich-content ul,
+    .privacy-policy-content.rich-content.rich-content ol {
         width: 100% !important;
-        margin: 6px 0 8px;
-        padding-left: 30px;
+        margin: 4px 0 6px;
+        padding-left: 38px;
+        list-style-position: outside;
     }
 
-    .privacy-policy-content li {
+    .privacy-policy-content li,
+    .privacy-policy-content.rich-content.rich-content li {
         display: list-item !important;
         width: auto !important;
-        margin-bottom: 4px;
-        padding-left: 4px;
+        margin-bottom: 3px;
+        padding-left: 0;
         float: none !important;
         position: static !important;
+    }
+
+    .privacy-policy-content li:last-child {
+        margin-bottom: 0;
     }
 
     .privacy-policy-content strong,
@@ -111,7 +129,7 @@
         }
 
         .privacy-policy-content {
-            font-size: 15px;
+            font-size: 13px;
             line-height: 1.45;
         }
 
@@ -128,12 +146,15 @@
         .privacy-policy-content.rich-content.rich-content h3,
         .privacy-policy-content.rich-content.rich-content h4,
         .privacy-policy-content.rich-content.rich-content h5 {
-            margin: 8px 0 3px;
+            margin: 7px 0 2px;
         }
 
         .privacy-policy-content ul,
-        .privacy-policy-content ol {
-            padding-left: 24px;
+        .privacy-policy-content ol,
+        .privacy-policy-content.rich-content.rich-content ul,
+        .privacy-policy-content.rich-content.rich-content ol {
+            margin: 4px 0 6px;
+            padding-left: 32px;
         }
     }
 </style>

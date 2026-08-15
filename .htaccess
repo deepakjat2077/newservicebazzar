@@ -13,3 +13,6 @@
     RewriteRule ^$ public/index.php [L]
     RewriteRule (.*) public/$1 [L]
 </IfModule>
+
+ErrorDocument 500 /errors/500.html
+ErrorDocument 503 /errors/503.html

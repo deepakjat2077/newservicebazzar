@@ -26,6 +26,8 @@ use DOMXPath;
  */
 class ContentHtml
 {
+    protected const CACHE_VERSION = 'v2';
+
     /** Block tags kept as-is. */
     protected const BLOCKS = [
         'p', 'h2', 'h3', 'h4', 'h5', 'ul', 'ol', 'li', 'blockquote',
@@ -90,6 +92,7 @@ class ContentHtml
         static::stripAttributes($xpath);
         static::normaliseWhitespace($xpath);
         static::promoteLooseInlineContent($body);
+        static::normaliseTypedBulletParagraphs($xpath);
         static::stripTypedBullets($xpath);
         static::dropEmptyNodes($xpath);
         static::wrapTables($xpath);
@@ -116,7 +119,7 @@ class ContentHtml
         }
 
         return \Illuminate\Support\Facades\Cache::remember(
-            'content-html:' . sha1($html),
+            'content-html:' . static::CACHE_VERSION . ':' . sha1($html),
             now()->addDays(30),
             fn () => static::clean($html)
         );
@@ -391,6 +394,62 @@ class ContentHtml
                 '',
                 $first->nodeValue
             );
+        }
+    }
+
+    /**
+     * Some editors save bullets as separate paragraphs that start with a typed
+     * "•" instead of real <ul><li> markup. Turn those runs into actual lists so
+     * the frontend can indent and space them consistently.
+     */
+    protected static function normaliseTypedBulletParagraphs(DOMXPath $xpath): void
+    {
+        $paragraphs = iterator_to_array($xpath->query('//body/p') ?: []);
+
+        foreach ($paragraphs as $paragraph) {
+            if (!$paragraph->parentNode || $paragraph->nodeName !== 'p') {
+                continue;
+            }
+
+            if (!preg_match('/^\s*[\x{2022}\x{25E6}\x{25AA}\x{2023}\x{00B7}\x{2043}]\s+/u', $paragraph->textContent)) {
+                continue;
+            }
+
+            $doc = $paragraph->ownerDocument;
+            $parent = $paragraph->parentNode;
+            $list = $doc->createElement('ul');
+            $cursor = $paragraph;
+
+            while ($cursor instanceof DOMElement
+                && $cursor->nodeName === 'p'
+                && preg_match('/^\s*[\x{2022}\x{25E6}\x{25AA}\x{2023}\x{00B7}\x{2043}]\s+/u', $cursor->textContent)) {
+                $next = $cursor->nextSibling;
+                $item = $doc->createElement('li');
+
+                while ($cursor->firstChild) {
+                    $item->appendChild($cursor->firstChild);
+                }
+
+                $first = $item->firstChild;
+
+                while ($first instanceof DOMElement && $first->firstChild) {
+                    $first = $first->firstChild;
+                }
+
+                if ($first instanceof DOMText) {
+                    $first->nodeValue = preg_replace(
+                        '/^\s*[\x{2022}\x{25E6}\x{25AA}\x{2023}\x{00B7}\x{2043}]\s*/u',
+                        '',
+                        $first->nodeValue
+                    );
+                }
+
+                $list->appendChild($item);
+                $parent->removeChild($cursor);
+                $cursor = $next;
+            }
+
+            $parent->insertBefore($list, $cursor);
         }
     }
 

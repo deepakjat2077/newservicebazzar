@@ -20,6 +20,9 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+ErrorDocument 500 /errors/500.html
+ErrorDocument 503 /errors/503.html
+
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType text/css "access plus 1 year"
