@@ -257,7 +257,15 @@ public function quickStore(Request $request)
     // Quick-add used to save only the name, leaving the SEO columns empty on
     // every subcategory created from the listing form. Fill them from the
     // same AI the listing form's auto-content uses.
-    $seo = $this->generateSeo($name, optional($category)->name);
+    //
+    // The AI call is deliberately NOT made before the insert: with retries it
+    // can hold the request for the best part of a minute, which is longer than
+    // the max_execution_time the app runs under, so the admin lost the whole
+    // subcategory to a 500 instead of merely losing its generated text. The row
+    // is written with the deterministic fallback first and the response goes
+    // out; the AI then upgrades the row once the browser already has its answer.
+    $writer = app(\App\Services\SubcategorySeoWriter::class);
+    $seo = $writer->fallback($name, optional($category)->name);
 
     $subcategory = new subcategory();
     $subcategory->name = $name;
@@ -268,6 +276,8 @@ public function quickStore(Request $request)
     $subcategory->seo_description = $seo['seo_description'];
     $subcategory->status = 1;
     $subcategory->save();
+
+    $this->enrichSeoAfterResponse($subcategory->id, $name, optional($category)->name);
 
     return response()->json([
         'status' => true,
@@ -281,10 +291,45 @@ public function quickStore(Request $request)
             'seo_keywords' => $subcategory->seo_keywords,
             'seo_description' => $subcategory->seo_description,
         ],
-        'seo_generated' => $seo['generated'],
-        'seo_message' => $seo['message'],
+        'seo_generated' => false,
+        'seo_message' => 'Sub category saved; SEO text is being written in the background.',
     ]);
 }
+
+    /**
+     * Rewrite the row's SEO columns from the AI once the response has been
+     * flushed to the browser.
+     *
+     * Runs in this same process rather than on the queue, because the app has
+     * no worker running and a queued job would simply never be picked up. If
+     * the process is killed before it finishes, the row keeps its fallback text
+     * and `subcategories:fill-seo` picks it up later — the one thing that must
+     * not happen is the admin's subcategory going missing, and by this point it
+     * is already committed.
+     */
+    protected function enrichSeoAfterResponse(int $id, string $name, ?string $categoryName): void
+    {
+        app()->terminating(function () use ($id, $name, $categoryName) {
+            try {
+                $seo = $this->generateSeo($name, $categoryName);
+
+                if (!$seo['generated']) {
+                    return;
+                }
+
+                Subcategory::where('id', $id)->update([
+                    'seo_title'       => $seo['seo_title'],
+                    'seo_keywords'    => $seo['seo_keywords'],
+                    'seo_description' => $seo['seo_description'],
+                ]);
+            } catch (\Throwable $exception) {
+                \Illuminate\Support\Facades\Log::warning('Subcategory SEO enrichment failed', [
+                    'subcategory_id' => $id,
+                    'error'          => $exception->getMessage(),
+                ]);
+            }
+        });
+    }
 
     /**
      * SEO for a subcategory, delegated to SubcategorySeoWriter so the

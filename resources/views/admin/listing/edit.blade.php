@@ -2069,6 +2069,40 @@ let subcategoryAjaxRequest = null;
       renderSubcategoryDropdown(locationFilteredSubcategories);
     });
 
+    /**
+     * Turn a failed quick-add into something the admin can act on: the
+     * validation message where there is one, the session/permission problem
+     * where that is what happened, and a plain note otherwise.
+     */
+    function subcategoryErrorMessage(xhr) {
+        if (xhr.status === 0) {
+            return 'Sub category add nahi hui — network connection टूट गया. Dobara try karein.';
+        }
+
+        if (xhr.status === 419 || xhr.status === 401) {
+            return 'Aapka session expire ho gaya hai. Page reload karke dobara login karein.';
+        }
+
+        if (xhr.status === 403) {
+            return 'Sub category add karne ki permission nahi hai.';
+        }
+
+        var res = xhr.responseJSON;
+
+        if (res && res.errors) {
+            var first = Object.keys(res.errors)[0];
+            if (first && res.errors[first] && res.errors[first][0]) {
+                return res.errors[first][0];
+            }
+        }
+
+        if (res && res.message) {
+            return res.message;
+        }
+
+        return 'Sub category add nahi hui (error ' + xhr.status + '). Thodi der baad try karein.';
+    }
+
     $(document).on('mousedown', '.add-new-subcategory-item', function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -2107,7 +2141,7 @@ let subcategoryAjaxRequest = null;
             beforeSend: function () {
                 $item.data('busy', true)
                     .css('pointer-events', 'none')
-                    .html('<i class="fas fa-spinner fa-spin"></i> Adding "' + name + '" — writing SEO…');
+                    .html('<i class="fas fa-spinner fa-spin"></i> Adding "' + name + '"…');
             },
             complete: function () {
                 $item.data('busy', false)
@@ -2141,7 +2175,9 @@ let subcategoryAjaxRequest = null;
             },
             error: function (xhr) {
                 console.log(xhr.responseText);
-                alert('Error adding subcategory');
+                // A bare "Error adding subcategory" gave the admin nothing to
+                // act on and nothing to report, so say what actually came back.
+                alert(subcategoryErrorMessage(xhr));
             }
         });
     });
