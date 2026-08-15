@@ -36,22 +36,27 @@
     .note-editor .note-editable h3,
     .note-editor .note-editable h4,
     .note-editor .note-editable h5{
-        color:#1c1f23;
-        font-weight:700;
+        color:#111;
+        font-weight:600;
         line-height:1.35;
+    }
+
+    /* h3 ko upar wala margin nahi milta — site par bhi nahi milta. */
+    .note-editor .note-editable h2,
+    .note-editor .note-editable h4,
+    .note-editor .note-editable h5{
         margin:26px 0 10px;
     }
 
     .note-editor .note-editable > h2:first-child,
-    .note-editor .note-editable > h3:first-child,
     .note-editor .note-editable > h4:first-child{
         margin-top:0;
     }
 
-    .note-editor .note-editable h2{ font-size:24px; }
-    .note-editor .note-editable h3{ font-size:20px; }
+    .note-editor .note-editable h2{ font-size:18px; }
+    .note-editor .note-editable h3{ font-size:16px; }
     .note-editor .note-editable h4,
-    .note-editor .note-editable h5{ font-size:18px; }
+    .note-editor .note-editable h5{ font-size:15px; }
 
     .note-editor .note-editable ul,
     .note-editor .note-editable ol{

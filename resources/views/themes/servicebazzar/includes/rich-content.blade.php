@@ -34,22 +34,28 @@
     .rich-content h3,
     .rich-content h4,
     .rich-content h5{
-        color:#1c1f23;
-        font-weight:700;
+        color:#111;
+        font-weight:600;
         line-height:1.35;
+    }
+
+    /* h3 ko upar wala margin nahi milta — wo `> *` wale 0 0 10px par hi
+       rehta hai, taki uske upar khaali jagah na aaye. */
+    .rich-content h2,
+    .rich-content h4,
+    .rich-content h5{
         margin:26px 0 10px;
     }
 
     .rich-content > h2:first-child,
-    .rich-content > h3:first-child,
     .rich-content > h4:first-child{
         margin-top:0;
     }
 
-    .rich-content h2{ font-size:24px; }
-    .rich-content h3{ font-size:20px; }
+    .rich-content h2{ font-size:18px; }
+    .rich-content h3{ font-size:16px; }
     .rich-content h4,
-    .rich-content h5{ font-size:18px; }
+    .rich-content h5{ font-size:15px; }
 
     .rich-content p{
         margin:0 0 10px;
@@ -138,13 +144,14 @@
             line-height:1.7;
         }
 
-        .rich-content h2{ font-size:21px; }
-        .rich-content h3{ font-size:18px; }
-        .rich-content h4,
-        .rich-content h5{ font-size:16px; }
-
+        /*
+         * Heading sizes mobile par bhi wahi rehte hain — 18px / 16px pehle se
+         * hi chhote hain, aur inhe aur ghata dene par wo body text (15.5px) se
+         * alag hi nahi lagte. Sirf gap thoda kam hota hai.
+         *
+         * h3 yahan bhi margin se bahar hai, desktop ki tarah.
+         */
         .rich-content h2,
-        .rich-content h3,
         .rich-content h4,
         .rich-content h5{
             margin:20px 0 8px;
