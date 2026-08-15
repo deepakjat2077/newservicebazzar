@@ -18,8 +18,29 @@
         max-width: 100%;
         overflow-x: hidden;
         font-size: 16px;
-        line-height: 1.7;
+        line-height: 1.55;
         text-align: left;
+    }
+
+    .privacy-policy-content.rich-content.rich-content,
+    .privacy-policy-content.rich-content.rich-content p,
+    .privacy-policy-content.rich-content.rich-content li,
+    .privacy-policy-content.rich-content.rich-content span,
+    .privacy-policy-content.rich-content.rich-content div,
+    .privacy-policy-content.rich-content.rich-content blockquote {
+        line-height: 1.45;
+    }
+
+    .privacy-policy-content.rich-content.rich-content > * {
+        margin-bottom: 6px;
+    }
+
+    .privacy-policy-content.rich-content.rich-content h2,
+    .privacy-policy-content.rich-content.rich-content h3,
+    .privacy-policy-content.rich-content.rich-content h4,
+    .privacy-policy-content.rich-content.rich-content h5 {
+        margin: 10px 0 3px;
+        line-height: 1.25;
     }
 
     .privacy-policy-content * {
@@ -37,17 +58,26 @@
         text-align: left !important;
     }
 
+    .privacy-policy-content p {
+        margin-bottom: 6px;
+    }
+
+    .privacy-policy-content p:has(strong),
+    .privacy-policy-content p:has(b) {
+        margin-bottom: 3px;
+    }
+
     .privacy-policy-content ul,
     .privacy-policy-content ol {
         width: 100% !important;
-        margin: 15px 0;
+        margin: 6px 0 8px;
         padding-left: 30px;
     }
 
     .privacy-policy-content li {
         display: list-item !important;
         width: auto !important;
-        margin-bottom: 10px;
+        margin-bottom: 4px;
         padding-left: 4px;
         float: none !important;
         position: static !important;
@@ -82,7 +112,23 @@
 
         .privacy-policy-content {
             font-size: 15px;
-            line-height: 1.65;
+            line-height: 1.45;
+        }
+
+        .privacy-policy-content.rich-content.rich-content,
+        .privacy-policy-content.rich-content.rich-content p,
+        .privacy-policy-content.rich-content.rich-content li,
+        .privacy-policy-content.rich-content.rich-content span,
+        .privacy-policy-content.rich-content.rich-content div,
+        .privacy-policy-content.rich-content.rich-content blockquote {
+            line-height: 1.42;
+        }
+
+        .privacy-policy-content.rich-content.rich-content h2,
+        .privacy-policy-content.rich-content.rich-content h3,
+        .privacy-policy-content.rich-content.rich-content h4,
+        .privacy-policy-content.rich-content.rich-content h5 {
+            margin: 8px 0 3px;
         }
 
         .privacy-policy-content ul,
