@@ -2675,6 +2675,78 @@ $(document)
  * Page load par bhi state apply hogi.
  */
 toggleOpen24Hours();
+
+    /*
+     * The Area field switches between a dropdown and a plain text box.
+     *
+     * Wherever the postal directory knows the pincode, picking from its list
+     * keeps the spelling consistent across listings. Where it does not — and
+     * it is missing a lot of genuine pincodes — the admin has to be able to
+     * just type the area, otherwise the whole listing is unsaveable over one
+     * field. Both states write to the same `area` name, so the form and the
+     * controller behind it do not care which one is on screen.
+     */
+    function areaField() {
+        return $('#area');
+    }
+
+    function replaceAreaField($replacement) {
+        var $current = areaField();
+        var value = ($current.val() || '').trim();
+
+        $replacement.attr('id', 'area').attr('name', 'area').addClass('form-control');
+        $current.replaceWith($replacement);
+
+        return value;
+    }
+
+    function setAreaAsDropdown(areas) {
+        var $select = $('<select>');
+        var previous = replaceAreaField($select);
+
+        $select.append('<option value="">Select Area</option>');
+
+        var matched = false;
+
+        (areas || []).forEach(function (area) {
+            var name = String(area || '').trim();
+
+            if (!name) {
+                return;
+            }
+
+            var selected = name.toLowerCase() === previous.toLowerCase();
+            matched = matched || selected;
+
+            $select.append(
+                $('<option>').attr('value', name).prop('selected', selected).text(name)
+            );
+        });
+
+        // Something already typed that is not on the list is still the
+        // admin's answer — keep it rather than silently dropping it.
+        if (previous && !matched) {
+            $select.append($('<option>').attr('value', previous).prop('selected', true).text(previous));
+        }
+
+        $('#areaHelp').remove();
+    }
+
+    function setAreaAsFreeText(message) {
+        var $input = $('<input type="text" placeholder="Enter Area">');
+        var previous = replaceAreaField($input);
+
+        $input.val(previous);
+
+        $('#areaHelp').remove();
+
+        if (message) {
+            $input.after(
+                $('<small class="form-text text-muted" id="areaHelp">').text(message)
+            );
+        }
+    }
+
     // pincode -> city/state/area
     $('#pincode').on('keyup change', debounce(function () {
         let pin = $(this).val().trim();
@@ -2682,51 +2754,34 @@ toggleOpen24Hours();
         if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
             $('#city').val('');
             $('#state').val('');
-            $('#area').html('<option value="">Select Area</option>');
+            setAreaAsDropdown([]);
             $('#latitude').val('');
             $('#longitude').val('');
             return;
         }
 
-        $('#area').html('<option value="">Loading...</option>');
+        setAreaAsDropdown([]);
+        areaField().is('select') && areaField().html('<option value="">Loading...</option>');
 
        fetch("/admin/pincode/" + pin)
             .then(response => response.json())
             .then(data => {
-                $('#city').val('');
-                $('#state').val('');
-                $('#area').html('<option value="">Select Area</option>');
                 $('#latitude').val('');
                 $('#longitude').val('');
 
-                if (
-                    data &&
-                    data[0] &&
-                    data[0].Status === "Success" &&
-                    Array.isArray(data[0].PostOffice) &&
-                    data[0].PostOffice.length > 0
-                ) {
-                    let postOffices = data[0].PostOffice;
-                    let usedAreas = [];
+                $('#city').val(data.city || '');
+                $('#state').val(data.state || '');
 
-                    $('#city').val(postOffices[0].District || '');
-                    $('#state').val(postOffices[0].State || '');
-
+                if (data.city && typeof window.autoSelectListingLocation === 'function') {
                     // Location is the same city under another name — keep it
                     // in step instead of making it a second manual choice.
-                    if (typeof window.autoSelectListingLocation === 'function') {
-                        window.autoSelectListingLocation(postOffices[0].District || '');
-                    }
+                    window.autoSelectListingLocation(data.city);
+                }
 
-                    postOffices.forEach(function (office) {
-                        let areaName = (office.Name || '').trim();
-                        if (areaName && !usedAreas.includes(areaName)) {
-                            usedAreas.push(areaName);
-                            $('#area').append(`<option value="${areaName}">${areaName}</option>`);
-                        }
-                    });
+                if (data && data.status && Array.isArray(data.areas) && data.areas.length > 0) {
+                    setAreaAsDropdown(data.areas);
 
-                    let searchText = `${pin}, ${postOffices[0].District || ''}, ${postOffices[0].State || ''}, India`;
+                    let searchText = `${pin}, ${data.city || ''}, ${data.state || ''}, India`;
 
                     // Geocoding goes through our own server (see
                     // SiteController@geocodeAddress). Calling Nominatim
@@ -2746,15 +2801,19 @@ toggleOpen24Hours();
                     updateSeoScore();
                     triggerAutoAiGenerate();
                 } else {
-                    $('#area').html('<option value="">Area not found</option>');
+                    // The postal directory is missing plenty of real pincodes
+                    // (160043, Chandigarh Sector 44, among them). A dead
+                    // dropdown left the admin with no way to save a perfectly
+                    // good address, so the field becomes a text box instead.
+                    setAreaAsFreeText(data.source === 'unreachable'
+                        ? 'Pincode service abhi reachable nahi — area type kar dijiye'
+                        : 'Is pincode ka area list me nahi hai — type kar dijiye');
                 }
             })
             .catch(() => {
-                $('#city').val('');
-                $('#state').val('');
                 $('#latitude').val('');
                 $('#longitude').val('');
-                $('#area').html('<option value="">Failed to load area</option>');
+                setAreaAsFreeText('Area load nahi ho paya — type kar dijiye');
             });
     }, 500));
 

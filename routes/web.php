@@ -787,25 +787,13 @@ Route::get('/{slug}', 'SiteController@handleSingleSlug')
 
 use Illuminate\Support\Facades\Http;
 
-Route::get('/admin/pincode/{pin}', function ($pin) {
-
-    try {
-        $response = Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
-            ->timeout(20)
-            ->get("https://api.postalpincode.in/pincode/{$pin}");
-
-        return response($response->body(), 200)
-            ->header('Content-Type', 'application/json');
-
-    } catch (\Exception $e) {
-        return response()->json([
-            [
-                "Message" => "Pincode API not reachable",
-                "Status" => "Error",
-                "PostOffice" => null
-            ]
-        ], 200);
-    }
-
-})->where('pin', '[0-9]{4,10}')->middleware(['web', 'admin'])->name('admin.pincode.fetch');
+// Areas for a pincode. The upstream postal API is missing plenty of real
+// pincodes, so this also offers the areas our own listings already use for it
+// — see Admin\PincodeController.
+// Registered outside the admin group, so it does not pick up that group's
+// `Admin\` controller namespace — hence the fully qualified class.
+Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
+    ->where('pin', '[0-9]{4,10}')
+    ->middleware(['web', 'admin'])
+    ->name('admin.pincode.fetch');
 

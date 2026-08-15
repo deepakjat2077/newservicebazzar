@@ -2676,56 +2676,130 @@ function syncSelectAllDaysOnLoad() {
 }
 
 syncSelectAllDaysOnLoad();
-$('#pincode').on('keyup', function () {
+
+/*
+ * The Area field switches between a dropdown and a plain text box.
+ *
+ * Wherever the postal directory knows the pincode, picking from its list keeps
+ * the spelling consistent across listings. Where it does not — and it is
+ * missing a lot of genuine pincodes, 160043 among them — the admin has to be
+ * able to just type the area, otherwise the listing is unsaveable over one
+ * field. Both states write to the same `area` name, so nothing downstream
+ * cares which one is on screen.
+ *
+ * Same behaviour as the add form; keep the two in step.
+ */
+function areaField() {
+    return $('#area');
+}
+
+function replaceAreaField($replacement) {
+    var $current = areaField();
+    var value = ($current.val() || '').trim();
+
+    $replacement.attr('id', 'area').attr('name', 'area').addClass('form-control');
+    $current.replaceWith($replacement);
+
+    return value;
+}
+
+function setAreaAsDropdown(areas) {
+    var $select = $('<select>');
+    var previous = replaceAreaField($select);
+
+    $select.append('<option value="">Select Area</option>');
+
+    var matched = false;
+
+    (areas || []).forEach(function (area) {
+        var name = String(area || '').trim();
+
+        if (!name) {
+            return;
+        }
+
+        var selected = name.toLowerCase() === previous.toLowerCase();
+        matched = matched || selected;
+
+        $select.append(
+            $('<option>').attr('value', name).prop('selected', selected).text(name)
+        );
+    });
+
+    // The area this listing was saved with may not be on the list — it is
+    // still the right answer, so it must survive a pincode re-lookup.
+    if (previous && !matched) {
+        $select.append($('<option>').attr('value', previous).prop('selected', true).text(previous));
+    }
+
+    $('#areaHelp').remove();
+}
+
+function setAreaAsFreeText(message) {
+    var $input = $('<input type="text" placeholder="Enter Area">');
+    var previous = replaceAreaField($input);
+
+    $input.val(previous);
+
+    $('#areaHelp').remove();
+
+    if (message) {
+        $input.after($('<small class="form-text text-muted" id="areaHelp">').text(message));
+    }
+}
+
+$('#pincode').on('keyup change', function () {
         let pin = $(this).val().trim();
 
-        if (pin.length === 6 && /^\d{6}$/.test(pin)) {
-            fetch("https://api.postalpincode.in/pincode/" + pin)
-                .then(response => response.json())
-                .then(data => {
-                    $('#city').val('');
-                    $('#state').val('');
-                    $('#area').html('<option value="">Select Area</option>');
-                    $('#latitude').val('');
-                    $('#longitude').val('');
-
-                    if (data[0].Status === "Success" && data[0].PostOffice.length > 0) {
-                        let postOffices = data[0].PostOffice;
-
-                        $('#city').val(postOffices[0].District || '');
-                        $('#state').val(postOffices[0].State || '');
-
-                        // Location is the same city under another name — keep
-                        // it in step instead of making it a second manual
-                        // choice.
-                        if (typeof window.autoSelectListingLocation === 'function') {
-                            window.autoSelectListingLocation(postOffices[0].District || '');
-                        }
-
-                        postOffices.forEach(function (office) {
-                            $('#area').append(`<option value="${office.Name}">${office.Name}</option>`);
-                        });
-
-                        let currentArea = @json(old('area', $listing->area ?? ''));
-                        if (currentArea) {
-                            $('#area').val(currentArea);
-                        }
-
-                        let searchText = `${pin}, ${postOffices[0].District}, ${postOffices[0].State}, India`;
-
-                        fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(searchText)}`)
-                            .then(res => res.json())
-                            .then(locationData => {
-                                if (locationData.length > 0) {
-                                    $('#latitude').val(locationData[0].lat || '');
-                                    $('#longitude').val(locationData[0].lon || '');
-                                }
-                            });
-
-                        updateSeoScore();
-                    }
-                });
+        if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+            return;
         }
+
+        // Goes through our own endpoint (Admin\PincodeController), which also
+        // offers the areas our existing listings already use for this pincode.
+        fetch("/admin/pincode/" + pin)
+            .then(response => response.json())
+            .then(data => {
+                $('#latitude').val('');
+                $('#longitude').val('');
+
+                $('#city').val(data.city || '');
+                $('#state').val(data.state || '');
+
+                if (data.city && typeof window.autoSelectListingLocation === 'function') {
+                    // Location is the same city under another name — keep it
+                    // in step instead of making it a second manual choice.
+                    window.autoSelectListingLocation(data.city);
+                }
+
+                if (data && data.status && Array.isArray(data.areas) && data.areas.length > 0) {
+                    setAreaAsDropdown(data.areas);
+
+                    let searchText = `${pin}, ${data.city || ''}, ${data.state || ''}, India`;
+
+                    // Geocoding goes through our own server. Calling Nominatim
+                    // straight from the browser gets a 403 — their usage policy
+                    // blocks browser-side callers.
+                    fetch("{{ route('geocode.address') }}?address=" + encodeURIComponent(searchText))
+                        .then(res => res.json())
+                        .then(locationData => {
+                            if (locationData && locationData.status) {
+                                $('#latitude').val(locationData.lat || '');
+                                $('#longitude').val(locationData.lng || '');
+                            }
+                        })
+                        .catch(() => {});
+
+                    updateSeoScore();
+                } else {
+                    setAreaAsFreeText(data.source === 'unreachable'
+                        ? 'Pincode service abhi reachable nahi — area type kar dijiye'
+                        : 'Is pincode ka area list me nahi hai — type kar dijiye');
+                }
+            })
+            .catch(() => {
+                setAreaAsFreeText('Area load nahi ho paya — type kar dijiye');
+            });
     });
 
     /*
