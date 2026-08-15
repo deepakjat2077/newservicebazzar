@@ -177,14 +177,14 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
 
 
             Route::name('subcategories.')->prefix('subcategories')->middleware('permission:subcategory.view')->group(function () {
-                Route::get('/', 'Subcategoriescontroller@index')->name('index');
-                Route::post('create', 'Subcategoriescontroller@create')->name('create');
-                Route::get('create', 'Subcategoriescontroller@createPage')->name('create.page');
-                Route::get('update/{id}', 'Subcategoriescontroller@update')->name('update.page');
-                Route::put('edit/{id}', 'Subcategoriescontroller@edit')->name('edit');
-                Route::delete('delete/{id}', 'Subcategoriescontroller@delete')->name('delete');
+                Route::get('/', 'SubcategoriesController@index')->name('index');
+                Route::post('create', 'SubcategoriesController@create')->name('create');
+                Route::get('create', 'SubcategoriesController@createPage')->name('create.page');
+                Route::get('update/{id}', 'SubcategoriesController@update')->name('update.page');
+                Route::put('edit/{id}', 'SubcategoriesController@edit')->name('edit');
+                Route::delete('delete/{id}', 'SubcategoriesController@delete')->name('delete');
                 // Called by the listing form's subcategory picker.
-                Route::post('quick-store', 'Subcategoriescontroller@quickStore')->withoutMiddleware('permission:subcategory.view')->middleware('permission:subcategory.manage,listing.create')->name('quick.store');
+                Route::post('quick-store', 'SubcategoriesController@quickStore')->withoutMiddleware('permission:subcategory.view')->middleware('permission:subcategory.manage,listing.create')->name('quick.store');
             });
 
 
