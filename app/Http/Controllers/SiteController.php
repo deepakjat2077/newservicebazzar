@@ -142,7 +142,7 @@ if (!empty($location)) {
      * hit and rendered nothing with them.
      */
     $data['categories'] = Cache::remember('home:active_categories:v1', now()->addMinutes(10), function () {
-        return Category::select('id', 'name', 'slug', 'image', 'icon', 'description', 'content')
+        return Category::select('id', 'name', 'slug', 'image', 'icon', 'description')
             ->where('status', 1)
             ->get();
     });
