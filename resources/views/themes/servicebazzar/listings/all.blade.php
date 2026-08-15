@@ -50,9 +50,6 @@
     <style>
         /* ================= SEARCH SECTION ================= */
 
-
-
-
         /* ================= FILTER BAR ================= */
 
         .main-card {
@@ -260,7 +257,6 @@
                 display: none !important;
             }
 
-         
           
         }
 
@@ -374,9 +370,7 @@ a {
     color: #000;
 }
 
-        
     </style>
-
 
     @if(isset($banners) && $banners->count() > 0)
         <section class="category-banner-slider">
@@ -414,7 +408,6 @@ a {
             </div>
         </section>
     @endif
-
 
   @php
     $locationText = '';
@@ -457,9 +450,6 @@ a {
         })
         ->count();
 @endphp
-
-
-
 
    <div class="listing-top-info custom-right">
 
@@ -523,7 +513,6 @@ a {
 {!! str_ireplace('</script', '<\/script', json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) !!}
 </script>
 
-
     <style>
         .breadcrumb-location-link{
     color:#444;
@@ -577,7 +566,6 @@ a {
             }
         }
 
-      
 .all-filters-desktop,
 .all-filters-mobile{
     background:#000;
@@ -632,7 +620,6 @@ a {
             $filterBaseParams['location_name'] = request('location_name');
         }
     @endphp
-
 
     @php
         $segmentLocation = request()->segment(1);
@@ -768,7 +755,6 @@ a {
     Verified
 </button>
 
-
 @php
     $trustQuery = $filterQuery;
 
@@ -826,7 +812,6 @@ a {
             Distance
         </a>
 
-
         <h6 class="mt-4">Ratings</h6>
 
         @for($i = 1; $i <= 5; $i++)
@@ -835,7 +820,6 @@ a {
                 {{ $i }} Star
             </a>
         @endfor
-
 
         <h6 class="mt-4">More Filters</h6>
 
@@ -854,7 +838,6 @@ a {
             Trust
         </a>
 
-
         {{-- BUTTONS --}}
         <div class="bottom-buttons mt-4">
 
@@ -868,8 +851,6 @@ a {
 
         </div>
     </div>
-
-
 
     <section class="listing pt-70 pb-80  custom-right" id="listingSection">
         <div class="container-fluid">
@@ -1000,12 +981,9 @@ a {
                             @endforeach
                         </div>
 
-                        
-
                     </div>
                 </div>
 
-                
                 {{-- STICKY FLOATING ENQUIRY FORM --}}
                 <div class="sticky-floating-form" id="stickyFloatingForm">
                     <div class="enquiry-card">
@@ -1296,62 +1274,6 @@ a {
     font-size:15px;
 }
 
-.category-content-body{
-    color:#000;
-    font-size:14px;
-    line-height:1.9;
-    font-weight: 400;
-}
-.category-content-body h2{
-    font-size: 18px;
-    font-weight: 600;
-    color: #222;
-}
-
-.category-content-body h3{
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 0rem;
-    color: #444;
-}
-
-.category-content-body h1,
-.category-content-body h4{
-    font-size:26px;
-    font-weight:700;
-    margin-top:30px;
-    margin-bottom:15px;
-    color:#222;
-}
-
-.category-content-body p{
-font-size: 12px;
-    font-weight: 400;
-    color: #555;
-    margin: 0 0 10px;
-}
-.category-content-body span{
-    font-size: 12px;
-    font-weight: 400;
-    color: #555;
-    margin: 0 0 10px;
-}
-
-.category-content-body ul{
-    padding-left:20px;
-    margin-bottom:20px;
-}
-.category-content-body li{
-    padding:0 !important;
-}
-.category-content-body ul li{
-    margin-bottom:10px;
-}
-
-.category-content-body strong{
-    color:#000;
-}
-
 @media(max-width:767px){
 
     .category-content-box{
@@ -1362,136 +1284,17 @@ font-size: 12px;
     .category-content-header h2{
         font-size:22px;
     }
-
-    .category-content-body{
-        font-size:10px;
-        line-height:1.8;
-    }
-
-    .category-content-body h1,
-    .category-content-body h2,
-    .category-content-body h4{
-        font-size:14px;
-        font-weight: 500;
-    }
-}
-.category-content-body table{
-    display:inline-table;
-    width:auto !important;
-    border-collapse:collapse;
-}
-
-.category-content-body{
-    color:#717171;
-    font-size:14px;
-    line-height:1.7;
-}
-.category-content-body div:empty,
-.category-content-body span:empty,
-.category-content-body font:empty {
-    display: none !important;
-}
-.category-content-body table td span,
-.category-content-body table th span {
-   font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 0rem;
-    color: #111;
-}
-.category-content-body p{
-    font-size:12px;
-    font-weight:400;
-    color:#717171;
-    margin:0 0 12px;
-}
-
-.category-content-body ul,
-.category-content-body ol{
-    padding-left:22px;
-    margin:12px 0 18px;
-    list-style-position: outside;
-}
-
-.category-content-body ul{
-    list-style-type: disc;
-}
-
-.category-content-body ol{
-    list-style-type: decimal;
-}
-
-.category-content-body li{
-    display:list-item;
-    margin-bottom:8px;
-    font-size:14px;
-    font-weight:400;
-    color:#717171;
-}
-
-.category-content-body strong,
-.category-content-body b{
-    font-weight:600;
-    color:#111;
 }
 
    .ww{font-size: 13px;
     font-weight: 500;
     line-height: 1.2;}
-
-    .category-content-body ul{
-    padding-left:25px !important;
-    margin:12px 0 18px !important;
-    list-style:disc !important;
-}
-
-.category-content-body ul li{
-    display:list-item !important;
-    list-style-type:disc !important;
-    margin-bottom:10px;
-}
-
-.category-content-body ol{
-    padding-left:25px !important;
-    list-style:decimal !important;
-}
-
-.category-content-body ol li{
-    display:list-item !important;
-    list-style-type:decimal !important;
-}
 @media (max-width:767px){
 
     .deeke{
         margin-left: 15px;
         margin-right: 15px;
     }
-
-    .category-content-body li{
-    display:list-item;
-    margin-bottom:8px;
-    font-size:10px;
-    font-weight:400;
-    color:#717171;
-}
-.category-content-body h3 {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 0rem;
-    color: #444;
-}
-
-.category-content-body table td span
-{
-    font-size: 10px;
-    font-weight: 500;
-    margin-bottom: 0rem;
-    color: #111;
-}
-.category-content-body strong, .category-content-body b {
-    font-weight: 500;
-    color: #111;
-}
-
 
 }
                 </style>
@@ -1660,9 +1463,7 @@ font-size: 12px;
     </div>
 @endif
 
-
 <style>
-
 
       .listing-main-title {
     display: flex;
@@ -1777,7 +1578,6 @@ font-size: 12px;
 
 @endif
 
-
 {{-- Category Localities --}}
 
 @if(isset($categoryLocalities) && $categoryLocalities->isNotEmpty())
@@ -1876,7 +1676,6 @@ font-size: 12px;
     </div>
 
 @endif
-
 
 <style>
 .featured-links-section {

@@ -3,6 +3,7 @@
 @section('title', $title)
 
 @section('content')
+@include($themeView.'includes.rich-content')
 <style>
     .privacy-policy-page h1 {
         font-size: 30px;
@@ -100,8 +101,10 @@
                     {{ $link->content->title }}
                 </h1>
 
-                <div class="privacy-policy-content">
-                    {!! $link->content->content !!}
+                {{-- Payment Policy, Terms, Privacy — same typography as
+                     category aur blog pages. --}}
+                <div class="privacy-policy-content rich-content">
+                    {!! \App\Support\ContentHtml::cleanCached($link->content->content ?? '') !!}
                 </div>
 
             </div>

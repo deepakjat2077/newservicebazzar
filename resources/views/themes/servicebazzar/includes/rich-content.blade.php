@@ -22,7 +22,7 @@
     .rich-content{
         color:#333;
         font-size:15px;
-        line-height:1.65;
+        line-height:1.6;
     }
 
     /* Har child ka apna margin hone se hi gaps alag-alag ho rahe the.
@@ -46,12 +46,22 @@
         line-height:1.35;
     }
 
-    /* h3 ko upar wala margin nahi milta — wo `> *` wale 0 0 10px par hi
-       rehta hai, taki uske upar khaali jagah na aaye. */
+    /*
+     * Heading aur uske neeche wale paragraph ke beech bahut kam gap (4px) —
+     * yahi cheez JustDial jaisi tight dikhti hai. Pehle ye 10px tha, jisse
+     * heading apne text se kat ke alag lag rahi thi.
+     *
+     * Upar ka 18px sirf h2/h4/h5 ko milta hai; h3 ke upar ka gap pichhle
+     * paragraph ke margin-bottom se hi aa jaata hai.
+     */
     .rich-content h2,
     .rich-content h4,
     .rich-content h5{
-        margin:26px 0 10px;
+        margin:18px 0 4px;
+    }
+
+    .rich-content h3{
+        margin:0 0 4px;
     }
 
     .rich-content > h2:first-child,

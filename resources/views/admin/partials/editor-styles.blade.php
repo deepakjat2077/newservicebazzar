@@ -14,7 +14,7 @@
     .note-editor .note-editable{
         color:#333;
         font-size:15px;
-        line-height:1.65;
+        line-height:1.6;
         padding:16px 18px;
     }
 
@@ -41,11 +41,16 @@
         line-height:1.35;
     }
 
-    /* h3 ko upar wala margin nahi milta — site par bhi nahi milta. */
+    /* Heading aur uske paragraph ke beech sirf 4px — site par bhi wahi.
+       h3 ko upar wala margin nahi milta. */
     .note-editor .note-editable h2,
     .note-editor .note-editable h4,
     .note-editor .note-editable h5{
-        margin:26px 0 10px;
+        margin:18px 0 4px;
+    }
+
+    .note-editor .note-editable h3{
+        margin:0 0 4px;
     }
 
     .note-editor .note-editable > h2:first-child,
