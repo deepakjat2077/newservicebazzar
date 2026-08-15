@@ -90,6 +90,7 @@ class ContentHtml
         static::stripAttributes($xpath);
         static::normaliseWhitespace($xpath);
         static::promoteLooseInlineContent($body);
+        static::stripTypedBullets($xpath);
         static::dropEmptyNodes($xpath);
         static::wrapTables($xpath);
 
@@ -359,6 +360,37 @@ class ContentHtml
             if (!$removed) {
                 return;
             }
+        }
+    }
+
+    /**
+     * Drop bullet characters people typed into their own list items.
+     *
+     * Content written in Word often carries a literal "• " at the start of
+     * each line, and once that line is a real `<li>` the page shows two
+     * bullets: the CSS one and the typed one. The same goes for a leading
+     * dash, which is how the same lists arrive from a plain-text paste.
+     */
+    protected static function stripTypedBullets(DOMXPath $xpath): void
+    {
+        foreach ($xpath->query('//body//li') ?: [] as $li) {
+            // Only the first text in the item — a bullet character further in
+            // is part of the sentence.
+            $first = $li->firstChild;
+
+            while ($first instanceof DOMElement && $first->firstChild) {
+                $first = $first->firstChild;
+            }
+
+            if (!$first instanceof DOMText) {
+                continue;
+            }
+
+            $first->nodeValue = preg_replace(
+                '/^\s*[\x{2022}\x{25E6}\x{25AA}\x{2023}\x{00B7}\x{2043}\-\x{2013}\x{2014}]+\s*/u',
+                '',
+                $first->nodeValue
+            );
         }
     }
 
