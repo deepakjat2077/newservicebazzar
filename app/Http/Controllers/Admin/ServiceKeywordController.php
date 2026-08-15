@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\ServiceKeyword;
+use App\Support\ContentHtml;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -47,7 +48,7 @@ public function create()
             'seo_title' => $request->seo_title,
             'seo_keywords' => $request->seo_keywords,
             'seo_description' => $request->seo_description,
-            'description' => $request->description,
+            'description' => ContentHtml::clean($request->description),
             'status' => $request->status ?? 1,
         ]);
 
@@ -91,7 +92,7 @@ public function create()
             'seo_title' => $request->seo_title,
             'seo_keywords' => $request->seo_keywords,
             'seo_description' => $request->seo_description,
-            'description' => $request->description,
+            'description' => ContentHtml::clean($request->description),
             'status' => $request->status ?? 1,
         ]);
 

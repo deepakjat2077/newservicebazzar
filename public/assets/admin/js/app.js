@@ -66,17 +66,84 @@ $(function() {
      * own instance with paste sanitising and SEO-score hooks, and initialising
      * twice would leave the second call operating on a dead textarea.
      */
+    /*
+     * Content is almost always pasted out of Word or Google Docs, which brings
+     * <o:p> tags, mso-* styles, <font size>/<font color> and a deep stack of
+     * <div>s along with the text. Kept as-is, every page ends up with its own
+     * font sizes, its own colours and its own gaps.
+     *
+     * So the paste is reduced to structure before it ever reaches the editor,
+     * and the font/colour buttons are gone from the toolbar: the site's
+     * stylesheet decides how this content looks, not whoever wrote it. The
+     * server applies the same rules again in App\Support\ContentHtml, this is
+     * only so the admin sees on screen what will actually be saved.
+     */
+    function cleanPastedHtml(html) {
+        return String(html)
+            // Word conditional comments and namespaced tags (<o:p>, <w:sdt>).
+            .replace(/<!--\[if[\s\S]*?<!\[endif\]-->/gi, '')
+            .replace(/<!--[\s\S]*?-->/g, '')
+            .replace(/<\s*(style|script|xml)\b[^>]*>[\s\S]*?<\/\s*\1\s*>/gi, '')
+            .replace(/<\/?\s*[a-z]+:[a-z0-9]+[^>]*>/gi, '')
+            // Purely presentational wrappers.
+            .replace(/<\/?\s*(font|span|small|big|center)\b[^>]*>/gi, '')
+            .replace(/<\/?\s*div\b[^>]*>/gi, '')
+            // Everything else keeps its tag but loses its looks.
+            .replace(/\s(style|class|lang|align|width|height|face|color|size)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+            .replace(/&nbsp;/gi, ' ')
+            .replace(/ /g, ' ')
+            .replace(/[ \t]*\n[ \t]*/g, ' ')
+            .replace(/[ \t]{2,}/g, ' ')
+            // Blank paragraphs are the vertical gaps people complain about.
+            .replace(/<p>(\s|<br\s*\/?>)*<\/p>/gi, '');
+    }
+
     if ($.fn.summernote) {
         $('.richEditor').not('[data-editor="manual"]').summernote({
             height: 250,
+            // Word's own list/heading markup is what breaks the layout, so the
+            // editor is told to write plain semantic tags instead.
+            styleTags: ['p', 'h2', 'h3', 'h4'],
             toolbar: [
-                ['style', ['style', 'bold', 'italic', 'underline', 'clear']],
-                ['font', ['strikethrough', 'superscript', 'subscript']],
-                ['color', ['color']],
+                ['style', ['style', 'bold', 'italic', 'clear']],
                 ['para', ['ul', 'ol', 'paragraph']],
                 ['insert', ['link', 'picture', 'table', 'hr']],
                 ['view', ['fullscreen', 'codeview', 'help']]
-            ]
+            ],
+            callbacks: {
+                onPaste: function (e) {
+                    var clipboard = (e.originalEvent || e).clipboardData;
+
+                    if (!clipboard) {
+                        return;
+                    }
+
+                    var html = clipboard.getData('text/html');
+                    var text = clipboard.getData('text/plain');
+
+                    e.preventDefault();
+
+                    if (html) {
+                        $(this).summernote('pasteHTML', cleanPastedHtml(html));
+                        return;
+                    }
+
+                    // Plain text still needs its blank lines turned into real
+                    // paragraphs, or the whole thing arrives as one block.
+                    var paragraphs = String(text || '')
+                        .split(/\n{2,}/)
+                        .map(function (block) {
+                            return block.trim();
+                        })
+                        .filter(Boolean)
+                        .map(function (block) {
+                            return '<p>' + $('<div>').text(block).html().replace(/\n/g, ' ') + '</p>';
+                        })
+                        .join('');
+
+                    $(this).summernote('pasteHTML', paragraphs);
+                }
+            }
         });
     }
 

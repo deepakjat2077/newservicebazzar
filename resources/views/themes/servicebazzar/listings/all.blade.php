@@ -1616,10 +1616,22 @@ font-size: 12px;
         $description
     );
 
-    $cleanDescription = preg_replace([
-        '/<style\b[^>]*>(.*?)<\/style>/is',
-        '/\sstyle=("|\')(.*?)\1/is'
-    ], '', $dynamicDescription);
+    /*
+    |--------------------------------------------------------------------------
+    | Content normalise — har category ek jaisi dikhe
+    |--------------------------------------------------------------------------
+    |
+    | Pehle sirf style attribute strip hota tha, jisse Word ka baaki markup
+    | (<o:p>, <font size>, <font color>, nested <div>) bacha reh jaata tha —
+    | isi wajah se kisi category ka font chhota, kisi ka rang alag, aur beech
+    | me random gap aa jaate the. Ab poora markup normalise hota hai, taki
+    | styling sirf neeche wali CSS decide kare.
+    |
+    | Render par bhi clean hota hai (sirf save par nahi), isliye jo 70
+    | categories pehle se likhi hui hain unhe dobara save karne ki zarurat
+    | nahi — wo apne aap sahi dikhengi.
+    */
+    $cleanDescription = \App\Support\ContentHtml::cleanCached($dynamicDescription);
 @endphp
 
 @if(!empty($headingName))
@@ -1689,8 +1701,120 @@ font-size: 12px;
         text-align:right;
     }
 
+    /*
+     * Ye block category content ki poori typography decide karta hai.
+     *
+     * Content Word/Docs se paste hota hai, isliye har category apne saath
+     * apna font-size aur apna rang leke aati thi. ContentHtml wo sab markup
+     * hata deta hai, aur asli look yahan se aata hai — ek hi jagah, sab
+     * categories ke liye ek jaisa, desktop aur mobile dono par.
+     */
     .category-content-body{
         overflow-x:auto;
+        color:#3b3f45;
+        font-size:15px;
+        line-height:1.7;
+    }
+
+    /* Har child ka apna margin hone se hi gaps alag-alag ho rahe the.
+       Pehle sab reset, phir sirf neeche ek consistent gap. */
+    .category-content-body > *{
+        margin:0 0 14px;
+    }
+
+    .category-content-body > *:last-child{
+        margin-bottom:0;
+    }
+
+    .category-content-body h2,
+    .category-content-body h3,
+    .category-content-body h4,
+    .category-content-body h5{
+        color:#1c1f23;
+        font-weight:700;
+        line-height:1.35;
+        margin:26px 0 10px;
+    }
+
+    .category-content-body > h2:first-child,
+    .category-content-body > h3:first-child,
+    .category-content-body > h4:first-child{
+        margin-top:0;
+    }
+
+    .category-content-body h2{ font-size:22px; }
+    .category-content-body h3{ font-size:18px; }
+    .category-content-body h4,
+    .category-content-body h5{ font-size:16px; }
+
+    .category-content-body p{
+        margin:0 0 14px;
+    }
+
+    .category-content-body ul,
+    .category-content-body ol{
+        margin:0 0 14px;
+        padding-left:22px;
+    }
+
+    .category-content-body li{
+        margin:0 0 7px;
+    }
+
+    .category-content-body li:last-child{
+        margin-bottom:0;
+    }
+
+    /* Pasted content me links poore paragraph ko apna rang de deti thi. */
+    .category-content-body a{
+        color:#1a73e8;
+        text-decoration:none;
+    }
+
+    .category-content-body a:hover{
+        text-decoration:underline;
+    }
+
+    .category-content-body strong{
+        color:#1c1f23;
+        font-weight:600;
+    }
+
+    .category-content-body img{
+        max-width:100%;
+        height:auto;
+    }
+
+    @media (max-width:767px){
+        .category-content-body{
+            font-size:14px;
+            line-height:1.65;
+        }
+
+        .category-content-body h2{ font-size:19px; }
+        .category-content-body h3{ font-size:17px; }
+        .category-content-body h4,
+        .category-content-body h5{ font-size:15px; }
+
+        .category-content-body h2,
+        .category-content-body h3,
+        .category-content-body h4,
+        .category-content-body h5{
+            margin:20px 0 8px;
+        }
+
+        /* Mobile par table apni width par page ko chaudा kar deti thi. */
+        .category-content-body table{
+            display:block;
+            width:100%;
+            overflow-x:auto;
+            white-space:nowrap;
+        }
+
+        .category-content-body table th,
+        .category-content-body table td{
+            padding:9px 10px;
+        }
     }
 </style>
 
