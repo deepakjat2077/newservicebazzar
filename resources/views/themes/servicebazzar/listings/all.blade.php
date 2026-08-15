@@ -1481,6 +1481,60 @@ a {
 {{-- Content ki typography ab blog details ke saath shared hai. --}}
 @include($themeView.'includes.rich-content')
 
+<style>
+    .category-content-body.rich-content.rich-content,
+    .category-content-body.rich-content.rich-content p,
+    .category-content-body.rich-content.rich-content li,
+    .category-content-body.rich-content.rich-content span,
+    .category-content-body.rich-content.rich-content div,
+    .category-content-body.rich-content.rich-content blockquote {
+        line-height: 1.45;
+    }
+
+    .category-content-body.rich-content.rich-content > * {
+        margin-bottom: 6px;
+    }
+
+    .category-content-body.rich-content.rich-content h2,
+    .category-content-body.rich-content.rich-content h3,
+    .category-content-body.rich-content.rich-content h4,
+    .category-content-body.rich-content.rich-content h5 {
+        margin: 10px 0 3px;
+        line-height: 1.25;
+    }
+
+    .category-content-body.rich-content.rich-content p {
+        margin-bottom: 6px;
+    }
+
+    .category-content-body.rich-content.rich-content ul,
+    .category-content-body.rich-content.rich-content ol {
+        margin: 6px 0 8px;
+    }
+
+    .category-content-body.rich-content.rich-content li {
+        margin-bottom: 4px;
+    }
+
+    @media (max-width: 767px) {
+        .category-content-body.rich-content.rich-content,
+        .category-content-body.rich-content.rich-content p,
+        .category-content-body.rich-content.rich-content li,
+        .category-content-body.rich-content.rich-content span,
+        .category-content-body.rich-content.rich-content div,
+        .category-content-body.rich-content.rich-content blockquote {
+            line-height: 1.42;
+        }
+
+        .category-content-body.rich-content.rich-content h2,
+        .category-content-body.rich-content.rich-content h3,
+        .category-content-body.rich-content.rich-content h4,
+        .category-content-body.rich-content.rich-content h5 {
+            margin: 8px 0 3px;
+        }
+    }
+</style>
+
    @if(!empty($starListings) && $starListings->count() > 0)
     <div class="featured-links-section">
         <div class="custom-right">

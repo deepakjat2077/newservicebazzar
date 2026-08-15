@@ -14,9 +14,11 @@
 =================================================== */
 
 .popular-city-section {
-    width: 100%;
+    width: auto;
     background: #fff;
     padding: 0px 15px 18px;
+    margin-left: 40px;
+    margin-right: 40px;
 }
 
 .popular-city-list {
@@ -36,13 +38,15 @@
 }
 
 .popular-category-section {
-    width: 100%;
+    width: auto;
     max-width: 100%;
     overflow: hidden;
     box-sizing: border-box;
     background: #fff;
     padding: 18px 15px;
     border-top: 1px solid #eee;
+    margin-left: 40px;
+    margin-right: 40px;
 }
 
 .popular-title {
@@ -133,6 +137,8 @@
     .popular-city-section {
         width: 100%;
         margin-top: 15px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
         padding: 0 !important;
         border-top: 1px solid #eeeeee;
         border-bottom: 1px solid #eeeeee;
