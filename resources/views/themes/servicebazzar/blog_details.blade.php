@@ -10,6 +10,7 @@
 @endphp
 
 @section('content')
+@include($themeView.'includes.rich-content')
 <style>
     h1 {
     font-size: 1.5rem;
@@ -26,7 +27,18 @@
                     <div class="details">
                        
                         <h1>{{ __($blog->content->title) }}</h1>
-                        @php echo $blog->content->content @endphp
+
+                        {{--
+                            Blog content bhi Word se paste hota hai, isliye
+                            category pages jaisa hi normalise hota hai — warna
+                            har blog apna font-size aur apna spacing leke aata
+                            hai. Tables ko .rich-content-table wrapper milta
+                            hai, jisse mobile par aakhri column cut hone ke
+                            bajaye scroll karke dikhta hai.
+                        --}}
+                        <div class="rich-content">
+                            {!! \App\Support\ContentHtml::cleanCached($blog->content->content ?? '') !!}
+                        </div>
                     </div>
                 </div>
             </div>

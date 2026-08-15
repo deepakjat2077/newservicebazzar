@@ -1652,7 +1652,7 @@ font-size: 12px;
         </div>
 
         @if(!empty(trim(strip_tags($cleanDescription))))
-            <div class="category-content-body">
+            <div class="category-content-body rich-content">
                 {!! $cleanDescription !!}
             </div>
         @endif
@@ -1675,148 +1675,10 @@ font-size: 12px;
     margin: 0;
     display: inline;
 }
-
-
-    .category-content-body table{
-        width:100%;
-        border-collapse:collapse;
-        margin:15px 0;
-        display:table;
-    }
-
-    .category-content-body table th,
-    .category-content-body table td{
-        border:1px solid #ddd;
-        padding:12px 14px;
-        vertical-align:top;
-    }
-
-    .category-content-body table th{
-        font-weight:700;
-        background:#f8f8f8;
-    }
-
-    .category-content-body table td:last-child,
-    .category-content-body table th:last-child{
-        text-align:right;
-    }
-
-    /*
-     * Ye block category content ki poori typography decide karta hai.
-     *
-     * Content Word/Docs se paste hota hai, isliye har category apne saath
-     * apna font-size aur apna rang leke aati thi. ContentHtml wo sab markup
-     * hata deta hai, aur asli look yahan se aata hai — ek hi jagah, sab
-     * categories ke liye ek jaisa, desktop aur mobile dono par.
-     */
-    .category-content-body{
-        overflow-x:auto;
-        color:#3b3f45;
-        font-size:15px;
-        line-height:1.7;
-    }
-
-    /* Har child ka apna margin hone se hi gaps alag-alag ho rahe the.
-       Pehle sab reset, phir sirf neeche ek consistent gap. */
-    .category-content-body > *{
-        margin:0 0 14px;
-    }
-
-    .category-content-body > *:last-child{
-        margin-bottom:0;
-    }
-
-    .category-content-body h2,
-    .category-content-body h3,
-    .category-content-body h4,
-    .category-content-body h5{
-        color:#1c1f23;
-        font-weight:700;
-        line-height:1.35;
-        margin:26px 0 10px;
-    }
-
-    .category-content-body > h2:first-child,
-    .category-content-body > h3:first-child,
-    .category-content-body > h4:first-child{
-        margin-top:0;
-    }
-
-    .category-content-body h2{ font-size:22px; }
-    .category-content-body h3{ font-size:18px; }
-    .category-content-body h4,
-    .category-content-body h5{ font-size:16px; }
-
-    .category-content-body p{
-        margin:0 0 14px;
-    }
-
-    .category-content-body ul,
-    .category-content-body ol{
-        margin:0 0 14px;
-        padding-left:22px;
-    }
-
-    .category-content-body li{
-        margin:0 0 7px;
-    }
-
-    .category-content-body li:last-child{
-        margin-bottom:0;
-    }
-
-    /* Pasted content me links poore paragraph ko apna rang de deti thi. */
-    .category-content-body a{
-        color:#1a73e8;
-        text-decoration:none;
-    }
-
-    .category-content-body a:hover{
-        text-decoration:underline;
-    }
-
-    .category-content-body strong{
-        color:#1c1f23;
-        font-weight:600;
-    }
-
-    .category-content-body img{
-        max-width:100%;
-        height:auto;
-    }
-
-    @media (max-width:767px){
-        .category-content-body{
-            font-size:14px;
-            line-height:1.65;
-        }
-
-        .category-content-body h2{ font-size:19px; }
-        .category-content-body h3{ font-size:17px; }
-        .category-content-body h4,
-        .category-content-body h5{ font-size:15px; }
-
-        .category-content-body h2,
-        .category-content-body h3,
-        .category-content-body h4,
-        .category-content-body h5{
-            margin:20px 0 8px;
-        }
-
-        /* Mobile par table apni width par page ko chaudा kar deti thi. */
-        .category-content-body table{
-            display:block;
-            width:100%;
-            overflow-x:auto;
-            white-space:nowrap;
-        }
-
-        .category-content-body table th,
-        .category-content-body table td{
-            padding:9px 10px;
-        }
-    }
 </style>
+
+{{-- Content ki typography ab blog details ke saath shared hai. --}}
+@include($themeView.'includes.rich-content')
 
    @if(!empty($starListings) && $starListings->count() > 0)
     <div class="featured-links-section">

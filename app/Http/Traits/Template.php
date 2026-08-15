@@ -5,6 +5,7 @@ namespace App\Http\Traits;
 use App\Http\Traits\FileHandler;
 use App\Models\Setting;
 use App\Models\Theme;
+use App\Support\ContentHtml;
 use HTMLPurifier;
 use Illuminate\Http\Request;
 
@@ -68,7 +69,19 @@ public function elementSave(Request $request, $id = null)
 
         // Text, textarea and select fields
         if (in_array($type, ['text', 'textarea', 'select'], true)) {
-            $content[$fieldKey] = $request->input($fieldKey);
+            $value = $request->input($fieldKey);
+
+            // Fields marked `rich` are Summernote editors — blog bodies being
+            // the big one. Their content is pasted out of Word, so it is
+            // normalised on the way in for the same reason category content
+            // is: otherwise every blog post arrives with its own font sizes,
+            // its own colours, and tables that fall off the edge of a phone.
+            // See App\Support\ContentHtml.
+            if (!empty($data['rich'])) {
+                $value = ContentHtml::clean($value);
+            }
+
+            $content[$fieldKey] = $value;
         }
         // Checkbox field
         elseif ($type === 'checkbox') {

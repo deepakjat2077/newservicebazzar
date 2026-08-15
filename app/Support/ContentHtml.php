@@ -91,6 +91,7 @@ class ContentHtml
         static::normaliseWhitespace($xpath);
         static::promoteLooseInlineContent($body);
         static::dropEmptyNodes($xpath);
+        static::wrapTables($xpath);
 
         return static::serialise($body);
     }
@@ -358,6 +359,42 @@ class ContentHtml
             if (!$removed) {
                 return;
             }
+        }
+    }
+
+    /**
+     * Give every table its own horizontally scrollable wrapper.
+     *
+     * A comparison table with three columns has a natural minimum width that a
+     * phone cannot give it. Without a wrapper the column simply fell off the
+     * edge of the container — the last column of the blog tables was invisible
+     * on mobile with no way to reach it. Wrapped, the table scrolls inside its
+     * own box while the page around it stays put.
+     *
+     * `div` is not in the allow-list on purpose, so this runs after the tag
+     * filtering rather than before it.
+     */
+    protected static function wrapTables(DOMXPath $xpath): void
+    {
+        foreach ($xpath->query('//body//table') ?: [] as $table) {
+            $parent = $table->parentNode;
+
+            if (!$parent) {
+                continue;
+            }
+
+            // Already wrapped — clean() has to stay idempotent.
+            if ($parent instanceof DOMElement
+                && $parent->nodeName === 'div'
+                && str_contains($parent->getAttribute('class'), 'rich-content-table')) {
+                continue;
+            }
+
+            $wrapper = $table->ownerDocument->createElement('div');
+            $wrapper->setAttribute('class', 'rich-content-table');
+
+            $parent->replaceChild($wrapper, $table);
+            $wrapper->appendChild($table);
         }
     }
 
