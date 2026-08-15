@@ -189,12 +189,14 @@ class AppServiceProvider extends ServiceProvider
             view()->composer(
                 'themes.' . ($setting->theme ?? 'servicebazzar') . '.includes.footer',
                 function ($view) {
+                    $existing = $view->getData();
                     $siteController = app(\App\Http\Controllers\SiteController::class);
 
-                    $popularCategories = $siteController->getPopularCategories();
+                    $popularCategories = $existing['popularCategories']
+                        ?? $siteController->getPopularCategories();
 
                     // Cached — this composer runs on every page render.
-                    $locations = activeLocations();
+                    $locations = $existing['locations'] ?? activeLocations();
 
                     $view->with('popularCategories', $popularCategories);
                     // The partial builds /{city}/{subcategory} links. It used
@@ -203,10 +205,8 @@ class AppServiceProvider extends ServiceProvider
                     // tabs could be ranked for one city while their links
                     // pointed at another. Hand it the same location the
                     // ranking used.
-                    $view->with(
-                        'popularCategoriesLocation',
-                        $siteController->resolvePopularCategoriesLocation()
-                    );
+                    $view->with('popularCategoriesLocation', $existing['popularCategoriesLocation']
+                        ?? $siteController->resolvePopularCategoriesLocation());
                     $view->with('locations', $locations);
                 }
             );

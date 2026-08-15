@@ -8,13 +8,12 @@
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/select2.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}">
 	<link rel="stylesheet" href="{{asset('assets/admin/css/toastr.min.css') }}">
-	<link rel="stylesheet" href="{{ asset('assets/admin/css/index.css') }}?v={{ time() }}">
+	<link rel="stylesheet" href="{{ asset('assets/admin/css/index.css') }}?v={{ filemtime(public_path('assets/admin/css/index.css')) }}">
 	<link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/lightcase.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/starrr.css') }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}?v={{ time() }}">
+	<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}">
- 	<link rel="stylesheet" href="{{asset('assets/admin/summernote/summernote-lite.min.css') }}">
     <link rel="preload" as="image" href="{{ asset('assets/servicebazzar.png?v=1') }}">
 	@stack('css')
 
@@ -1553,23 +1552,7 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 	<script src="{{ asset($themeAsset.'js/lightcase.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/starrr.js') }}"></script>
 	<script src="{{asset('assets/admin/js/toastr.min.js') }}"></script>
-<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ time() }}"></script>
-	<script src="{{asset('assets/admin/summernote/summernote-lite.min.js') }}"></script>
-
-	<script>
-		if ($.fn.summernote) {
-			$('.richEditor').not('[data-editor="manual"]').summernote({
-				height: 250,
-				toolbar: [
-					['style', ['style', 'bold', 'italic', 'underline', 'clear']],
-					['color', ['color']],
-					['para', ['ul', 'ol', 'paragraph']],
-					['insert', ['link', 'picture', 'table', 'hr']],
-					['view', ['fullscreen', 'codeview', 'help']]
-				]
-			});
-		}
-	</script>
+<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}"></script>
 
 	<script src="{{ asset('assets/js/tracking.js') }}" defer></script>
 

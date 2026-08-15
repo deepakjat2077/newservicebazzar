@@ -91,7 +91,7 @@ class CachePublicPages
 
         $key = 'page:' . sha1($request->getHost() . '|' . $request->path());
 
-        if (($cached = Cache::get($key)) !== null) {
+        if (($cached = $this->store()->get($key)) !== null) {
             return response($this->withCurrentToken($cached))
                 ->header('Content-Type', 'text/html; charset=UTF-8')
                 ->header('X-Page-Cache', 'HIT');
@@ -112,7 +112,7 @@ class CachePublicPages
             $response = $next($request);
 
             if ($this->isStorable($response)) {
-                Cache::put(
+                $this->store()->put(
                     $key,
                     $this->withPlaceholderToken($response->getContent()),
                     now()->addMinutes(self::TTL_MINUTES)
@@ -130,6 +130,19 @@ class CachePublicPages
     }
 
     /**
+     * Keep public HTML page cache off the default app cache store.
+     *
+     * On production the default cache may be "database"; that makes a page
+     * cache hit open MySQL before it can answer. The public page cache should
+     * be cheap even while MySQL is under pressure, so it defaults to "file"
+     * and can be moved to redis/memcached with PUBLIC_PAGE_CACHE_STORE.
+     */
+    protected function store()
+    {
+        return Cache::store(config('cache.public_pages.store', 'file'));
+    }
+
+    /**
      * Take one of the fixed render slots, or null when all are busy.
      *
      * Each slot is a separate short-lived lock rather than a counter: a
@@ -139,7 +152,7 @@ class CachePublicPages
     protected function acquireRenderSlot()
     {
         for ($slot = 1; $slot <= self::MAX_CONCURRENT_RENDERS; $slot++) {
-            $lock = Cache::lock('page-render-slot:' . $slot, self::RENDER_SLOT_TTL_SECONDS);
+            $lock = $this->store()->lock('page-render-slot:' . $slot, self::RENDER_SLOT_TTL_SECONDS);
 
             if ($lock->get()) {
                 return $lock;

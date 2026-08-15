@@ -19,6 +19,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public Page Cache Store
+    |--------------------------------------------------------------------------
+    |
+    | Full-page HTML cache must be able to answer without touching MySQL.
+    | Keep it on file by default even when the app cache uses database; set
+    | PUBLIC_PAGE_CACHE_STORE=redis/memcached on hosting that provides one.
+    |
+    */
+
+    'public_pages' => [
+        'store' => env('PUBLIC_PAGE_CACHE_STORE', 'file'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
     |

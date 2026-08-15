@@ -47,7 +47,9 @@ class SiteController extends Controller
     public function __construct()
     {
         try {
-            $this->setting = \App\Models\Setting::first();
+            $this->setting = Cache::remember(\App\Models\Setting::CACHE_KEY, now()->addHours(6), function () {
+                return \App\Models\Setting::first();
+            });
 
             if ($this->setting && $this->setting->theme) {
                 $this->theme = 'themes.'.$this->setting->theme.'.';
@@ -139,7 +141,11 @@ if (!empty($location)) {
      * pulled ~5,500 subcategory rows into memory on every single home page
      * hit and rendered nothing with them.
      */
-    $data['categories'] = Category::where('status', 1)->get();
+    $data['categories'] = Cache::remember('home:active_categories:v1', now()->addMinutes(10), function () {
+        return Category::select('id', 'name', 'slug', 'image', 'icon', 'description', 'content')
+            ->where('status', 1)
+            ->get();
+    });
 
     $data['locations'] = activeLocations();
 
@@ -153,15 +159,17 @@ if (!empty($location)) {
         $q->where('is_verified', 1);
     };
 
-    $data['featureds'] = Listing::notExpired()
-        ->where('status', 1)
-        ->where('trust', 1)
-        ->with(['category', 'location'])
-        ->withAvg(['ratings as verified_ratings_avg' => $verifiedRatings], 'ratings')
-        ->withCount(['ratings as verified_ratings_count' => $verifiedRatings])
-        ->orderBy('id', 'desc')
-        ->limit(12)
-        ->get();
+    $data['featureds'] = Cache::remember('home:featured_listings:v1', now()->addMinutes(5), function () use ($verifiedRatings) {
+        return Listing::notExpired()
+            ->where('status', 1)
+            ->where('trust', 1)
+            ->with(['category', 'location'])
+            ->withAvg(['ratings as verified_ratings_avg' => $verifiedRatings], 'ratings')
+            ->withCount(['ratings as verified_ratings_count' => $verifiedRatings])
+            ->orderBy('id', 'desc')
+            ->limit(12)
+            ->get();
+    });
 
     $data['faq_section'] = $themeData->where('name', 'faq')
         ->where('is_multiple', 0)
@@ -171,9 +179,11 @@ if (!empty($location)) {
         ->sortByDesc('id')
         ->where('is_multiple', 1);
 
-    $data['hbbs'] = hbb::where('status', 1)
-        ->orderBy('sort_order', 'asc')
-        ->get();
+    $data['hbbs'] = Cache::remember('home:hbb:v1', now()->addMinutes(10), function () {
+        return hbb::where('status', 1)
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    });
 
     /*
      * Both sections used to run one Category::whereIn() per row. The active
@@ -198,19 +208,23 @@ if (!empty($location)) {
         return $item;
     };
 
-    $data['categoryHeadings'] = CategoryHeading::where('status', 1)
-        ->orderBy('order_by', 'asc')
-        ->get()
-        ->map($attachSelectedCategories);
+    $data['categoryHeadings'] = Cache::remember('home:category_headings:v1', now()->addMinutes(10), function () {
+        return CategoryHeading::where('status', 1)
+            ->orderBy('order_by', 'asc')
+            ->get();
+    })->map($attachSelectedCategories);
 
-    $data['seasonalSections'] = SeasonalSection::where('status', 1)
-        ->latest()
-        ->get()
-        ->map($attachSelectedCategories);
+    $data['seasonalSections'] = Cache::remember('home:seasonal_sections:v1', now()->addMinutes(10), function () {
+        return SeasonalSection::where('status', 1)
+            ->latest()
+            ->get();
+    })->map($attachSelectedCategories);
 
-    $data['homeContentSections'] = \App\Models\HomeContentSection::where('status', 1)
-        ->latest()
-        ->get();
+    $data['homeContentSections'] = Cache::remember('home:content_sections:v1', now()->addMinutes(10), function () {
+        return \App\Models\HomeContentSection::where('status', 1)
+            ->latest()
+            ->get();
+    });
 
  $commonLocation = request('location_name')
     ?: session('selected_location')
@@ -222,8 +236,11 @@ $data['commonLocation'] = $commonLocation;
 
 $currentLocation = $this->resolvePopularCategoriesLocation();
 
+$data['popularCategoriesLocation'] = $currentLocation;
 $data['popularCategories'] = $this->buildPopularCategoriesQuery($currentLocation);
-$data['totalUsers'] = User::count();
+$data['totalUsers'] = Cache::remember('home:total_users:v1', now()->addMinutes(10), function () {
+    return User::count();
+});
 
 // City-prefixed home pages (/{location}, /location/{location}) previously
 // fell back to the sitewide default title/description like the plain

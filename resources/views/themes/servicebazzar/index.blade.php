@@ -2210,19 +2210,28 @@ closeCategoryDropdown();
                                         {{-- Desktop banner --}}
                                         <img
                                             src="{{ loadImage('assets/servicebazzar/images/banner/'.$imgData['image']) }}"
-                                        alt="{{ $banner->content->title }} Near Me"
+                                            loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                            fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                                            decoding="async"
+                                            alt="{{ $banner->content->title }} Near Me"
                                             class="desktop-banner-img">
 
                                         {{-- Mobile banner --}}
                                         @if(!empty($mobileImgData['image']))
                                             <img
                                                 src="{{ loadImage('assets/servicebazzar/images/banner/'.$mobileImgData['image']) }}"
-                                           alt="{{ $banner->content->title }} Near Me"
+                                                loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                                fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                                                decoding="async"
+                                                alt="{{ $banner->content->title }} Near Me"
                                                 class="mobile-banner-img">
                                         @else
                                             <img
                                                 src="{{ loadImage('assets/servicebazzar/images/banner/'.$imgData['image']) }}"
-                                           alt="{{ $banner->content->title }} Near Me"
+                                                loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                                fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                                                decoding="async"
+                                                alt="{{ $banner->content->title }} Near Me"
                                                 class="mobile-banner-img">
                                         @endif
 
@@ -4502,12 +4511,16 @@ function scrollPopular(direction){
                             @if(($featured->trust ?? 0) == 1)
                                 <img src="{{ asset('assets/images/trust_2x.gif') }}"
                                      class="jd-badge-img"
+                                     loading="lazy"
+                                     decoding="async"
                                      alt="Trust">
                             @endif
 
                             @if(($featured->verified ?? 0) == 1)
                                 <img src="{{ asset('assets/images/verified_2x.gif') }}"
                                      class="jd-badge-img"
+                                     loading="lazy"
+                                     decoding="async"
                                      alt="Verified">
                             @endif
 
@@ -5002,7 +5015,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
   
 
    
@@ -6336,5 +6349,3 @@ function closeBuyerPopup() {
 </script>
 
 @endsection
-
-
