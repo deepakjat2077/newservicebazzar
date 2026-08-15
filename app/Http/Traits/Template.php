@@ -20,6 +20,34 @@ trait Template{
 	protected static $elementValue = [];
 	protected static $existedElement = null;
 
+/**
+ * Make sure an upload directory exists, once, right before something is
+ * written into it.
+ *
+ * Returns false rather than throwing: a picture that could not be stored
+ * should cost the admin that picture, not the whole save. The reason is
+ * logged so the missing permission is findable afterwards.
+ */
+protected static function ensureUploadDirectory(string $relativePath): bool
+{
+    $absolute = public_path($relativePath);
+
+    if (is_dir($absolute)) {
+        return is_writable($absolute);
+    }
+
+    if (!@mkdir($absolute, 0755, true) && !is_dir($absolute)) {
+        \Illuminate\Support\Facades\Log::error('Theme upload directory could not be created', [
+            'path'  => $absolute,
+            'error' => error_get_last()['message'] ?? null,
+        ]);
+
+        return false;
+    }
+
+    return true;
+}
+
 public function elementSave(Request $request, $id = null)
 {
     $key = $request->key;
@@ -53,12 +81,15 @@ public function elementSave(Request $request, $id = null)
     $oldContent = $element->content ? (array) $element->content : [];
     $content = [];
 
-    if (!file_exists(public_path(self::$filePath))) {
-        mkdir(public_path(self::$filePath), 0777, true);
-    }
-    if (!file_exists(public_path(self::$imageFilePath))) {
-        mkdir(public_path(self::$imageFilePath), 0777, true);
-    }
+    /*
+     * Upload directories are NOT created here.
+     *
+     * Both of them used to be created on every save, so editing nothing but a
+     * blog's text still needed write permission on public/assets — and on a
+     * server that does not grant it, `mkdir(): Permission denied` took down a
+     * save that was never going to touch a file. They are now created lazily,
+     * by ensureUploadDirectory(), at the point an upload actually happens.
+     */
 
     foreach ($fields as $fieldKey => $data) {
         if ($fieldKey === 'is_modal') {
@@ -142,6 +173,10 @@ public function elementSave(Request $request, $id = null)
                                 continue;
                             }
 
+                            if (!self::ensureUploadDirectory(self::$imageFilePath)) {
+                                continue;
+                            }
+
                             $imageName = uniqid('', true) . '_' . time() . '.' . $extension;
                             $image->move(public_path(self::$imageFilePath), $imageName);
                             $savedImages[] = [
@@ -159,7 +194,9 @@ public function elementSave(Request $request, $id = null)
                         $image = $request->file($fieldKey);
                         $extension = $image ? strtolower($image->getClientOriginalExtension()) : null;
 
-                        if ($image && $image->isValid() && in_array($extension, $allowedImageExt, true)) {
+                        if ($image && $image->isValid()
+                            && in_array($extension, $allowedImageExt, true)
+                            && self::ensureUploadDirectory(self::$imageFilePath)) {
                             $imageName = uniqid('', true) . '_' . time() . '.' . $extension;
 
                             // Pehle new image upload hogi.
@@ -198,7 +235,8 @@ public function elementSave(Request $request, $id = null)
                         && !in_array($extension, self::BLOCKED_EXTENSIONS, true)
                         && ($allowedFileExt === null || in_array($extension, $allowedFileExt, true));
 
-                    if ($file && $file->isValid() && $isSafeExtension) {
+                    if ($file && $file->isValid() && $isSafeExtension
+                        && self::ensureUploadDirectory(self::$filePath)) {
                         $fileName = uniqid('', true) . '_' . time() . '.' . $extension;
 
                         // Pehle new file upload hogi.
