@@ -64,6 +64,7 @@
 		<div class="contact-area">
 			<form action="{{ route('contact.sumbit') }}" method="post" class="captchaVerify">
 				@csrf
+				@include('themes.servicebazzar.partials.form-guard')
 				<div class="row">
 					<div class="col-md-6">
 						<div class="form-group">

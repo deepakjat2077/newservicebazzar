@@ -1039,6 +1039,7 @@
                                         <div class="col-lg-8 p-5 bg-white border-start">
                                             <form action="{{ route('contact.author') }}" method="POST">
                                                 @csrf
+                                                @include('themes.servicebazzar.partials.form-guard')
 
                                                 <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
                                                 <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">
@@ -1106,6 +1107,7 @@
 
                 <form action="{{ route('contact.author') }}" method="POST">
                     @csrf
+                    @include('themes.servicebazzar.partials.form-guard')
 
                     <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
                     <input type="hidden" name="category_name" id="popupCategoryInput" value="{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}">
@@ -1836,6 +1838,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <div class="col-lg-8 p-5 bg-white border-start">
                                     <form action="{{ route('contact.author') }}" method="POST">
                                         @csrf
+                                        @include('themes.servicebazzar.partials.form-guard')
                                         <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
                                         <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">
                                         <input type="hidden" name="location_name" value="{{ request('location_name') }}">

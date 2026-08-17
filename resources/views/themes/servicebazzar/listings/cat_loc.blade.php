@@ -583,6 +583,7 @@
 
     <form action="{{ route('contact.author') }}" method="POST">
     @csrf
+    @include('themes.servicebazzar.partials.form-guard')
 
     <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
     <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">

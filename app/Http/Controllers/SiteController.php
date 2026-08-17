@@ -26,6 +26,9 @@ use App\Events\AdminNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Models\ListingClick;
+use App\Rules\IndianMobile;
+use App\Rules\RealName;
+use App\Support\Forms\FormGuard;
 use Illuminate\Support\Facades\Http;
 
 class SiteController extends Controller
@@ -597,11 +600,21 @@ public function contact()
 
     public function contactSubmit(Request $request, SendMail $mail)
     {
+        // Same treatment as the enquiry form: a caught bot is told it worked.
+        if (FormGuard::looksAutomated($request, $why)) {
+            Log::info('Contact message rejected as automated', [
+                'reason' => $why,
+                'ip'     => $request->ip(),
+            ]);
+
+            return back()->withAlert(['success', 'Message sent successfully']);
+        }
+
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'message' => 'required',
-            'subject' => 'required',
+            'name' => ['required', 'string', 'max:255', new RealName()],
+            'email' => 'required|email|max:255',
+            'message' => 'required|string|max:5000',
+            'subject' => 'required|string|max:255',
         ]);
 
         $data = [
@@ -624,9 +637,29 @@ public function contact()
 
 public function authorContact(Request $request)
 {
+    /*
+     * Answered as if it saved, and nothing is stored.
+     *
+     * Telling a bot it was caught is telling whoever wrote it what to change.
+     * A script that gets "Enquiry sent successfully" has no reason to come
+     * back differently, and no human can reach this branch — the honeypot is
+     * off-screen and unreachable by keyboard. See FormGuard.
+     */
+    if (FormGuard::looksAutomated($request, $why)) {
+        Log::info('Enquiry rejected as automated', [
+            'reason' => $why,
+            'ip'     => $request->ip(),
+            'agent'  => substr((string) $request->userAgent(), 0, 120),
+        ]);
+
+        return back()->withAlert(['success', 'Enquiry sent successfully']);
+    }
+
     $request->validate([
-        'name'          => 'required|string|max:255',
-        'phone'         => 'required|string|max:20',
+        // Was `string|max:255` / `string|max:20`, which let "asdfgh" and
+        // "1234567890" through as leads an agent then tried to ring.
+        'name'          => ['required', 'string', 'max:255', new RealName()],
+        'phone'         => ['required', 'string', 'max:20', new IndianMobile()],
         'email'         => 'nullable|email|max:255',
         'listing_id'    => 'nullable|integer',
         'category_id'   => 'nullable|integer|exists:categories,id',
@@ -2219,12 +2252,27 @@ private function logGeocodeFailure(string $provider, string $address, $response)
 
 public function authorEmailContact(Request $request, SendMail $mail)
 {
+    /*
+     * This one mails the listing owner directly, so an unguarded bot here
+     * does not just add a row — it sends mail from our domain to a business
+     * owner, which is how a sender reputation gets spent. Caught submissions
+     * are answered as if they sent and no mail leaves.
+     */
+    if (FormGuard::looksAutomated($request, $why)) {
+        Log::info('Owner email rejected as automated', [
+            'reason' => $why,
+            'ip'     => $request->ip(),
+        ]);
+
+        return back()->withAlert(['success', 'Message sent successfully']);
+    }
+
     $request->validate([
-        'listing_id' => 'required',
-        'name'       => 'required',
-        'phone'      => 'required',
-        'email'      => 'required|email',
-        'message'    => 'required',
+        'listing_id' => 'required|integer|exists:listings,id',
+        'name'       => ['required', 'string', 'max:255', new RealName()],
+        'phone'      => ['required', 'string', 'max:20', new IndianMobile()],
+        'email'      => 'required|email|max:255',
+        'message'    => 'required|string|max:5000',
     ]);
 
     $listing = Listing::findOrFail($request->listing_id);

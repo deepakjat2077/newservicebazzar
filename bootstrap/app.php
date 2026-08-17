@@ -227,6 +227,66 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         /*
+         * A visitor filling in a form must never be shown an error page.
+         *
+         * Every one of these used to replace the page with a bare error
+         * screen, taking the half-filled form with it — and a visitor whose
+         * enquiry vanished does not type it again, they leave. Sending them
+         * back to the form with their input and a plain sentence turns a lost
+         * lead into a retry.
+         *
+         * Only for public form posts. The admin panel keeps its error pages,
+         * because there the status code is the diagnosis — see the admin
+         * error logging below, which relies on it.
+         *
+         * Nothing is hidden: report() has already run and written the
+         * exception to the log by the time render callbacks are consulted, so
+         * this changes what the visitor sees and not what we get told.
+         */
+        $publicFormPost = function ($request): bool {
+            return $request->isMethod('POST')
+                && !$request->is('admin', 'admin/*')
+                && !$request->expectsJson();
+        };
+
+        /*
+         * An expired CSRF token. Common and entirely innocent: the page sat
+         * open too long, or was restored from the browser's back-forward
+         * cache. "419 Page Expired" tells the visitor nothing they can act on.
+         */
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, $request) use ($publicFormPost) {
+            if (!$publicFormPost($request)) {
+                return null;
+            }
+
+            return back()
+                ->withInput()
+                ->withAlert(['danger', 'This page was open for a while. Please submit the form once more.']);
+        });
+
+        /*
+         * Anything genuinely broken on our side. The visitor is not told what
+         * failed — they are told it was not their fault and that trying again
+         * is worth it, which is all they can use.
+         */
+        $exceptions->render(function (\Throwable $e, $request) use ($publicFormPost) {
+            if (!$publicFormPost($request)) {
+                return null;
+            }
+
+            // Anything with its own status is handled above or by the
+            // framework (validation redirects, 404s, the throttle below).
+            if ($e instanceof HttpExceptionInterface
+                || $e instanceof \Illuminate\Validation\ValidationException) {
+                return null;
+            }
+
+            return back()
+                ->withInput()
+                ->withAlert(['danger', 'Something went wrong at our end. Your details are still here — please press submit again.']);
+        });
+
+        /*
          * A rate-limited form submit must not throw the visitor's typing away.
          *
          * The throttle answers with a bare "429 TOO MANY REQUESTS" page, which

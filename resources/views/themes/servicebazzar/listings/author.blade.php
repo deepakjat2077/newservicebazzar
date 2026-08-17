@@ -118,6 +118,7 @@
 				<div class="contact-with-author">
 					<form action="{{ route('contact.author') }}" method="post">
 						@csrf
+						@include('themes.servicebazzar.partials.form-guard')
 						<input type="hidden" name="author_id" value="{{ $user->id }}">
 						<div class="form-group">
 							<input type="text" name="name" placeholder="@lang('Your name')" class="form-control">

@@ -4735,6 +4735,7 @@
 
                     <form action="{{ route('contact.author') }}" method="POST">
                         @csrf
+                        @include('themes.servicebazzar.partials.form-guard')
 
                 <input type="hidden" name="listing_id" value="{{ $listing->id ?? '' }}">
 
@@ -6241,6 +6242,7 @@
 
                     <form action="{{ route('contact.author') }}" method="POST">
                         @csrf
+                        @include('themes.servicebazzar.partials.form-guard')
                     <input type="hidden" name="listing_id" value="{{ $listing->id ?? '' }}">
 
     <input type="hidden" name="category_id" value="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}">
@@ -6402,6 +6404,7 @@
 
             <form action="{{ route('contact.author') }}" method="POST">
                 @csrf
+                @include('themes.servicebazzar.partials.form-guard')
                 <input type="hidden" name="listing_id" value="{{ $listing->id ?? '' }}">
                 <input type="hidden" name="category_id" value="{{ $listing->category->id ?? '' }}">
                 <input type="hidden" name="author_id" value="{{ $listing->user->id ?? '' }}">
@@ -6638,6 +6641,7 @@
 
             <form action="{{ route('contact.author.email') }}" method="POST">
                 @csrf
+                @include('themes.servicebazzar.partials.form-guard')
 
                 <input type="hidden" name="listing_id" value="{{ $listing->id }}">
 
@@ -6695,6 +6699,7 @@
 
             <form action="{{ route('contact.author') }}" method="POST">
                 @csrf
+                @include('themes.servicebazzar.partials.form-guard')
 
                 <input type="hidden" name="listing_id" value="{{ $listing->id }}">
                 <input type="hidden" name="category_id" value="{{ $listing->category_id }}">
