@@ -671,9 +671,21 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
     Route::get('contact', 'SiteController@contact')->name('contact');
     Route::post('contact', 'SiteController@contactSubmit')->middleware('throttle:10,1')->name('contact.sumbit');
 
-    Route::post('author-contact', 'SiteController@authorContact')->middleware('throttle:10,1')->name('contact.author');
+    /*
+     * 30/minute, not 10. The limit is keyed by IP, and most Indian mobile
+     * networks put a great many subscribers behind one shared address — so ten
+     * enquiries a minute is not ten people, it is however many of that
+     * carrier's customers happen to be on the site. Real visitors were being
+     * refused.
+     *
+     * Raising it costs nothing now that a repeat of the same enquiry is
+     * rejected on its own merits (Enquiry::dedupeKeyFor), so this limit no
+     * longer has to be the thing that stops someone submitting twice — it only
+     * has to stop actual flooding, which 30 still does.
+     */
+    Route::post('author-contact', 'SiteController@authorContact')->middleware('throttle:30,1')->name('contact.author');
     Route::post('author-email-contact', 'SiteController@authorEmailContact')
-    ->middleware('throttle:10,1')->name('contact.author.email');
+    ->middleware('throttle:30,1')->name('contact.author.email');
     Route::post('listing-click-track', 'SiteController@listingClickTrack')->middleware('throttle:60,1')->name('listing.click.track');
 
     Route::prefix('track')->middleware('throttle:120,1')->group(function () {

@@ -671,11 +671,11 @@ public function authorContact(Request $request)
                 ]
             );
         } catch (\Illuminate\Database\QueryException $e) {
-            return back()->withAlert(['success', 'Aapki enquiry pehle hi mil chuki hai. Hum jald hi contact karenge.']);
+            return back()->withAlert(['success', 'We have already received your enquiry. We will contact you soon.']);
         }
 
         if (!$enquiry->wasRecentlyCreated) {
-            return back()->withAlert(['success', 'Aapki enquiry pehle hi mil chuki hai. Hum jald hi contact karenge.']);
+            return back()->withAlert(['success', 'We have already received your enquiry. We will contact you soon.']);
         }
     } else {
         // No usable phone number, so nothing to recognise a repeat by.

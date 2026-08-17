@@ -226,6 +226,38 @@ return Application::configure(basePath: dirname(__DIR__))
             return false;
         });
 
+        /*
+         * A rate-limited form submit must not throw the visitor's typing away.
+         *
+         * The throttle answers with a bare "429 TOO MANY REQUESTS" page, which
+         * replaces the page they were on — the enquiry form and everything
+         * filled into it goes with it, and nothing on screen says what to do
+         * next. Send them back to the form instead, with their input and a
+         * message. The limit is still enforced; only how it is delivered
+         * changes.
+         *
+         * GET pages are left alone: there is nothing typed to preserve, and
+         * the error page is the right answer to a crawler hammering the site.
+         */
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, $request) {
+            $message = 'You are submitting too quickly. Please wait a minute and try again.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $message,
+                ], 429);
+            }
+
+            if ($request->isMethod('GET')) {
+                return null;
+            }
+
+            // 'danger' is the key the theme layouts test for when picking the
+            // red toast; anything else falls through to their default branch.
+            return back()->withInput()->withAlert(['danger', $message]);
+        });
+
         // SEO: legacy-URL forwarding. Listing/Location slugs regenerate
         // whenever their name is edited (see the `updating` hooks on those
         // models), which would otherwise silently 404 a previously
