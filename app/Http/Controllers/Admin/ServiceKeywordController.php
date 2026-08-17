@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Images\WebpImage;
+
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\ServiceKeyword;
@@ -36,8 +38,11 @@ public function create()
         $image = null;
 
         if ($request->hasFile('image')) {
-            $image = time().'_'.uniqid().'.'.$request->image->extension();
-            $request->image->move(public_path('assets/images/service-keywords'), $image);
+            $image = WebpImage::store(
+                $request->file('image'),
+                'assets/images/service-keywords',
+                time().'_'.uniqid()
+            );
         }
 
         ServiceKeyword::create([
@@ -81,8 +86,11 @@ public function create()
                 unlink(public_path('assets/images/service-keywords/'.$keyword->image));
             }
 
-            $image = time().'_'.uniqid().'.'.$request->image->extension();
-            $request->image->move(public_path('assets/images/service-keywords'), $image);
+            $image = WebpImage::store(
+                $request->file('image'),
+                'assets/images/service-keywords',
+                time().'_'.uniqid()
+            );
         }
 
         $keyword->update([

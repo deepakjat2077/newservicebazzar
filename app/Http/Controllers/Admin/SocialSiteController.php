@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Images\WebpImage;
+
 use App\Http\Controllers\Controller;
 use App\Models\SocialSite;
 use Illuminate\Http\Request;
@@ -25,10 +27,11 @@ class SocialSiteController extends Controller
     $imagePath = null;
 
     if ($request->hasFile('image')) {
-        $image = $request->file('image');
-        $imageName = time() . '.' . $image->getClientOriginalExtension();
-
-        $image->move(public_path('uploads/social-sites'), $imageName);
+        $imageName = WebpImage::store(
+            $request->file('image'),
+            'uploads/social-sites',
+            (string) time()
+        );
 
         $imagePath = 'uploads/social-sites/' . $imageName;
     }
@@ -58,10 +61,11 @@ public function update(Request $request, $id)
             unlink(public_path($socialSite->image));
         }
 
-        $image = $request->file('image');
-        $imageName = time() . '.' . $image->getClientOriginalExtension();
-
-        $image->move(public_path('uploads/social-sites'), $imageName);
+        $imageName = WebpImage::store(
+            $request->file('image'),
+            'uploads/social-sites',
+            (string) time()
+        );
 
         $imagePath = 'uploads/social-sites/' . $imageName;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Traits;
 
+use App\Support\Images\WebpImage;
 use Intervention\Image\Laravel\Facades\Image;
 use Exception;
 
@@ -45,48 +46,77 @@ trait FileHandler
         $filename = $this->fileUploadProcess($data, $type);
 
         if ($type == 'image') {
-            $this->uploadImage($data, $filename);
-        } else {
-            $data['file']->move(public_path($data['path']), $filename);
+            // Note the return: the name written is not the one just generated,
+            // because the image is stored as WebP and the extension changes.
+            // Callers save this value, so they record the file that exists.
+            return WebpImage::store(
+                $data['file'],
+                $data['path'],
+                pathinfo($filename, PATHINFO_FILENAME),
+                $this->sizeFrom($data)
+            );
         }
+
+        $data['file']->move(public_path($data['path']), $filename);
 
         return $filename;
     }
 
+    /**
+     * Store an image, converted to WebP.
+     *
+     * Returns the filename it wrote — callers save that to the database, and
+     * for an image it will not be the $filename they passed in.
+     *
+     * The one exception is a caller that named the file with its own
+     * extension (SettingController writes 'logo.png', 'favicon_new.png').
+     * Those names are hardcoded in the layouts, so the extension is honoured
+     * as given and only the resizing applies. See WebpImage.
+     */
     protected function uploadImage($data, $filename)
     {
-        // Checked before Image::read(), because by the time Intervention has
-        // the file open the memory is already spent.
-        $this->guardImageSize($data['file']);
+        // Reached only from a caller that named the file itself — uploadFile()
+        // never calls this, it goes straight to WebpImage with a bare basename.
+        return $this->storeWithFixedName($data, $filename, $this->sizeFrom($data));
+    }
+
+    private function sizeFrom($data): ?array
+    {
+        if (empty($data['size'])) {
+            return null;
+        }
+
+        $parts = explode('x', $data['size']);
+
+        return [
+            'width' => (int) ($parts[0] ?? 0),
+            'height' => (int) ($parts[1] ?? 0),
+        ];
+    }
+
+    /**
+     * The logo/favicon path: resize as before, keep the caller's filename.
+     */
+    private function storeWithFixedName($data, $filename, ?array $size)
+    {
+        WebpImage::guardSize($data['file']);
 
         $image = Image::read($data['file']);
 
         try {
-            $width = 0;
-            $height = 0;
-
-            if (!empty($data['size'])) {
-                $size = explode('x', $data['size']);
-                $width = (int) ($size[0] ?? 0);
-                $height = (int) ($size[1] ?? 0);
-            }
-
-            if ($width > 0 && $height > 0) {
-                $image->resize($width, $height);
+            if ($size && $size['width'] > 0 && $size['height'] > 0) {
+                $image->resize($size['width'], $size['height']);
             } else {
-                // No size asked for used to mean "store the original at full
-                // resolution" — a 24 MP upload sitting on disk and reloaded on
-                // every edit. Nothing on the site renders above this bound.
                 $image->scaleDown(self::MAX_IMAGE_DIMENSION, self::MAX_IMAGE_DIMENSION);
             }
 
-            $image->save(public_path($data['path'] . '/' . $filename));
+            $image->save(public_path($data['path'].'/'.$filename));
         } finally {
-            // GD frees its buffer only when the object goes. Without this the
-            // extra-images loop holds every photo it has processed so far.
             unset($image);
             gc_collect_cycles();
         }
+
+        return $filename;
     }
 
     /**

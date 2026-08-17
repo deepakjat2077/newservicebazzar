@@ -6,6 +6,7 @@ use App\Http\Traits\FileHandler;
 use App\Models\Setting;
 use App\Models\Theme;
 use App\Support\ContentHtml;
+use App\Support\Images\WebpImage;
 use HTMLPurifier;
 use Illuminate\Http\Request;
 
@@ -177,8 +178,27 @@ public function elementSave(Request $request, $id = null)
                                 continue;
                             }
 
-                            $imageName = uniqid('', true) . '_' . time() . '.' . $extension;
-                            $image->move(public_path(self::$imageFilePath), $imageName);
+                            /*
+                             * Stored as WebP — a banner slide is one of the
+                             * heaviest images on the homepage and every
+                             * visitor downloads all of them. See WebpImage.
+                             *
+                             * A file that cannot be decoded skips this slot
+                             * rather than aborting the save: the rest of the
+                             * banner, and the title and subtitle typed with
+                             * it, must still go in.
+                             */
+                            try {
+                                $imageName = WebpImage::store(
+                                    $image,
+                                    self::$imageFilePath,
+                                    uniqid('', true) . '_' . time()
+                                );
+                            } catch (\Throwable $e) {
+                                report($e);
+                                continue;
+                            }
+
                             $savedImages[] = [
                                 'image' => $imageName,
                                 'link' => $newLinks[$index] ?? '',
@@ -197,10 +217,20 @@ public function elementSave(Request $request, $id = null)
                         if ($image && $image->isValid()
                             && in_array($extension, $allowedImageExt, true)
                             && self::ensureUploadDirectory(self::$imageFilePath)) {
-                            $imageName = uniqid('', true) . '_' . time() . '.' . $extension;
-
-                            // Pehle new image upload hogi.
-                            $image->move(public_path(self::$imageFilePath), $imageName);
+                            // Stored as WebP; see WebpImage. A file that
+                            // cannot be decoded leaves the existing image in
+                            // place instead of taking the whole save down.
+                            try {
+                                $imageName = WebpImage::store(
+                                    $image,
+                                    self::$imageFilePath,
+                                    uniqid('', true) . '_' . time()
+                                );
+                            } catch (\Throwable $e) {
+                                report($e);
+                                $content[$fieldKey] = $oldContent[$fieldKey] ?? null;
+                                continue;
+                            }
 
                             // New image successfully save hone ke baad old image delete hogi.
                             $oldImage = $oldContent[$fieldKey] ?? null;

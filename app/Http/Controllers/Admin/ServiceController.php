@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Images\WebpImage;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Service;
@@ -123,50 +125,43 @@ class ServiceController extends Controller
 
         if ($request->hasFile('hero_image')) {
             $file = $request->file('hero_image');
-            $name = time() . '_hero_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path($uploadPath), $name);
+            $name = WebpImage::store($file, $uploadPath, time().'_hero_'.Str::random(8));
             $service->hero_image = $uploadPath . '/' . $name;
         }
 
         if ($request->hasFile('intro_image')) {
             $file = $request->file('intro_image');
-            $name = time() . '_intro_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path($uploadPath), $name);
+            $name = WebpImage::store($file, $uploadPath, time().'_intro_'.Str::random(8));
             $service->intro_image = $uploadPath . '/' . $name;
         }
 
         if ($request->hasFile('trusted_image')) {
             $file = $request->file('trusted_image');
-            $name = time() . '_trusted_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path($uploadPath), $name);
+            $name = WebpImage::store($file, $uploadPath, time().'_trusted_'.Str::random(8));
             $service->trusted_image = $uploadPath . '/' . $name;
         }
 
         if ($request->hasFile('seo_image')) {
             $file = $request->file('seo_image');
-            $name = time() . '_seo_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path($uploadPath), $name);
+            $name = WebpImage::store($file, $uploadPath, time().'_seo_'.Str::random(8));
             $service->seo_image = $uploadPath . '/' . $name;
         }
 
         if ($request->hasFile('why_choose_image')) {
             $file = $request->file('why_choose_image');
-            $name = time() . '_why_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path($uploadPath), $name);
+            $name = WebpImage::store($file, $uploadPath, time().'_why_'.Str::random(8));
             $service->why_choose_image = $uploadPath . '/' . $name;
         }
 
         if ($request->hasFile('partner_image')) {
             $file = $request->file('partner_image');
-            $name = time() . '_partner_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path($uploadPath), $name);
+            $name = WebpImage::store($file, $uploadPath, time().'_partner_'.Str::random(8));
             $service->partner_image = $uploadPath . '/' . $name;
         }
 
         if ($request->hasFile('cta_image')) {
             $file = $request->file('cta_image');
-            $name = time() . '_cta_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path($uploadPath), $name);
+            $name = WebpImage::store($file, $uploadPath, time().'_cta_'.Str::random(8));
             $service->cta_image = $uploadPath . '/' . $name;
         }
 
@@ -198,8 +193,7 @@ class ServiceController extends Controller
                 $cardImage = null;
                 if ($request->hasFile("cards.$index.image")) {
                     $file = $request->file("cards.$index.image");
-                    $name = time() . '_card_' . $index . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path($uploadPath), $name);
+                    $name = WebpImage::store($file, $uploadPath, time().'_card_'.$index.'_'.Str::random(8));
                     $cardImage = $uploadPath . '/' . $name;
                 }
 
@@ -345,50 +339,43 @@ public function update(Request $request, $id)
 
     if ($request->hasFile('hero_image')) {
         $file = $request->file('hero_image');
-        $name = time() . '_hero_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($uploadPath), $name);
+        $name = WebpImage::store($file, $uploadPath, time().'_hero_'.Str::random(8));
         $service->hero_image = $uploadPath . '/' . $name;
     }
 
     if ($request->hasFile('intro_image')) {
         $file = $request->file('intro_image');
-        $name = time() . '_intro_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($uploadPath), $name);
+        $name = WebpImage::store($file, $uploadPath, time().'_intro_'.Str::random(8));
         $service->intro_image = $uploadPath . '/' . $name;
     }
 
     if ($request->hasFile('trusted_image')) {
         $file = $request->file('trusted_image');
-        $name = time() . '_trusted_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($uploadPath), $name);
+        $name = WebpImage::store($file, $uploadPath, time().'_trusted_'.Str::random(8));
         $service->trusted_image = $uploadPath . '/' . $name;
     }
 
     if ($request->hasFile('seo_image')) {
         $file = $request->file('seo_image');
-        $name = time() . '_seo_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($uploadPath), $name);
+        $name = WebpImage::store($file, $uploadPath, time().'_seo_'.Str::random(8));
         $service->seo_image = $uploadPath . '/' . $name;
     }
 
     if ($request->hasFile('why_choose_image')) {
         $file = $request->file('why_choose_image');
-        $name = time() . '_why_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($uploadPath), $name);
+        $name = WebpImage::store($file, $uploadPath, time().'_why_'.Str::random(8));
         $service->why_choose_image = $uploadPath . '/' . $name;
     }
 
     if ($request->hasFile('partner_image')) {
         $file = $request->file('partner_image');
-        $name = time() . '_partner_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($uploadPath), $name);
+        $name = WebpImage::store($file, $uploadPath, time().'_partner_'.Str::random(8));
         $service->partner_image = $uploadPath . '/' . $name;
     }
 
     if ($request->hasFile('cta_image')) {
         $file = $request->file('cta_image');
-        $name = time() . '_cta_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path($uploadPath), $name);
+        $name = WebpImage::store($file, $uploadPath, time().'_cta_'.Str::random(8));
         $service->cta_image = $uploadPath . '/' . $name;
     }
 
@@ -422,8 +409,7 @@ public function update(Request $request, $id)
 
             if ($request->hasFile("cards.$index.image")) {
                 $file = $request->file("cards.$index.image");
-                $name = time() . '_card_' . $index . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path($uploadPath), $name);
+                $name = WebpImage::store($file, $uploadPath, time().'_card_'.$index.'_'.Str::random(8));
                 $cardImage = $uploadPath . '/' . $name;
             }
 

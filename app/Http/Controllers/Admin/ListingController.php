@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Images\WebpImage;
+
 use App\Http\Controllers\Controller;
 use App\Http\Traits\FileHandler;
 use App\Models\Subcategory;
@@ -386,14 +388,18 @@ if ($isOpen24Hours) {
 
     if ($request->hasFile('image')) {
         $file = $request->file('image');
-        $newThumb = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $newThumb = null;
 
-        // Move the new file in FIRST and confirm it actually landed on disk
-        // before touching the old one — if the move fails (permissions, full
+        // Convert and write the new file in FIRST, confirming it landed on
+        // disk before touching the old one — if it fails (permissions, full
         // disk, interrupted upload) the existing thumb must stay untouched
         // instead of being deleted for a replacement that never happened.
         try {
-            $file->move(public_path('assets/images/listing/thumb'), $newThumb);
+            $newThumb = WebpImage::store(
+                $file,
+                'assets/images/listing/thumb',
+                time().'_'.uniqid()
+            );
         } catch (\Throwable $e) {
             report($e);
 
@@ -432,10 +438,12 @@ if ($isOpen24Hours) {
                 continue;
             }
 
-            $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
-
             try {
-                $photo->move(public_path('assets/images/listing/photos'), $filename);
+                $filename = WebpImage::store(
+                    $photo,
+                    'assets/images/listing/photos',
+                    time().'_'.uniqid()
+                );
             } catch (\Throwable $e) {
                 report($e);
                 continue;
@@ -1003,10 +1011,13 @@ if ($isOpen24Hours) {
     $thumb = null;
     if ($request->hasFile('thumb')) {
         $file = $request->file('thumb');
-        $thumb = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         try {
-            $file->move(public_path('assets/images/listing/thumb'), $thumb);
+            $thumb = WebpImage::store(
+                $file,
+                'assets/images/listing/thumb',
+                time().'_'.uniqid()
+            );
         } catch (\Throwable $e) {
             report($e);
             cache()->forget($lockKey);
@@ -1029,10 +1040,12 @@ if ($isOpen24Hours) {
                 continue;
             }
 
-            $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
-
             try {
-                $photo->move(public_path('assets/images/listing/photos'), $filename);
+                $filename = WebpImage::store(
+                    $photo,
+                    'assets/images/listing/photos',
+                    time().'_'.uniqid()
+                );
             } catch (\Throwable $e) {
                 report($e);
                 continue;
