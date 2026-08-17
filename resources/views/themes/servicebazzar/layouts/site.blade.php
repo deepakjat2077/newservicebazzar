@@ -7,8 +7,8 @@
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/select2.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}">
-	<link rel="stylesheet" href="{{asset('assets/admin/css/toastr.min.css') }}">
-	<link rel="stylesheet" href="{{ asset('assets/admin/css/index.css') }}?v={{ filemtime(public_path('assets/admin/css/index.css')) }}">
+	<link rel="stylesheet" href="{{ asset($themeAsset.'css/toastr.min.css') }}">
+	<link rel="stylesheet" href="{{ asset($themeAsset.'css/index.css') }}?v={{ filemtime(public_path($themeAsset.'css/index.css')) }}">
 	<link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/lightcase.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/starrr.css') }}">
@@ -1551,7 +1551,7 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 	<script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/lightcase.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/starrr.js') }}"></script>
-	<script src="{{asset('assets/admin/js/toastr.min.js') }}"></script>
+	<script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
 <script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}"></script>
 
 	<script src="{{ asset('assets/js/tracking.js') }}" defer></script>

@@ -5,10 +5,10 @@
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap2.min.css') }}">
-    <link rel="stylesheet" href="{{asset('assets/admin/css/toastr.min.css') }}">
+    <link rel="stylesheet" href="{{ asset($themeAsset.'css/toastr.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}">
-    <link rel="stylesheet" href="{{asset('assets/admin/summernote/summernote-lite.min.css') }}">
+    <link rel="stylesheet" href="{{ asset($themeAsset.'summernote/summernote-lite.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/style2.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}">
     @stack('css')
@@ -105,8 +105,8 @@
     <script src="{{ asset($themeAsset.'js/slick.min.js') }}"></script>
     <script src="{{ asset($themeAsset.'js/wow.min.js') }}"></script>
     <script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}"></script>
-    <script src="{{asset('assets/admin/js/toastr.min.js') }}"></script>
-    <script src="{{asset('assets/admin/summernote/summernote-lite.min.js') }}"></script>
+    <script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
+    <script src="{{ asset($themeAsset.'summernote/summernote-lite.min.js') }}"></script>
     <script src="{{ asset($themeAsset.'js/app.js') }}"></script>
     <script src="{{ asset('assets/js/tracking.js') }}" defer></script>
     @stack('js')
