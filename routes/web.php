@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
+Route::get('/health', fn () => response('ok', 200))->name('health');
+
 Route::get('/gupshup-test', function () {
     return response()->json([
         'success' => true,
