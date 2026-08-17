@@ -921,6 +921,7 @@
 </div>
 
 @include('admin.listing.partials.session-keepalive', ['keepAliveForm' => '#listingEditForm'])
+@include('admin.listing.partials.csrf-live', ['tokenForm' => '#listingEditForm'])
 @include('admin.listing.partials.location-autoselect')
 @include('admin.listing.partials.firewall-shield')
 @endsection
@@ -1976,7 +1977,7 @@ let subcategoryAjaxRequest = null;
             type: "POST",
             dataType: "json",
             data: {
-                _token: "{{ csrf_token() }}",
+                _token: listingCsrfToken(),
                 first_name: first_name,
                 last_name: last_name,
                 email: email,
@@ -2134,7 +2135,7 @@ let subcategoryAjaxRequest = null;
             type: "POST",
             dataType: "json",
             data: {
-                _token: "{{ csrf_token() }}",
+                _token: listingCsrfToken(),
                 name: name,
                 category_id: categoryId
             },

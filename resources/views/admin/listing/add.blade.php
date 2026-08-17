@@ -660,6 +660,7 @@
 </div>
 
 @include('admin.listing.partials.session-keepalive', ['keepAliveForm' => '#listingCreateForm'])
+@include('admin.listing.partials.csrf-live', ['tokenForm' => '#listingCreateForm'])
 @include('admin.listing.partials.location-autoselect')
 @include('admin.listing.partials.firewall-shield')
 
@@ -1637,7 +1638,7 @@ if (selectedCategory && locationId) {
 
     function getAiPayload() {
         return {
-            _token: "{{ csrf_token() }}",
+            _token: listingCsrfToken(),
             name: $('input[name="name"]').val(),
             pincode: $('#pincode').val(),
             established_year: $('input[name="established_year"]').val(),
@@ -2089,7 +2090,7 @@ $('#subcategorySearchInput').on('focus keyup', debounce(function () {
             type: "POST",
             dataType: "json",
             data: {
-                _token: "{{ csrf_token() }}",
+                _token: listingCsrfToken(),
                 first_name: first_name,
                 last_name: last_name,
                 email: email,
@@ -2293,7 +2294,7 @@ $(document).on('click', '.add-category-item', function () {
             type: "POST",
             dataType: "json",
             data: {
-                _token: "{{ csrf_token() }}",
+                _token: listingCsrfToken(),
                 name: name,
                 category_id: categoryId
             },
@@ -3337,6 +3338,21 @@ $(document).on('blur paste', '.seo-source, .seo-field', function () {
 }
 
 $('#location_id').on('change', function () {
+    /*
+     * The clear below is deliberate — the subcategory list is filtered by
+     * location, so the old picks may not even exist under the new one. It just
+     * has to be visible: an agent who picked six subcategories and then fixed
+     * the location would otherwise watch them disappear with no explanation,
+     * or not notice at all and save a listing with none.
+     */
+    var hadPicks = selectedSubcategories.length > 0 || !!selectedCategory;
+
+    if (hadPicks) {
+        $('#locationAutoNote')
+            .removeClass('d-none')
+            .text('Location badalne par category aur subcategory dobara select karni hongi.');
+    }
+
     selectedSubcategories = [];
     locationFilteredSubcategories = [];
 

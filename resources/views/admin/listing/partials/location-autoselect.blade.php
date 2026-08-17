@@ -33,6 +33,18 @@
     }
 
     /**
+     * Has the agent already chosen a category or any subcategories?
+     *
+     * Read from the hidden inputs rather than the forms' own state variables,
+     * because those are scoped to each form's script block and the edit form
+     * does not expose them at all.
+     */
+    function picksMade() {
+        return !!$('#category_id').val() ||
+               $('input[name="subcategory_ids[]"]').length > 0;
+    }
+
+    /**
      * Select the Location that matches a city name. Returns true if it found
      * one. Leaves the field alone when nothing matches, so an unlisted city
      * still gets picked by hand rather than silently landing on the wrong row.
@@ -95,6 +107,31 @@
         }
 
         if ($select.val() !== picked) {
+            /*
+             * Changing Location clears the chosen category and every chosen
+             * subcategory — that handler exists because the subcategory list
+             * is filtered by location. Harmless while the form is still empty,
+             * but this runs from the pincode lookup, which is a fetch: it can
+             * land seconds later, after the agent has moved on and picked
+             * them. The picks then vanish with nothing said, and the listing
+             * saves with no subcategories — the "kabhi subcategory add nahi
+             * hoti" report.
+             *
+             * So an automatic switch only happens while there is nothing to
+             * lose. Once picks exist the agent is told instead, and decides
+             * themselves whether the location is wrong.
+             */
+            if (picksMade() && $select.val()) {
+                $('#locationAutoNote')
+                    .removeClass('d-none')
+                    .text('Pincode ke hisaab se Location "' +
+                          $select.find('option[value="' + picked + '"]').text().trim() +
+                          '" honi chahiye. Aapki category/subcategory choice bachane ke liye ' +
+                          'ise apne aap nahi badla — galat ho to khud badlein.');
+
+                return false;
+            }
+
             // change, so the location-filtered subcategory list reloads.
             $select.val(picked).trigger('change');
         }

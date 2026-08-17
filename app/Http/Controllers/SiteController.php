@@ -634,23 +634,67 @@ public function authorContact(Request $request)
         'location_name' => 'nullable|string|max:255',
     ]);
 
-    Enquiry::create([
-        'listing_id'    => $request->listing_id ?: null,
-        'category_id'   => $request->category_id ?: null,
-        'category_name' => $request->category_name ?: null,
-        'location_name' => $request->location_name ?: null,
-        'name'          => $request->name,
-        'phone'         => $request->phone,
-        'email'         => $request->email,
-        'location_id'   => $request->location_id ?: null,
-        'is_read'       => 0,
-    ]);
+    $listingId  = $request->listing_id ?: null;
+    $categoryId = $request->category_id ?: null;
+    $locationId = $request->location_id ?: null;
+
+    $dedupeKey = Enquiry::dedupeKeyFor(
+        $request->phone,
+        $listingId,
+        $categoryId,
+        $locationId
+    );
+
+    /*
+     * One enquiry per person per listing, and per person per category-in-a-
+     * location — the same visitor was sending the same one repeatedly and each
+     * copy arrived as a separate unread lead. See Enquiry::dedupeKeyFor().
+     *
+     * firstOrCreate covers the ordinary repeat; the catch covers two submits
+     * close enough together that both found nothing, which the unique index on
+     * dedupe_key turns into an error rather than a second row. Either way the
+     * visitor is told their enquiry is already with us — from their side a
+     * repeat submit and a first submit both worked.
+     */
+    if ($dedupeKey !== null) {
+        try {
+            $enquiry = Enquiry::firstOrCreate(
+                ['dedupe_key' => $dedupeKey],
+                [
+                    'listing_id'  => $listingId,
+                    'category_id' => $categoryId,
+                    'name'        => $request->name,
+                    'phone'       => $request->phone,
+                    'email'       => $request->email,
+                    'location_id' => $locationId,
+                    'is_read'     => 0,
+                ]
+            );
+        } catch (\Illuminate\Database\QueryException $e) {
+            return back()->withAlert(['success', 'Aapki enquiry pehle hi mil chuki hai. Hum jald hi contact karenge.']);
+        }
+
+        if (!$enquiry->wasRecentlyCreated) {
+            return back()->withAlert(['success', 'Aapki enquiry pehle hi mil chuki hai. Hum jald hi contact karenge.']);
+        }
+    } else {
+        // No usable phone number, so nothing to recognise a repeat by.
+        Enquiry::create([
+            'listing_id'  => $listingId,
+            'category_id' => $categoryId,
+            'name'        => $request->name,
+            'phone'       => $request->phone,
+            'email'       => $request->email,
+            'location_id' => $locationId,
+            'is_read'     => 0,
+        ]);
+    }
 
     $count = Enquiry::where('is_read', 0)->count();
 
     event(new AdminNotification('enquiry', $count));
 
-    \App\Support\Tracking\Tracker::conversion($request, 'enquiry', ['listing_id' => $request->listing_id ?: null]);
+    \App\Support\Tracking\Tracker::conversion($request, 'enquiry', ['listing_id' => $listingId]);
 
     return back()->withAlert(['success', 'Enquiry sent successfully']);
 }
