@@ -2,11 +2,9 @@
 
 namespace App\Jobs\Tracking;
 
-use App\Models\PageView;
-use App\Models\Visitor;
-use App\Models\VisitorSession;
+use App\Support\Tracking\PendingTraffic;
+use App\Support\Tracking\TrackingWriter;
 use App\Support\Tracking\TrafficFilter;
-use App\Support\Tracking\UserAgentParser;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -21,6 +19,11 @@ class RecordPageViewOpen implements ShouldQueue
 
     public function __construct($data)
     {
+        // Stamped at dispatch, not at write: a page view held in
+        // PendingTraffic until its session proves human must still be
+        // recorded at the time it happened.
+        $data['occurred_at'] = $data['occurred_at'] ?? now()->toDateTimeString();
+
         $this->data = $data;
         // See config/queue.php: "sync" by default (no worker process is
         // guaranteed to be running), overridable via .env once one is.
@@ -30,90 +33,25 @@ class RecordPageViewOpen implements ShouldQueue
     public function handle()
     {
         $d = $this->data;
-        $ua = UserAgentParser::parse($d['user_agent'] ?? null);
-        $isBot = TrafficFilter::isBotUserAgent($d['user_agent'] ?? null)
-            || TrafficFilter::isExcludedIp($d['ip_address'] ?? null);
-        $now = now();
 
-        $visitor = Visitor::firstOrNew(['visitor_id' => $d['visitor_id']]);
-        $visitorIsNew = !$visitor->exists;
-        $ipChanged = $visitor->exists && $visitor->ip_address !== ($d['ip_address'] ?? null);
-
-        $visitor->fill([
-            'user_id' => $d['user_id'] ?? $visitor->user_id,
-            'ip_address' => $d['ip_address'] ?? $visitor->ip_address,
-            'device_type' => $ua['device_type'],
-            'browser' => $ua['browser'],
-            'os' => $ua['os'],
-            'last_visit_at' => $now,
-            'is_bot' => $isBot,
-            'user_agent' => $d['user_agent'] ?? null,
-        ]);
-
-        if ($visitorIsNew) {
-            $visitor->first_visit_at = $now;
+        // Nothing recognisable as a bot is stored at all, not even flagged.
+        if (TrafficFilter::isBotPayload($d)) {
+            return;
         }
 
-        $visitor->save();
+        $sessionUuid = $d['session_uuid'];
 
-        $session = VisitorSession::where('session_uuid', $d['session_uuid'])->first();
-        $sessionIsNew = !$session;
+        // A second page view is itself the proof: whatever is driving this
+        // session did not render one page and vanish.
+        $isSecondView = PendingTraffic::heldCount($sessionUuid, PendingTraffic::TYPE_PAGE_VIEW_OPEN) > 0;
 
-        if ($sessionIsNew) {
-            $session = new VisitorSession(['session_uuid' => $d['session_uuid']]);
-            $session->visitor_id = $d['visitor_id'];
-            $session->laravel_session_id = $d['laravel_session_id'] ?? null;
-            $session->ip_address = $d['ip_address'] ?? null;
-            $session->referrer_url = $d['referrer_url'] ?? null;
-            $session->landing_page = $d['url'] ?? null;
-            $session->utm_source = $d['utm_source'] ?? null;
-            $session->utm_medium = $d['utm_medium'] ?? null;
-            $session->utm_campaign = $d['utm_campaign'] ?? null;
-            $session->utm_term = $d['utm_term'] ?? null;
-            $session->utm_content = $d['utm_content'] ?? null;
-            $session->device_type = $ua['device_type'];
-            $session->browser = $ua['browser'];
-            $session->os = $ua['os'];
-            $session->is_bot = $isBot;
-            $session->user_agent = $d['user_agent'] ?? null;
-            $session->screen_resolution = $d['screen_resolution'] ?? null;
-            $session->started_at = $now;
-            $session->page_view_count = 0;
+        if (!empty($d['user_id']) || $isSecondView || PendingTraffic::isLive($sessionUuid)) {
+            TrackingWriter::writeHeld(PendingTraffic::release($sessionUuid));
+            TrackingWriter::pageViewOpen($d);
 
-            $visitor->increment('total_visits');
+            return;
         }
 
-        // A logged-in user_id backfills onto sessions/visitors that started
-        // as anonymous (e.g. the visitor logged in partway through).
-        if (!empty($d['user_id'])) {
-            $session->user_id = $d['user_id'];
-        }
-
-        $session->save();
-        $session->increment('page_view_count');
-
-        PageView::firstOrCreate(
-            ['client_page_view_id' => $d['client_page_view_id']],
-            [
-                'visitor_id' => $d['visitor_id'],
-                'session_uuid' => $d['session_uuid'],
-                'user_id' => $d['user_id'] ?? null,
-                'listing_id' => $d['listing_id'] ?? null,
-                'url' => $d['url'] ?? '',
-                'page_name' => $d['page_name'] ?? null,
-                'opened_at' => $now,
-                'is_bot' => $isBot,
-                'user_agent' => $d['user_agent'] ?? null,
-            ]
-        );
-
-        if ($visitorIsNew || $ipChanged) {
-            ResolveVisitorGeoAndDevice::dispatch([
-                'visitor_id' => $d['visitor_id'],
-                'session_uuid' => $d['session_uuid'],
-                'ip_address' => $d['ip_address'] ?? null,
-                'user_agent' => $d['user_agent'] ?? null,
-            ]);
-        }
+        PendingTraffic::hold($sessionUuid, PendingTraffic::TYPE_PAGE_VIEW_OPEN, $d);
     }
 }

@@ -62,10 +62,23 @@ class AnalyticsController extends Controller
      *
      * The key depends only on the resolved range, so the page and its exports
      * share one entry rather than each keeping their own.
+     *
+     * It also carries the bot sweep's stamp (see MarkBotTraffic), which
+     * changes whenever traffic is reclassified. Without it an admin who
+     * loaded the page just before a sweep would keep seeing figures that
+     * still counted tens of thousands of bot sessions for another five
+     * minutes; with it, that entry is simply orphaned and a fresh one
+     * computed. Cheaper and far safer than having the sweep call
+     * Cache::flush(), which on this Redis store would take the public page
+     * cache down with it every fifteen minutes.
      */
+    public const SWEEP_STAMP_KEY = 'analytics:sweep-stamp';
+
     protected function cachedStats($from, $to, string $range): array
     {
-        $cacheKey = 'analytics:' . $range . ':' . $from->timestamp . ':' . $to->timestamp;
+        $stamp = Cache::get(self::SWEEP_STAMP_KEY, 0);
+
+        $cacheKey = 'analytics:' . $stamp . ':' . $range . ':' . $from->timestamp . ':' . $to->timestamp;
 
         return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($from, $to) {
             return $this->buildStats($from, $to);
@@ -167,6 +180,8 @@ class AnalyticsController extends Controller
             ->get();
 
         // ---- Top pages ----
+        // Fifty rather than twenty: the card pages these ten at a time now,
+        // so a single screenful is no longer the whole point of the limit.
         $data['topPages'] = $this->pageViewQuery()->whereBetween('opened_at', [$from, $to])
             ->whereNotNull('page_name')
             ->select('page_name')
@@ -174,7 +189,7 @@ class AnalyticsController extends Controller
             ->selectRaw('AVG(time_spent_seconds) as avg_time')
             ->groupBy('page_name')
             ->orderByDesc('views')
-            ->limit(20)
+            ->limit(50)
             ->get();
 
         // ---- Bounce rate + avg session duration (cheap thanks to the
