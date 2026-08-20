@@ -61,6 +61,7 @@ class TrackingController extends Controller
                 'laravel_session_id' => $request->session()->getId(),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
+                'accept_language' => $request->header('Accept-Language'),
             ]));
         } catch (\Throwable $e) {
             Log::warning('Tracking: page-view open failed', ['error' => $e->getMessage()]);
@@ -92,6 +93,7 @@ class TrackingController extends Controller
                 'user_id' => Auth::guard('web')->id(),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
+                'accept_language' => $request->header('Accept-Language'),
             ]));
         } catch (\Throwable $e) {
             Log::warning('Tracking: page-view close failed', ['error' => $e->getMessage()]);
@@ -131,6 +133,7 @@ class TrackingController extends Controller
                 'visitor_id' => $visitorId,
                 'user_id' => Auth::guard('web')->id(),
                 'user_agent' => $request->userAgent(),
+                'accept_language' => $request->header('Accept-Language'),
             ]));
         } catch (\Throwable $e) {
             Log::warning('Tracking: event failed', ['error' => $e->getMessage()]);

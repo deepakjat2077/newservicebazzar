@@ -329,7 +329,12 @@
             <div class="card-header"><h6>@lang('Top Pages')</h6></div>
             <div class="card-body p-0">
                 <div class="table-responsive widget-table">
-                    <table class="table table-borderless">
+                    {{-- Paged client-side rather than by query string: the whole
+                         range's stats are computed and cached as one unit
+                         (AnalyticsController::cachedStats), so paging on the
+                         server would re-run every other aggregate on the page
+                         just to turn this one table over. --}}
+                    <table class="table table-borderless" id="topPagesTable" data-per-page="10">
                         <thead><tr><th>@lang('Page')</th><th class="text-center">@lang('Views')</th><th class="text-center">@lang('Avg Time')</th></tr></thead>
                         <tbody>
                             @forelse($topPages as $row)
@@ -343,6 +348,17 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                {{-- Hidden inline rather than via [hidden]: .d-flex sets
+                     display:flex !important, which would win over it. The
+                     pager is only revealed once the script confirms there
+                     is more than one page to move between. --}}
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top" id="topPagesPager" style="display: none;">
+                    <small class="text-muted" data-role="summary"></small>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" data-role="prev">@lang('Previous')</button>
+                        <button type="button" class="btn btn-outline-secondary" data-role="next">@lang('Next')</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -537,5 +553,70 @@
             legend: { display: true, position: 'bottom' }
         }
     });
+
+    // Top Pages pager. The rows are already in the DOM; this only decides
+    // which ten of them are visible, so paging costs no request and the
+    // cached stats behind the page are never recomputed.
+    (function () {
+        var table = document.getElementById('topPagesTable');
+        var pager = document.getElementById('topPagesPager');
+
+        if (!table || !pager) {
+            return;
+        }
+
+        var perPage = parseInt(table.getAttribute('data-per-page'), 10) || 10;
+        var rows = Array.prototype.slice.call(table.tBodies[0].rows);
+
+        // The "no data for this range" placeholder is a row too, and
+        // paging a single message row would be nonsense. (Written without
+        // naming the Blade directive that renders it: Blade compiles its
+        // directives inside <script> blocks as readily as in markup, so
+        // the name alone in a JS comment would emit stray PHP here.)
+        if (rows.length <= perPage || table.querySelector('td[colspan]')) {
+            return;
+        }
+
+        var pageCount = Math.ceil(rows.length / perPage);
+        var page = 0;
+
+        var summary = pager.querySelector('[data-role="summary"]');
+        var prev = pager.querySelector('[data-role="prev"]');
+        var next = pager.querySelector('[data-role="next"]');
+
+        function render() {
+            var start = page * perPage;
+            var end = Math.min(start + perPage, rows.length);
+
+            // style.display, not the hidden attribute: a table row carries
+            // an explicit `display: table-row` from the theme's stylesheet,
+            // which outranks [hidden] unless the theme happens to mark it
+            // !important.
+            rows.forEach(function (row, i) {
+                row.style.display = (i < start || i >= end) ? 'none' : '';
+            });
+
+            summary.textContent = (start + 1) + '–' + end + ' / ' + rows.length;
+            prev.disabled = page === 0;
+            next.disabled = page >= pageCount - 1;
+        }
+
+        prev.addEventListener('click', function () {
+            if (page > 0) {
+                page--;
+                render();
+            }
+        });
+
+        next.addEventListener('click', function () {
+            if (page < pageCount - 1) {
+                page++;
+                render();
+            }
+        });
+
+        pager.style.display = '';
+        render();
+    })();
 </script>
 @endpush
