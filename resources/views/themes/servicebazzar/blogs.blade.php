@@ -13,11 +13,11 @@
                 <div class="col-12">
                     <div class="blog-intro">
                         <h1>
-                            ServiceBazzar Blog – Business Growth, Local SEO and Digital Marketing Tips
+                            Service Bazzar Blog – Business Growth, Local SEO and Digital Marketing Tips
                         </h1>
 
                         <p>
-                            Welcome to the ServiceBazzar Blog, a helpful resource for small business
+                            Welcome to the Service Bazzar Blog, a helpful resource for small business
                             owners, local service providers, entrepreneurs, startups, and professionals
                             who want to grow their business online. Here, you can discover practical
                             business tips, local SEO strategies, digital marketing ideas, customer
@@ -35,7 +35,7 @@
                         </p>
 
                         <p>
-                            The ServiceBazzar Blog covers important topics such as local business
+                            The Service Bazzar Blog covers important topics such as local business
                             promotion, online reputation management, lead generation, website
                             optimization, branding, customer engagement, social media marketing, and
                             business growth. Our goal is to make complicated digital marketing concepts
@@ -72,7 +72,7 @@
                         </p>
 
                         <p>
-                            Explore the latest ServiceBazzar articles below to learn more about business
+                            Explore the latest Service Bazzar articles below to learn more about business
                             listings, local SEO, digital marketing, online promotion, customer growth,
                             and modern business strategies. New articles are added regularly, so you can
                             continue discovering useful information that supports your business goals
@@ -86,7 +86,7 @@
                 <div class="col-12">
                     <div class="blog-intro">
                         <h1>
-                            ServiceBazzar Blog – Business Growth, Local SEO and Digital Marketing Tips
+                            Service Bazzar Blog – Business Growth, Local SEO and Digital Marketing Tips
                         </h1>
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                         <div class="thumb">
                             <a href="{{ route('blog.details', $blog->content->slug) }}">
                                 <img
-                                    src="{{ loadImage('assets/servicebazzar/images/blog/'.$blog->content->image) }}"
+                                    src="{{ loadImage('assets/service bazzar/images/blog/'.$blog->content->image) }}"
                                     loading="lazy"
                                     alt="{{ __($blog->content->title) }} Blog"
                                 >
