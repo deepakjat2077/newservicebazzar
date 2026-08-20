@@ -103,7 +103,7 @@
                         <div class="thumb">
                             <a href="{{ route('blog.details', $blog->content->slug) }}">
                                 <img
-                                    src="{{ loadImage('assets/service bazzar/images/blog/'.$blog->content->image) }}"
+                                    src="{{ loadImage('assets/servicebazzar/images/blog/'.$blog->content->image) }}"
                                     loading="lazy"
                                     alt="{{ __($blog->content->title) }} Blog"
                                 >
