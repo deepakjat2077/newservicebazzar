@@ -5108,7 +5108,7 @@ color: #555;
 
         <div class="category-content-heading mb-4">
             <h4 class=" cod mb-0">
-                Explore popular services that can help you in your daily needs :
+                Explore Popular Services That Can Help You In Your Daily Needs :
             </h4>
         </div>
 
