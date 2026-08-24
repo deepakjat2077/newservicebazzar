@@ -7,7 +7,12 @@
 <section class="blog-details pt-80 pb-80">
     <div class="container">
 
-        {{-- SEO Intro Section: long-form copy shown only on the first pagination page, to avoid repeating the same paragraphs as duplicate content across every page. The H1 itself is kept outside this guard so every paginated page still has one. --}}
+        {{-- SEO Intro Section: long-form copy shown only on the first pagination page, to avoid repeating the same paragraphs as duplicate content across every page. The H1 itself is kept outside this guard so every paginated page still has one.
+
+             Only the H1 + first paragraph sit above the blog cards now — the
+             rest of this copy moved below the grid (see "SEO Outro Section"
+             further down) so a visitor lands on the actual blog posts
+             first instead of scrolling past a wall of text to reach them. --}}
         @if(request()->get('page', 1) == 1)
             <div class="row">
                 <div class="col-12">
@@ -23,60 +28,6 @@
                             business tips, local SEO strategies, digital marketing ideas, customer
                             acquisition methods, and useful guidance designed to improve your online
                             visibility and attract more customers.
-                        </p>
-
-                        <p>
-                            Building a successful business requires more than offering quality products
-                            or services. Customers must also be able to find your business when they
-                            search online. Our articles explain how business listings, search engine
-                            optimization, online directories, Google Business Profile optimization,
-                            content marketing, and local search strategies can help your company become
-                            more visible to potential customers.
-                        </p>
-
-                        <p>
-                            The Service Bazzar Blog covers important topics such as local business
-                            promotion, online reputation management, lead generation, website
-                            optimization, branding, customer engagement, social media marketing, and
-                            business growth. Our goal is to make complicated digital marketing concepts
-                            simple and easy to understand, so business owners can apply them without
-                            needing advanced technical knowledge.
-                        </p>
-
-                        <p>
-                            Whether you are starting a new business or managing an established company,
-                            our content can help you make better decisions. You can learn how to create
-                            a strong online presence, improve your local search ranking, reach the right
-                            audience, generate qualified leads, and convert visitors into customers.
-                            We also share useful ideas for improving customer trust, increasing brand
-                            awareness, and building long-term relationships with your audience.
-                        </p>
-
-                        <p>
-                            Local business listings are especially valuable for companies that serve
-                            customers in specific cities or areas. A complete and accurate business
-                            profile can help customers find important details such as your services,
-                            contact information, business location, operating hours, and website.
-                            Our guides explain how to create effective listings, maintain consistent
-                            business information, and improve the chances of appearing in relevant
-                            local searches.
-                        </p>
-
-                        <p>
-                            We regularly publish informative articles based on common business
-                            challenges and current online marketing practices. Each article focuses on
-                            practical information that can be used to improve visibility, credibility,
-                            customer reach, and overall business performance. Instead of relying on
-                            complicated theories, we aim to provide clear steps and actionable
-                            recommendations that business owners can implement.
-                        </p>
-
-                        <p>
-                            Explore the latest Service Bazzar articles below to learn more about business
-                            listings, local SEO, digital marketing, online promotion, customer growth,
-                            and modern business strategies. New articles are added regularly, so you can
-                            continue discovering useful information that supports your business goals
-                            and helps your company grow in an increasingly competitive digital market.
                         </p>
                     </div>
                 </div>
@@ -152,6 +103,72 @@
             @endif
 
         </div>
+
+        {{-- SEO Outro Section: the rest of the intro copy that used to sit
+             above the blog cards — moved here (still page-1-only, same
+             reasoning as the guard above) so the actual posts are the
+             first thing on the page. --}}
+        @if(request()->get('page', 1) == 1)
+            <div class="row">
+                <div class="col-12">
+                    <div class="blog-intro">
+                        <p>
+                            Building a successful business requires more than offering quality products
+                            or services. Customers must also be able to find your business when they
+                            search online. Our articles explain how business listings, search engine
+                            optimization, online directories, Google Business Profile optimization,
+                            content marketing, and local search strategies can help your company become
+                            more visible to potential customers.
+                        </p>
+
+                        <p>
+                            The Service Bazzar Blog covers important topics such as local business
+                            promotion, online reputation management, lead generation, website
+                            optimization, branding, customer engagement, social media marketing, and
+                            business growth. Our goal is to make complicated digital marketing concepts
+                            simple and easy to understand, so business owners can apply them without
+                            needing advanced technical knowledge.
+                        </p>
+
+                        <p>
+                            Whether you are starting a new business or managing an established company,
+                            our content can help you make better decisions. You can learn how to create
+                            a strong online presence, improve your local search ranking, reach the right
+                            audience, generate qualified leads, and convert visitors into customers.
+                            We also share useful ideas for improving customer trust, increasing brand
+                            awareness, and building long-term relationships with your audience.
+                        </p>
+
+                        <p>
+                            Local business listings are especially valuable for companies that serve
+                            customers in specific cities or areas. A complete and accurate business
+                            profile can help customers find important details such as your services,
+                            contact information, business location, operating hours, and website.
+                            Our guides explain how to create effective listings, maintain consistent
+                            business information, and improve the chances of appearing in relevant
+                            local searches.
+                        </p>
+
+                        <p>
+                            We regularly publish informative articles based on common business
+                            challenges and current online marketing practices. Each article focuses on
+                            practical information that can be used to improve visibility, credibility,
+                            customer reach, and overall business performance. Instead of relying on
+                            complicated theories, we aim to provide clear steps and actionable
+                            recommendations that business owners can implement.
+                        </p>
+
+                        <p>
+                            Explore the latest Service Bazzar articles above to learn more about business
+                            listings, local SEO, digital marketing, online promotion, customer growth,
+                            and modern business strategies. New articles are added regularly, so you can
+                            continue discovering useful information that supports your business goals
+                            and helps your company grow in an increasingly competitive digital market.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 </section>
 
