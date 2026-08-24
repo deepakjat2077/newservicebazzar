@@ -252,25 +252,41 @@
             width:100%;
         }
 
+        /*
+         * word-wrap/overflow-wrap:break-word + hyphens:auto used to sit
+         * here — the idea being a too-long word gets sliced to fit rather
+         * than overflow the cell. In practice, with no hyphenation
+         * dictionary actually kicking in, it just chopped ordinary words
+         * like "consultation" and "medicine" into two fragments with no
+         * hyphen mark, mid-word, repeatedly — that's the exact bug
+         * reported (and re-reported after only re-splitting the column
+         * widths, which was a narrower fix than this one).
+         *
+         * Fixed properly this time: overflow-wrap/word-break are pinned to
+         * `normal` here — a word is now NEVER split, full stop, regardless
+         * of column width, content length, or whether the browser's
+         * hyphenation happens to be available. It only ever wraps at a
+         * space, exactly like normal text anywhere else on the site. A
+         * cell just grows taller for a long phrase instead of slicing a
+         * word in half; nothing here can silently regress that again the
+         * way the hyphens:auto fallback did.
+         */
         .rich-content.rich-content table th,
         .rich-content.rich-content table td{
             padding:8px 7px;
             font-size:13px;
             line-height:1.45;
-            word-wrap:break-word;
-            overflow-wrap:break-word;
-            hyphens:auto;
+            overflow-wrap:normal;
+            word-break:normal;
+            hyphens:none;
         }
 
         /*
-         * 38% / (rest split evenly) left "consultation", "medicine" and
-         * "homeopathic" — ordinary words, not even that long — with too
-         * little room in the middle column and no hyphenation dictionary
-         * to fall back on (no lang= on <html>, since fixed separately),
-         * so they broke mid-word with no visible hyphen: "consultatio" /
-         * "n". Re-split so the middle column (longest phrases, e.g.
-         * "consultation + medicine") gets the most room and the price
-         * column (short, "Rs. 400 - Rs. 900") gets the least.
+         * Column widths still matter for how OFTEN a cell needs extra
+         * height, not for whether words break — first column (label, e.g.
+         * "Hair Fall / PCOS Treatment") and second column (longest
+         * phrases, e.g. "consultation + medicine") get the most room; the
+         * price column ("Rs. 400 - Rs. 900") needs the least.
          */
         .rich-content.rich-content table th:first-child,
         .rich-content.rich-content table td:first-child{
