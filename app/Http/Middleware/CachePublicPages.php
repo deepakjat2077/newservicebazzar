@@ -59,6 +59,12 @@ class CachePublicPages
     /** Longest a slot may stay held if a request dies without releasing it. */
     protected const RENDER_SLOT_TTL_SECONDS = 30;
 
+    /** How long to wait for a slot to free up before rendering unslotted. */
+    protected const SLOT_WAIT_MS = 2000;
+
+    /** How often to re-check for a free slot while waiting. */
+    protected const SLOT_WAIT_STEP_MS = 100;
+
     /** Stands in for the real token while the HTML sits in the cache. */
     protected const TOKEN_PLACEHOLDER = '__SB_CSRF__';
 
@@ -100,12 +106,22 @@ class CachePublicPages
         $slot = $this->acquireRenderSlot();
 
         if (!$slot) {
-            // 503 + Retry-After is the response that tells a crawler to come
-            // back later; the 504s and refused connections it was provoking
-            // instead told it nothing and cost a worker each.
-            return response('Server busy, please retry shortly.', 503)
-                ->header('Retry-After', '30')
-                ->header('X-Page-Cache', 'BUSY');
+            // All slots were busy for an instant, but a slot only ever holds
+            // for a single render (or up to RENDER_SLOT_TTL_SECONDS if one
+            // dies mid-flight). Rather than turn any visitor away with a 503,
+            // wait briefly for one to free up.
+            $slot = $this->waitForRenderSlot();
+        }
+
+        if (!$slot) {
+            // Still nothing free after waiting — render anyway rather than
+            // show an error page. This request is uncounted (no slot to
+            // release), so it isn't cached either, but a slow page beats a
+            // visible error for a real visitor.
+            $response = $next($request);
+            $response->headers->set('X-Page-Cache', 'MISS-UNSLOTTED');
+
+            return $response;
         }
 
         try {
@@ -156,6 +172,28 @@ class CachePublicPages
 
             if ($lock->get()) {
                 return $lock;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Poll for a free render slot for a short while instead of failing
+     * immediately. A slot only holds for the duration of one render (a
+     * fraction of a second once MySQL isn't saturated), so most callers that
+     * lose the first race pick one up within a step or two.
+     */
+    protected function waitForRenderSlot()
+    {
+        $waited = 0;
+
+        while ($waited < self::SLOT_WAIT_MS) {
+            usleep(self::SLOT_WAIT_STEP_MS * 1000);
+            $waited += self::SLOT_WAIT_STEP_MS;
+
+            if ($slot = $this->acquireRenderSlot()) {
+                return $slot;
             }
         }
 
