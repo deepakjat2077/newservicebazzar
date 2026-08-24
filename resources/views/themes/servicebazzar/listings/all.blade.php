@@ -1652,19 +1652,38 @@ a {
         }
 
         .category-content-body.rich-content.rich-content table {
+            display: block !important;
             width: 100% !important;
             min-width: 0 !important;
             max-width: 100% !important;
-            table-layout: fixed !important;
+            table-layout: auto !important;
+            border: 0 !important;
+            background: transparent !important;
+        }
+
+        .category-content-body.rich-content.rich-content table thead,
+        .category-content-body.rich-content.rich-content table colgroup {
+            display: none !important;
+        }
+
+        .category-content-body.rich-content.rich-content table tr.rich-content-mobile-heading {
+            display: none !important;
+        }
+
+        .category-content-body.rich-content.rich-content table tbody,
+        .category-content-body.rich-content.rich-content table tr,
+        .category-content-body.rich-content.rich-content table td {
+            display: block !important;
+            width: 100% !important;
         }
 
         .category-content-body.rich-content.rich-content table th,
         .category-content-body.rich-content.rich-content table td {
             min-width: 0 !important;
             max-width: none !important;
-            padding: 6px 4px !important;
-            font-size: 11px !important;
-            line-height: 1.32 !important;
+            padding: 7px 10px !important;
+            font-size: 13px !important;
+            line-height: 1.4 !important;
             white-space: normal !important;
             overflow-wrap: normal !important;
             word-break: normal !important;
@@ -1672,22 +1691,62 @@ a {
             box-sizing: border-box !important;
         }
 
-        .category-content-body.rich-content.rich-content table th:first-child,
-        .category-content-body.rich-content.rich-content table td:first-child {
-            width: 35% !important;
+        .category-content-body.rich-content.rich-content table tr {
+            margin: 0 0 10px !important;
+            border: 1px solid #e3e5e8 !important;
+            background: #fff !important;
         }
 
-        .category-content-body.rich-content.rich-content table th:nth-child(2),
-        .category-content-body.rich-content.rich-content table td:nth-child(2) {
-            width: 37% !important;
+        .category-content-body.rich-content.rich-content table td {
+            border: 0 !important;
+            border-bottom: 1px solid #e3e5e8 !important;
         }
 
-        .category-content-body.rich-content.rich-content table th:nth-child(3),
-        .category-content-body.rich-content.rich-content table td:nth-child(3) {
-            width: 28% !important;
+        .category-content-body.rich-content.rich-content table td:last-child {
+            border-bottom: 0 !important;
+        }
+
+        .category-content-body.rich-content.rich-content table td::before {
+            content: attr(data-label);
+            display: block;
+            margin-bottom: 2px;
+            color: #111;
+            font-weight: 600;
+        }
+
+        .category-content-body.rich-content.rich-content table td[data-label=""]::before {
+            display: none;
         }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.category-content-body.rich-content table').forEach(function (table) {
+        const headings = Array.from(table.querySelectorAll('thead th, tr:first-child th, tr:first-child td'))
+            .map(function (cell) { return cell.textContent.trim(); });
+
+        if (!headings.length) return;
+
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        const hasHead = table.querySelector('thead') || table.querySelector('tr:first-child th');
+
+        if (!table.querySelector('thead') && table.querySelector('tr:first-child th')) {
+            table.querySelector('tr:first-child').classList.add('rich-content-mobile-heading');
+        }
+
+        rows.forEach(function (row, rowIndex) {
+            if (!hasHead && rowIndex === 0) return;
+
+            Array.from(row.children).forEach(function (cell, index) {
+                if (!cell.hasAttribute('data-label')) {
+                    cell.setAttribute('data-label', headings[index] || '');
+                }
+            });
+        });
+    });
+});
+</script>
 
    @if(!empty($starListings) && $starListings->count() > 0)
     <div class="featured-links-section">
