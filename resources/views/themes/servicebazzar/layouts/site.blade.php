@@ -3715,89 +3715,89 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .sb-auth-popup.show{display:flex;}
 .sb-auth-box{
-    width:480px;
+    width:380px;
     max-width:100%;
     background:#fff;
-    border-radius:14px;
-    padding:34px 40px 28px;
+    border-radius:12px;
+    padding:22px 26px 20px;
     position:relative;
 }
 .sb-auth-close{
     position:absolute;
-    right:24px;
-    top:20px;
+    right:16px;
+    top:12px;
     border:0;
     background:transparent;
-    font-size:34px;
+    font-size:26px;
     color:#111;
     line-height:1;
 }
 .sb-auth-head{
     display:flex;
     align-items:center;
-    gap:18px;
-    margin-bottom:28px;
+    gap:12px;
+    margin-bottom:16px;
 }
 .sb-auth-head img{
-    width:120px;
-    max-height:42px;
+    width:80px;
+    max-height:32px;
     object-fit:contain;
     border-right:1px solid #eee;
-    padding-right:18px;
+    padding-right:12px;
 }
 .sb-auth-head h4{
     margin:0;
-    font-size:20px;
+    font-size:16px;
     font-weight:700;
     color:#000;
 }
 .sb-auth-head p{
-    margin:4px 0 0;
-    font-size:17px;
+    margin:2px 0 0;
+    font-size:13px;
     color:#000;
     line-height:1.3;
 }
 .sb-field{
     position:relative;
-    margin-bottom:20px;
+    margin-bottom:14px;
 }
 .sb-field label{
     position:absolute;
-    top:-9px;
-    left:16px;
+    top:-8px;
+    left:14px;
     background:#fff;
-    padding:0 10px;
-    font-size:13px;
+    padding:0 8px;
+    font-size:12px;
     color:#000;
 }
 .sb-field input{
     width:100%;
-    height:56px;
+    height:44px;
     border:1px solid #111;
-    border-radius:9px;
-    padding:0 16px;
-    font-size:17px;
+    border-radius:8px;
+    padding:0 14px;
+    font-size:14px;
     outline:none;
 }
 .sb-social-login{
     display:flex;
     flex-direction:row;
-    gap:10px;
-    margin:16px 0 4px;
+    gap:8px;
+    margin:12px 0 2px;
 }
 .sb-social-btn{
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:8px;
+    gap:6px;
     flex:1;
     min-width:0;
-    height:44px;
+    height:38px;
     border-radius:7px;
     border:1px solid #ddd;
     background:#fff;
     color:#222;
-    font-size:14px;
+    font-size:13px;
     font-weight:600;
     text-decoration:none;
     white-space:nowrap;
@@ -3821,8 +3821,8 @@ document.addEventListener("DOMContentLoaded", function () {
     align-items:center;
     text-align:center;
     color:#999;
-    font-size:13px;
-    margin:16px 0;
+    font-size:12px;
+    margin:12px 0;
 }
 .sb-social-divider::before,
 .sb-social-divider::after{
@@ -3836,9 +3836,9 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .sb-terms{
     text-align:center;
-    font-size:14px;
+    font-size:12px;
     color:#555;
-    margin:6px 0 20px;
+    margin:4px 0 14px;
 }
 .sb-terms input{
     width:18px;
@@ -3852,12 +3852,12 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .sb-btn{
     width:100%;
-    height:46px;
+    height:42px;
     border:0;
     border-radius:7px;
     background:#087dde;
     color:#fff;
-    font-size:19px;
+    font-size:16px;
     font-weight:700;
 }
 .sb-btn:disabled{
@@ -3866,7 +3866,7 @@ document.addEventListener("DOMContentLoaded", function () {
 .sb-later{
     display:block;
     text-align:center;
-    margin-top:48px;
+    margin-top:16px;
     color:#000;
     font-size:13px;
 }
@@ -3918,8 +3918,8 @@ document.addEventListener("DOMContentLoaded", function () {
     color:#555;
 }
 @media(max-width:575px){
-    .sb-auth-box{padding:28px 22px;}
-    .sb-auth-head img{width:105px;}
+    .sb-auth-box{padding:18px 16px;}
+    .sb-auth-head img{width:70px;}
     .sb-otp-boxes{gap:8px;}
     .sb-otp-boxes input{
         width:44px;
