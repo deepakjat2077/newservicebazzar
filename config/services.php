@@ -65,6 +65,24 @@ return [
     'google'     => env('GOOGLE_MAPS_KEY'),
 ],
 
+/*
+ * "Continue with Google/Facebook" login (Auth\SocialLoginController via
+ * Laravel Socialite). Credentials are managed from the admin panel
+ * (Setting > Social Login), not .env — AppServiceProvider pushes them in
+ * here at runtime, same as the gupshup block below.
+ */
+'google' => [
+    'client_id'     => env('GOOGLE_CLIENT_ID'),
+    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    'redirect'      => env('GOOGLE_REDIRECT_URI'),
+],
+
+'facebook' => [
+    'client_id'     => env('FACEBOOK_CLIENT_ID'),
+    'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+    'redirect'      => env('FACEBOOK_REDIRECT_URI'),
+],
+
 'gupshup' => [
     'api_key'         => env('GUPSHUP_API_KEY'),
     'app_name'        => env('GUPSHUP_APP_NAME'),

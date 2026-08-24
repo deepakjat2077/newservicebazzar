@@ -546,6 +546,13 @@
                         <span class="sidebar-menu-title">@lang('Email Setting')</span>
                     </a>
                 </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.setting.social.login') }}"
+                        class="{{ menuActive('admin.setting.social.login')[0] }}">
+                        <i class="fab fa-google"></i>
+                        <span class="sidebar-menu-title">@lang('Social Login')</span>
+                    </a>
+                </li>
 {{-- WhatsApp Setting is reachable from the WhatsApp menu above
                      (Setup WhatsApp), so it is not repeated here. --}}
 

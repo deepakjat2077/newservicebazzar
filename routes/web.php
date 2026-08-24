@@ -302,6 +302,9 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
                 Route::get('gupshup', 'SettingController@gupshup')->name('gupshup');
                 Route::post('gupshup/update', 'SettingController@gupshupUpdate')->name('gupshup.update');
 
+                Route::get('social-login', 'SocialLoginSettingController@index')->name('social.login');
+                Route::post('social-login/update', 'SocialLoginSettingController@update')->name('social.login.update');
+
                 Route::get('seo-setting', 'SettingController@seo')->name('seo');
                 Route::post('seo-setting', 'SettingController@seoUpdate');
 
@@ -509,6 +512,13 @@ Route::get('/enquiry-clicks/export', 'EnquiryController@exportClicks')->middlewa
         Route::post('quick-auth/send', 'Auth\RegisterController@quickAuthSend')->middleware('throttle:5,1')->name('quick.auth.send');
 Route::post('quick-auth/verify', 'Auth\RegisterController@quickAuthVerify')->middleware('throttle:5,1')->name('quick.auth.verify');
 Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->middleware('throttle:5,1')->name('quick.auth.resend');
+
+        Route::get('social-login/{provider}/redirect', 'Auth\SocialLoginController@redirect')
+            ->where('provider', 'google|facebook')
+            ->name('social.login.redirect');
+        Route::get('social-login/{provider}/callback', 'Auth\SocialLoginController@callback')
+            ->where('provider', 'google|facebook')
+            ->name('social.login.callback');
 
         Route::get('register', 'Auth\RegisterController@showRegistrationForm')->name('register');
         Route::post('register', 'Auth\RegisterController@register');

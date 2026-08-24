@@ -130,6 +130,31 @@ class AppServiceProvider extends ServiceProvider
                         }
                     }
                 }
+
+                /*
+                 * Google / Facebook "continue with" login credentials —
+                 * managed from the admin panel (Setting > Social Login)
+                 * instead of .env, same pattern as Gupshup above. Socialite
+                 * reads services.google.* / services.facebook.*, so this is
+                 * the only place those need to be filled in from the DB.
+                 */
+                if ($setting->social_login) {
+                    $social = (array) $setting->social_login;
+
+                    foreach (['google', 'facebook'] as $provider) {
+                        $enabled = $social[$provider . '_enabled'] ?? false;
+                        $clientId = $social[$provider . '_client_id'] ?? null;
+                        $clientSecret = $social[$provider . '_client_secret'] ?? null;
+
+                        if ($enabled && filled($clientId) && filled($clientSecret)) {
+                            config([
+                                'services.' . $provider . '.client_id' => trim((string) $clientId),
+                                'services.' . $provider . '.client_secret' => trim((string) $clientSecret),
+                                'services.' . $provider . '.redirect' => url('/user/social-login/' . $provider . '/callback'),
+                            ]);
+                        }
+                    }
+                }
             }
 
             Str::macro('strToKey', function ($str) {

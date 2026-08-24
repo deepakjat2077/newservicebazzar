@@ -26,11 +26,12 @@ class Setting extends Model
         static::deleted(fn () => Cache::forget(self::CACHE_KEY));
     }
 
-    // 'mail' (SMTP credentials), 'gupshup' (WhatsApp API credentials) and
-    // 'seo' are deliberately excluded — they are only ever set via direct
-    // property assignment in EmailController / SettingController::seoUpdate()
-    // / SettingController::gupshupUpdate(), never via mass update() from
-    // request input.
+    // 'mail' (SMTP credentials), 'gupshup' (WhatsApp API credentials),
+    // 'social_login' (Google/Facebook OAuth credentials) and 'seo' are
+    // deliberately excluded — they are only ever set via direct property
+    // assignment in EmailController / SettingController::seoUpdate() /
+    // SettingController::gupshupUpdate() / SocialLoginController::update(),
+    // never via mass update() from request input.
     protected $fillable = [
         'site_name', 'site_currency', 'currency_symbol', 'first_color',
         'second_color', 'tawk_chat', 're_captcha', 'registration',
@@ -42,5 +43,6 @@ class Setting extends Model
     	'mail'=>'object',
     	'recaptcha'=>'object',
     	'gupshup'=>'object',
+    	'social_login'=>'object',
     ];
 }
