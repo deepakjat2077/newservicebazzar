@@ -1652,38 +1652,54 @@ a {
         }
 
         .category-content-body.rich-content.rich-content table {
+            display: table !important;
             width: 100% !important;
             min-width: 0 !important;
             max-width: 100% !important;
             table-layout: fixed !important;
         }
 
+        .category-content-body.rich-content.rich-content table thead {
+            display: table-header-group !important;
+        }
+
+        .category-content-body.rich-content.rich-content table tbody {
+            display: table-row-group !important;
+        }
+
+        .category-content-body.rich-content.rich-content table tr {
+            display: table-row !important;
+        }
+
         .category-content-body.rich-content.rich-content table th,
         .category-content-body.rich-content.rich-content table td {
+            display: table-cell !important;
             min-width: 0 !important;
-            padding: 6px 5px !important;
-            font-size: 10.5px !important;
-            line-height: 1.35 !important;
+            max-width: none !important;
+            padding: 5px 4px !important;
+            font-size: 9.5px !important;
+            line-height: 1.32 !important;
             white-space: normal !important;
             overflow-wrap: normal !important;
             word-break: normal !important;
             hyphens: none !important;
             box-sizing: border-box !important;
+            vertical-align: top !important;
         }
 
         .category-content-body.rich-content.rich-content table th:first-child,
         .category-content-body.rich-content.rich-content table td:first-child {
-            width: 36% !important;
+            width: 35% !important;
         }
 
         .category-content-body.rich-content.rich-content table th:nth-child(2),
         .category-content-body.rich-content.rich-content table td:nth-child(2) {
-            width: 36% !important;
+            width: 38% !important;
         }
 
         .category-content-body.rich-content.rich-content table th:nth-child(3),
         .category-content-body.rich-content.rich-content table td:nth-child(3) {
-            width: 28% !important;
+            width: 27% !important;
         }
     }
 </style>
