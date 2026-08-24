@@ -3781,7 +3781,7 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .sb-social-login{
     display:flex;
-    flex-direction:column;
+    flex-direction:row;
     gap:10px;
     margin:16px 0 4px;
 }
@@ -3789,16 +3789,28 @@ document.addEventListener("DOMContentLoaded", function () {
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:10px;
-    width:100%;
+    gap:8px;
+    flex:1;
+    min-width:0;
     height:44px;
     border-radius:7px;
     border:1px solid #ddd;
     background:#fff;
     color:#222;
-    font-size:15px;
+    font-size:14px;
     font-weight:600;
     text-decoration:none;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+@media(max-width:400px){
+    .sb-social-btn{
+        font-size:0;
+    }
+    .sb-social-btn svg{
+        flex-shrink:0;
+    }
 }
 .sb-social-btn:hover{
     background:#f6f6f6;
