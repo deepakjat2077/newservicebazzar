@@ -16,6 +16,7 @@
 	        </div>
 			<form action="{{ route('admin.setting.social.login.update') }}" method="post">
 				@csrf
+				<input type="hidden" name="provider" value="google">
 				<div class="card-body">
 					<div class="form-group row">
 						<label class="col-sm-3">@lang('Enable')</label>
@@ -65,10 +66,12 @@
 	        </div>
 			<form action="{{ route('admin.setting.social.login.update') }}" method="post">
 				@csrf
+				<input type="hidden" name="provider" value="facebook">
 				{{-- Both providers post to the same route and each save only
 				     touches its own keys, so re-submitting this form never
 				     clears the other provider's values (see the controller's
-				     $keep() helper). --}}
+				     $keep() helper and the hidden "provider" field above,
+				     which is what tells it which one is being submitted). --}}
 				<div class="card-body">
 					<div class="form-group row">
 						<label class="col-sm-3">@lang('Enable')</label>

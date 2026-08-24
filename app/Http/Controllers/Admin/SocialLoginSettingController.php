@@ -23,6 +23,12 @@ class SocialLoginSettingController extends Controller
     public function update(Request $request)
     {
         $request->validate([
+            // Google and Facebook are two separate <form>s on the page, each
+            // posting only its own fields — this says which one just came
+            // in, so the other provider's saved values are left untouched
+            // below rather than read as "absent" and turned off.
+            'provider' => 'required|in:google,facebook',
+
             'google_enabled'   => 'nullable|boolean',
             // Secrets are never re-displayed, so a blank submission means
             // "keep the stored value" — only required together with a
@@ -44,18 +50,23 @@ class SocialLoginSettingController extends Controller
                 : ($current[$field] ?? null);
         };
 
-        $setting->social_login = [
-            'google_enabled'         => $request->boolean('google_enabled'),
-            'google_client_id'       => $keep('google_client_id'),
-            'google_client_secret'   => $keep('google_client_secret'),
+        $provider = $request->input('provider');
 
-            'facebook_enabled'       => $request->boolean('facebook_enabled'),
-            'facebook_client_id'     => $keep('facebook_client_id'),
-            'facebook_client_secret' => $keep('facebook_client_secret'),
-        ];
+        $current['google_enabled'] = $provider === 'google'
+            ? $request->boolean('google_enabled')
+            : (bool) ($current['google_enabled'] ?? false);
+        $current['google_client_id'] = $keep('google_client_id');
+        $current['google_client_secret'] = $keep('google_client_secret');
 
+        $current['facebook_enabled'] = $provider === 'facebook'
+            ? $request->boolean('facebook_enabled')
+            : (bool) ($current['facebook_enabled'] ?? false);
+        $current['facebook_client_id'] = $keep('facebook_client_id');
+        $current['facebook_client_secret'] = $keep('facebook_client_secret');
+
+        $setting->social_login = $current;
         $setting->save();
 
-        return back()->withAlert(['success', 'Social login setting updated successfully']);
+        return back()->withAlert(['success', ucfirst($provider) . ' login setting updated successfully']);
     }
 }
