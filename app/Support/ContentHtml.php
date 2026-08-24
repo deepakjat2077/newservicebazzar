@@ -26,7 +26,7 @@ use DOMXPath;
  */
 class ContentHtml
 {
-    protected const CACHE_VERSION = 'v4';
+    protected const CACHE_VERSION = 'v5';
 
     /** Block tags kept as-is. */
     protected const BLOCKS = [
@@ -98,6 +98,7 @@ class ContentHtml
         static::preserveEditorSpacers($xpath);
         static::dropEmptyNodes($xpath);
         static::wrapTables($xpath);
+        static::preventOrphanSlashesInTableCells($xpath);
 
         return static::serialise($body);
     }
@@ -601,6 +602,36 @@ class ContentHtml
 
             $parent->replaceChild($wrapper, $table);
             $wrapper->appendChild($table);
+        }
+    }
+
+    /**
+     * Stop a "/" from landing alone at the start of a wrapped line inside a
+     * narrow table cell — "Chronic Allergy /" on one line and "Asthma" on
+     * the next, reported on the mobile pricing tables these AI-generated
+     * category pages use. A pricing table's cells are the narrowest text on
+     * the page (see rich-content.blade.php's table-layout:fixed), so this
+     * is scoped to table cells rather than every paragraph on the site.
+     *
+     * A non-breaking space after the slash (not before) keeps "/ Asthma"
+     * together as one unbreakable unit; the browser is still free to wrap
+     * the line before "Allergy" as a whole, it just can't split the slash
+     * away from the word it introduces.
+     */
+    protected static function preventOrphanSlashesInTableCells(DOMXPath $xpath): void
+    {
+        foreach ($xpath->query('//body//table//td//text() | //body//table//th//text()') ?: [] as $text) {
+            if (!$text instanceof DOMText || strpos($text->nodeValue, '/') === false) {
+                continue;
+            }
+
+            // Literal " / " only — "AM/PM", "9/30", "1/2" have no space to
+            // begin with and are left alone; there's no wrap risk to fix.
+            $value = str_replace(' / ', ' /' . "\u{00A0}", $text->nodeValue);
+
+            if ($value !== $text->nodeValue) {
+                $text->nodeValue = $value;
+            }
         }
     }
 

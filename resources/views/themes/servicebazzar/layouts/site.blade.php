@@ -1155,6 +1155,83 @@ body.mobile-yt-search-open #ytMobileSearchInput{
     Skip to main content
 </a>
 
+{{-- Page-transition loader — category/subcategory pages are the biggest
+     listing queries on the site, and a plain click gave no feedback while
+     the next page rendered. Shown on any same-site link click, hidden again
+     if the browser restores this page from bfcache (back button) instead of
+     actually navigating. See the script right after this markup. --}}
+<div id="pageLoader" class="page-loader" aria-hidden="true">
+    <div class="page-loader-spinner"></div>
+</div>
+
+<style>
+    .page-loader{
+        position:fixed;
+        inset:0;
+        background:rgba(255,255,255,.85);
+        z-index:2147483647;
+        display:none;
+        align-items:center;
+        justify-content:center;
+    }
+    .page-loader.show{
+        display:flex;
+    }
+    .page-loader-spinner{
+        width:44px;
+        height:44px;
+        border:4px solid #e2e2e2;
+        border-top-color:#0d6efd;
+        border-radius:50%;
+        animation:pageLoaderSpin .7s linear infinite;
+    }
+    @keyframes pageLoaderSpin{
+        to{ transform:rotate(360deg); }
+    }
+</style>
+
+<script>
+document.addEventListener('click', function (e) {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    if (!href
+        || href.startsWith('#')
+        || href.startsWith('javascript:')
+        || href.startsWith('tel:')
+        || href.startsWith('mailto:')
+    ) return;
+
+    if (link.target === '_blank' || link.hasAttribute('download')) return;
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+
+    let url;
+    try {
+        url = new URL(href, window.location.href);
+    } catch (err) {
+        return;
+    }
+
+    // Only same-site navigations that actually leave this page — an
+    // in-page "#section" jump or a link back to the same URL shouldn't
+    // spin up a full-page overlay.
+    if (url.origin !== window.location.origin) return;
+    if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.add('show');
+});
+
+// Hides it if the browser restores this exact page from bfcache (the back
+// button) rather than loading a fresh one — a fresh page load never has
+// the class in the first place, so this only ever needs to remove it.
+window.addEventListener('pageshow', function () {
+    const loader = document.getElementById('pageLoader');
+    if (loader) loader.classList.remove('show');
+});
+</script>
+
 	<header class="header-area" id="stickyScrollHeader">
 		<div class="bottom-header">
 			<div class="container-fuldie custom-right .head-right ">

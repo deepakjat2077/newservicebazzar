@@ -862,18 +862,128 @@ a {
                             @include($themeView . 'partials.ajax-listings')
                         </div>
 
-                        {{-- Search results are the only listings view that
-                        actually paginates (category/subcategory/city pages
-                        load every match on one page); without this, results
-                        beyond the first page were unreachable by users and
-                        crawlers alike. --}}
-                        @if($listings instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $listings->hasPages())
-                            <div class="mt-4">
-                                {{ $listings->links() }}
+                        {{-- Justdial-style infinite scroll — page-number
+                        links were explicitly ruled out; the next batch
+                        loads itself in as the sentinel below scrolls into
+                        view. See #infiniteScrollLoader's script further
+                        down this file. --}}
+                        @if($listings instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
+                            <div id="infiniteScrollLoader" class="infinite-scroll-loader d-none">
+                                <div class="infinite-scroll-spinner"></div>
                             </div>
+
+                            @if($listings->hasMorePages())
+                                <div id="infiniteScrollSentinel"
+                                     data-next-url="{{ $listings->nextPageUrl() }}">
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
+
+                <style>
+                    .infinite-scroll-loader{
+                        display:flex;
+                        justify-content:center;
+                        padding:24px 0;
+                    }
+                    .infinite-scroll-loader.d-none{
+                        display:none;
+                    }
+                    .infinite-scroll-spinner{
+                        width:34px;
+                        height:34px;
+                        border:3px solid #e2e2e2;
+                        border-top-color:#0d6efd;
+                        border-radius:50%;
+                        animation:infiniteScrollSpin .7s linear infinite;
+                    }
+                    @keyframes infiniteScrollSpin{
+                        to{ transform:rotate(360deg); }
+                    }
+                </style>
+
+                <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    /*
+                     * Justdial-style infinite scroll for the category /
+                     * subcategory listing page: no page-number links —
+                     * scrolling the sentinel div (right after the listing
+                     * cards) into view fetches the next paginate()d page
+                     * from the same URL (Laravel reads ?page= automatically)
+                     * and appends just its cards, with a spinner while that
+                     * fetch is in flight.
+                     */
+                    const sentinel = document.getElementById('infiniteScrollSentinel');
+                    const loader = document.getElementById('infiniteScrollLoader');
+                    const wrapper = document.getElementById('listingWrapper');
+
+                    if (!sentinel || !wrapper) {
+                        return;
+                    }
+
+                    let loading = false;
+
+                    const observer = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (entry) {
+                            if (entry.isIntersecting) {
+                                loadNextPage();
+                            }
+                        });
+                    }, { rootMargin: '600px 0px' }); // start the fetch well before it's actually visible
+
+                    observer.observe(sentinel);
+
+                    function loadNextPage() {
+                        const nextUrl = sentinel.dataset.nextUrl;
+
+                        if (loading || !nextUrl) {
+                            return;
+                        }
+
+                        loading = true;
+                        if (loader) loader.classList.remove('d-none');
+
+                        fetch(nextUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                            .then(function (response) { return response.text(); })
+                            .then(function (html) {
+                                const parsed = new DOMParser().parseFromString(html, 'text/html');
+                                const newWrapper = parsed.getElementById('listingWrapper');
+                                const newSentinel = parsed.getElementById('infiniteScrollSentinel');
+
+                                if (newWrapper) {
+                                    Array.from(newWrapper.children).forEach(function (child) {
+                                        wrapper.appendChild(child);
+                                    });
+
+                                    // Re-run just the "hide arrow at the first/
+                                    // last image" bit for the cards that were
+                                    // just appended — the actual click handling
+                                    // is delegated (see ajax-listings.blade.php)
+                                    // so it already covers them.
+                                    if (typeof window.initGalleryArrowVisibility === 'function') {
+                                        window.initGalleryArrowVisibility(wrapper);
+                                    }
+                                }
+
+                                if (newSentinel && newSentinel.dataset.nextUrl) {
+                                    sentinel.dataset.nextUrl = newSentinel.dataset.nextUrl;
+                                } else {
+                                    observer.unobserve(sentinel);
+                                    sentinel.remove();
+                                }
+                            })
+                            .catch(function () {
+                                // next-url stays put; scrolling the sentinel
+                                // out of and back into view retries the fetch.
+                            })
+                            .finally(function () {
+                                loading = false;
+                                if (loader) loader.classList.add('d-none');
+                            });
+                    }
+                });
+                </script>
 
                 <div class="col-md-4" id="sidebarColumn">
 

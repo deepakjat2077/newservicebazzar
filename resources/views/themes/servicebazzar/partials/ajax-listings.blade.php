@@ -1715,22 +1715,24 @@ document.addEventListener('DOMContentLoaded', function () {
     const categoryText = document.getElementById('popupCategoryName');
     const categoryInput = document.getElementById('popupCategoryInput');
 
-    function bindEnquiryButtons() {
-        document.querySelectorAll('.open-enquiry-modal').forEach(function(button) {
-            button.removeEventListener('click', handleEnquiryClick);
-            button.addEventListener('click', handleEnquiryClick);
-        });
-    }
+    /*
+     * Delegated on document instead of bound to each button directly — cards
+     * loaded later by infinite scroll (see the loader script further down)
+     * are never individually re-bound, so a direct querySelectorAll().forEach
+     * here would silently do nothing for them.
+     */
+    document.addEventListener('click', function (e) {
+        const button = e.target.closest('.open-enquiry-modal');
+        if (!button) {
+            return;
+        }
 
-    function handleEnquiryClick() {
-        const category = this.getAttribute('data-category') || 'Listings';
+        const category = button.getAttribute('data-category') || 'Listings';
         categoryText.textContent = category;
         categoryInput.value = category;
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
-    }
-
-    bindEnquiryButtons();
+    });
 
     if (closeBtn) {
         closeBtn.addEventListener('click', function () {
@@ -1879,73 +1881,105 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.listing-box-clickable').forEach(function(card) {
-        card.addEventListener('click', function(e) {
-            if (e.target.closest('a, button, input, textarea, select, label, form')) {
-                return;
-            }
+    // Delegated for the same reason as the enquiry-modal binding above —
+    // cards appended by infinite scroll need this without being re-bound.
+    document.addEventListener('click', function (e) {
+        const card = e.target.closest('.listing-box-clickable');
+        if (!card) {
+            return;
+        }
 
-            const url = this.getAttribute('data-url');
-            if (url) {
-                window.location.href = url;
-            }
-        });
+        if (e.target.closest('a, button, input, textarea, select, label, form')) {
+            return;
+        }
+
+        const url = card.getAttribute('data-url');
+        if (url) {
+            window.location.href = url;
+        }
     });
 });
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    document.querySelectorAll('.listing-gallery').forEach(function(gallery){
+    // Arrows hidden up front for every gallery already on the page —
+    // galleries appended later by infinite scroll get this from
+    // initGalleryArrowVisibility(), called on each freshly-inserted batch
+    // (see the loader script further down).
+    function initGalleryArrowVisibility(root) {
+        (root || document).querySelectorAll('.listing-gallery').forEach(function (gallery) {
+            let images = gallery.querySelectorAll('.listing-img');
+            let prev = gallery.querySelector('.prev');
+            let next = gallery.querySelector('.next');
 
-        let images = gallery.querySelectorAll('.listing-img');
-        let prev = gallery.querySelector('.prev');
-        let next = gallery.querySelector('.next');
+            if (!prev || !next) return;
 
-        if (!images.length || !prev || !next) return;
-if (images.length <= 1) {
-    prev.style.display = "none";
-    next.style.display = "none";
-    return;
-}
-        let index = 0;
-        let busy = false;
+            if (images.length <= 1) {
+                prev.style.display = 'none';
+                next.style.display = 'none';
+                return;
+            }
 
-        function updateArrows(){
-          prev.classList.toggle('hide-arrow', index === 0);next.classList.toggle('hide-arrow', index === images.length - 1);
+            prev.classList.toggle('hide-arrow', images[0].classList.contains('active'));
+        });
+    }
+
+    window.initGalleryArrowVisibility = initGalleryArrowVisibility;
+    initGalleryArrowVisibility();
+
+    /*
+     * Delegated (not bound per-gallery) so cards appended by infinite
+     * scroll work without being individually re-bound. Slide state (which
+     * image is active, whether a transition is mid-flight) is read off the
+     * DOM each click instead of a per-gallery closure variable, since a
+     * delegated handler has no closure of its own to keep it in.
+     */
+    document.addEventListener('click', function (e) {
+        const arrow = e.target.closest('.gallery-arrow');
+        if (!arrow) {
+            return;
         }
 
-        function showImage(newIndex){
-            if (busy) return;
-            if (newIndex < 0 || newIndex >= images.length) return;
+        e.preventDefault();
+        e.stopPropagation();
 
-            busy = true;
-
-            images[index].classList.remove('active');
-            index = newIndex;
-            images[index].classList.add('active');
-
-            updateArrows();
-
-            setTimeout(function(){
-                busy = false;
-            }, 450);
+        if (arrow.dataset.busy === '1') {
+            return;
         }
 
-        updateArrows();
+        const gallery = arrow.closest('.listing-gallery');
+        if (!gallery) {
+            return;
+        }
 
-        next.addEventListener('click', function(e){
-            e.preventDefault();
-            e.stopPropagation();
-            showImage(index + 1);
-        });
+        const images = Array.from(gallery.querySelectorAll('.listing-img'));
+        const prev = gallery.querySelector('.prev');
+        const next = gallery.querySelector('.next');
+        const index = images.findIndex(function (img) { return img.classList.contains('active'); });
 
-        prev.addEventListener('click', function(e){
-            e.preventDefault();
-            e.stopPropagation();
-            showImage(index - 1);
-        });
+        if (index === -1) {
+            return;
+        }
 
+        const newIndex = arrow.classList.contains('next') ? index + 1 : index - 1;
+        if (newIndex < 0 || newIndex >= images.length) {
+            return;
+        }
+
+        if (prev) prev.dataset.busy = '1';
+        if (next) next.dataset.busy = '1';
+
+        images[index].classList.remove('active');
+        images[newIndex].classList.add('active');
+
+        if (prev) prev.classList.toggle('hide-arrow', newIndex === 0);
+        if (next) next.classList.toggle('hide-arrow', newIndex === images.length - 1);
+
+        setTimeout(function () {
+            if (prev) prev.dataset.busy = '0';
+            if (next) next.dataset.busy = '0';
+        }, 450);
     });
 
 });

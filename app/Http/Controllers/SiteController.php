@@ -1071,7 +1071,17 @@ public function listingsCategory(Request $request, $slug)
             break;
     }
 
-    $data['listings'] = $listings->get();
+    /*
+     * Was ->get() — every listing in the category, unpaginated. A category
+     * with a few hundred rows meant a few hundred haversine-distance
+     * calculations and ratings aggregates per request, and the browser
+     * rendering all of them at once — the exact "category page load leti
+     * hai" slowness reported. listingsCategoryLocation() (the city×category
+     * variant) already paginates for the same reason; this brings the plain
+     * category page in line with it. The view already branches on
+     * $listings being a paginator (see all.blade.php) to render page links.
+     */
+    $data['listings'] = $listings->paginate(12)->appends($request->query());
     $data['title'] = $category->name;
 
     $data['seoTitle'] = !empty($category->seo_title)
@@ -1229,7 +1239,10 @@ public function listingsSubcategory(Request $request, $slug)
             ->orderBy('id', 'desc');
     }
 
-$data['listings'] = $listings->get();
+// Same fix as listingsCategory() just above — was ->get(), loading every
+// listing under the subcategory unpaginated. ->first() below still works
+// on a paginator (it forwards to the underlying page's collection).
+$data['listings'] = $listings->paginate(12)->appends($request->query());
 $data['listing'] = $data['listings']->first();
 
     $data['seoTitle'] = !empty($subcategory->seo_title)
