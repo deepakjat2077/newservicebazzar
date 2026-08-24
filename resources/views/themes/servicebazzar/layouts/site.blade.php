@@ -3994,18 +3994,18 @@ document.addEventListener('DOMContentLoaded', function () {
             throw data;
         }
 
-        const mobile = data.mobile || data.phone || '';
+        const email = data.email || '';
 
-        sentText.textContent = mobile
-            ? `WhatsApp number ${mobile}`
-            : 'your WhatsApp number';
+        sentText.textContent = email
+            ? email
+            : 'your email';
 
         stepOne.style.display = 'none';
         stepOtp.style.display = 'block';
 
         showMsg(
             'success',
-            data.message || 'OTP sent successfully on WhatsApp.'
+            data.message || 'OTP sent successfully to your email.'
         );
 
         setTimeout(() => {

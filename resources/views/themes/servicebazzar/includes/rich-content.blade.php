@@ -248,8 +248,22 @@
          * text kam se kam lines me wrap ho.
          */
         .rich-content.rich-content table{
+            display:table;
             table-layout:fixed;
             width:100%;
+            max-width:100%;
+        }
+
+        .rich-content.rich-content table thead{
+            display:table-header-group;
+        }
+
+        .rich-content.rich-content table tbody{
+            display:table-row-group;
+        }
+
+        .rich-content.rich-content table tr{
+            display:table-row;
         }
 
         /*
@@ -273,12 +287,14 @@
          */
         .rich-content.rich-content table th,
         .rich-content.rich-content table td{
+            display:table-cell;
             padding:8px 7px;
             font-size:13px;
             line-height:1.45;
             overflow-wrap:normal;
             word-break:normal;
             hyphens:none;
+            vertical-align:top;
         }
 
         /*
@@ -296,6 +312,11 @@
         .rich-content.rich-content table th:nth-child(2),
         .rich-content.rich-content table td:nth-child(2){
             width:40%;
+        }
+
+        .rich-content.rich-content table th:nth-child(3),
+        .rich-content.rich-content table td:nth-child(3){
+            width:28%;
         }
     }
 </style>

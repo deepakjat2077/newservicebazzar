@@ -1628,12 +1628,15 @@ a {
         margin-bottom: 4px;
     }
 
-    .category-content-body.rich-content.rich-content .rich-content-table {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow: visible !important;
-    }
-
+    /*
+     * Table sizing/layout (display, column widths, word-break) is owned
+     * entirely by includes/rich-content.blade.php now. A duplicate block
+     * used to live here with different values (9.5px font, 35/38/27 column
+     * split, no word-break rule) — same selectors, loaded after the
+     * include, so it silently won every tie and fought the "properly
+     * fixed" version there. Only the line-height/heading-margin overrides
+     * that are actually unique to this page stay here.
+     */
     @media (max-width: 767px) {
         .category-content-body.rich-content.rich-content,
         .category-content-body.rich-content.rich-content p,
@@ -1649,57 +1652,6 @@ a {
         .category-content-body.rich-content.rich-content h4,
         .category-content-body.rich-content.rich-content h5 {
             margin: 8px 0 3px;
-        }
-
-        .category-content-body.rich-content.rich-content table {
-            display: table !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            max-width: 100% !important;
-            table-layout: fixed !important;
-        }
-
-        .category-content-body.rich-content.rich-content table thead {
-            display: table-header-group !important;
-        }
-
-        .category-content-body.rich-content.rich-content table tbody {
-            display: table-row-group !important;
-        }
-
-        .category-content-body.rich-content.rich-content table tr {
-            display: table-row !important;
-        }
-
-        .category-content-body.rich-content.rich-content table th,
-        .category-content-body.rich-content.rich-content table td {
-            display: table-cell !important;
-            min-width: 0 !important;
-            max-width: none !important;
-            padding: 5px 4px !important;
-            font-size: 9.5px !important;
-            line-height: 1.32 !important;
-            white-space: normal !important;
-            overflow-wrap: normal !important;
-            word-break: normal !important;
-            hyphens: none !important;
-            box-sizing: border-box !important;
-            vertical-align: top !important;
-        }
-
-        .category-content-body.rich-content.rich-content table th:first-child,
-        .category-content-body.rich-content.rich-content table td:first-child {
-            width: 35% !important;
-        }
-
-        .category-content-body.rich-content.rich-content table th:nth-child(2),
-        .category-content-body.rich-content.rich-content table td:nth-child(2) {
-            width: 38% !important;
-        }
-
-        .category-content-body.rich-content.rich-content table th:nth-child(3),
-        .category-content-body.rich-content.rich-content table td:nth-child(3) {
-            width: 27% !important;
         }
     }
 </style>
