@@ -1666,21 +1666,25 @@ a {
             display: none !important;
         }
 
-        .category-content-body.rich-content.rich-content table tr.rich-content-mobile-heading {
+        .category-content-body.rich-content.rich-content table:not(:has(thead)) tr:first-child {
             display: none !important;
         }
 
         .category-content-body.rich-content.rich-content table tbody,
         .category-content-body.rich-content.rich-content table tr,
+        .category-content-body.rich-content.rich-content table th,
         .category-content-body.rich-content.rich-content table td {
             display: block !important;
             width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
         }
 
         .category-content-body.rich-content.rich-content table th,
         .category-content-body.rich-content.rich-content table td {
             min-width: 0 !important;
-            max-width: none !important;
+            max-width: 100% !important;
             padding: 7px 10px !important;
             font-size: 13px !important;
             line-height: 1.4 !important;
@@ -1705,48 +1709,8 @@ a {
         .category-content-body.rich-content.rich-content table td:last-child {
             border-bottom: 0 !important;
         }
-
-        .category-content-body.rich-content.rich-content table td::before {
-            content: attr(data-label);
-            display: block;
-            margin-bottom: 2px;
-            color: #111;
-            font-weight: 600;
-        }
-
-        .category-content-body.rich-content.rich-content table td[data-label=""]::before {
-            display: none;
-        }
     }
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.category-content-body.rich-content table').forEach(function (table) {
-        const headings = Array.from(table.querySelectorAll('thead th, tr:first-child th, tr:first-child td'))
-            .map(function (cell) { return cell.textContent.trim(); });
-
-        if (!headings.length) return;
-
-        const rows = Array.from(table.querySelectorAll('tbody tr'));
-        const hasHead = table.querySelector('thead') || table.querySelector('tr:first-child th');
-
-        if (!table.querySelector('thead') && table.querySelector('tr:first-child th')) {
-            table.querySelector('tr:first-child').classList.add('rich-content-mobile-heading');
-        }
-
-        rows.forEach(function (row, rowIndex) {
-            if (!hasHead && rowIndex === 0) return;
-
-            Array.from(row.children).forEach(function (cell, index) {
-                if (!cell.hasAttribute('data-label')) {
-                    cell.setAttribute('data-label', headings[index] || '');
-                }
-            });
-        });
-    });
-});
-</script>
 
    @if(!empty($starListings) && $starListings->count() > 0)
     <div class="featured-links-section">
