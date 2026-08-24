@@ -1629,8 +1629,8 @@ a {
     }
 
     .category-content-body.rich-content.rich-content .rich-content-table {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+        overflow: visible;
     }
 
     @media (max-width: 767px) {
@@ -1652,21 +1652,34 @@ a {
 
         .category-content-body.rich-content.rich-content table {
             width: 100%;
-            min-width: 620px;
-            table-layout: auto;
+            max-width: 100%;
+            table-layout: fixed;
         }
 
         .category-content-body.rich-content.rich-content table th,
         .category-content-body.rich-content.rich-content table td {
-            white-space: normal;
-            overflow-wrap: normal;
-            word-break: keep-all;
-            hyphens: none;
+            padding: 7px 5px;
+            font-size: 12px;
+            line-height: 1.35;
+            white-space: normal !important;
+            overflow-wrap: normal !important;
+            word-break: normal !important;
+            hyphens: none !important;
         }
 
-        .category-content-body.rich-content.rich-content table th:last-child,
-        .category-content-body.rich-content.rich-content table td:last-child {
-            white-space: nowrap;
+        .category-content-body.rich-content.rich-content table th:first-child,
+        .category-content-body.rich-content.rich-content table td:first-child {
+            width: 36%;
+        }
+
+        .category-content-body.rich-content.rich-content table th:nth-child(2),
+        .category-content-body.rich-content.rich-content table td:nth-child(2) {
+            width: 34%;
+        }
+
+        .category-content-body.rich-content.rich-content table th:nth-child(3),
+        .category-content-body.rich-content.rich-content table td:nth-child(3) {
+            width: 30%;
         }
     }
 </style>
