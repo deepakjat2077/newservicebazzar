@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	@include('includes.seo')
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/all.min.css') }}">

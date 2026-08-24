@@ -262,9 +262,24 @@
             hyphens:auto;
         }
 
+        /*
+         * 38% / (rest split evenly) left "consultation", "medicine" and
+         * "homeopathic" — ordinary words, not even that long — with too
+         * little room in the middle column and no hyphenation dictionary
+         * to fall back on (no lang= on <html>, since fixed separately),
+         * so they broke mid-word with no visible hyphen: "consultatio" /
+         * "n". Re-split so the middle column (longest phrases, e.g.
+         * "consultation + medicine") gets the most room and the price
+         * column (short, "Rs. 400 - Rs. 900") gets the least.
+         */
         .rich-content.rich-content table th:first-child,
         .rich-content.rich-content table td:first-child{
-            width:38%;
+            width:32%;
+        }
+
+        .rich-content.rich-content table th:nth-child(2),
+        .rich-content.rich-content table td:nth-child(2){
+            width:40%;
         }
     }
 </style>
