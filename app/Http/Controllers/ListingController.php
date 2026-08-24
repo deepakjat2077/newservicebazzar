@@ -50,9 +50,9 @@ class ListingController extends Controller
 public function store(Request $request)
 {
     $rules = array_merge([
-        'image'                    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'image'                    => 'nullable|image|mimes:jpg,jpeg,png,webp',
         'images'                   => 'nullable|array',
-        'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp',
         'features'                 => 'nullable|array',
         'title'                    => 'nullable|array',
         'content'                  => 'nullable|array',
@@ -109,9 +109,9 @@ public function store(Request $request)
         'subcategory_ids'          => 'nullable|array',
         'subcategory_ids.*'        => 'nullable|exists:subcategories,id',
  'established_year' => 'nullable|digits:4|integer|min:1900|max:' . date('Y'),
-        'thumb'                    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'thumb'                    => 'nullable|image|mimes:jpg,jpeg,png,webp',
         'photos'                   => 'nullable|array',
-        'photos.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'photos.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp',
     ]);
 
     $request->validate($rules);
@@ -856,7 +856,7 @@ public function updatesection(Request $request, $id)
 public function update(Request $request, $id)
 {
     $request->validate([
-        'image'                   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'image'                   => 'nullable|image|mimes:jpg,jpeg,png,webp',
 
         'name'                    => 'required|string|max:255',
         'category_id'             => 'required|exists:categories,id',

@@ -77,6 +77,13 @@ select[name="location_id"]{
     padding-bottom: 0;
 }
 
+.area-manual-toggle{
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
                                 .listing-card {
                                     border-radius: 18px;
                                     overflow: hidden;
@@ -497,10 +504,25 @@ select[name="location_id"]{
 
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
-                                            <label class="form-label">Area</label>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <label class="form-label mb-0">Area</label>
+                                                <a href="javascript:void(0)" id="areaManualToggle" class="area-manual-toggle">+ Add manually</a>
+                                            </div>
+
                                             <select class="form-control" id="area" name="area" required>
                                                 <option value="">Select Area</option>
                                             </select>
+
+                                            {{--
+                                                Pincode API (India Post) sirf uske apne registered post-office
+                                                names deta hai — kai localities (e.g. "Noida Sector 9") usme
+                                                list nahi hoti. Ye text input tab dikhta hai jab user "Add
+                                                manually" par click kare; select ki jagah lekar wahi
+                                                name="area" bhejta hai, taaki backend me koi change na karna
+                                                pade.
+                                            --}}
+                                            <input type="text" class="form-control d-none" id="areaManual"
+                                                name="area" placeholder="Enter your area / sector name" disabled>
                                         </div>
 
                                     </div>
@@ -1379,6 +1401,52 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+
+    /* =====================================================
+       AREA - ADD MANUALLY
+       ===================================================== */
+
+    (function () {
+        const toggleLink = document.getElementById("areaManualToggle");
+        const areaSelect = document.getElementById("area");
+        const areaManual = document.getElementById("areaManual");
+
+        if (!toggleLink || !areaSelect || !areaManual) {
+            return;
+        }
+
+        let manualMode = false;
+
+        toggleLink.addEventListener("click", function () {
+            manualMode = !manualMode;
+
+            if (manualMode) {
+                // Manual input le raha hai area ka charge — select ko disable
+                // karna zaroori hai, warna dono name="area" ek saath submit
+                // ho jayenge aur select ki khaali value manual value ko
+                // overwrite kar degi.
+                areaSelect.classList.add("d-none");
+                areaSelect.disabled = true;
+
+                areaManual.classList.remove("d-none");
+                areaManual.disabled = false;
+                areaManual.required = true;
+                areaManual.focus();
+
+                toggleLink.textContent = "Choose from list";
+            } else {
+                areaManual.classList.add("d-none");
+                areaManual.disabled = true;
+                areaManual.required = false;
+                areaManual.value = "";
+
+                areaSelect.classList.remove("d-none");
+                areaSelect.disabled = false;
+
+                toggleLink.textContent = "+ Add manually";
+            }
+        });
+    })();
 
     /* =====================================================
        PINCODE
@@ -2909,7 +2977,10 @@ document.addEventListener('DOMContentLoaded', function () {
             landmark: fieldValue('input[name="landmark"]'),
 
             pincode: fieldValue('input[name="pincode"]'),
-            area: fieldValue('select[name="area"]'),
+            // "Add manually" (see #areaManualToggle) swaps the dropdown for
+            // a free-text input with the same name — whichever one isn't
+            // disabled is the one actually being used.
+            area: fieldValue('[name="area"]:not(:disabled)'),
             location_id: fieldValue(
                 'select[name="location_id"]'
             ),

@@ -238,14 +238,18 @@
         }
 
         /*
-         * Table screen me fit hoti hai, scroll nahi karti.
+         * Side-scroll wali table try ki gayi thi, lekin phone par scrollbar
+         * / cut-off columns dikhna hi nahi chahiye — poori table ek nazar me
+         * screen ke andar fit honi chahiye, chahe cells thodi lambi ho jayein.
          *
-         * table-layout:fixed columns ko barabar baant deta hai, aur text wrap
-         * hokar neeche chala jaata hai — isliye teeno columns ek saath dikhte
-         * hain, bas font thoda chhota ho jaata hai.
+         * table-layout:fixed columns ko barabar baant deta, isliye har column
+         * ko percentage width diya gaya hai: pehla column (service/label,
+         * aam taur par sabse lamba text) baaki se zyada chaudा, taaki uska
+         * text kam se kam lines me wrap ho.
          */
         .rich-content.rich-content table{
             table-layout:fixed;
+            width:100%;
         }
 
         .rich-content.rich-content table th,
@@ -256,6 +260,11 @@
             word-wrap:break-word;
             overflow-wrap:break-word;
             hyphens:auto;
+        }
+
+        .rich-content.rich-content table th:first-child,
+        .rich-content.rich-content table td:first-child{
+            width:38%;
         }
     }
 </style>

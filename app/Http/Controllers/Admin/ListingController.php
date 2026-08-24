@@ -161,7 +161,7 @@ public function update(Request $request, $id)
 
     $rules = [
         'images'                   => 'nullable|array',
-        'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp',
 
         'remove_images'            => 'nullable|array',
         'remove_images.*'          => 'nullable|string',
@@ -230,7 +230,7 @@ public function update(Request $request, $id)
         'subcategory_ids'          => 'nullable|array',
         'subcategory_ids.*'        => 'nullable|exists:subcategories,id',
 
-        'image'                    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'image'                    => 'nullable|image|mimes:jpg,jpeg,png,webp',
     ];
 
     $request->validate($rules);
@@ -362,9 +362,18 @@ public function update(Request $request, $id)
         ? $cleanSimpleArray($request->extra_emails)
         : ($listing->extra_emails ?? []);
 
-  $businessDays = $request->has('business_days')
-    ? $cleanSimpleArray($request->business_days)
-    : [];
+    /*
+     * timing_days[] carries one entry per open/close row (see
+     * appendDayTimeSlot() in add.blade.php) and is allowed to repeat a day —
+     * that repeat IS a second shift for that day. business_days[] (the
+     * weekday checkboxes) is deduplicated by nature and used as a fallback
+     * for any caller that still only sends that.
+     */
+    $businessDays = $request->has('timing_days')
+        ? $cleanSimpleArray($request->timing_days)
+        : ($request->has('business_days')
+            ? $cleanSimpleArray($request->business_days)
+            : []);
 
 
 $isOpen24Hours = $request->boolean('open_24_hours');
@@ -812,7 +821,7 @@ public function store(Request $request)
     
     $rules = [
         'images'                   => 'nullable|array',
-        'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp',
 
         'question'                 => 'nullable|array',
         'question.*'               => 'nullable|string|max:255',
@@ -874,7 +883,7 @@ public function store(Request $request)
         'subcategory_ids'          => 'nullable|array',
         'subcategory_ids.*'        => 'nullable|exists:subcategories,id',
 
-        'thumb'                    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'thumb'                    => 'nullable|image|mimes:jpg,jpeg,png,webp',
     ];
 
     $request->validate($rules);
@@ -987,7 +996,11 @@ $youtube   = trim($request->youtube);
     $landlineCountryCode = $cleanSimpleArray($request->landline_country_code);
     $landlineNumbers     = $cleanSimpleArray($request->landline_numbers);
     $extraEmails         = $cleanSimpleArray($request->extra_emails);
-   $businessDays = $cleanSimpleArray($request->business_days);
+   // See the matching comment in store() — timing_days[] is the per-row,
+   // duplicate-allowed array; business_days[] (checkboxes) is the fallback.
+   $businessDays = $request->has('timing_days')
+       ? $cleanSimpleArray($request->timing_days)
+       : $cleanSimpleArray($request->business_days);
 
 $isOpen24Hours = $request->boolean('open_24_hours');
 

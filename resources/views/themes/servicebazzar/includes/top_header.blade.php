@@ -7,6 +7,9 @@
         <div class="contact-area">
             <ul>
                 <li><i class="las la-phone"></i> {{ __($site_contact->content->phone) }}</li>
+                @if(!empty($site_contact->content->phone_2))
+                    <li><i class="las la-phone"></i> {{ __($site_contact->content->phone_2) }}</li>
+                @endif
                 <li><i class="las la-envelope"></i> {{ __($site_contact->content->email) }}</li>
             </ul>
         </div>

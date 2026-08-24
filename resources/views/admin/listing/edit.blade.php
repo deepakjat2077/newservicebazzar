@@ -72,7 +72,12 @@
         color: red
     }
 
-    
+    .area-manual-toggle{
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+    }
 </style>
 <div class="row">
     <div class="col-sm-12">
@@ -264,7 +269,10 @@
 @endif
 
 <div class="form-group">
-    <label>Area <span class="rrrr">*</span></label>
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="mb-0">Area <span class="rrrr">*</span></label>
+        <a href="javascript:void(0)" id="areaManualToggle" class="area-manual-toggle">+ Add manually</a>
+    </div>
     <select class="form-control" id="area" name="area">
         <option value="">Select Area</option>
 
@@ -276,11 +284,12 @@
     </select>
 </div>
 
-<div class="form-group">
+<div class="form-group" style="position:relative;">
     <label>Location <span class="rrrr">*</span></label>
     <select name="location_id"
         id="location_id"
-        class="form-control"
+        class="form-control select2-search"
+        data-placeholder="Select Location"
         required>
         <option value="">Select Location</option>
 
@@ -754,7 +763,39 @@
             );
         }
     }
+
+    /*
+     * Seed for the JS-driven, day-aware timing UI (see appendDayTimeSlot()
+     * below) — one entry per saved open/close pair, grouped by day. A day
+     * repeating in $timingDayList (business_days[] is allowed to, going
+     * forward — see Admin\ListingController) is a second shift for that
+     * day, e.g. 9-1 then 5-9 with a lunch break in between.
+     */
+    $timingDayList = old('timing_days', $savedBusinessDays);
+
+    if (!is_array($timingDayList)) {
+        $timingDayList = [];
+    }
+
+    $timingSeed = [];
+
+    foreach ($timingDayList as $seedIndex => $seedDay) {
+        $seedDay = trim((string) $seedDay);
+
+        if ($seedDay === '') {
+            continue;
+        }
+
+        $timingSeed[$seedDay] = $timingSeed[$seedDay] ?? [];
+        $timingSeed[$seedDay][] = [
+            'open'  => $openTimes[$seedIndex] ?? '',
+            'close' => $closeTimes[$seedIndex] ?? '',
+        ];
+    }
 @endphp
+<script>
+    var editTimingSeed = @json($timingSeed);
+</script>
                             <div id="timeSlotsWrapper">
                                 @foreach($openTimes as $i => $open)
                                     <div class="time-slot-box time-slot-item border rounded p-3 mb-3">
@@ -2486,85 +2527,135 @@ let timeOptionsHtml = `
     <option>11:30 PM</option>
 `;
 
-let firstOpenApplied = false;
-let firstCloseApplied = false;
+/*
+|--------------------------------------------------------------------------
+| Time dropdown options — built per call (not a static string) so the
+| saved value can actually come back pre-selected. The old static
+| `timeOptionsHtml` never marked anything selected, which is why a rebuild
+| used to blank every row and fall back to copying just the first row's
+| time onto the rest.
+|--------------------------------------------------------------------------
+*/
+function getTimeOptionsHtml(selectedValue = '', type = 'open') {
+    let placeholder = type === 'open' ? 'Select Opening Time' : 'Select Closing Time';
+    let html = `<option value="">${placeholder}</option>`;
 
-function makeTimeSlot(day) {
-    return `
-        <div class="time-slot-box time-slot-item" data-day="${day}">
+    (@json($timeOptions)).forEach(function (time) {
+        let selected = String(selectedValue) === String(time) ? 'selected' : '';
+        html += `<option value="${time}" ${selected}>${time}</option>`;
+    });
+
+    return html;
+}
+
+/*
+|--------------------------------------------------------------------------
+| One timing row. shiftIndex > 0 is a second (or third...) shift for the
+| same day — e.g. 9-1, closed for lunch, 5-9 — sharing the day in
+| open_time[] / close_time[] / timing_days[] at the same array index (see
+| the matching comment on $businessDays in Admin\ListingController).
+|--------------------------------------------------------------------------
+*/
+function appendDayTimeSlot(day, openValue = '', closeValue = '', shiftIndex = 0, insertAfter = null) {
+    let dayLabel = shiftIndex > 0 ? `${day} (Shift ${shiftIndex + 1})` : day;
+
+    let $row = $(`
+        <div class="time-slot-box time-slot-item border rounded p-3 mb-3" data-day="${day}" data-shift-index="${shiftIndex}">
             <input type="hidden" name="timing_days[]" value="${day}">
 
             <div class="mb-2">
-                <strong>${day}</strong>
+                <strong>${dayLabel}</strong>
             </div>
 
             <div class="row">
                 <div class="col-md-5 mb-3">
                     <label class="form-label">Open at</label>
-                  <select class="form-control sync-open-time" name="open_time[]">
-    <option value="">Select Opening Time</option>
-
-    @foreach($timeOptions as $time)
-        <option
-            value="{{ $time }}"
-            {{ trim((string) $open) === trim($time) ? 'selected' : '' }}
-        >
-            {{ $time }}
-        </option>
-    @endforeach
-</select>
+                    <select class="form-control day-open-time" name="open_time[]">
+                        ${getTimeOptionsHtml(openValue, 'open')}
+                    </select>
                 </div>
 
                 <div class="col-md-5 mb-3">
                     <label class="form-label">Close at</label>
-                  <select class="form-control sync-close-time" name="close_time[]">
-    <option value="">Select Closing Time</option>
-
-    @foreach($timeOptions as $time)
-        <option
-            value="{{ $time }}"
-            {{ trim((string) ($closeTimes[$i] ?? '')) === trim($time) ? 'selected' : '' }}
-        >
-            {{ $time }}
-        </option>
-    @endforeach
-</select>
+                    <select class="form-control day-close-time" name="close_time[]">
+                        ${getTimeOptionsHtml(closeValue, 'close')}
+                    </select>
                 </div>
 
-                <div class="col-md-2 d-flex align-items-end mb-3">
-                    <button type="button" class="input-remove remove-time-slot w-100">×</button>
+                <div class="col-md-2 d-flex align-items-end mb-3 time-slot-actions">
+                    <button type="button" class="btn btn-outline-primary btn-sm add-day-shift mr-2" data-day="${day}"
+                            title="Add a second shift for ${day} — e.g. lunch-break hours">
+                        + Shift
+                    </button>
+                    <button type="button" class="input-remove remove-time-slot">×</button>
                 </div>
             </div>
         </div>
-    `;
+    `);
+
+    if (insertAfter && insertAfter.length) {
+        insertAfter.after($row);
+    } else {
+        $('#timeSlotsWrapper').append($row);
+    }
+
+    return $row;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Rebuild every row from the currently checked days — preserving whatever
+| is already typed, multiple shifts per day included. On the very first
+| call (nothing in the DOM yet), editTimingSeed supplies what was saved
+| against this listing.
+|--------------------------------------------------------------------------
+*/
+function generateSlotsByDays() {
+    if ($('#open24Hours').is(':checked')) {
+        return;
+    }
 
+    let existingValues = {};
 
-function rebuildTimeSlots() {
-    let oldOpen = $('.sync-open-time').first().val() || '';
-    let oldClose = $('.sync-close-time').first().val() || '';
+    $('#timeSlotsWrapper .time-slot-item').each(function () {
+        let day = String($(this).data('day') || '');
+        if (!day) {
+            return;
+        }
+
+        existingValues[day] = existingValues[day] || [];
+        existingValues[day].push({
+            open: $(this).find('.day-open-time').val() || '',
+            close: $(this).find('.day-close-time').val() || ''
+        });
+    });
+
+    if ($('#timeSlotsWrapper .time-slot-item').length === 0
+        && typeof editTimingSeed === 'object' && editTimingSeed) {
+        existingValues = editTimingSeed;
+        editTimingSeed = null; // consumed once, so later rebuilds use the DOM
+    }
+
+    let selectedDays = $('input[name="business_days[]"]:checked')
+        .map(function () { return $(this).val(); })
+        .get();
 
     $('#timeSlotsWrapper').html('');
 
-    $('input[name="business_days[]"]:checked').each(function () {
-        $('#timeSlotsWrapper').append(makeTimeSlot($(this).val()));
+    selectedDays.forEach(function (day) {
+        let shifts = (existingValues[day] && existingValues[day].length)
+            ? existingValues[day]
+            : [{ open: '', close: '' }];
+
+        shifts.forEach(function (shift, shiftIndex) {
+            appendDayTimeSlot(day, shift.open, shift.close, shiftIndex);
+        });
     });
-
-    if (oldOpen) {
-        $('.sync-open-time').val(oldOpen);
-        firstOpenApplied = true;
-    }
-
-    if (oldClose) {
-        $('.sync-close-time').val(oldClose);
-        firstCloseApplied = true;
-    }
 }
 
 $('#selectAllDays').on('change', function () {
     $('input[name="business_days[]"]').prop('checked', this.checked);
-    rebuildTimeSlots();
+    generateSlotsByDays();
 });
 
 $(document).on('change', 'input[name="business_days[]"]', function () {
@@ -2574,50 +2665,43 @@ $(document).on('change', 'input[name="business_days[]"]', function () {
         $('input[name="business_days[]"]:checked').length
     );
 
-    rebuildTimeSlots();
+    generateSlotsByDays();
 });
 
-$(document).on('change', '.sync-open-time', function () {
-    let val = $(this).val();
-
-    if (!firstOpenApplied && val) {
-        $('.sync-open-time').each(function () {
-            if (!$(this).val()) {
-                $(this).val(val);
-            }
-        });
-
-        firstOpenApplied = true;
+$(document).on('click', '.add-day-shift', function () {
+    let day = String($(this).data('day') || '');
+    if (!day || $('#open24Hours').is(':checked')) {
+        return;
     }
-});
 
-$(document).on('change', '.sync-close-time', function () {
-    let val = $(this).val();
+    let $dayRows = $('#timeSlotsWrapper .time-slot-item').filter(function () {
+        return String($(this).data('day') || '') === day;
+    });
 
-    if (!firstCloseApplied && val) {
-        $('.sync-close-time').each(function () {
-            if (!$(this).val()) {
-                $(this).val(val);
-            }
-        });
-
-        firstCloseApplied = true;
-    }
+    appendDayTimeSlot(day, '', '', $dayRows.length, $dayRows.last());
 });
 
 $(document).on('click', '.remove-time-slot', function () {
-    let day = $(this).closest('.time-slot-item').data('day');
+    let $row = $(this).closest('.time-slot-item');
+    let day = String($row.data('day') || '');
+    let shiftIndex = parseInt($row.data('shift-index'), 10) || 0;
 
-    $('input[name="business_days[]"][value="' + day + '"]')
-        .prop('checked', false);
+    $row.remove();
 
-    $(this).closest('.time-slot-item').remove();
+    /*
+     * Removing a day's only (first) row means "stop opening this day" —
+     * uncheck it. Removing a second+ shift just drops that one shift and
+     * leaves the day's first row alone.
+     */
+    if (shiftIndex === 0) {
+        $('input[name="business_days[]"][value="' + day + '"]').prop('checked', false);
 
-    $('#selectAllDays').prop(
-        'checked',
-        $('input[name="business_days[]"]').length ===
-        $('input[name="business_days[]"]:checked').length
-    );
+        $('#selectAllDays').prop(
+            'checked',
+            $('input[name="business_days[]"]').length ===
+            $('input[name="business_days[]"]:checked').length
+        );
+    }
 });
 
 $('#addTimeSlot').on('click', function () {
@@ -2625,8 +2709,11 @@ $('#addTimeSlot').on('click', function () {
         return;
     }
 
-    rebuildTimeSlots();
+    generateSlotsByDays();
 });
+
+// Initial render — turns the seeded/saved data into rows on page load.
+generateSlotsByDays();
 
 /*
 |--------------------------------------------------------------------------
@@ -2694,6 +2781,11 @@ function areaField() {
     return $('#area');
 }
 
+// Areas most recently fetched for the current pincode — kept so the
+// "+ Add manually" toggle can restore the dropdown after switching to free
+// text, without re-hitting the pincode API.
+var lastFetchedAreas = [];
+
 function replaceAreaField($replacement) {
     var $current = areaField();
     var value = ($current.val() || '').trim();
@@ -2749,6 +2841,22 @@ function setAreaAsFreeText(message) {
     }
 }
 
+// "+ Add manually" toggle — the dropdown only ever offers what the postal
+// directory returned for the pincode, and plenty of real localities (e.g.
+// "Noida Sector 9") never appear there. Lets the admin switch to a free-text
+// box even when the dropdown did load options.
+$('#areaManualToggle').on('click', function () {
+    var $toggle = $(this);
+
+    if (areaField().is('select')) {
+        setAreaAsFreeText();
+        $toggle.text('Choose from list');
+    } else {
+        setAreaAsDropdown(lastFetchedAreas);
+        $toggle.text('+ Add manually');
+    }
+});
+
 $('#pincode').on('keyup change', function () {
         let pin = $(this).val().trim();
 
@@ -2774,6 +2882,7 @@ $('#pincode').on('keyup change', function () {
                 }
 
                 if (data && data.status && Array.isArray(data.areas) && data.areas.length > 0) {
+                    lastFetchedAreas = data.areas;
                     setAreaAsDropdown(data.areas);
 
                     let searchText = `${pin}, ${data.city || ''}, ${data.state || ''}, India`;
@@ -3069,6 +3178,36 @@ $(document).on('click', '.imageRemove', function () {
 </script>
 
 
+@endpush
+
+{{-- select2 is vendored under public/assets/admin (same copy
+     subcategories/index.blade.php and setting/seo.blade.php use) — no CDN. --}}
+@push('css-link')
+	<link rel="stylesheet" href="{{ asset('assets/admin/css/select2.min.css') }}">
+@endpush
+@push('js-link')
+	<script src="{{ asset('assets/admin/js/select2.min.js') }}"></script>
+@endpush
+@push('js')
+<script>
+$(document).ready(function () {
+    "use strict";
+
+    // Location dropdown gets a search box — the list runs into the hundreds
+    // and scrolling through a plain <select> to find one city is slow.
+    //
+    // dropdownParent pinned to the field's own .form-group — see add.blade.php
+    // for why (appended-to-body dropdowns were drawn in one place but
+    // clicked in another, so nothing ever got selected).
+    $('.select2-search').each(function () {
+        $(this).select2({
+            width: '100%',
+            placeholder: $(this).data('placeholder'),
+            dropdownParent: $(this).closest('.form-group')
+        });
+    });
+});
+</script>
 @endpush
 
 {{-- Auto spelling/grammar correction is switched off: it rewrote business

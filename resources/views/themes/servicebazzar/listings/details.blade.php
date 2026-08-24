@@ -2624,16 +2624,20 @@
         .hours-row{
             display:flex;
             justify-content:space-between;
+            align-items:flex-start;
+            gap:12px;
             padding:6px 0;
             font-size:14px;
         }
 
         .day{
             font-weight:500;
+            flex-shrink:0;
         }
 
         .time{
             color:#333;
+            text-align:right;
         }
 
         @media(max-width:767px){
@@ -2677,16 +2681,20 @@
     .hours-row{
         display:flex;
         justify-content:space-between;
+        align-items:flex-start;
+        gap:12px;
         padding:6px 0;
         font-size:14px;
     }
 
     .day{
         font-weight:500;
+        flex-shrink:0;
     }
 
     .time{
         color:#333;
+        text-align:right;
     }
         .listing-media-section {
             background: #fff;
@@ -3296,63 +3304,161 @@
             : (json_decode($listing->close_time, true) ?? []);
 
         $today = Carbon::now('Asia/Kolkata')->format('D');
-        $todayIndex = array_search($today, $businessDays, true);
+        $jdNow = Carbon::now('Asia/Kolkata');
 
-        $isOpenToday = $todayIndex !== false;
+        $jdFormatTime = function ($time) {
+            if (empty($time)) {
+                return null;
+            }
+
+            try {
+                return Carbon::parse($time)->format('g:i A');
+            } catch (\Exception $e) {
+                return $time;
+            }
+        };
 
         /*
-        * Agar sirf ek open/close time stored hai,
-        * to use sabhi selected days ka common time maan lo.
-        */
-        $openTime = count($openTimes) === 1
-            ? ($openTimes[0] ?? null)
-            : ($openTimes[$todayIndex] ?? null);
+         * $businessDays / $openTimes / $closeTimes are parallel arrays and a
+         * day can repeat — the timing form allows a second shift for the
+         * same day (lunch-break hours), and each repeat is one more shift
+         * at the same array index in the other two arrays. Grouped by day
+         * here so "Open Now", "Opens at ...", and the weekly list all treat
+         * every shift a day has, not just the first one found.
+         */
+        $jdShiftsByDay = [];
 
-        $closeTime = count($closeTimes) === 1
-            ? ($closeTimes[0] ?? null)
-            : ($closeTimes[$todayIndex] ?? null);
+        foreach ($businessDays as $jdIndex => $jdDay) {
+            $jdDay = is_string($jdDay) ? trim($jdDay) : $jdDay;
 
+            if (empty($jdDay)) {
+                continue;
+            }
+
+            $jdOpenRaw = count($openTimes) === 1 ? ($openTimes[0] ?? null) : ($openTimes[$jdIndex] ?? null);
+            $jdCloseRaw = count($closeTimes) === 1 ? ($closeTimes[0] ?? null) : ($closeTimes[$jdIndex] ?? null);
+
+            if (empty($jdOpenRaw) || empty($jdCloseRaw)) {
+                continue;
+            }
+
+            $jdShiftsByDay[$jdDay][] = ['open' => $jdOpenRaw, 'close' => $jdCloseRaw];
+        }
+
+        $isOpenToday = !empty($jdShiftsByDay[$today]);
+
+        $jdDayTimeText = function ($day) use ($jdShiftsByDay, $jdFormatTime) {
+            if (empty($jdShiftsByDay[$day])) {
+                return 'Closed';
+            }
+
+            $ranges = [];
+
+            foreach ($jdShiftsByDay[$day] as $shift) {
+                $o = $jdFormatTime($shift['open']);
+                $c = $jdFormatTime($shift['close']);
+
+                if (empty($o) || empty($c)) {
+                    continue;
+                }
+
+                $ranges[] = (strtoupper($o) === '12:00 AM' && strtoupper($c) === '11:59 PM')
+                    ? 'Open 24 Hours'
+                    : ($o . ' - ' . $c);
+            }
+
+            return $ranges ? implode(', ', $ranges) : 'Closed';
+        };
+
+        // Today's full text for the always-visible header, e.g.
+        // "Open 9:00 AM - 1:00 PM, 5:00 PM - 9:00 PM".
         $formattedOpenTime = null;
         $formattedCloseTime = null;
 
-        try {
-            if (!empty($openTime)) {
-                $formattedOpenTime = Carbon::parse($openTime)->format('g:i A');
-            }
-
-            if (!empty($closeTime)) {
-                $formattedCloseTime = Carbon::parse($closeTime)->format('g:i A');
-            }
-        } catch (\Exception $e) {
-            $formattedOpenTime = $openTime;
-            $formattedCloseTime = $closeTime;
+        if ($isOpenToday) {
+            $firstShiftToday = $jdShiftsByDay[$today][0];
+            $formattedOpenTime = $jdFormatTime($firstShiftToday['open']);
+            $formattedCloseTime = $jdFormatTime($firstShiftToday['close']);
         }
+
+        $todayHoursText = $isOpenToday ? $jdDayTimeText($today) : null;
 
         /*
          * Mobile-only Justdial-style "Open Now / Closed Now" status —
          * unlike $isOpenToday above (which only checks whether today is a
          * business day at all), this checks the current clock time against
-         * today's actual open/close window, using the same $openTime /
-         * $closeTime already resolved above. Handles overnight windows
+         * EVERY one of today's shifts, so a lunch-break gap between two
+         * shifts correctly reads as closed. Handles overnight windows
          * (close time earlier than open time) by rolling the close
-         * timestamp to the next day before comparing.
+         * timestamp to the next day before comparing. $jdActiveShiftClose
+         * remembers which shift matched, for the "Until ..." detail text.
          */
-        $jdNow = Carbon::now('Asia/Kolkata');
         $isOpenNow = false;
+        $jdActiveShiftClose = null;
 
-        if ($isOpenToday && !empty($openTime) && !empty($closeTime)) {
-            try {
-                $jdToday = $jdNow->format('Y-m-d');
-                $jdOpenAt = Carbon::parse($jdToday . ' ' . $openTime, 'Asia/Kolkata');
-                $jdCloseAt = Carbon::parse($jdToday . ' ' . $closeTime, 'Asia/Kolkata');
+        if ($isOpenToday) {
+            foreach ($jdShiftsByDay[$today] as $shift) {
+                try {
+                    $jdToday = $jdNow->format('Y-m-d');
+                    $jdOpenAt = Carbon::parse($jdToday . ' ' . $shift['open'], 'Asia/Kolkata');
+                    $jdCloseAt = Carbon::parse($jdToday . ' ' . $shift['close'], 'Asia/Kolkata');
 
-                if ($jdCloseAt->lessThanOrEqualTo($jdOpenAt)) {
-                    $jdCloseAt->addDay();
+                    if ($jdCloseAt->lessThanOrEqualTo($jdOpenAt)) {
+                        $jdCloseAt->addDay();
+                    }
+
+                    if ($jdNow->betweenIncluded($jdOpenAt, $jdCloseAt)) {
+                        $isOpenNow = true;
+                        $jdActiveShiftClose = $jdFormatTime($shift['close']);
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+        }
+
+        if ($isOpenNow) {
+            $formattedCloseTime = $jdActiveShiftClose;
+        }
+
+        /*
+         * "Opens at ..." (closed state only): the next upcoming opening
+         * time — today's own later shift (past a lunch break) counts
+         * before scanning into future days. Today only counts a shift if
+         * its opening time hasn't already passed.
+         */
+        $jdNextOpenTime = null;
+
+        if (!$isOpenNow) {
+            for ($jdOffset = 0; $jdOffset <= 7; $jdOffset++) {
+                $jdCheckDate = $jdNow->copy()->addDays($jdOffset);
+                $jdCheckDay = $jdCheckDate->format('D');
+
+                if (empty($jdShiftsByDay[$jdCheckDay])) {
+                    continue;
                 }
 
-                $isOpenNow = $jdNow->betweenIncluded($jdOpenAt, $jdCloseAt);
-            } catch (\Exception $e) {
-                $isOpenNow = false;
+                foreach ($jdShiftsByDay[$jdCheckDay] as $shift) {
+                    if (empty($shift['open'])) {
+                        continue;
+                    }
+
+                    if ($jdOffset === 0) {
+                        try {
+                            $jdCheckOpenAt = Carbon::parse($jdCheckDate->format('Y-m-d') . ' ' . $shift['open'], 'Asia/Kolkata');
+                        } catch (\Exception $e) {
+                            continue;
+                        }
+
+                        if ($jdCheckOpenAt->lessThanOrEqualTo($jdNow)) {
+                            continue;
+                        }
+                    }
+
+                    $jdNextOpenTime = $jdFormatTime($shift['open']);
+                    break 2;
+                }
             }
         }
 
@@ -3367,78 +3473,6 @@
             'Sat' => 'Saturday',
             'Sun' => 'Sunday',
         ];
-
-        $jdFormatTime = function ($time) {
-            if (empty($time)) {
-                return null;
-            }
-
-            try {
-                return Carbon::parse($time)->format('g:i A');
-            } catch (\Exception $e) {
-                return $time;
-            }
-        };
-
-        $jdDayTimeText = function ($dayIndex) use ($openTimes, $closeTimes, $jdFormatTime) {
-            $dayOpen = count($openTimes) === 1 ? ($openTimes[0] ?? null) : ($openTimes[$dayIndex] ?? null);
-            $dayClose = count($closeTimes) === 1 ? ($closeTimes[0] ?? null) : ($closeTimes[$dayIndex] ?? null);
-            $dayOpen = $jdFormatTime($dayOpen);
-            $dayClose = $jdFormatTime($dayClose);
-
-            if (empty($dayOpen) || empty($dayClose)) {
-                return 'Closed';
-            }
-
-            if (strtoupper($dayOpen) === '12:00 AM' && strtoupper($dayClose) === '11:59 PM') {
-                return 'Open 24 Hours';
-            }
-
-            return $dayOpen . ' - ' . $dayClose;
-        };
-
-        /*
-         * "Opens at ..." (closed state only): the next upcoming opening
-         * time, found by scanning forward day-by-day (today first, then
-         * up to 7 days ahead) through $businessDays / $openTimes — same
-         * source data as everything else here, nothing hardcoded. Today
-         * only counts if its opening time hasn't already passed.
-         */
-        $jdNextOpenTime = null;
-
-        if (!$isOpenNow) {
-            for ($jdOffset = 0; $jdOffset <= 7; $jdOffset++) {
-                $jdCheckDate = $jdNow->copy()->addDays($jdOffset);
-                $jdCheckIndex = array_search($jdCheckDate->format('D'), $businessDays, true);
-
-                if ($jdCheckIndex === false) {
-                    continue;
-                }
-
-                $jdCheckOpenRaw = count($openTimes) === 1
-                    ? ($openTimes[0] ?? null)
-                    : ($openTimes[$jdCheckIndex] ?? null);
-
-                if (empty($jdCheckOpenRaw)) {
-                    continue;
-                }
-
-                if ($jdOffset === 0) {
-                    try {
-                        $jdCheckOpenAt = Carbon::parse($jdCheckDate->format('Y-m-d') . ' ' . $jdCheckOpenRaw, 'Asia/Kolkata');
-                    } catch (\Exception $e) {
-                        continue;
-                    }
-
-                    if ($jdCheckOpenAt->lessThanOrEqualTo($jdNow)) {
-                        continue;
-                    }
-                }
-
-                $jdNextOpenTime = $jdFormatTime($jdCheckOpenRaw);
-                break;
-            }
-        }
     @endphp
 
     <span class="jd-hours-old">
@@ -3446,15 +3480,10 @@
     <span class="ml-2">
         @if(!$isOpenToday)
             Closed Today
-        @elseif($formattedOpenTime && $formattedCloseTime)
-            @if(
-                strtoupper($formattedOpenTime) === '12:00 AM' &&
-                strtoupper($formattedCloseTime) === '11:59 PM'
-            )
-                Open 24 Hours
-            @else
-                Open {{ $formattedOpenTime }} - {{ $formattedCloseTime }}
-            @endif
+        @elseif($todayHoursText === 'Open 24 Hours')
+            Open 24 Hours
+        @elseif($todayHoursText)
+            Open {{ $todayHoursText }}
         @else
             Hours not available
         @endif
@@ -3485,11 +3514,10 @@
         <div class="jd-hours-panel" id="jdHoursPanel">
             <div class="jd-hours-panel-inner">
                 @foreach($jdWeekOrder as $jdDayKey => $jdDayLabel)
-                    @php $jdDayIndex = array_search($jdDayKey, $businessDays, true); @endphp
                     <div class="jd-hours-row {{ $jdDayKey === $today ? 'is-today' : '' }}">
                         <span class="jd-hours-day">{{ $jdDayLabel }}</span>
                         <span class="jd-hours-time">
-                            {{ $jdDayIndex !== false ? $jdDayTimeText($jdDayIndex) : 'Closed' }}
+                            {{ $jdDayTimeText($jdDayKey) }}
                         </span>
                     </div>
                 @endforeach
@@ -5986,19 +6014,6 @@
             : (json_decode($listing->close_time, true) ?? []);
 
         $today = Carbon::now('Asia/Kolkata')->format('D');
-        $todayIndex = array_search($today, $businessDays, true);
-
-        /**
-         * Ek hi timing stored ho to wahi timing
-         * sabhi selected business days par apply hogi.
-         */
-        $getTimeByIndex = function ($times, $index) {
-            if (count($times) === 1) {
-                return $times[0] ?? null;
-            }
-
-            return $times[$index] ?? null;
-        };
 
         $formatBusinessTime = function ($time) {
             if (empty($time)) {
@@ -6012,33 +6027,64 @@
             }
         };
 
-        $getBusinessHoursText = function ($index) use (
-            $openTimes,
-            $closeTimes,
-            $getTimeByIndex,
-            $formatBusinessTime
-        ) {
-            $openTime = $formatBusinessTime(
-                $getTimeByIndex($openTimes, $index)
-            );
+        /*
+         * $businessDays / $openTimes / $closeTimes are parallel arrays and,
+         * since a listing's timing form allows a second shift for the same
+         * day (lunch-break hours), a day can repeat — each repeat is one
+         * more shift for that day, at the same array index in the other two
+         * arrays. Group them here so the day is shown once with every shift
+         * it has, instead of once per array entry.
+         */
+        $shiftsByDay = [];
 
-            $closeTime = $formatBusinessTime(
-                $getTimeByIndex($closeTimes, $index)
-            );
+        foreach ($businessDays as $bIndex => $bDay) {
+            $bDay = is_string($bDay) ? trim($bDay) : $bDay;
 
-            if (empty($openTime) || empty($closeTime)) {
-                return 'Hours not available';
+            if (empty($bDay)) {
+                continue;
             }
 
-            if (
-                strtoupper($openTime) === '12:00 AM' &&
-                strtoupper($closeTime) === '11:59 PM'
-            ) {
-                return 'Open 24 Hours';
+            $shiftsByDay[$bDay][] = [
+                'open'  => count($openTimes) === 1 ? ($openTimes[0] ?? null) : ($openTimes[$bIndex] ?? null),
+                'close' => count($closeTimes) === 1 ? ($closeTimes[0] ?? null) : ($closeTimes[$bIndex] ?? null),
+            ];
+        }
+
+        $formatShiftsForDay = function ($day) use ($shiftsByDay, $formatBusinessTime) {
+            if (empty($shiftsByDay[$day])) {
+                return 'Closed';
             }
 
-            return $openTime . ' - ' . $closeTime;
+            $ranges = [];
+
+            foreach ($shiftsByDay[$day] as $shift) {
+                $openTime = $formatBusinessTime($shift['open']);
+                $closeTime = $formatBusinessTime($shift['close']);
+
+                if (empty($openTime) || empty($closeTime)) {
+                    continue;
+                }
+
+                if (strtoupper($openTime) === '12:00 AM' && strtoupper($closeTime) === '11:59 PM') {
+                    $ranges[] = 'Open 24 Hours';
+                    continue;
+                }
+
+                $ranges[] = $openTime . ' - ' . $closeTime;
+            }
+
+            return $ranges ? implode(', ', $ranges) : 'Closed';
         };
+
+        $weekOrder = [
+            'Mon' => 'Monday',
+            'Tue' => 'Tuesday',
+            'Wed' => 'Wednesday',
+            'Thu' => 'Thursday',
+            'Fri' => 'Friday',
+            'Sat' => 'Saturday',
+            'Sun' => 'Sunday',
+        ];
     @endphp
 
     <div class="business-hours-box">
@@ -6047,8 +6093,8 @@
             <span class="open-label">
                 <i class="las la-clock"></i>
 
-                @if($todayIndex !== false)
-                    {{ $getBusinessHoursText($todayIndex) }}
+                @if(!empty($shiftsByDay[$today]))
+                    {{ $formatShiftsForDay($today) }}
                 @else
                     Closed Today
                 @endif
@@ -6061,35 +6107,23 @@
 
         <div class="hours-list" id="hoursList">
 
-            @if(!empty($businessDays))
-
-                @foreach($businessDays as $index => $day)
-                    <div class="hours-row">
-
-                        <span class="day">
-                            {{ $day }}
-
-                            @if($day === $today)
-                                (Today)
-                            @endif
-                        </span>
-
-                        <span class="time">
-                            {{ $getBusinessHoursText($index) }}
-                        </span>
-
-                    </div>
-                @endforeach
-
-            @else
-
+            @foreach($weekOrder as $dayKey => $dayLabel)
                 <div class="hours-row">
-                    <span class="day">
-                        No business hours available.
-                    </span>
-                </div>
 
-            @endif
+                    <span class="day">
+                        {{ $dayLabel }}
+
+                        @if($dayKey === $today)
+                            (Today)
+                        @endif
+                    </span>
+
+                    <span class="time">
+                        {{ $formatShiftsForDay($dayKey) }}
+                    </span>
+
+                </div>
+            @endforeach
 
         </div>
     </div>

@@ -430,6 +430,7 @@ public function elementSave(Request $request, $id = null)
 						'required'=>true,
 						'mimes'=>'jpg,jpeg,png',
 						'is_image'=>true,
+						'multiple'=>true,
 						'size'=>'1920x1100'
 					],
 				],
@@ -602,6 +603,10 @@ public function elementSave(Request $request, $id = null)
 					'phone'=>[
 						'type'=>'text',
 						'required'=>true,
+					],
+					'phone_2'=>[
+						'type'=>'text',
+						'required'=>false,
 					],
 					'email'=>[
 						'type'=>'text',

@@ -8,7 +8,12 @@
         color: red
     }
 
-    
+    .area-manual-toggle{
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+    }
 </style>
 <div class="row">
     <div class="col-sm-12">
@@ -176,7 +181,10 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Area <span class="rrrr">*</span></label>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="mb-0">Area <span class="rrrr">*</span></label>
+                                    <a href="javascript:void(0)" id="areaManualToggle" class="area-manual-toggle">+ Add manually</a>
+                                </div>
                                 <select class="form-control" id="area" name="area">
                                     <option value="">Select Area </option>
                                     @if(old('area'))
@@ -185,11 +193,12 @@
                                 </select>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group" style="position:relative;">
                                 <label>Location <span class="rrrr">*</span></label>
                                <select name="location_id"
         id="location_id"
-        class="form-control"
+        class="form-control select2-search"
+        data-placeholder="Select Location"
         required>
                                     <option value="">Select Location </option>
                                     @foreach($locations as $location)
@@ -532,7 +541,12 @@
         @endforeach
     </div>
 
-    <a href="javascript:void(0)" class="add-link" id="addTimeSlot">+ Add Another Time Slot</a>
+    {{-- "+ Add Shift" now sits on each day's own row (2 shifts per day —
+         e.g. 9-1, lunch break, 5-9) instead of one global link here; kept
+         as an empty, hidden anchor only so toggleOpen24Hours()'s existing
+         $('#addTimeSlot') lookup keeps working without touching that
+         function. --}}
+    <a href="javascript:void(0)" class="d-none" id="addTimeSlot"></a>
 </div>
                         <div class="col-md-12 mt-2 mb-4">
                             <div class="bg__dark p-2 text-white d-flex align-items-center justify-content-between">
@@ -1809,15 +1823,28 @@ function appendDayTimeSlot(
     day,
     openValue = '',
     closeValue = '',
-    isManual = false
+    isManual = false,
+    shiftIndex = 0,
+    insertAfter = null
 ) {
 
-    let dayLabel = isManual ? 'Extra Time Slot' : day;
+    /*
+     * Shift 2+ ("2nd shift", "3rd shift"...) is how a day with a lunch
+     * break — open 9-1, closed, open 5-9 — gets represented: one row per
+     * shift, all sharing the same day and all going into open_time[] /
+     * close_time[] / timing_days[] at the same array index, so the day
+     * repeats there on purpose. See the matching comment on $businessDays
+     * in Admin\ListingController.
+     */
+    let dayLabel = isManual
+        ? 'Extra Time Slot'
+        : (shiftIndex > 0 ? `${day} (Shift ${shiftIndex + 1})` : day);
 
-    $('#timeSlotsWrapper').append(`
+    let $row = $(`
         <div class="time-slot-box time-slot-item border rounded p-3 mb-3"
              data-day="${day || ''}"
-             data-manual="${isManual ? '1' : '0'}">
+             data-manual="${isManual ? '1' : '0'}"
+             data-shift-index="${shiftIndex}">
 
             <input type="hidden"
                    name="timing_days[]"
@@ -1834,7 +1861,7 @@ function appendDayTimeSlot(
                            readonly>
                 </div>
 
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label>Open at</label>
 
                     <select class="form-control day-open-time"
@@ -1844,7 +1871,7 @@ function appendDayTimeSlot(
                     </select>
                 </div>
 
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label>Close at</label>
 
                     <select class="form-control day-close-time"
@@ -1854,13 +1881,26 @@ function appendDayTimeSlot(
                     </select>
                 </div>
 
-                <div class="col-md-2 d-flex align-items-end mb-3">
+                <div class="col-md-4 d-flex align-items-end mb-3 time-slot-actions">
 
                     ${
-                        isManual
+                        !isManual
                             ? `
                                 <button type="button"
-                                        class="btn btn-danger remove-time-slot w-100">
+                                        class="btn btn-outline-primary btn-sm add-day-shift mr-2"
+                                        data-day="${day || ''}"
+                                        title="Add a second shift for ${day} — e.g. lunch-break hours">
+                                    + Add Shift
+                                </button>
+                            `
+                            : ''
+                    }
+
+                    ${
+                        (isManual || shiftIndex > 0)
+                            ? `
+                                <button type="button"
+                                        class="btn btn-danger btn-sm remove-time-slot">
                                     ×
                                 </button>
                             `
@@ -1871,6 +1911,12 @@ function appendDayTimeSlot(
             </div>
         </div>
     `);
+
+    if (insertAfter && insertAfter.length) {
+        insertAfter.after($row);
+    } else {
+        $('#timeSlotsWrapper').append($row);
+    }
 }
 
 
@@ -1889,8 +1935,9 @@ function generateSlotsByDays() {
     }
 
     /*
-     * Existing day-wise values save kar lo,
-     * taaki checkbox change hone par entered timing delete na ho.
+     * Existing day-wise values save kar lo (sabhi shifts, ek din ke 2 ho
+     * sakte hain), taaki checkbox change hone par entered timing delete na
+     * ho.
      */
     let existingValues = {};
 
@@ -1902,10 +1949,14 @@ function generateSlotsByDays() {
             return;
         }
 
-        existingValues[day] = {
+        if (!existingValues[day]) {
+            existingValues[day] = [];
+        }
+
+        existingValues[day].push({
             open: $(this).find('.day-open-time').val() || '',
             close: $(this).find('.day-close-time').val() || ''
-        };
+        });
     });
 
     let selectedDays = $('input[name="business_days[]"]:checked')
@@ -1922,17 +1973,19 @@ function generateSlotsByDays() {
 
     selectedDays.forEach(function (day) {
 
-        let oldTiming = existingValues[day] || {
-            open: '',
-            close: ''
-        };
+        let shifts = existingValues[day] && existingValues[day].length
+            ? existingValues[day]
+            : [{ open: '', close: '' }];
 
-        appendDayTimeSlot(
-            day,
-            oldTiming.open,
-            oldTiming.close,
-            false
-        );
+        shifts.forEach(function (shift, shiftIndex) {
+            appendDayTimeSlot(
+                day,
+                shift.open,
+                shift.close,
+                false,
+                shiftIndex
+            );
+        });
     });
 }
 
@@ -2542,31 +2595,46 @@ $(document).on('click', '.imageRemove', function () {
     });
 
     // time slot add/remove
- $('#addTimeSlot').off('click').on('click', function () {
+    //
+    // "+ Add Shift" lives on each day's own row now (appendDayTimeSlot) —
+    // that is what makes a 2-shift day (e.g. 9-1, closed for lunch, 5-9)
+    // possible, so the old single global "+ Add Another Time Slot" link
+    // (which added a dayless row nothing downstream could attribute to a
+    // day) is gone.
+    $(document)
+        .off('click', '.add-day-shift')
+        .on('click', '.add-day-shift', function () {
 
-    if ($('#open24Hours').is(':checked')) {
-        return;
-    }
+            let day = String($(this).data('day') || '');
 
-    let selectedDays =
-        $('input[name="business_days[]"]:checked').length;
+            if (!day || $('#open24Hours').is(':checked')) {
+                return;
+            }
 
-    if (selectedDays === 0) {
-        alert('Please select at least one day first');
-        return;
-    }
+            let $dayRows = $('#timeSlotsWrapper .time-slot-item')
+                .filter(function () {
+                    return String($(this).data('day') || '') === day;
+                });
 
-    /*
-     * Ek click par sirf ek manual extra slot.
-     */
-    appendDayTimeSlot('', '', '', true);
-});
+            appendDayTimeSlot(
+                day,
+                '',
+                '',
+                false,
+                $dayRows.length,
+                $dayRows.last()
+            );
+
+            triggerAutoAiGenerate();
+        });
+
    $(document)
     .off('click', '.remove-time-slot')
     .on('click', '.remove-time-slot', function () {
 
         /*
-         * Sirf manually-added extra row remove hogi.
+         * Sirf 2nd+ shift (ya legacy manual) row remove hogi — pehla
+         * shift us din ka checkbox uncheck karke hi hataya jaata hai.
          */
         $(this).closest('.time-slot-item').remove();
 
@@ -2614,6 +2682,14 @@ $(document).on(
 
         $('#selectAllDays').prop('checked', allDaysSelected);
 
+        /*
+         * Ticking/unticking one day on its own used to leave the timing
+         * rows untouched — only "Select All" and the Open 24 Hours toggle
+         * rebuilt them. So checking a single day (the normal case) never
+         * grew a row for it. generateSlotsByDays() re-reads whatever rows
+         * already exist first, so this is safe to call on every toggle.
+         */
+        generateSlotsByDays();
 
         triggerAutoAiGenerate();
     }
@@ -2691,6 +2767,11 @@ toggleOpen24Hours();
         return $('#area');
     }
 
+    // Areas most recently fetched for the current pincode — kept so the
+    // "+ Add manually" toggle can restore the dropdown after switching to
+    // free text, without re-hitting the pincode API.
+    var lastFetchedAreas = [];
+
     function replaceAreaField($replacement) {
         var $current = areaField();
         var value = ($current.val() || '').trim();
@@ -2748,6 +2829,22 @@ toggleOpen24Hours();
         }
     }
 
+    // "+ Add manually" toggle — the dropdown only ever offers what the
+    // postal directory returned for the pincode, and plenty of real
+    // localities (e.g. "Noida Sector 9") never appear there. Lets the admin
+    // switch to a free-text box even when the dropdown did load options.
+    $('#areaManualToggle').on('click', function () {
+        var $toggle = $(this);
+
+        if (areaField().is('select')) {
+            setAreaAsFreeText();
+            $toggle.text('Choose from list');
+        } else {
+            setAreaAsDropdown(lastFetchedAreas);
+            $toggle.text('+ Add manually');
+        }
+    });
+
     // pincode -> city/state/area
     $('#pincode').on('keyup change', debounce(function () {
         let pin = $(this).val().trim();
@@ -2780,6 +2877,7 @@ toggleOpen24Hours();
                 }
 
                 if (data && data.status && Array.isArray(data.areas) && data.areas.length > 0) {
+                    lastFetchedAreas = data.areas;
                     setAreaAsDropdown(data.areas);
 
                     let searchText = `${pin}, ${data.city || ''}, ${data.state || ''}, India`;
@@ -3257,14 +3355,20 @@ $(document).on('blur paste', '.seo-source, .seo-field', function () {
         }
     };
 
-})
-(jQuery);
-</script>
-
-<script>
-(function ($) {
-    "use strict";
-
+    /*
+     * The next block used to live in its own <script>(function($){...})(jQuery)
+     * — a separate closure with no access to selectedCategory,
+     * selectedSubcategories, locationFilteredSubcategories or the
+     * renderSelected*() functions above. Reading any of them threw
+     * "ReferenceError: selectedSubcategories is not defined" the moment
+     * #location_id fired a change event — silently on a plain <select>
+     * (the browser logs it and moves on), but loudly once Location became a
+     * select2: select2 relies on that same change event to redraw its own
+     * closed-box text, so the exception aborted its listener before it
+     * could run — the dropdown value was set, but the box kept showing the
+     * old one until the page reloaded. Folded into this closure so both
+     * halves share the one set of variables.
+     */
     function loadLocationSubcategories(showDropdown = false) {
     let locationId = $('#location_id').val();
     let categoryId = selectedCategory ? selectedCategory.id : '';
@@ -3687,6 +3791,41 @@ async function updateLatLngFromAddress() {
 @include("admin.listing.partials.auto-spell")
 @endpush
 --}}
+
+{{-- select2 is vendored under public/assets/admin (same copy
+     subcategories/index.blade.php and setting/seo.blade.php use) — no CDN. --}}
+@push('css-link')
+	<link rel="stylesheet" href="{{ asset('assets/admin/css/select2.min.css') }}">
+@endpush
+@push('js-link')
+	<script src="{{ asset('assets/admin/js/select2.min.js') }}"></script>
+@endpush
+@push('js')
+<script>
+$(document).ready(function () {
+    "use strict";
+
+    // Location dropdown gets a search box — the list runs into the hundreds
+    // and scrolling through a plain <select> to find one city is slow.
+    //
+    // dropdownParent is pinned to the field's own .form-group instead of the
+    // default <body>: appended-to-body dropdowns measure their position off
+    // whatever ancestor happens to be the offset parent, and on this page
+    // that put the panel's real click area somewhere other than where it
+    // was drawn — options highlighted on hover but a click landed on
+    // whatever was actually underneath, so nothing ever got selected.
+    // Anchoring to the field itself keeps the drawn position and the click
+    // target the same element.
+    $('.select2-search').each(function () {
+        $(this).select2({
+            width: '100%',
+            placeholder: $(this).data('placeholder'),
+            dropdownParent: $(this).closest('.form-group')
+        });
+    });
+});
+</script>
+@endpush
 
 {{-- Last on purpose: the draft has to be put back after every other script
      on this page has finished building its rows, editors and pickers. --}}
