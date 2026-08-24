@@ -1652,42 +1652,18 @@ a {
         }
 
         .category-content-body.rich-content.rich-content table {
-            display: block !important;
             width: 100% !important;
             min-width: 0 !important;
             max-width: 100% !important;
-            table-layout: auto !important;
-            border: 0 !important;
-            background: transparent !important;
-        }
-
-        .category-content-body.rich-content.rich-content table thead,
-        .category-content-body.rich-content.rich-content table colgroup {
-            display: none !important;
-        }
-
-        .category-content-body.rich-content.rich-content table:not(:has(thead)) tr:first-child {
-            display: none !important;
-        }
-
-        .category-content-body.rich-content.rich-content table tbody,
-        .category-content-body.rich-content.rich-content table tr,
-        .category-content-body.rich-content.rich-content table th,
-        .category-content-body.rich-content.rich-content table td {
-            display: block !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
+            table-layout: fixed !important;
         }
 
         .category-content-body.rich-content.rich-content table th,
         .category-content-body.rich-content.rich-content table td {
             min-width: 0 !important;
-            max-width: 100% !important;
-            padding: 7px 10px !important;
-            font-size: 13px !important;
-            line-height: 1.4 !important;
+            padding: 6px 5px !important;
+            font-size: 10.5px !important;
+            line-height: 1.35 !important;
             white-space: normal !important;
             overflow-wrap: normal !important;
             word-break: normal !important;
@@ -1695,19 +1671,19 @@ a {
             box-sizing: border-box !important;
         }
 
-        .category-content-body.rich-content.rich-content table tr {
-            margin: 0 0 10px !important;
-            border: 1px solid #e3e5e8 !important;
-            background: #fff !important;
+        .category-content-body.rich-content.rich-content table th:first-child,
+        .category-content-body.rich-content.rich-content table td:first-child {
+            width: 36% !important;
         }
 
-        .category-content-body.rich-content.rich-content table td {
-            border: 0 !important;
-            border-bottom: 1px solid #e3e5e8 !important;
+        .category-content-body.rich-content.rich-content table th:nth-child(2),
+        .category-content-body.rich-content.rich-content table td:nth-child(2) {
+            width: 36% !important;
         }
 
-        .category-content-body.rich-content.rich-content table td:last-child {
-            border-bottom: 0 !important;
+        .category-content-body.rich-content.rich-content table th:nth-child(3),
+        .category-content-body.rich-content.rich-content table td:nth-child(3) {
+            width: 28% !important;
         }
     }
 </style>
