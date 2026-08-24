@@ -1629,8 +1629,9 @@ a {
     }
 
     .category-content-body.rich-content.rich-content .rich-content-table {
-        max-width: 100%;
-        overflow: visible;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
     }
 
     @media (max-width: 767px) {
@@ -1651,35 +1652,39 @@ a {
         }
 
         .category-content-body.rich-content.rich-content table {
-            width: 100%;
-            max-width: 100%;
-            table-layout: fixed;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
         }
 
         .category-content-body.rich-content.rich-content table th,
         .category-content-body.rich-content.rich-content table td {
-            padding: 7px 5px;
-            font-size: 12px;
-            line-height: 1.35;
+            min-width: 0 !important;
+            max-width: none !important;
+            padding: 6px 4px !important;
+            font-size: 11px !important;
+            line-height: 1.32 !important;
             white-space: normal !important;
             overflow-wrap: normal !important;
             word-break: normal !important;
             hyphens: none !important;
+            box-sizing: border-box !important;
         }
 
         .category-content-body.rich-content.rich-content table th:first-child,
         .category-content-body.rich-content.rich-content table td:first-child {
-            width: 36%;
+            width: 35% !important;
         }
 
         .category-content-body.rich-content.rich-content table th:nth-child(2),
         .category-content-body.rich-content.rich-content table td:nth-child(2) {
-            width: 34%;
+            width: 37% !important;
         }
 
         .category-content-body.rich-content.rich-content table th:nth-child(3),
         .category-content-body.rich-content.rich-content table td:nth-child(3) {
-            width: 30%;
+            width: 28% !important;
         }
     }
 </style>
