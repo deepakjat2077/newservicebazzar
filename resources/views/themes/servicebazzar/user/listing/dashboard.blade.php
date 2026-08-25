@@ -39,6 +39,72 @@
             </button>
         </div>
 
+        @php
+            $sbReviewsUrl = $listing->category
+                ? route('listings.details', [$listing->category->slug, $listing->slug])
+                : null;
+        @endphp
+
+        {{-- Quick actions — Edit Profile, Reviews and Add Photos open real
+             screens this site already has; the rest are the same shortcuts
+             JustDial's owner panel offers but nothing exists behind them yet
+             on this site, so they're marked coming soon rather than wired to
+             nothing. --}}
+        <div class="sb-biz-actions">
+            <button type="button" class="sb-biz-action-card" id="sbOpenBusinessProfile">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--peach"><i class="fas fa-id-card"></i></span>
+                <span>Edit Profile</span>
+            </button>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--purple"><i class="fas fa-bullhorn"></i></span>
+                <span>Advertise</span>
+                <small>Coming soon</small>
+            </div>
+            <a href="{{ $sbReviewsUrl ?? '#' }}" class="sb-biz-action-card">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
+                <span>Reviews</span>
+            </a>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--yellow"><i class="fas fa-location-dot"></i></span>
+                <span>Serviceable Area / Pincodes</span>
+                <small>Coming soon</small>
+            </div>
+            <a href="{{ route('user.listing.edit', $listing->id) }}#images" class="sb-biz-action-card">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
+                <span>Add Photos</span>
+            </a>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--teal"><i class="fas fa-address-book"></i></span>
+                <span>Add Contact</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
+                <span>Upload Catalogue</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--gold"><i class="fas fa-gear"></i></span>
+                <span>Add Offer</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--pink"><i class="fas fa-video"></i></span>
+                <span>Add Video</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
+                <span>Add Social Links</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-qrcode"></i></span>
+                <span>Ratings QR</span>
+                <small>Coming soon</small>
+            </div>
+        </div>
+
         <div class="sb-biz-leads">
             <h5>Recent Enquiries</h5>
 
@@ -66,71 +132,37 @@
     </div>
 </section>
 
-@php
-    $sbReviewsUrl = $listing->category
-        ? route('listings.details', [$listing->category->slug, $listing->slug])
-        : null;
-@endphp
-
-{{-- "View More" action grid. Edit Profile, Add Photos and Reviews open real
-     screens this site already has (the listing edit form's fields, and the
-     public listing page's reviews); the rest are the same shortcuts
-     JustDial's owner panel offers but nothing behind them exists yet on
-     this site (advertising, catalogues, QR codes, ...), so they're marked
-     coming soon rather than wired to nothing. --}}
+{{-- "View More" — back to the original 5 options. There's no
+     call-tracking, quotation, or competitor data behind this site, so
+     Response Time / Quotation Request / Analytics / Competitors are marked
+     coming soon rather than shown with invented numbers; Import Leads is a
+     real, working feature. --}}
 <div class="sb-biz-modal-overlay" id="sbBizModalOverlay">
     <div class="sb-biz-modal">
         <button type="button" class="sb-biz-modal-close" id="sbBizModalClose">&times;</button>
         <div class="sb-biz-modal-grid">
-            <button type="button" class="sb-biz-modal-card" id="sbOpenBusinessProfile">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--peach"><i class="fas fa-id-card"></i></span>
-                <span>Edit Profile</span>
-            </button>
             <div class="sb-biz-modal-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--purple"><i class="fas fa-bullhorn"></i></span>
-                <span>Advertise</span>
-                <small>Coming soon</small>
-            </div>
-            <a href="{{ $sbReviewsUrl ?? '#' }}" class="sb-biz-modal-card">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
-                <span>Reviews</span>
-            </a>
-            <div class="sb-biz-modal-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--yellow"><i class="fas fa-location-dot"></i></span>
-                <span>Serviceable Area / Pincodes</span>
-                <small>Coming soon</small>
-            </div>
-            <a href="{{ route('user.listing.edit', $listing->id) }}#images" class="sb-biz-modal-card">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
-                <span>Add Photos</span>
-            </a>
-            <div class="sb-biz-modal-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--teal"><i class="fas fa-address-book"></i></span>
-                <span>Add Contact</span>
+                <i class="fas fa-stopwatch"></i>
+                <span>Response Time</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
-                <span>Upload Catalogue</span>
+                <i class="fas fa-file-invoice"></i>
+                <span>Quotation Request</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--gold"><i class="fas fa-gear"></i></span>
-                <span>Add Offer</span>
+                <i class="fas fa-chart-line"></i>
+                <span>Analytics</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--pink"><i class="fas fa-video"></i></span>
-                <span>Add Video</span>
-                <small>Coming soon</small>
-            </div>
-            <div class="sb-biz-modal-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
-                <span>Add Social Links</span>
+                <i class="fas fa-users"></i>
+                <span>Competitors</span>
                 <small>Coming soon</small>
             </div>
             <a href="{{ route('user.listing.import-leads', $listing->id) }}" class="sb-biz-modal-card">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-file-import"></i></span>
+                <i class="fas fa-file-import"></i>
                 <span>Import Leads</span>
             </a>
         </div>
@@ -330,10 +362,44 @@
         align-items:center;
         gap:8px;
         text-align:center;
+        border:1px solid #e6e8eb;
+        border-radius:8px;
+        padding:16px 10px;
+        font-size:12px;
+        font-weight:600;
+        color:#333;
+    }
+    .sb-biz-modal-card i{ font-size:20px; color:#1e90ff; }
+    .sb-biz-modal-card.is-disabled{ color:#aaa; cursor:default; }
+    .sb-biz-modal-card.is-disabled i{ color:#c3c7cc; }
+    .sb-biz-modal-card.is-disabled small{ color:#c3c7cc; font-weight:400; }
+
+    /* Quick-actions grid on the dashboard itself (Edit Profile, Advertise,
+       Reviews, ...) — the colourful circular badges. */
+    .sb-biz-actions{
+        display:grid;
+        grid-template-columns:repeat(6,1fr);
+        gap:20px 10px;
+        margin-bottom:30px;
+        padding-bottom:26px;
+        border-bottom:1px solid #eceef0;
+    }
+    @media (max-width:900px){
+        .sb-biz-actions{ grid-template-columns:repeat(4,1fr); }
+    }
+    @media (max-width:560px){
+        .sb-biz-actions{ grid-template-columns:repeat(3,1fr); }
+    }
+    .sb-biz-action-card{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:8px;
+        text-align:center;
         border:0;
         background:transparent;
         padding:0;
-        font-size:12px;
+        font-size:11.5px;
         font-weight:600;
         color:#333;
     }
@@ -358,9 +424,9 @@
     .sb-biz-modal-icon--pink{ background:#ea94b4; }
     .sb-biz-modal-icon--mint{ background:#7fd0c2; }
     .sb-biz-modal-icon--indigo{ background:#6f8ff0; }
-    .sb-biz-modal-card.is-disabled{ color:#aaa; cursor:default; }
-    .sb-biz-modal-card.is-disabled .sb-biz-modal-icon{ background:#e4e6e9; color:#bbb; }
-    .sb-biz-modal-card.is-disabled small{ color:#c3c7cc; font-weight:400; }
+    .sb-biz-action-card.is-disabled{ color:#aaa; cursor:default; }
+    .sb-biz-action-card.is-disabled .sb-biz-modal-icon{ background:#e4e6e9; color:#bbb; }
+    .sb-biz-action-card.is-disabled small{ color:#c3c7cc; font-weight:400; display:block; }
 
     .sb-biz-panel-overlay{
         display:none;
