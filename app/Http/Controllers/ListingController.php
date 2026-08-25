@@ -1283,6 +1283,64 @@ public function updatesection(Request $request, $id)
         return view($this->theme.'user.listing.import-leads', compact('listing'));
     }
 
+    /**
+     * Business Profile panel's "Business Name" edit — same pending-approval
+     * rule the main edit form already enforces (see update(), "Business
+     * name approval"): a changed name never applies straight away, it sits
+     * as pending_name until an admin approves it. This just gives that same
+     * rule a second, focused entry point instead of duplicating the logic.
+     */
+    public function requestNameChange(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $newName = trim($request->name);
+
+        if ($newName === trim((string) $listing->name)) {
+            return response()->json(['status' => 'unchanged']);
+        }
+
+        $listing->pending_name = $newName;
+        $listing->name_approval_status = 'pending';
+        $listing->save();
+
+        return response()->json([
+            'status' => 'pending',
+            'message' => 'Your new business name has been sent for admin approval.',
+        ]);
+    }
+
+    /**
+     * Same pending-approval rule as the name, for the address row.
+     */
+    public function requestAddressChange(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'address' => 'required|string|max:1000',
+        ]);
+
+        $newAddress = trim($request->address);
+
+        if ($newAddress === trim((string) $listing->address)) {
+            return response()->json(['status' => 'unchanged']);
+        }
+
+        $listing->pending_address = $newAddress;
+        $listing->address_approval_status = 'pending';
+        $listing->save();
+
+        return response()->json([
+            'status' => 'pending',
+            'message' => 'Your new business address has been sent for admin approval.',
+        ]);
+    }
+
     public function importLeadsSample()
     {
         $csv = "Enquiry Date,Name,Mobile Number\n"
