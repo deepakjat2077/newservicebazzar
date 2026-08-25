@@ -15,11 +15,18 @@
 
         <div class="sb-leads-newcount">Total Enquiries : {{ $totalCount }}</div>
 
-        {{-- New / Missed Enquiries carry real unread-count badges. Missed
+        {{-- The "Today's Enquiries" link from the dashboard lands here with
+             filter=today — that's a single fixed view (today's leads, full
+             stop), not another tab among the rest, so the whole filter bar
+             stays hidden for it rather than showing tabs that would just
+             re-filter away from "today" the moment one was clicked.
+
+             New / Missed Enquiries carry real unread-count badges. Missed
              Call and Not Connected are left as coming-soon: this site has
              no telephony behind it, so it genuinely cannot know whether a
              call rang and went unanswered — unlike New/Missed, which are
              derived straight from this listing's own enquiry rows. --}}
+        @if($filter !== 'today')
         <div class="sb-leads-filters">
             <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'new']) }}" class="sb-leads-filter-btn {{ $filter === 'new' ? 'is-active' : '' }}">
                 @if($newCount > 0)<span class="sb-leads-filter-badge">{{ $newCount }}</span>@endif
@@ -89,6 +96,7 @@
                 <a href="{{ route('user.listing.leads', array_filter(['id' => $listing->id, 'filter' => $filter])) }}" class="sb-leads-dropdown-clear">Clear status filter</a>
             @endif
         </div>
+        @endif
 
         @php
             $sbReviewLink = $listing->category
