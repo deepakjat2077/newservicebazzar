@@ -1371,9 +1371,8 @@ window.addEventListener('pageshow', function () {
 								</li>
 							@else
 								<li class="nav-item">
-									<a href="{{ route('user.dashboard') }}" class="nav-link nav-btn profile-dashboard-link d-flex align-items-center gap-2">
+									<a href="{{ route('user.dashboard') }}" class="nav-link nav-btn profile-dashboard-link d-flex align-items-center gap-2" title="{{ auth()->user()->fullname() }}">
 										<img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->fullname() }}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
-										{{ Str::limit(auth()->user()->fullname(), 14) }}
 									</a>
 								</li>
 							@endguest
@@ -4112,6 +4111,14 @@ document.addEventListener("DOMContentLoaded", function () {
     display:flex;
     flex-direction:column;
     overflow-y:auto;
+    /* The panel still scrolls if the menu ever grows taller than the
+       screen, but the always-visible track/thumb was showing up as a
+       stray grey bar down the panel even when nothing needed scrolling. */
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+}
+.sb-profile-panel::-webkit-scrollbar{
+    display:none;
 }
 .sb-profile-panel.show{ right:0; }
 .sb-profile-head{

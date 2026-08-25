@@ -583,7 +583,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                 Route::get('social', 'UserController@social')->name('social');
                 Route::post('social', 'UserController@socialUpdate');
 
-                Route::get('password-change', 'UserController@profileChange')->name('password.edit');
+                Route::get('password-change', 'UserController@passwordChange')->name('password.edit');
                 Route::post('password-update', 'UserController@passwordUpdate')->name('password.update');
 
                 Route::get('deposit', 'DepositController@deposits')->name('deposit');
