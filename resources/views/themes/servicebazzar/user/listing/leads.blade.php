@@ -38,6 +38,13 @@
             @endif
         </div>
 
+        @php
+            $sbReviewLink = $listing->category
+                ? route('listings.details', [$listing->category->slug, $listing->slug])
+                : null;
+            $sbFallbackCategoryName = optional($listing->category)->name;
+        @endphp
+
         @if($leads->isEmpty())
             <p class="sb-wizard-empty">No enquiries here yet.</p>
         @else
@@ -61,13 +68,13 @@
                                     </button>
                                     <strong>{{ $lead->name ?: 'Unknown' }}</strong>
                                     <div class="sb-lead-meta">{{ optional($lead->location)->name }}</div>
-                                    <div class="sb-lead-meta">{{ optional($lead->category)->name ?? $listing->category->name ?? '' }}</div>
+                                    <div class="sb-lead-meta">{{ optional($lead->category)->name ?? $sbFallbackCategoryName ?? '' }}</div>
 
                                     <button type="button" class="sb-lead-price-btn is-disabled" title="No pricing/offers feature yet">
                                         <i class="fas fa-gear"></i> Send Special Price
                                     </button>
 
-                                    <button type="button" class="sb-lead-showdetails" data-lead-details="{{ $lead->id }}">Show details</button>
+                                    <button type="button" class="sb-lead-showdetails" data-lead-details="{{ $lead->id }}" data-read-url="{{ route('user.listing.leads.read', $lead->id) }}">Show details</button>
 
                                     <div class="sb-lead-details" id="sbLeadDetails{{ $lead->id }}" hidden>
                                         <div class="sb-lead-actions">
@@ -80,7 +87,7 @@
                                             <button type="button" class="sb-lead-action-btn sb-lead-reminder-btn" data-reminder-url="{{ route('user.listing.leads.reminder', $lead->id) }}">
                                                 <i class="fas fa-clock"></i> Add Reminder
                                             </button>
-                                            @if($sbReviewLink = ($listing->category ? route('listings.details', [$listing->category->slug, $listing->slug]) : null))
+                                            @if($sbReviewLink)
                                                 <a href="https://wa.me/{{ preg_replace('/\D/', '', $lead->phone) }}?text={{ urlencode('Hi '.($lead->name ?: '').', thanks for your enquiry! We would really appreciate it if you could leave us a review: '.$sbReviewLink) }}" target="_blank" class="sb-lead-action-btn">
                                                     <i class="fas fa-star-half-stroke"></i> Ask Rating
                                                 </a>
@@ -100,7 +107,7 @@
 
                                         <div class="sb-lead-detail-block">
                                             <span>Query</span>
-                                            <strong>{{ $lead->name ?: 'This buyer' }} searched for {{ optional($lead->category)->name ?? $listing->category->name ?? $listing->name }}.</strong>
+                                            <strong>{{ $lead->name ?: 'This buyer' }} searched for {{ optional($lead->category)->name ?? $sbFallbackCategoryName ?? $listing->name }}.</strong>
                                         </div>
                                         <div class="sb-lead-detail-block">
                                             <span>Enquiry Source</span>
@@ -447,7 +454,8 @@ document.addEventListener('DOMContentLoaded', function () {
             var willShow = panel.hidden;
             panel.hidden = !willShow;
             if (willShow) {
-                post('{{ url("user/listing/leads") }}/' + id + '/read');
+                var readUrl = btn.getAttribute('data-read-url');
+                if (readUrl) post(readUrl);
             }
         });
     });
