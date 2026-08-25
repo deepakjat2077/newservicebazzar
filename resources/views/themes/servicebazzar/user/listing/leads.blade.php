@@ -91,7 +91,12 @@
         {{-- Enquiry Status dropdown --}}
         <div class="sb-leads-dropdown" id="sbLeadsStatusDropdown" hidden>
             <a href="{{ request()->fullUrlWithQuery(['status' => 'unread']) }}" class="sb-leads-dropdown-item {{ $status === 'unread' ? 'is-active' : '' }}">Unread</a>
-            <a href="{{ request()->fullUrlWithQuery(['status' => 'read']) }}" class="sb-leads-dropdown-item {{ $status === 'read' ? 'is-active' : '' }}">Responded</a>
+            {{-- "Responded" opens Analytics rather than just filtering the
+                 list — that's where the real received-vs-responded numbers
+                 and chart actually live, not a second copy of them here. --}}
+            <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-leads-dropdown-item">
+                Responded <small class="sb-leads-dropdown-hint">(opens Analytics)</small>
+            </a>
             @if($status)
                 <a href="{{ route('user.listing.leads', array_filter(['id' => $listing->id, 'filter' => $filter])) }}" class="sb-leads-dropdown-clear">Clear status filter</a>
             @endif
@@ -404,6 +409,7 @@
     .sb-leads-dropdown-custom{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
     .sb-leads-dropdown-custom .sb-input{ flex:1; min-width:110px; }
     .sb-leads-dropdown-clear{ font-size:12px; color:#d9364f; margin-top:4px; }
+    .sb-leads-dropdown-hint{ color:#999; font-weight:400; }
 
     .sb-lead-card{ border:1px solid #eceef0; border-radius:8px; margin-bottom:14px; padding:16px 18px; }
     .sb-lead-badges{ display:flex; gap:8px; margin-bottom:6px; }
