@@ -28,6 +28,7 @@ Disallow: /*?filter=
 Disallow: /*?rating=
 Disallow: /*?page=
 Disallow: /*?order=
+Disallow: /*?location_id=
 
 Allow: /
 

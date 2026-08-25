@@ -1658,6 +1658,22 @@ $data['locationText'] = $locationText;
 $data['relatedSubcategories'] = $relatedSubcategories;
 $data['categoryLocalities'] = $categoryLocalities;
 
+/*
+ * A city x category/subcategory combination with zero listings is a real
+ * page (it can still list other cities/categories to try) but it has no
+ * actual content of its own — with ~60 cities x thousands of categories
+ * most combinations are empty. Left indexable, Google renders it, finds
+ * nothing there, and flags it as Soft 404 / "Crawled - currently not
+ * indexed" / picks a different page as canonical — all symptoms of the
+ * same root cause seen in Search Console. noindex here says upfront "don't
+ * index this one", instead of Google reaching that conclusion itself after
+ * spending crawl budget on every empty combination. `follow` is kept so
+ * the related-categories/cities links on the page still get crawled.
+ */
+if ($listings->isEmpty()) {
+    $data['seoRobots'] = 'noindex, follow';
+}
+
 
 $data['listing'] = $listings->first() ?? (object) [
     'name' => $selectedItem->name,

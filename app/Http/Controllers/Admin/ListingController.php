@@ -368,12 +368,21 @@ public function update(Request $request, $id)
      * that repeat IS a second shift for that day. business_days[] (the
      * weekday checkboxes) is deduplicated by nature and used as a fallback
      * for any caller that still only sends that.
+     *
+     * Both fell back to [] when neither field was present, unlike every
+     * other field on this form (mobile/whatsapp/landline numbers, extra
+     * emails, all above) which falls back to the listing's current value.
+     * That meant editing and saving a listing whose timing rows didn't get
+     * resubmitted — e.g. the JS-rendered #timeSlotsWrapper rows silently
+     * failing to include their hidden timing_days[] input — wiped the
+     * saved business hours instead of leaving them untouched, even though
+     * the admin never touched that section.
      */
     $businessDays = $request->has('timing_days')
         ? $cleanSimpleArray($request->timing_days)
         : ($request->has('business_days')
             ? $cleanSimpleArray($request->business_days)
-            : []);
+            : ($listing->business_days ?? []));
 
 
 $isOpen24Hours = $request->boolean('open_24_hours');
@@ -384,11 +393,11 @@ if ($isOpen24Hours) {
 } else {
     $openTime = $request->has('open_time')
         ? $cleanSimpleArray($request->open_time)
-        : [];
+        : ($listing->open_time ?? []);
 
     $closeTime = $request->has('close_time')
         ? $cleanSimpleArray($request->close_time)
-        : [];
+        : ($listing->close_time ?? []);
 }
 
     $subcategoryIds = $request->has('subcategory_ids')

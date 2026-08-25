@@ -4,6 +4,30 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response('ok', 200))->name('health');
 
+/*
+ * Old requests/links with a literal "/public" segment (from before
+ * AppServiceProvider::stripPublicPrefixFromUrls() stopped the site from
+ * generating them itself — this document root points straight at public/,
+ * so a request like /public/delhi/hotel never got the .htaccess 301 that
+ * would normally strip it, and Laravel's own router just 404s it since
+ * "public" doesn't match any real {location}).
+ *
+ * A permanent redirect here fixes both sides: a visitor following an old
+ * bookmark/backlink lands on the real page instead of a 404, and Google
+ * gets a proper 301 -> canonical chain instead of a dead link still sitting
+ * in its index.
+ *
+ * Only matters for requests that fall through to Laravel at all — any file
+ * that genuinely exists under public/ (css, js, images, the storage
+ * symlink) is served by nginx directly and never reaches this route.
+ */
+Route::get('/public/{path?}', function (\Illuminate\Http\Request $request, string $path = '') {
+    $target = '/' . ltrim($path, '/');
+    $query = $request->getQueryString();
+
+    return redirect($query ? $target . '?' . $query : $target, 301);
+})->where('path', '.*');
+
 Route::get('/gupshup-test', function () {
     return response()->json([
         'success' => true,
@@ -722,8 +746,27 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
         ->middleware('throttle:60,1')
         ->name('listings.details');
 
-    Route::get('listings/{slug}', function ($slug) {
-        return redirect()->to('/jaipur/' . $slug, 301);
+    // $slug here is a *category* slug (see index.blade.php's
+    // route('listings.category', $categoryItem->slug) links) — this is a
+    // short "browse this category" URL that used to always redirect to
+    // /jaipur/{slug} no matter which city the visitor was actually
+    // browsing. Every visitor outside Jaipur clicking a category link from
+    // the homepage landed on the Jaipur listings instead of their own city
+    // — which is also what was showing up as mismatched-city "Redirect
+    // error" entries in Search Console (a crawler has no session, so it
+    // always fell through to the same hardcoded default anyway, but a real
+    // visitor's browser doesn't). Now it resolves the same way the rest of
+    // the site resolves "current city" (session, then a sane default), and
+    // uses a 302: the target depends on session, so it must never be
+    // permanently cached against one city the way a 301 would be.
+    Route::get('listings/{slug}', function (\Illuminate\Http\Request $request, $slug) {
+        $city = $request->query('location_name')
+            ?: session('selected_location')
+            ?: session('detected_city')
+            ?: session('user_location')
+            ?: 'jaipur';
+
+        return redirect()->to('/' . \Illuminate\Support\Str::slug($city) . '/' . $slug, 302);
     })->name('listings.category');
 
     /*

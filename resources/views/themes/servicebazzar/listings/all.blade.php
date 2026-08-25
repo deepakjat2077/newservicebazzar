@@ -679,11 +679,21 @@ a {
                         </button>
 
                         <div class="custom-dropdown-menu">
-                            <a
+                            {{--
+                                rel="nofollow" on every sort/filter link on this page: robots.txt
+                                already disallows crawling ?sort= URLs, but that only stops the
+                                fetch — Google still discovers and indexes the URL just from
+                                finding this <a href> on a crawlable page, which is exactly the
+                                "Indexed, though blocked by robots.txt" state seen in Search
+                                Console. nofollow tells it not to follow/index the link at all,
+                                so it stops rediscovering new ?sort= URLs across every
+                                city/category page from here on.
+                            --}}
+                            <a rel="nofollow"
                                 href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}">Rating</a>
-                            <a
+                            <a rel="nofollow"
                                 href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'popular'])) }}">Popular</a>
-                            <a
+                            <a rel="nofollow"
                                 href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'distance'])) }}">Distance</a>
                         </div>
                     </div>
@@ -795,19 +805,28 @@ a {
             </button>
         </div>
 
+        {{--
+            rel="nofollow" throughout this sidebar: robots.txt disallows
+            crawling ?sort=/?rating=/?filter= URLs, but that only blocks the
+            fetch — Google still discovers and indexes the URL just from
+            finding the <a href> here, which is exactly the "Indexed, though
+            blocked by robots.txt" state Search Console flags. nofollow stops
+            it from following/indexing these links at the source, across
+            every city/category page that renders this sidebar.
+        --}}
         <h6 class="mt-4">Sort By</h6>
-        <a href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}"
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('sort') == 'rating' ? 'active' : '' }}">
             Rating
         </a>
 
         {{-- SORT --}}
-        <a href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'popular'])) }}"
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'popular'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('sort') == 'popular' ? 'active' : '' }}">
             Popular
         </a>
 
-        <a href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'distance'])) }}"
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'distance'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('sort') == 'distance' ? 'active' : '' }}">
             Distance
         </a>
@@ -815,7 +834,7 @@ a {
         <h6 class="mt-4">Ratings</h6>
 
         @for($i = 1; $i <= 5; $i++)
-            <a href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $i])) }}"
+            <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $i])) }}"
                 class="filter-chip d-inline-block mb-2 {{ request('rating') == $i ? 'active' : '' }}">
                 {{ $i }} Star
             </a>
@@ -823,17 +842,17 @@ a {
 
         <h6 class="mt-4">More Filters</h6>
 
-        {{-- <a href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'top_rated'])) }}"
+        {{-- <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'top_rated'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('filter') == 'top_rated' ? 'active' : '' }}">
             Top Rated
         </a> --}}
 
-        <a href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'verified'])) }}"
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'verified'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('filter') == 'verified' ? 'active' : '' }}">
             Verified
         </a>
 
-        <a href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'trust'])) }}"
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'trust'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('filter') == 'trust' ? 'active' : '' }}">
             Trust
         </a>

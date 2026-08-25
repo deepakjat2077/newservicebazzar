@@ -431,9 +431,17 @@
                 </button>
 
                 <div class="custom-dropdown-menu">
-                    <a href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'rating'])) }}">Rating</a>
-                    <a href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'popular'])) }}">Popular</a>
-                    <a href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'distance'])) }}">Distance</a>
+                    {{--
+                        rel="nofollow": robots.txt disallows crawling ?sort=
+                        URLs, but that only blocks the fetch — Google still
+                        discovers/indexes the URL just from finding this
+                        <a href>, which is the "Indexed, though blocked by
+                        robots.txt" state Search Console flags. nofollow
+                        stops it being followed/indexed at the source.
+                    --}}
+                    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'rating'])) }}">Rating</a>
+                    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'popular'])) }}">Popular</a>
+                    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'distance'])) }}">Distance</a>
                 </div>
             </div>
 
@@ -491,19 +499,23 @@
         </button>
     </div>
 
+    {{--
+        rel="nofollow" throughout this sidebar too — same reason as the
+        dropdown above: robots.txt blocks the fetch, not the discovery.
+    --}}
     <h6 class="mt-4">Sort By</h6>
 
-    <a href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'rating'])) }}"
+    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'rating'])) }}"
        class="filter-chip d-inline-block mb-2 {{ request('sort') == 'rating' ? 'active' : '' }}">
         Rating
     </a>
 
-    <a href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'popular'])) }}"
+    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'popular'])) }}"
        class="filter-chip d-inline-block mb-2 {{ request('sort') == 'popular' ? 'active' : '' }}">
         Popular
     </a>
 
-    <a href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'distance'])) }}"
+    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['sort' => 'distance'])) }}"
        class="filter-chip d-inline-block mb-2 {{ request('sort') == 'distance' ? 'active' : '' }}">
         Distance
     </a>
@@ -511,7 +523,7 @@
     <h6 class="mt-4">Ratings</h6>
 
     @for($i = 1; $i <= 5; $i++)
-        <a href="{{ route('listings.search', array_merge(request()->query(), ['rating' => $i])) }}"
+        <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['rating' => $i])) }}"
            class="filter-chip d-inline-block mb-2 {{ request('rating') == $i ? 'active' : '' }}">
             {{ $i }} Star
         </a>
@@ -519,17 +531,17 @@
 
     <h6 class="mt-4">More Filters</h6>
 
-    <a href="{{ route('listings.search', array_merge(request()->query(), ['filter' => 'top_rated'])) }}"
+    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['filter' => 'top_rated'])) }}"
        class="filter-chip d-inline-block mb-2 {{ request('filter') == 'top_rated' ? 'active' : '' }}">
         Top Rated
     </a>
 
-    <a href="{{ route('listings.search', array_merge(request()->query(), ['filter' => 'verified'])) }}"
+    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['filter' => 'verified'])) }}"
        class="filter-chip d-inline-block mb-2 {{ request('filter') == 'verified' ? 'active' : '' }}">
         Verified
     </a>
 
-    <a href="{{ route('listings.search', array_merge(request()->query(), ['filter' => 'trust'])) }}"
+    <a rel="nofollow" href="{{ route('listings.search', array_merge(request()->query(), ['filter' => 'trust'])) }}"
        class="filter-chip d-inline-block mb-2 {{ request('filter') == 'trust' ? 'active' : '' }}">
         Trust
     </a>

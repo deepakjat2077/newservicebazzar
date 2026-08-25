@@ -1103,6 +1103,12 @@ public function listingsCategory(Request $request, $slug)
     $data['seoUrl'] = url()->current();
     $data['seoType'] = 'website';
 
+    // Same reasoning as ListingController::cityCategoryArea() — an empty
+    // result page has no content of its own to index.
+    if ($data['listings']->total() === 0) {
+        $data['seoRobots'] = 'noindex, follow';
+    }
+
     return view($this->theme . 'listings.all', $data);
 }
 public function listingsSubcategory(Request $request, $slug)
@@ -1264,6 +1270,12 @@ $data['listing'] = $data['listings']->first();
     $data['seoUrl'] = url()->current();
     $data['seoType'] = 'website';
     $data['title'] = $subcategory->name;
+
+    // Same reasoning as ListingController::cityCategoryArea() — an empty
+    // result page has no content of its own to index.
+    if ($data['listings']->total() === 0) {
+        $data['seoRobots'] = 'noindex, follow';
+    }
 
     return view($this->theme . 'listings.all', $data);
 }
