@@ -32,7 +32,7 @@
             <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Responded</span>
                 <strong class="sb-biz-stat-value">{{ $respondedCount }}</strong>
-                <small class="sb-biz-stat-pct {{ $respondedPercent < 50 ? 'is-poor' : 'is-good' }}">{{ $respondedPercent }}%</small>
+                <small class="sb-biz-stat-pct {{ $respondedPercent < 50 ? 'is-poor' : 'is-good' }}">{{ $respondedPercent }}% {{ $respondedPercent < 50 ? 'Poor' : 'Good' }}</small>
             </a>
             <button type="button" class="sb-biz-viewmore" id="sbBizViewMoreBtn">
                 View More <i class="fas fa-chevron-right"></i>

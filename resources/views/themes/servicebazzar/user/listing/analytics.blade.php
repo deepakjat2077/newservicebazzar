@@ -29,7 +29,7 @@
                 <div><strong>{{ $totals['enquiries'] }}</strong><span>Enquiries Received</span></div>
                 <div><strong>{{ $totals['responded'] }}</strong><span>Enquiries Responded</span></div>
                 <div class="{{ $totals['responded_percent'] < 50 ? 'is-poor' : 'is-good' }}">
-                    <strong>{{ $totals['responded_percent'] }}%</strong><span>Your Response Rate</span>
+                    <strong>{{ $totals['responded_percent'] }}% <span class="sb-an-quality">{{ $totals['responded_percent'] < 50 ? 'Poor' : 'Good' }}</span></strong><span>Your Response Rate</span>
                 </div>
             </div>
             <canvas id="sbChartEnquiries" height="90"></canvas>
@@ -119,6 +119,7 @@
     .sb-an-stat-row .is-good strong{ color:#22a45d; }
     .sb-an-stat-row .is-poor strong{ color:#d9364f; }
     .sb-an-star{ color:#f2b400; font-size:14px; }
+    .sb-an-quality{ font-size:12px; font-weight:700; }
     .sb-an-note{
         font-size:12px;
         color:#888;
