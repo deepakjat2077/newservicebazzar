@@ -19,11 +19,18 @@ class Enquiry extends Model
         // was changing — no query, no error, and a "marked as read" message
         // either way. The flag never moved.
         'is_read',
+        'is_starred',
+        'is_hidden',
+        'note',
+        'reminder_at',
         'dedupe_key',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
+        'is_starred' => 'boolean',
+        'is_hidden' => 'boolean',
+        'reminder_at' => 'datetime',
     ];
 
 

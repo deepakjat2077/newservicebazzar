@@ -608,6 +608,12 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
 
                     Route::get('import-leads/sample', 'ListingController@importLeadsSample')->name('import-leads.sample');
                     Route::get('{id}/dashboard', 'ListingController@businessDashboard')->name('dashboard');
+                    Route::get('{id}/leads', 'ListingController@leads')->name('leads');
+                    Route::post('leads/{enquiry}/star', 'ListingController@leadStar')->name('leads.star');
+                    Route::post('leads/{enquiry}/hide', 'ListingController@leadHide')->name('leads.hide');
+                    Route::post('leads/{enquiry}/note', 'ListingController@leadNote')->name('leads.note');
+                    Route::post('leads/{enquiry}/reminder', 'ListingController@leadReminder')->name('leads.reminder');
+                    Route::post('leads/{enquiry}/read', 'ListingController@leadRead')->name('leads.read');
                     Route::get('{id}/import-leads', 'ListingController@importLeadsForm')->name('import-leads');
                     Route::post('{id}/import-leads', 'ListingController@importLeadsUpload')->name('import-leads.upload');
                 });

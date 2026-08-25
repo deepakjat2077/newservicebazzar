@@ -13,27 +13,27 @@
         </div>
 
         <div class="sb-biz-stats">
-            <div class="sb-biz-stat">
+            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Today's Enquiries</span>
                 <strong class="sb-biz-stat-value">{{ $todayCount }}</strong>
-            </div>
-            <div class="sb-biz-stat">
+            </a>
+            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'hot']) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Hot Enquiries <small>(last 24h)</small></span>
                 <strong class="sb-biz-stat-value">{{ $hotCount }}</strong>
-            </div>
-            <div class="sb-biz-stat">
+            </a>
+            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Missed Enquiries</span>
                 <strong class="sb-biz-stat-value sb-biz-stat-value--danger">{{ $missedCount }}</strong>
-            </div>
-            <div class="sb-biz-stat">
+            </a>
+            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Total Enquiries</span>
                 <strong class="sb-biz-stat-value">{{ $totalCount }}</strong>
-            </div>
-            <div class="sb-biz-stat">
+            </a>
+            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Responded</span>
                 <strong class="sb-biz-stat-value">{{ $respondedCount }}</strong>
                 <small class="sb-biz-stat-pct {{ $respondedPercent < 50 ? 'is-poor' : 'is-good' }}">{{ $respondedPercent }}%</small>
-            </div>
+            </a>
             <button type="button" class="sb-biz-viewmore" id="sbBizViewMoreBtn">
                 View More <i class="fas fa-chevron-right"></i>
             </button>
@@ -370,10 +370,14 @@
         .sb-biz-viewmore{ grid-column:span 2; }
     }
     .sb-biz-stat{
+        display:block;
         border:1px solid #e6e8eb;
         border-radius:8px;
         padding:14px;
+        text-decoration:none;
+        transition:border-color .15s;
     }
+    .sb-biz-stat:hover{ border-color:#1e90ff; text-decoration:none; }
     .sb-biz-stat-label{ display:block; font-size:12px; color:#888; margin-bottom:6px; }
     .sb-biz-stat-label small{ color:#aaa; }
     .sb-biz-stat-value{ font-size:22px; font-weight:700; color:#222; }

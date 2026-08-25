@@ -883,6 +883,117 @@ public function updatesection(Request $request, $id)
         ));
     }
 
+    /**
+     * Leads screen for one listing — every filter tab and the category
+     * picker are real, derived from this listing's own enquiry rows rather
+     * than a fixed list, so a business with only three categories of
+     * enquiry never sees ninety it has never actually received one for.
+     */
+    public function leads(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $base = \App\Models\Enquiry::where('listing_id', $listing->id);
+
+        $newCount = (clone $base)->where('is_hidden', 0)->where('is_read', 0)->count();
+
+        $query = (clone $base)->with('category');
+
+        $filter = $request->query('filter');
+        if ($filter === 'hidden') {
+            $query->where('is_hidden', 1);
+        } elseif ($filter === 'starred') {
+            $query->where('is_starred', 1);
+        } elseif ($filter === 'notes') {
+            $query->where('is_hidden', 0)->whereNotNull('note')->where('note', '!=', '');
+        } elseif ($filter === 'hot') {
+            $query->where('is_hidden', 0)->where('created_at', '>=', now()->subDay());
+        } else {
+            $query->where('is_hidden', 0);
+        }
+
+        if ($request->filled('category_id')) {
+            $query->whereIn('category_id', (array) $request->category_id);
+        }
+
+        $leads = $query->latest()->paginate(20)->withQueryString();
+
+        // Only categories this listing's enquiries have actually carried —
+        // real options, not the site's whole category tree.
+        $categoryOptions = \App\Models\Enquiry::where('listing_id', $listing->id)
+            ->whereNotNull('category_id')
+            ->with('category:id,name')
+            ->get()
+            ->pluck('category')
+            ->filter()
+            ->unique('id')
+            ->sortBy('name')
+            ->values();
+
+        return view($this->theme.'user.listing.leads', compact(
+            'listing', 'leads', 'newCount', 'filter', 'categoryOptions'
+        ));
+    }
+
+    protected function findOwnedEnquiry($enquiryId)
+    {
+        return \App\Models\Enquiry::whereHas('listing', function ($q) {
+            $q->where('user_id', auth()->id());
+        })->findOrFail($enquiryId);
+    }
+
+    public function leadStar($enquiryId)
+    {
+        $enquiry = $this->findOwnedEnquiry($enquiryId);
+        $enquiry->is_starred = !$enquiry->is_starred;
+        $enquiry->save();
+
+        return response()->json(['starred' => $enquiry->is_starred]);
+    }
+
+    public function leadHide($enquiryId)
+    {
+        $enquiry = $this->findOwnedEnquiry($enquiryId);
+        $enquiry->is_hidden = !$enquiry->is_hidden;
+        $enquiry->save();
+
+        return response()->json(['hidden' => $enquiry->is_hidden]);
+    }
+
+    public function leadNote(Request $request, $enquiryId)
+    {
+        $request->validate(['note' => 'nullable|string|max:2000']);
+
+        $enquiry = $this->findOwnedEnquiry($enquiryId);
+        $enquiry->note = $request->note;
+        $enquiry->save();
+
+        return response()->json(['note' => $enquiry->note]);
+    }
+
+    public function leadReminder(Request $request, $enquiryId)
+    {
+        $request->validate(['reminder_at' => 'required|date']);
+
+        $enquiry = $this->findOwnedEnquiry($enquiryId);
+        $enquiry->reminder_at = $request->reminder_at;
+        $enquiry->save();
+
+        return response()->json(['reminder_at' => $enquiry->reminder_at->toIso8601String()]);
+    }
+
+    public function leadRead($enquiryId)
+    {
+        $enquiry = $this->findOwnedEnquiry($enquiryId);
+
+        if (!$enquiry->is_read) {
+            $enquiry->is_read = 1;
+            $enquiry->save();
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     public function importLeadsForm($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
