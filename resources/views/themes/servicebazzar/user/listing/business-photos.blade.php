@@ -74,7 +74,7 @@
                                     <button type="submit" class="sb-gallery-menu-item">Set as Cover Photo</button>
                                 </form>
                             @endif
-                            <a href="{{ route('user.listing.imageRemove', $photo->id) }}" class="sb-gallery-menu-item sb-gallery-menu-item--danger" onclick="return confirm('Delete this photo?');">Delete</a>
+                            <a href="{{ route('user.listing.imageRemove', $photo->id) }}" class="sb-gallery-menu-item sb-gallery-menu-item--danger sb-confirm-delete" data-confirm-text="This photo will be removed from your gallery.">Delete</a>
                         </div>
                     </div>
                 @endforeach
@@ -234,8 +234,28 @@
 @endpush
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.sb-confirm-delete').forEach(function(link){
+        link.addEventListener('click', function(e){
+            e.preventDefault();
+            var href = link.getAttribute('href');
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Delete this photo?',
+                text: link.getAttribute('data-confirm-text') || '',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                confirmButtonColor: '#d9364f',
+                cancelButtonText: 'Cancel',
+            }).then(function(result){
+                if (result.isConfirmed) window.location.href = href;
+            });
+        });
+    });
+
     var photosInput = document.getElementById('sbPhotosInput');
     photosInput.addEventListener('change', function(){
         if (photosInput.files.length) document.getElementById('sbUploadPhotosForm').submit();

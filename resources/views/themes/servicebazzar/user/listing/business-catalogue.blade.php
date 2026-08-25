@@ -45,7 +45,7 @@
                         <div class="sb-gallery-item-crop">
                             <img src="{{ loadImage('assets/images/listing/extra/'.$image->image) }}" alt="{{ $listing->name }}">
                         </div>
-                        <a href="{{ route('user.listing.imageRemove', $image->id) }}" class="sb-gallery-dots" onclick="return confirm('Delete this image?');"><i class="fas fa-trash"></i></a>
+                        <a href="{{ route('user.listing.imageRemove', $image->id) }}" class="sb-gallery-dots sb-confirm-delete" data-confirm-text="This catalogue image will be removed."><i class="fas fa-trash"></i></a>
                     </div>
                 @endforeach
             </div>
@@ -94,10 +94,30 @@
 @endpush
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('sbCatalogueInput').addEventListener('change', function(){
         if (this.files.length) document.getElementById('sbUploadCatalogueForm').submit();
+    });
+
+    document.querySelectorAll('.sb-confirm-delete').forEach(function(link){
+        link.addEventListener('click', function(e){
+            e.preventDefault();
+            var href = link.getAttribute('href');
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Delete this image?',
+                text: link.getAttribute('data-confirm-text') || '',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                confirmButtonColor: '#d9364f',
+                cancelButtonText: 'Cancel',
+            }).then(function(result){
+                if (result.isConfirmed) window.location.href = href;
+            });
+        });
     });
 });
 </script>
