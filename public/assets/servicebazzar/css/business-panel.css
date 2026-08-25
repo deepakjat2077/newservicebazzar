@@ -839,3 +839,43 @@
     }
     .sb-import-note-head a{ font-size:13px; color:#1e90ff; }
     .sb-import-note ol{ padding-left:20px; font-size:13px; color:#555; line-height:1.8; }
+
+/* ---- shared contact/repeatable-field rules ----
+   These were originally only ever defined locally inside
+   business-contact.blade.php's own <style> push, added after this file was
+   consolidated from the first six pages — every later page that reused the
+   .sb-contact-* class names (business-timings, business-social) got none of
+   the styling, which is why "+ Add Another ..." rendered as a bare
+   unstyled <button> (grey box, no icon colour) instead of a plain link. */
+.sb-contact-section-label{ font-size:13px; font-weight:700; color:#222; margin:22px 0 10px; }
+.sb-contact-row{ display:flex; gap:10px; align-items:flex-end; margin-bottom:10px; }
+.sb-contact-code{ width:80px; flex-shrink:0; }
+.sb-contact-grow{ flex:1; min-width:0; }
+.sb-contact-title{ width:90px; flex-shrink:0; }
+.sb-contact-remove{ border:0; background:transparent; color:#d9364f; padding:9px; flex-shrink:0; cursor:pointer; }
+.sb-contact-add-btn{
+    border:0;
+    background:transparent;
+    color:#1e90ff;
+    font-size:13px;
+    font-weight:600;
+    padding:0;
+    margin-bottom:6px;
+    cursor:pointer;
+    display:block;
+}
+
+/* ---- shared "Save / Save and Proceed" submit button ----
+   Same story as the .sb-contact-* block above: several pages use this
+   class name assuming it's shared, but it was only ever defined locally
+   on some of them. Centralising it here stops the next new page from
+   rendering an unstyled bare button/link again. */
+.sb-biz-form-submit{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    margin-top:20px;
+    text-decoration:none;
+}

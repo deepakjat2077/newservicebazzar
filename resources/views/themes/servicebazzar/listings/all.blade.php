@@ -1530,12 +1530,16 @@ a {
 
     /*
     |--------------------------------------------------------------------------
-    | "Services Services" prevent karega
+    | "Services Services" prevent karega, aur category name ekvachan
+    | (singular) me rakhega — "Astrologers Services" nahi, "Astrologer
+    | Services" chahiye.
     |--------------------------------------------------------------------------
     */
-    $headingWithServices = preg_match('/\bservices\s*$/i', $headingName)
-        ? $headingName
-        : $headingName . ' Services';
+    $headingNameSingular = \Illuminate\Support\Str::singular($headingName);
+
+    $headingWithServices = preg_match('/\bservices\s*$/i', $headingNameSingular)
+        ? $headingNameSingular
+        : $headingNameSingular . ' Services';
 
     /*
     |--------------------------------------------------------------------------

@@ -31,10 +31,13 @@
 
             @foreach($platforms as $key => $platform)
                 <div class="sb-social-block" id="sbSocialBlock_{{ $key }}">
-                    @foreach($socialLinks[$key]->isEmpty() ? [''] : $socialLinks[$key]->all() as $url)
+                    @foreach($socialLinks[$key]->isEmpty() ? [''] : $socialLinks[$key]->all() as $i => $url)
                         <div class="sb-social-row">
                             <span class="sb-social-icon" style="background:{{ $platform['color'] }}"><i class="{{ $platform['icon'] }}"></i></span>
                             <input type="url" name="{{ $key }}[]" class="sb-input" placeholder="{{ $platform['label'] }}" value="{{ $url }}">
+                            @if($i > 0)
+                                <button type="button" class="sb-contact-remove sb-social-remove"><i class="fas fa-trash"></i></button>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -87,6 +90,11 @@ document.addEventListener('DOMContentLoaded', function(){
         instagram: 'Instagram Profile Link',
     };
 
+    document.querySelectorAll('.sb-social-remove').forEach(bindRemove);
+    function bindRemove(btn){
+        btn.addEventListener('click', function(){ btn.closest('.sb-social-row').remove(); });
+    }
+
     document.querySelectorAll('.sb-social-add').forEach(function(btn){
         btn.addEventListener('click', function(){
             var key = btn.getAttribute('data-platform');
@@ -94,8 +102,10 @@ document.addEventListener('DOMContentLoaded', function(){
             var row = document.createElement('div');
             row.className = 'sb-social-row';
             row.innerHTML = '<span class="sb-social-icon" style="background:' + colors[key] + '"><i class="' + icons[key] + '"></i></span>' +
-                '<input type="url" name="' + key + '[]" class="sb-input" placeholder="' + placeholders[key] + '">';
+                '<input type="url" name="' + key + '[]" class="sb-input" placeholder="' + placeholders[key] + '">' +
+                '<button type="button" class="sb-contact-remove sb-social-remove"><i class="fas fa-trash"></i></button>';
             block.appendChild(row);
+            bindRemove(row.querySelector('.sb-social-remove'));
         });
     });
 });

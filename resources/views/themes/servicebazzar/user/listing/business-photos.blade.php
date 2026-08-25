@@ -59,10 +59,12 @@
             <div class="sb-gallery-grid">
                 @foreach($photos as $photo)
                     <div class="sb-gallery-item">
-                        <img src="{{ loadImage('assets/images/listing/extra/'.$photo->image) }}" alt="{{ $listing->name }}">
-                        @if($photo->is_cover)
-                            <span class="sb-gallery-cover-tag">Cover Photo</span>
-                        @endif
+                        <div class="sb-gallery-item-crop">
+                            <img src="{{ loadImage('assets/images/listing/extra/'.$photo->image) }}" alt="{{ $listing->name }}">
+                            @if($photo->is_cover)
+                                <span class="sb-gallery-cover-tag">Cover Photo</span>
+                            @endif
+                        </div>
                         <button type="button" class="sb-gallery-dots" data-photo-menu="{{ $photo->id }}"><i class="fas fa-ellipsis-vertical"></i></button>
 
                         <div class="sb-gallery-menu" id="sbPhotoMenu{{ $photo->id }}" hidden>
@@ -151,9 +153,13 @@
     @media (max-width:700px){ .sb-gallery-grid{ grid-template-columns:repeat(3,1fr); } }
     .sb-gallery-item{
         position:relative;
+        aspect-ratio:1/1;
+    }
+    .sb-gallery-item-crop{
+        width:100%;
+        height:100%;
         border-radius:8px;
         overflow:hidden;
-        aspect-ratio:1/1;
     }
     .sb-gallery-item img{ width:100%; height:100%; object-fit:cover; display:block; }
     .sb-gallery-cover-tag{

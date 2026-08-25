@@ -1590,10 +1590,11 @@ public function updatesection(Request $request, $id)
      * "Business Categories" — real subcategories on the real
      * subcategory_ids column (same one the admin listing form's own
      * search-and-tag picker already writes to; see Admin\ListingController
-     * and Listing::getSubcategoryAttribute()). Search is scoped to this
-     * listing's own category, since a subcategory only ever belongs to one
-     * category and a plumber's listing has no use for "MS Flat Bar
-     * Wholesalers" suggestions.
+     * and Listing::getSubcategoryAttribute()). Search runs across every
+     * subcategory, not just this listing's own category — the saved list
+     * a business already has can span several categories (an IT company
+     * tagged under "Digital Marketing" and "SEO Services" too), so search
+     * has to be able to find those as well.
      */
     public function businessCategoriesForm($id)
     {
@@ -1606,16 +1607,22 @@ public function updatesection(Request $request, $id)
 
     public function searchSubcategories(Request $request, $id)
     {
-        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+        // Just ownership — not scoped to the listing's own category. The
+        // saved subcategory_ids this same page already lists prove that:
+        // "IT Consultants near me" sits alongside "Digital Marketing" and
+        // "SEO Services", categories a business can genuinely want to be
+        // found under even when they're not the listing's primary one
+        // (matches how the real JustDial search behaves too — results
+        // aren't confined to one category).
+        Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
         $term = trim((string) $request->query('q'));
 
-        if ($term === '' || !$listing->category_id) {
+        if ($term === '') {
             return response()->json([]);
         }
 
         $results = \App\Models\Subcategory::where('status', 1)
-            ->where('category_id', $listing->category_id)
             ->where('name', 'like', '%' . $term . '%')
             ->orderBy('name')
             ->take(20)
@@ -1649,7 +1656,15 @@ public function updatesection(Request $request, $id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
-        $photos = $listing->extraImages()->where('type', 'gallery')->orderByDesc('is_cover')->latest()->get();
+        // Guards photos uploaded before the `type` column existed: MySQL
+        // backfills a new NOT NULL DEFAULT column on ALTER, but this still
+        // covers any row that somehow ended up with '' or NULL instead —
+        // safer than a strict where('type','gallery') silently hiding it.
+        $photos = $listing->extraImages()
+            ->where(fn ($q) => $q->where('type', 'gallery')->orWhereNull('type')->orWhere('type', ''))
+            ->orderByDesc('is_cover')
+            ->latest()
+            ->get();
 
         return view($this->theme.'user.listing.business-photos', compact('listing', 'photos'));
     }

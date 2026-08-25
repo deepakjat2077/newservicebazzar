@@ -42,12 +42,18 @@
             <div class="sb-gallery-grid sb-catalogue-grid">
                 @foreach($catalogueImages as $image)
                     <div class="sb-gallery-item">
-                        <img src="{{ loadImage('assets/images/listing/extra/'.$image->image) }}" alt="{{ $listing->name }}">
+                        <div class="sb-gallery-item-crop">
+                            <img src="{{ loadImage('assets/images/listing/extra/'.$image->image) }}" alt="{{ $listing->name }}">
+                        </div>
                         <a href="{{ route('user.listing.imageRemove', $image->id) }}" class="sb-gallery-dots" onclick="return confirm('Delete this image?');"><i class="fas fa-trash"></i></a>
                     </div>
                 @endforeach
             </div>
         @endif
+
+        <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sb-wizard-primary-btn sb-biz-form-submit">
+            Save and Proceed <i class="fas fa-arrow-right"></i>
+        </a>
     </div>
 </section>
 @endsection
@@ -76,7 +82,8 @@
     .sb-gallery-tile i{ font-size:18px; }
     .sb-catalogue-grid{ grid-template-columns:repeat(5,1fr); }
     @media (max-width:700px){ .sb-catalogue-grid{ grid-template-columns:repeat(3,1fr); } }
-    .sb-gallery-item{ position:relative; border-radius:8px; overflow:hidden; aspect-ratio:1/1; }
+    .sb-gallery-item{ position:relative; aspect-ratio:1/1; }
+    .sb-gallery-item-crop{ width:100%; height:100%; border-radius:8px; overflow:hidden; }
     .sb-gallery-item img{ width:100%; height:100%; object-fit:cover; display:block; }
     .sb-gallery-item .sb-gallery-dots{
         position:absolute; top:4px; right:4px; width:24px; height:24px;
