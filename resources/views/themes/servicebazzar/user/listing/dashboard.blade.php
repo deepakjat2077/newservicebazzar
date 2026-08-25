@@ -689,6 +689,21 @@
         padding:14px 0;
         border-bottom:1px solid #f3f3f3;
         color:#222;
+        /* <button> versions of this row (Business Name / Business Address,
+           which open a sub-panel instead of navigating) need the same
+           reset an <a> gets for free — without it a button defaults to
+           shrink-to-fit width and its own font, which is what stretched
+           the whole side panel wider than its 380px and forced a
+           horizontal scrollbar. */
+        width:100%;
+        background:transparent;
+        border-left:0;
+        border-right:0;
+        border-top:0;
+        text-align:left;
+        font:inherit;
+        cursor:pointer;
+        box-sizing:border-box;
     }
     .sb-biz-panel-row > i:first-child{ font-size:16px; color:#1e90ff; width:20px; text-align:center; }
     .sb-biz-panel-row div{ flex:1; min-width:0; }
