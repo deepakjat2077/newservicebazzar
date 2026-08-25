@@ -615,6 +615,8 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::post('{id}/request-name-change', 'ListingController@requestNameChange')->name('request-name-change');
                     Route::get('{id}/business-address', 'ListingController@businessAddressForm')->name('business-address');
                     Route::post('{id}/request-address-change', 'ListingController@requestAddressChange')->name('request-address-change');
+                    Route::get('{id}/business-contact', 'ListingController@businessContactForm')->name('business-contact');
+                    Route::post('{id}/business-contact', 'ListingController@updateContactDetails')->name('business-contact.update');
                     Route::get('{id}/leads', 'ListingController@leads')->name('leads');
                     Route::post('leads/{enquiry}/star', 'ListingController@leadStar')->name('leads.star');
                     Route::post('leads/{enquiry}/hide', 'ListingController@leadHide')->name('leads.hide');

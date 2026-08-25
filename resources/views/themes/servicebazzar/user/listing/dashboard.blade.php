@@ -290,7 +290,7 @@
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
             </a>
 
-            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
+            <a href="{{ route('user.listing.business-contact', $listing->id) }}" class="sb-biz-panel-row">
                 <i class="fas fa-address-card"></i>
                 <div>
                     <strong>Contact Details</strong>

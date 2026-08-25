@@ -1374,6 +1374,76 @@ public function updatesection(Request $request, $id)
         ]);
     }
 
+    /**
+     * "Contact Details" — its own real page. Unlike name/address these
+     * fields already apply immediately in the main edit form (no approval
+     * step exists for them there either), so this keeps the same behaviour
+     * rather than inventing an approval rule the rest of the site doesn't
+     * have for contact info.
+     */
+    public function businessContactForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-contact', compact('listing'));
+    }
+
+    public function updateContactDetails(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'contact_title' => 'nullable|string|max:50',
+            'contact_person' => 'nullable|string|max:255',
+
+            'mobile_country_code' => 'nullable|array',
+            'mobile_country_code.*' => 'nullable|string|max:10',
+            'mobile_numbers' => 'nullable|array',
+            'mobile_numbers.*' => 'nullable|string|max:20',
+
+            'whatsapp_country_code' => 'nullable|array',
+            'whatsapp_country_code.*' => 'nullable|string|max:10',
+            'whatsapp_numbers' => 'nullable|array',
+            'whatsapp_numbers.*' => 'nullable|string|max:20',
+
+            'landline_country_code' => 'nullable|array',
+            'landline_country_code.*' => 'nullable|string|max:10',
+            'landline_numbers' => 'nullable|array',
+            'landline_numbers.*' => 'nullable|string|max:20',
+
+            'extra_emails' => 'nullable|array',
+            'extra_emails.*' => 'nullable|email|max:255',
+        ]);
+
+        $stripEmpty = fn ($values) => collect($values ?? [])
+            ->map(fn ($v) => trim((string) $v))
+            ->filter(fn ($v) => $v !== '')
+            ->values();
+
+        $mobileNumbers = $stripEmpty($request->mobile_numbers);
+        $whatsappNumbers = $stripEmpty($request->whatsapp_numbers);
+        $landlineNumbers = $stripEmpty($request->landline_numbers);
+        $extraEmails = $stripEmpty($request->extra_emails);
+
+        $listing->contact_title = $request->contact_title;
+        $listing->contact_person = $request->contact_person;
+
+        $listing->mobile_numbers = $mobileNumbers->all();
+        $listing->mobile_country_code = array_slice((array) $request->mobile_country_code, 0, $mobileNumbers->count());
+
+        $listing->whatsapp_numbers = $whatsappNumbers->all();
+        $listing->whatsapp_country_code = array_slice((array) $request->whatsapp_country_code, 0, $whatsappNumbers->count());
+
+        $listing->landline_numbers = $landlineNumbers->all();
+        $listing->landline_country_code = array_slice((array) $request->landline_country_code, 0, $landlineNumbers->count());
+
+        $listing->extra_emails = $extraEmails->all();
+
+        $listing->save();
+
+        return back()->withAlert(['success', 'Contact details updated successfully.']);
+    }
+
     public function importLeadsSample()
     {
         $csv = "Enquiry Date,Name,Mobile Number\n"
