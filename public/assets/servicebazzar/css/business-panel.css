@@ -1,0 +1,841 @@
+/*
+ * Shared styles for the business-owner listing management pages:
+ * dashboard, leads, analytics, response-time, competitors, import-leads.
+ *
+ * Pulled out of each page's own inline <style> block into one file
+ * loaded once, instead of six near-identical copies of the same rules
+ * — the inline copies were the same handful of typos/omissions
+ * (missing base .sb-wizard-primary-btn, unclosed <style> risk) away
+ * from silently diverging from each other.
+ */
+
+    .sb-biz-header{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding-bottom:18px;
+        margin-bottom:20px;
+        border-bottom:1px solid #eceef0;
+    }
+    .sb-biz-back{ color:#444; font-size:16px; }
+    .sb-biz-header-title{ flex:1; }
+    .sb-biz-header-title h4{ margin:0; font-size:18px; font-weight:700; color:#222; }
+    .sb-biz-header-title span{ font-size:12px; color:#888; }
+    .sb-biz-edit-link{
+        font-size:13px;
+        color:#1e90ff;
+        font-weight:600;
+        border:1px solid #1e90ff;
+        border-radius:6px;
+        padding:7px 14px;
+    }
+
+    .sb-biz-stats{
+        display:grid;
+        grid-template-columns:repeat(5,1fr) auto;
+        gap:14px;
+        align-items:stretch;
+        margin-bottom:30px;
+    }
+    @media (max-width:900px){
+        .sb-biz-stats{ grid-template-columns:repeat(2,1fr); }
+        .sb-biz-viewmore{ grid-column:span 2; }
+    }
+    .sb-biz-stat{
+        display:block;
+        border:1px solid #e6e8eb;
+        border-radius:8px;
+        padding:14px;
+        text-decoration:none;
+        transition:border-color .15s;
+    }
+    .sb-biz-stat:hover{ border-color:#1e90ff; text-decoration:none; }
+    .sb-biz-stat-label{ display:block; font-size:12px; color:#888; margin-bottom:6px; }
+    .sb-biz-stat-label small{ color:#aaa; }
+    .sb-biz-stat-value{ font-size:22px; font-weight:700; color:#222; }
+    .sb-biz-stat-value--danger{ color:#d9364f; }
+    .sb-biz-stat-pct{ display:block; font-size:11px; margin-top:4px; font-weight:600; }
+    .sb-biz-stat-pct.is-good{ color:#22a45d; }
+    .sb-biz-stat-pct.is-poor{ color:#d9364f; }
+    .sb-biz-viewmore{
+        border:1px solid #d5d9dd;
+        background:#f7f8f9;
+        border-radius:8px;
+        padding:14px 18px;
+        font-size:13px;
+        font-weight:600;
+        color:#1e90ff;
+        cursor:pointer;
+        white-space:nowrap;
+    }
+
+    .sb-biz-wide-list{ margin-bottom:30px; }
+    .sb-biz-wide-list h5{ font-size:20px; font-weight:700; color:#222; margin-bottom:16px; }
+    .sb-biz-wide-card{
+        display:flex;
+        align-items:center;
+        gap:16px;
+        border:1px solid #e6e8eb;
+        border-radius:8px;
+        padding:16px 18px;
+        margin-bottom:14px;
+        text-align:left;
+        background:#fff;
+        width:100%;
+        color:#222;
+    }
+    .sb-biz-wide-card > i:first-child{ font-size:20px; color:#1e90ff; width:22px; text-align:center; flex-shrink:0; }
+    .sb-biz-wide-card.is-disabled{ cursor:default; }
+    .sb-biz-wide-card.is-disabled > i:first-child{ color:#bbb; }
+    .sb-biz-wide-body{ flex:1; min-width:0; }
+    .sb-biz-wide-title{
+        display:flex;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:8px;
+        font-size:15px;
+        font-weight:700;
+        color:#222;
+    }
+    .sb-biz-wide-body p{ margin:3px 0 0; font-size:12.5px; color:#888; }
+    .sb-biz-wide-badge{
+        font-size:11px;
+        font-weight:700;
+        border-radius:4px;
+        padding:2px 8px;
+    }
+    .sb-biz-wide-badge--green{ background:#e6f7ec; color:#22a45d; }
+    .sb-biz-wide-badge--red{ background:#fdecec; color:#d9364f; }
+    .sb-biz-wide-chevron{
+        width:30px;
+        height:30px;
+        border:1px solid #e0e3e7;
+        border-radius:50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:12px;
+        color:#555;
+        flex-shrink:0;
+    }
+    .sb-biz-wide-grid-2{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:0 16px;
+    }
+    @media (max-width:700px){
+        .sb-biz-wide-grid-2{ grid-template-columns:1fr; }
+    }
+    .sb-biz-wide-grid-2 .sb-biz-wide-card{ align-items:flex-start; }
+
+    .sb-biz-leads h5{ font-size:15px; font-weight:700; color:#222; margin-bottom:14px; }
+    .sb-biz-lead-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        border:1px solid #eceef0;
+        border-radius:8px;
+        padding:12px 14px;
+        margin-bottom:8px;
+    }
+    .sb-biz-lead-row strong{ font-size:14px; color:#222; display:block; }
+    .sb-biz-lead-row small{ font-size:12px; color:#888; }
+    .sb-biz-lead-meta{ text-align:right; }
+    .sb-biz-lead-status{
+        display:block;
+        font-size:11px;
+        font-weight:700;
+        margin-bottom:2px;
+    }
+    .sb-biz-lead-status.is-read{ color:#22a45d; }
+    .sb-biz-lead-status.is-unread{ color:#d9364f; }
+
+    .sb-biz-modal-overlay{
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.4);
+        z-index:3000;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    }
+    .sb-biz-modal-overlay.show{ display:flex; }
+    .sb-biz-modal{
+        background:#fff;
+        border-radius:10px;
+        padding:30px 24px 24px;
+        width:100%;
+        max-width:460px;
+        position:relative;
+    }
+    .sb-biz-modal-close{
+        position:absolute;
+        top:-16px;
+        right:-16px;
+        width:34px;
+        height:34px;
+        border-radius:50%;
+        border:0;
+        background:#fff;
+        box-shadow:0 2px 10px rgba(0,0,0,.18);
+        font-size:20px;
+        line-height:1;
+        color:#333;
+        cursor:pointer;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+    .sb-biz-modal-grid{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:18px 14px;
+        margin-top:6px;
+    }
+    .sb-biz-modal-card{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:8px;
+        text-align:center;
+        border:1px solid #e6e8eb;
+        border-radius:8px;
+        padding:16px 10px;
+        font-size:12px;
+        font-weight:600;
+        color:#333;
+    }
+    .sb-biz-modal-card i{ font-size:20px; color:#1e90ff; }
+    .sb-biz-modal-card.is-disabled{ color:#aaa; cursor:default; }
+    .sb-biz-modal-card.is-disabled i{ color:#c3c7cc; }
+    .sb-biz-modal-card.is-disabled small{ color:#c3c7cc; font-weight:400; }
+    .sb-biz-modal-count{ color:#1e90ff; font-weight:700; }
+
+    /* Quick-actions grid on the dashboard itself (Edit Profile, Advertise,
+       Reviews, ...) — the colourful circular badges. */
+    .sb-biz-actions{
+        display:grid;
+        grid-template-columns:repeat(6,1fr);
+        gap:20px 10px;
+        margin-bottom:30px;
+        padding-bottom:26px;
+        border-bottom:1px solid #eceef0;
+    }
+    @media (max-width:900px){
+        .sb-biz-actions{ grid-template-columns:repeat(4,1fr); }
+    }
+    @media (max-width:560px){
+        .sb-biz-actions{ grid-template-columns:repeat(3,1fr); }
+    }
+    .sb-biz-action-card{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:8px;
+        text-align:center;
+        border:0;
+        background:transparent;
+        padding:0;
+        font-size:11.5px;
+        font-weight:600;
+        color:#333;
+    }
+    .sb-biz-modal-icon{
+        width:52px;
+        height:52px;
+        border-radius:50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:20px;
+        color:#fff;
+    }
+    .sb-biz-modal-icon--peach{ background:#f6a97a; }
+    .sb-biz-modal-icon--purple{ background:#9b7ff0; }
+    .sb-biz-modal-icon--blue{ background:#6fb1f2; }
+    .sb-biz-modal-icon--yellow{ background:#e9c65f; }
+    .sb-biz-modal-icon--green{ background:#7bc696; }
+    .sb-biz-modal-icon--teal{ background:#5fbfae; }
+    .sb-biz-modal-icon--gray{ background:#b7bcc2; }
+    .sb-biz-modal-icon--gold{ background:#d9b45a; }
+    .sb-biz-modal-icon--pink{ background:#ea94b4; }
+    .sb-biz-modal-icon--mint{ background:#7fd0c2; }
+    .sb-biz-modal-icon--indigo{ background:#6f8ff0; }
+    .sb-biz-action-card.is-disabled{ color:#aaa; cursor:default; }
+    .sb-biz-action-card.is-disabled .sb-biz-modal-icon{ background:#e4e6e9; color:#bbb; }
+    .sb-biz-action-card.is-disabled small{ color:#c3c7cc; font-weight:400; display:block; }
+
+    .sb-biz-panel-overlay{
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.4);
+        z-index:3100;
+        justify-content:flex-end;
+    }
+    .sb-biz-panel-overlay.show{ display:flex; }
+    .sb-biz-panel{
+        position:relative;
+        background:#fff;
+        width:380px;
+        max-width:92vw;
+        height:100%;
+        overflow-y:auto;
+    }
+    /* On a phone, 92vw still leaves a strip of the dashboard visible down
+       the left edge (the gap between the panel and the screen edge in the
+       reported screenshot) — JustDial's own panel runs edge-to-edge on
+       mobile, so this does the same rather than looking like a drawer
+       that didn't quite open all the way. */
+    @media (max-width:480px){
+        .sb-biz-panel{ width:100vw; max-width:100vw; }
+    }
+    .sb-biz-panel-head{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding:18px;
+        border-bottom:1px solid #eceef0;
+    }
+    .sb-biz-panel-back{
+        border:0;
+        background:transparent;
+        font-size:16px;
+        color:#333;
+        cursor:pointer;
+    }
+    .sb-biz-panel-head h5{ margin:0; font-size:16px; font-weight:700; color:#222; }
+    .sb-biz-panel-body{ padding:6px 18px 24px; }
+    .sb-biz-panel-row{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding:14px 0;
+        border-bottom:1px solid #f3f3f3;
+        color:#222;
+        /* <button> versions of this row (Business Name / Business Address,
+           which open a sub-panel instead of navigating) need the same
+           reset an <a> gets for free — without it a button defaults to
+           shrink-to-fit width and its own font, which is what stretched
+           the whole side panel wider than its 380px and forced a
+           horizontal scrollbar. */
+        width:100%;
+        background:transparent;
+        border-left:0;
+        border-right:0;
+        border-top:0;
+        text-align:left;
+        font:inherit;
+        cursor:pointer;
+        box-sizing:border-box;
+    }
+    .sb-biz-panel-row > i:first-child{ font-size:16px; color:#1e90ff; width:20px; text-align:center; }
+    .sb-biz-panel-row div{ flex:1; min-width:0; }
+    .sb-biz-panel-row strong{ display:block; font-size:13px; font-weight:600; color:#222; }
+    .sb-biz-panel-row span{ display:block; font-size:12px; color:#888; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sb-biz-panel-chevron{ font-size:12px; color:#bbb; }
+    .sb-biz-panel-edit-btn{ display:block; text-align:center; margin-top:20px; }
+    .sb-biz-panel-pending{
+        display:block;
+        margin-top:2px;
+        font-size:11px;
+        color:#d98a00;
+        white-space:normal;
+    }
+
+    .sb-biz-panel-sub{
+        position:absolute;
+        inset:0;
+        background:#fff;
+        display:flex;
+        flex-direction:column;
+    }
+    .sb-biz-panel-sub .sb-biz-panel-body{ flex:1; overflow-y:auto; }
+    .sb-biz-panel-info-banner{
+        background:#eaf4fe;
+        color:#0e6fd6;
+        font-size:12.5px;
+        border-radius:8px;
+        padding:12px 14px;
+        margin-bottom:20px;
+        line-height:1.6;
+    }
+    .sb-biz-panel-info-banner i{ margin-right:4px; }
+    .sb-biz-panel-field label{
+        display:block;
+        font-size:11px;
+        color:#888;
+        margin-bottom:6px;
+    }
+    .sb-biz-panel-textarea{ min-height:90px; resize:vertical; }
+    .sb-biz-panel-msg{ font-size:12.5px; margin-top:10px; }
+    .sb-biz-panel-msg.is-success{ color:#22a45d; }
+    .sb-biz-panel-msg.is-error{ color:#d9364f; }
+    .sb-biz-panel-footer{
+        padding:16px 18px;
+        border-top:1px solid #eceef0;
+    }
+    /* This page never had a base .sb-wizard-primary-btn rule — it was
+       styled correctly on the profile wizard page this class name came
+       from, but every page has its own isolated @push('css'), so here it
+       rendered as a bare unstyled <button> (the "Save and Continue" that
+       showed up as plain black text on grey instead of a blue button). */
+    .sb-wizard-primary-btn{
+        background:#1e90ff;
+        color:#fff;
+        border:0;
+        border-radius:6px;
+        padding:11px 26px;
+        font-size:14px;
+        font-weight:600;
+        cursor:pointer;
+        display:inline-block;
+        text-align:center;
+        text-decoration:none;
+    }
+    .sb-biz-panel-footer .sb-wizard-primary-btn{ display:block; width:100%; }
+
+/* ---- leads.blade.php-only rules ---- */
+    /* Shared with the dashboard page (header, empty-state, modal shell,
+       primary button) — duplicated here since this is a separate page with
+       its own CSS push block.
+
+       That sentence used to spell out the actual directive syntax here
+       (at-push-open-quote-css-close-quote) as plain descriptive text. Blade
+       compiles directives by scanning the raw file text, comments included
+       — it can't tell "this is inside a CSS comment" from "this is real
+       code" — so that literal text opened a second, nested copy of the
+       directive at the top of this file, right inside this comment,
+       before the real one below ever closed.
+       The mismatched push/pop broke output buffering for the whole page:
+       this block's own CSS ended up flushed to the very start of the
+       response, ahead of <!DOCTYPE html> itself, which is why the page
+       rendered with no styling at all. Describe the syntax in words, never
+       spell it out literally in a comment. */
+    .sb-biz-header{
+        display:flex; align-items:center; gap:14px;
+        padding-bottom:18px; margin-bottom:20px; border-bottom:1px solid #eceef0;
+    }
+    .sb-biz-back{ color:#444; font-size:16px; }
+    .sb-biz-header-title{ flex:1; }
+    .sb-biz-header-title h4{ margin:0; font-size:18px; font-weight:700; color:#222; }
+    .sb-biz-header-title span{ font-size:12px; color:#888; }
+    .sb-wizard-empty{ font-size:13px; color:#888; }
+    .sb-wizard-primary-btn{
+        background:#1e90ff; color:#fff; border:0; border-radius:6px;
+        padding:11px 26px; font-size:14px; font-weight:600; cursor:pointer;
+        display:inline-block; text-align:center; text-decoration:none;
+    }
+    .sb-wizard-secondary-btn{
+        background:#fff; color:#1e90ff; border:1px solid #1e90ff; border-radius:6px;
+        padding:9px 18px; font-size:13px; font-weight:600; cursor:pointer;
+    }
+    .sb-input{
+        width:100%; border:1px solid #d5d9dd; border-radius:6px;
+        padding:9px 12px; font-size:14px; color:#222; background:#fff;
+    }
+    .sb-biz-modal-overlay{
+        display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);
+        z-index:3000; align-items:center; justify-content:center; padding:20px;
+    }
+    .sb-biz-modal-overlay.show{ display:flex; }
+    .sb-biz-modal{
+        background:#fff; border-radius:10px; padding:30px 24px 24px;
+        width:100%; max-width:420px; position:relative;
+    }
+    .sb-biz-modal-close{
+        position:absolute; top:-16px; right:-16px; width:34px; height:34px;
+        border-radius:50%; border:0; background:#fff;
+        box-shadow:0 2px 10px rgba(0,0,0,.18); font-size:20px; line-height:1;
+        color:#333; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    }
+
+    .sb-leads-help{
+        background:#1e90ff;
+        color:#fff;
+        border-radius:20px;
+        padding:8px 16px;
+        font-size:13px;
+        font-weight:600;
+    }
+    .sb-leads-newcount{ font-size:14px; font-weight:700; color:#222; margin-bottom:14px; }
+    .sb-leads-filters{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-bottom:20px;
+        padding-bottom:18px;
+        border-bottom:1px solid #eceef0;
+    }
+    .sb-leads-filter-btn{
+        position:relative;
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        border:1px solid #d5d9dd;
+        border-radius:6px;
+        background:#fff;
+        padding:8px 14px;
+        font-size:12.5px;
+        font-weight:600;
+        color:#444;
+    }
+    .sb-leads-filter-btn.is-active{ border-color:#1e90ff; color:#1e90ff; background:#eaf4fe; }
+    .sb-leads-filter-btn.is-disabled{ color:#bbb; cursor:default; }
+    .sb-leads-filter-badge{
+        background:#d9364f;
+        color:#fff;
+        font-size:10px;
+        font-weight:700;
+        border-radius:10px;
+        padding:1px 6px;
+        position:absolute;
+        top:-8px;
+        right:-6px;
+    }
+
+    .sb-leads-dropdown{
+        position:relative;
+        background:#fff;
+        border:1px solid #e6e8eb;
+        border-radius:8px;
+        padding:12px;
+        margin:-10px 0 20px;
+        max-width:320px;
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+    }
+    .sb-leads-dropdown-item{
+        padding:8px 10px;
+        border-radius:6px;
+        font-size:13px;
+        color:#333;
+    }
+    .sb-leads-dropdown-item.is-active{ background:#eaf4fe; color:#1e90ff; font-weight:600; }
+    .sb-leads-dropdown-custom{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+    .sb-leads-dropdown-custom .sb-input{ flex:1; min-width:110px; }
+    .sb-leads-dropdown-clear{ font-size:12px; color:#d9364f; margin-top:4px; }
+    .sb-leads-dropdown-hint{ color:#999; font-weight:400; }
+
+    .sb-lead-card{ border:1px solid #eceef0; border-radius:8px; margin-bottom:14px; padding:16px 18px; }
+    .sb-lead-badges{ display:flex; gap:8px; margin-bottom:6px; }
+    .sb-lead-badge{ font-size:10px; font-weight:700; border-radius:4px; padding:2px 8px; }
+    .sb-lead-badge--new{ background:#e6f7ec; color:#22a45d; }
+    .sb-lead-badge--hot{ background:#fdecec; color:#d9364f; }
+
+    .sb-lead-row{ display:flex; justify-content:space-between; gap:14px; }
+    .sb-lead-info{ flex:1; min-width:0; }
+    .sb-lead-star{ border:0; background:transparent; color:#ccc; font-size:13px; margin-right:4px; cursor:pointer; }
+    .sb-lead-star.is-starred{ color:#f2b400; }
+    .sb-lead-info strong{ font-size:15px; color:#222; }
+    .sb-lead-meta{ font-size:12.5px; color:#777; margin:2px 0 0 20px; }
+    .sb-lead-also-sent{ color:#1e90ff; margin-top:6px; }
+    .sb-lead-also-sent i{ margin-right:4px; }
+    .sb-lead-price-btn{
+        margin:10px 0 8px 0;
+        border:1px solid #d5d9dd;
+        border-radius:6px;
+        background:#fff;
+        padding:7px 12px;
+        font-size:12px;
+        font-weight:600;
+        color:#444;
+    }
+    .sb-lead-price-btn.is-disabled{ color:#bbb; cursor:default; }
+    .sb-lead-showdetails, .sb-lead-hidedetails{
+        display:block;
+        border:0;
+        background:transparent;
+        color:#1e90ff;
+        font-size:12.5px;
+        font-weight:600;
+        cursor:pointer;
+        padding:0;
+        margin-top:4px;
+    }
+
+    .sb-lead-side{ text-align:right; flex-shrink:0; }
+    .sb-lead-side small{ display:block; font-size:11.5px; color:#999; margin-bottom:8px; }
+    .sb-lead-contact-btns{ display:flex; gap:8px; justify-content:flex-end; margin-bottom:10px; }
+    .sb-lead-contact-btn{
+        width:34px;
+        height:34px;
+        border-radius:50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#fff;
+        font-size:14px;
+    }
+    .sb-lead-contact-btn--call{ background:#1e90ff; }
+    .sb-lead-contact-btn--whatsapp{ background:#25d366; }
+    .sb-lead-contact-btn--email{ background:#666; }
+    .sb-lead-hide-btn{
+        border:0;
+        background:transparent;
+        color:#888;
+        font-size:11.5px;
+        cursor:pointer;
+    }
+
+    .sb-lead-details{ margin-top:12px; border-top:1px dashed #eceef0; padding-top:12px; }
+    .sb-lead-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+    .sb-lead-action-btn{
+        border:1px solid #d5d9dd;
+        border-radius:6px;
+        background:#fff;
+        padding:7px 12px;
+        font-size:12px;
+        font-weight:600;
+        color:#333;
+    }
+    .sb-lead-action-btn.is-disabled{ color:#bbb; cursor:default; }
+    .sb-lead-note-preview, .sb-lead-reminder-preview{
+        font-size:12.5px;
+        color:#555;
+        background:#f7f8f9;
+        border-radius:6px;
+        padding:8px 12px;
+        margin-bottom:8px;
+    }
+    .sb-lead-detail-block{ margin-bottom:8px; }
+    .sb-lead-detail-block span{ display:block; font-size:11px; color:#999; }
+    .sb-lead-detail-block strong{ font-size:13px; color:#222; font-weight:600; }
+
+    .sb-lead-share-panel{ background:#f7f8f9; border-radius:8px; padding:12px; margin:10px 0; }
+    .sb-lead-share-panel p{ font-size:12.5px; margin-bottom:8px; }
+    .sb-lead-share-wa{ color:#25d366; font-weight:700; }
+    .sb-lead-share-options{ display:flex; flex-wrap:wrap; gap:8px; }
+    .sb-lead-share-opt{
+        border:1px solid #d5d9dd;
+        border-radius:6px;
+        background:#fff;
+        padding:7px 12px;
+        font-size:12px;
+        font-weight:600;
+        color:#333;
+    }
+
+    .sb-leads-modal h5{ margin-bottom:16px; font-size:16px; font-weight:700; }
+    .sb-leads-textarea{
+        width:100%;
+        min-height:110px;
+        border:1px solid #1e90ff;
+        border-radius:6px;
+        padding:10px;
+        font-size:13px;
+        margin-bottom:16px;
+        resize:vertical;
+    }
+    .sb-leads-modal-label{ font-size:12.5px; color:#666; margin:14px 0 8px; font-weight:600; }
+    .sb-leads-radio-row{ display:flex; flex-wrap:wrap; gap:16px; font-size:13px; color:#333; }
+    .sb-leads-date-input{ margin-top:10px; }
+    .sb-leads-modal-btns{ display:flex; gap:10px; margin-top:20px; }
+    .sb-leads-cancel-btn{
+        flex:1;
+        border:0;
+        background:#9aa1a8;
+        color:#fff;
+        border-radius:6px;
+        padding:11px;
+        font-weight:600;
+    }
+    .sb-leads-modal-btns .sb-wizard-primary-btn{ flex:1; }
+
+    .sb-category-modal{ max-width:480px; text-align:left; }
+    .sb-category-list{ max-height:340px; overflow-y:auto; margin:14px 0; border:1px solid #eceef0; border-radius:8px; }
+    .sb-category-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:12px 14px;
+        border-bottom:1px solid #f3f3f3;
+        font-size:13.5px;
+        color:#333;
+        cursor:pointer;
+    }
+    .sb-category-row:last-child{ border-bottom:0; }
+    .sb-category-done-btn{ width:100%; }
+
+/* ---- analytics.blade.php-only rules ---- */
+    .sb-biz-header{ display:flex; align-items:center; gap:14px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid #eceef0; }
+    .sb-biz-back{ color:#444; font-size:16px; }
+    .sb-biz-header-title{ flex:1; }
+    .sb-biz-header-title h4{ margin:0; font-size:18px; font-weight:700; color:#222; }
+    .sb-biz-header-title span{ font-size:12px; color:#888; }
+
+    .sb-an-range{ font-size:12.5px; color:#888; margin-bottom:20px; }
+    .sb-an-card{
+        border:1px solid #eceef0;
+        border-radius:10px;
+        padding:20px;
+        margin-bottom:18px;
+    }
+    .sb-an-card h5{ font-size:15px; font-weight:700; color:#222; margin:0 0 3px; }
+    .sb-an-sub{ font-size:12px; color:#888; margin-bottom:16px; }
+    .sb-an-stat-row{
+        display:flex;
+        flex-wrap:wrap;
+        gap:26px;
+        margin-bottom:16px;
+    }
+    .sb-an-stat-row strong{ display:block; font-size:20px; font-weight:700; color:#222; }
+    .sb-an-stat-row span{ font-size:12px; color:#888; }
+    .sb-an-stat-row .is-good strong{ color:#22a45d; }
+    .sb-an-stat-row .is-poor strong{ color:#d9364f; }
+    .sb-an-star{ color:#f2b400; font-size:14px; }
+    .sb-an-quality{ font-size:12px; font-weight:700; }
+    .sb-an-note{
+        font-size:12px;
+        color:#888;
+        background:#f7f8f9;
+        border-radius:8px;
+        padding:12px 14px;
+        line-height:1.6;
+    }
+    .sb-an-note i{ color:#1e90ff; margin-right:4px; }
+
+/* ---- response-time.blade.php-only rules ---- */
+    .sb-biz-header{ display:flex; align-items:center; gap:14px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid #eceef0; }
+    .sb-biz-back{ color:#444; font-size:16px; }
+    .sb-biz-header-title{ flex:1; }
+    .sb-biz-header-title h4{ margin:0; font-size:18px; font-weight:700; color:#222; }
+    .sb-biz-header-title span{ font-size:12px; color:#888; }
+    .sb-wizard-empty{ font-size:13px; color:#888; }
+
+    .sb-an-card{ border:1px solid #eceef0; border-radius:10px; padding:20px; margin-bottom:18px; }
+    .sb-an-card h5{ font-size:15px; font-weight:700; color:#222; margin:0 0 3px; }
+    .sb-an-sub{ font-size:12px; color:#888; margin-bottom:16px; }
+    .sb-an-stat-row{ display:flex; flex-wrap:wrap; gap:26px; margin-bottom:16px; }
+    .sb-an-stat-row strong{ display:block; font-size:20px; font-weight:700; color:#222; }
+    .sb-an-stat-row span{ font-size:12px; color:#888; }
+    .sb-an-stat-row .is-good strong{ color:#22a45d; }
+    .sb-an-response-box{
+        border:1px solid #eceef0;
+        border-radius:8px;
+        padding:16px 20px;
+        margin-bottom:18px;
+        max-width:280px;
+    }
+    .sb-an-response-box strong{ font-size:22px; font-weight:700; color:#222; margin-right:8px; }
+    .sb-an-response-box p{ margin:4px 0 0; font-size:12px; color:#888; }
+    .sb-an-pill{
+        display:inline-block;
+        font-size:11px;
+        font-weight:700;
+        border-radius:12px;
+        padding:2px 10px;
+    }
+    .sb-an-pill--good{ background:#e6f7ec; color:#22a45d; }
+    .sb-an-pill--poor{ background:#fdecec; color:#d9364f; }
+    .sb-an-note{ font-size:12px; color:#888; background:#f7f8f9; border-radius:8px; padding:12px 14px; line-height:1.6; }
+    .sb-an-note i{ color:#1e90ff; margin-right:4px; }
+
+/* ---- competitors.blade.php-only rules ---- */
+    .sb-biz-header{ display:flex; align-items:center; gap:14px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid #eceef0; }
+    .sb-biz-back{ color:#444; font-size:16px; }
+    .sb-biz-header-title{ flex:1; }
+    .sb-biz-header-title h4{ margin:0; font-size:18px; font-weight:700; color:#222; }
+    .sb-biz-header-title span{ font-size:12px; color:#888; }
+    .sb-wizard-empty{ font-size:13px; color:#888; }
+    .sb-comp-intro{ margin-bottom:20px; }
+    .sb-an-sub{ font-size:12px; color:#888; }
+
+    .sb-comp-cards{
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:14px;
+        margin-bottom:24px;
+    }
+    @media (max-width:700px){ .sb-comp-cards{ grid-template-columns:repeat(2,1fr); } }
+    .sb-comp-card{
+        border:1px solid #eceef0;
+        border-radius:10px;
+        padding:16px;
+    }
+    .sb-comp-card-label{ display:block; font-size:11.5px; color:#888; margin-bottom:6px; }
+    .sb-comp-card strong{ display:block; font-size:22px; font-weight:700; color:#222; }
+    .sb-comp-card-vs{ display:block; font-size:11px; color:#999; margin-top:4px; }
+
+    .sb-an-card{ border:1px solid #eceef0; border-radius:10px; padding:20px; margin-bottom:18px; }
+    .sb-an-card h5{ font-size:15px; font-weight:700; color:#222; margin:0 0 3px; }
+
+    .sb-rank-head{
+        display:grid;
+        grid-template-columns:60px 1fr 80px;
+        font-size:11px;
+        color:#999;
+        font-weight:700;
+        text-transform:uppercase;
+        padding:10px 0;
+        border-bottom:1px solid #eceef0;
+    }
+    .sb-rank-row{
+        display:grid;
+        grid-template-columns:60px 1fr 80px;
+        align-items:center;
+        padding:12px 0;
+        border-bottom:1px solid #f3f3f3;
+        font-size:13.5px;
+        color:#333;
+    }
+    .sb-rank-row.is-self{ background:#eaf4fe; font-weight:700; border-radius:6px; padding-left:6px; }
+    .sb-rank-num{ font-weight:700; color:#888; }
+    .sb-rank-row.is-self .sb-rank-num{ color:#1e90ff; }
+    .sb-rank-leads{ font-weight:700; }
+    .sb-rank-congrats{
+        background:#e6f7ec;
+        color:#22a45d;
+        border-radius:8px;
+        padding:12px 16px;
+        font-size:13px;
+        text-align:center;
+        margin:10px 0;
+    }
+
+    .sb-an-note{ font-size:12px; color:#888; background:#f7f8f9; border-radius:8px; padding:12px 14px; line-height:1.6; }
+    .sb-an-note i{ color:#1e90ff; margin-right:4px; }
+
+/* ---- import-leads.blade.php-only rules ---- */
+    .sb-import-dropzone{
+        background:#eaf4fe;
+        border-radius:10px;
+        padding:26px;
+        text-align:center;
+        margin-bottom:22px;
+    }
+    .sb-import-dropzone p{ margin-bottom:14px; font-size:15px; color:#222; }
+    .sb-import-choose-btn{
+        display:inline-block;
+        background:#1e90ff;
+        color:#fff;
+        border-radius:6px;
+        padding:11px 26px;
+        font-size:14px;
+        font-weight:600;
+        cursor:pointer;
+        position:relative;
+    }
+    .sb-import-choose-btn input[type="file"]{
+        position:absolute;
+        inset:0;
+        opacity:0;
+        cursor:pointer;
+    }
+    .sb-import-filename{
+        display:block;
+        margin-top:10px;
+        font-size:12px;
+        color:#555;
+    }
+    .sb-import-note{ margin-bottom:24px; }
+    .sb-import-note-head{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:10px;
+    }
+    .sb-import-note-head a{ font-size:13px; color:#1e90ff; }
+    .sb-import-note ol{ padding-left:20px; font-size:13px; color:#555; line-height:1.8; }

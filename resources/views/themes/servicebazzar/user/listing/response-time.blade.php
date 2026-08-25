@@ -62,42 +62,7 @@
 @endsection
 
 @push('css')
-<style>
-    .sb-biz-header{ display:flex; align-items:center; gap:14px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid #eceef0; }
-    .sb-biz-back{ color:#444; font-size:16px; }
-    .sb-biz-header-title{ flex:1; }
-    .sb-biz-header-title h4{ margin:0; font-size:18px; font-weight:700; color:#222; }
-    .sb-biz-header-title span{ font-size:12px; color:#888; }
-    .sb-wizard-empty{ font-size:13px; color:#888; }
-
-    .sb-an-card{ border:1px solid #eceef0; border-radius:10px; padding:20px; margin-bottom:18px; }
-    .sb-an-card h5{ font-size:15px; font-weight:700; color:#222; margin:0 0 3px; }
-    .sb-an-sub{ font-size:12px; color:#888; margin-bottom:16px; }
-    .sb-an-stat-row{ display:flex; flex-wrap:wrap; gap:26px; margin-bottom:16px; }
-    .sb-an-stat-row strong{ display:block; font-size:20px; font-weight:700; color:#222; }
-    .sb-an-stat-row span{ font-size:12px; color:#888; }
-    .sb-an-stat-row .is-good strong{ color:#22a45d; }
-    .sb-an-response-box{
-        border:1px solid #eceef0;
-        border-radius:8px;
-        padding:16px 20px;
-        margin-bottom:18px;
-        max-width:280px;
-    }
-    .sb-an-response-box strong{ font-size:22px; font-weight:700; color:#222; margin-right:8px; }
-    .sb-an-response-box p{ margin:4px 0 0; font-size:12px; color:#888; }
-    .sb-an-pill{
-        display:inline-block;
-        font-size:11px;
-        font-weight:700;
-        border-radius:12px;
-        padding:2px 10px;
-    }
-    .sb-an-pill--good{ background:#e6f7ec; color:#22a45d; }
-    .sb-an-pill--poor{ background:#fdecec; color:#d9364f; }
-    .sb-an-note{ font-size:12px; color:#888; background:#f7f8f9; border-radius:8px; padding:12px 14px; line-height:1.6; }
-    .sb-an-note i{ color:#1e90ff; margin-right:4px; }
-</style>
+<link rel="stylesheet" href="{{ asset('assets/servicebazzar/css/business-panel.css') }}">
 @endpush
 
 @push('js')

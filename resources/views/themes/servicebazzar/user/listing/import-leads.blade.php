@@ -44,48 +44,7 @@
 @endsection
 
 @push('css')
-<style>
-    .sb-import-dropzone{
-        background:#eaf4fe;
-        border-radius:10px;
-        padding:26px;
-        text-align:center;
-        margin-bottom:22px;
-    }
-    .sb-import-dropzone p{ margin-bottom:14px; font-size:15px; color:#222; }
-    .sb-import-choose-btn{
-        display:inline-block;
-        background:#1e90ff;
-        color:#fff;
-        border-radius:6px;
-        padding:11px 26px;
-        font-size:14px;
-        font-weight:600;
-        cursor:pointer;
-        position:relative;
-    }
-    .sb-import-choose-btn input[type="file"]{
-        position:absolute;
-        inset:0;
-        opacity:0;
-        cursor:pointer;
-    }
-    .sb-import-filename{
-        display:block;
-        margin-top:10px;
-        font-size:12px;
-        color:#555;
-    }
-    .sb-import-note{ margin-bottom:24px; }
-    .sb-import-note-head{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:10px;
-    }
-    .sb-import-note-head a{ font-size:13px; color:#1e90ff; }
-    .sb-import-note ol{ padding-left:20px; font-size:13px; color:#555; line-height:1.8; }
-</style>
+<link rel="stylesheet" href="{{ asset('assets/servicebazzar/css/business-panel.css') }}">
 @endpush
 
 @push('js')

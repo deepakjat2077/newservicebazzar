@@ -92,44 +92,7 @@
 @endsection
 
 @push('css')
-<style>
-    .sb-biz-header{ display:flex; align-items:center; gap:14px; padding-bottom:18px; margin-bottom:16px; border-bottom:1px solid #eceef0; }
-    .sb-biz-back{ color:#444; font-size:16px; }
-    .sb-biz-header-title{ flex:1; }
-    .sb-biz-header-title h4{ margin:0; font-size:18px; font-weight:700; color:#222; }
-    .sb-biz-header-title span{ font-size:12px; color:#888; }
-
-    .sb-an-range{ font-size:12.5px; color:#888; margin-bottom:20px; }
-    .sb-an-card{
-        border:1px solid #eceef0;
-        border-radius:10px;
-        padding:20px;
-        margin-bottom:18px;
-    }
-    .sb-an-card h5{ font-size:15px; font-weight:700; color:#222; margin:0 0 3px; }
-    .sb-an-sub{ font-size:12px; color:#888; margin-bottom:16px; }
-    .sb-an-stat-row{
-        display:flex;
-        flex-wrap:wrap;
-        gap:26px;
-        margin-bottom:16px;
-    }
-    .sb-an-stat-row strong{ display:block; font-size:20px; font-weight:700; color:#222; }
-    .sb-an-stat-row span{ font-size:12px; color:#888; }
-    .sb-an-stat-row .is-good strong{ color:#22a45d; }
-    .sb-an-stat-row .is-poor strong{ color:#d9364f; }
-    .sb-an-star{ color:#f2b400; font-size:14px; }
-    .sb-an-quality{ font-size:12px; font-weight:700; }
-    .sb-an-note{
-        font-size:12px;
-        color:#888;
-        background:#f7f8f9;
-        border-radius:8px;
-        padding:12px 14px;
-        line-height:1.6;
-    }
-    .sb-an-note i{ color:#1e90ff; margin-right:4px; }
-</style>
+<link rel="stylesheet" href="{{ asset('assets/servicebazzar/css/business-panel.css') }}">
 @endpush
 
 @push('js')
