@@ -84,26 +84,23 @@
                 <span>Add Contact</span>
                 <small>Coming soon</small>
             </div>
-            <div class="sb-biz-action-card is-disabled">
+            <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
                 <span>Upload Catalogue</span>
-                <small>Coming soon</small>
-            </div>
+            </a>
             <div class="sb-biz-action-card is-disabled">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--gold"><i class="fas fa-gear"></i></span>
                 <span>Add Offer</span>
                 <small>Coming soon</small>
             </div>
-            <div class="sb-biz-action-card is-disabled">
+            <a href="{{ route('user.listing.business-photos', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--pink"><i class="fas fa-video"></i></span>
                 <span>Add Video</span>
-                <small>Coming soon</small>
-            </div>
-            <div class="sb-biz-action-card is-disabled">
+            </a>
+            <a href="{{ route('user.listing.business-social', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
                 <span>Add Social Links</span>
-                <small>Coming soon</small>
-            </div>
+            </a>
             <div class="sb-biz-action-card is-disabled">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-qrcode"></i></span>
                 <span>Ratings QR</span>
@@ -156,14 +153,14 @@
             </button>
 
             <div class="sb-biz-wide-grid-2">
-                <div class="sb-biz-wide-card is-disabled">
+                <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sb-biz-wide-card">
                     <i class="fas fa-file-lines"></i>
                     <div class="sb-biz-wide-body">
                         <div class="sb-biz-wide-title">Catalogue</div>
                         <p>Showcase products &amp; services</p>
                     </div>
                     <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
-                </div>
+                </a>
 
                 <div class="sb-biz-wide-card is-disabled">
                     <i class="fas fa-toolbox"></i>
@@ -328,20 +325,77 @@
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
             </a>
 
-            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
-                <i class="fas fa-list"></i>
+            <a href="{{ route('user.listing.business-timings', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-clock"></i>
                 <div>
-                    <strong>Business Category</strong>
-                    <span>{{ optional($listing->category)->name ?? 'Not set' }}</span>
+                    <strong>Business Timings</strong>
+                    <span>{{ $listing->open_24_hours ? 'Open 24 Hours' : (!empty($listing->business_days) ? 'Set' : 'Not added yet') }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.established', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-calendar-check"></i>
+                <div>
+                    <strong>Year of Establishment</strong>
+                    <span>{{ $listing->established_year ?: 'Not added yet' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.business-categories', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-tags"></i>
+                <div>
+                    <strong>Business Categories</strong>
+                    <span>{{ $listing->subcategory->isNotEmpty() ? $listing->subcategory->count().' selected' : 'Not added yet' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.business-photos', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-images"></i>
+                <div>
+                    <strong>Photos and Videos</strong>
+                    @php($sbGalleryCount = $listing->extraImages()->where('type', 'gallery')->count())
+                    <span>{{ $sbGalleryCount }} photo{{ $sbGalleryCount === 1 ? '' : 's' }}{{ $listing->youtube_video_url ? ' + video' : '' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-clipboard-list"></i>
+                <div>
+                    <strong>Rate Card / Catalogue</strong>
+                    @php($sbCatalogueCount = $listing->extraImages()->where('type', 'catalogue')->count())
+                    <span>{{ $sbCatalogueCount ? $sbCatalogueCount.' item(s)' : 'Not added yet' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.business-website', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-globe"></i>
+                <div>
+                    <strong>Business Website</strong>
+                    <span>{{ $listing->website ?: 'Not added yet' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            @php($sbHasSocial = collect($listing->social_links ?? [])->flatten()->isNotEmpty())
+            <a href="{{ route('user.listing.business-social', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-share-nodes"></i>
+                <div>
+                    <strong>Social Media</strong>
+                    <span>{{ $sbHasSocial ? 'Added' : 'Not added yet' }}</span>
                 </div>
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
             </a>
 
             <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
-                <i class="fas fa-clock"></i>
+                <i class="fas fa-list"></i>
                 <div>
-                    <strong>Business Timings</strong>
-                    <span>{{ !empty($listing->business_days) ? 'Set' : 'Not added yet' }}</span>
+                    <strong>Business Category</strong>
+                    <span>{{ optional($listing->category)->name ?? 'Not set' }}</span>
                 </div>
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
             </a>

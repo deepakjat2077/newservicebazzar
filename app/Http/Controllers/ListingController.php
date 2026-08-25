@@ -1502,6 +1502,326 @@ public function updatesection(Request $request, $id)
         return back()->withAlert(['success', 'Map location updated.']);
     }
 
+    /**
+     * "Business Timings" — its own page, same business_days/open_time/
+     * close_time/open_24_hours columns and multi-slot format (index-matched
+     * open_time[i] / close_time[i] pairs) the main edit form already saves,
+     * so a dual shift set here ("Mon 9:30 AM–12:00 PM, then 5:00 PM–8:00
+     * PM") is the exact same "+ Add Another Time Slot" the edit form has
+     * had all along — not a new schema, a second entry point to the one
+     * that exists.
+     */
+    public function businessTimingsForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-timings', compact('listing'));
+    }
+
+    public function updateBusinessTimings(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'business_days' => 'nullable|array',
+            'business_days.*' => 'nullable|string|max:20',
+            'open_24_hours' => 'nullable|boolean',
+            'open_time' => 'nullable|array',
+            'open_time.*' => 'nullable|string|max:50',
+            'close_time' => 'nullable|array',
+            'close_time.*' => 'nullable|string|max:50',
+        ]);
+
+        $listing->business_days = $request->input('business_days', []);
+        $listing->open_24_hours = $request->boolean('open_24_hours');
+
+        if ($listing->open_24_hours) {
+            $listing->open_time = [];
+            $listing->close_time = [];
+        } else {
+            $openTimes = collect($request->input('open_time', []));
+            $closeTimes = collect($request->input('close_time', []));
+
+            // Keep only slots that actually have both ends filled in — an
+            // "+ Add Another Time Slot" row left empty shouldn't save as a
+            // blank shift.
+            $keep = $openTimes->keys()->filter(fn ($i) => filled($openTimes[$i] ?? null) && filled($closeTimes[$i] ?? null));
+
+            $listing->open_time = $keep->map(fn ($i) => $openTimes[$i])->values()->all();
+            $listing->close_time = $keep->map(fn ($i) => $closeTimes[$i])->values()->all();
+        }
+
+        $listing->save();
+
+        return back()->withAlert(['success', 'Business timings updated.']);
+    }
+
+    /**
+     * "Year of Establishment" — its own page. established_year already
+     * existed and already applies immediately in the main edit form (no
+     * admin review step exists for it there), so this keeps that same
+     * behaviour rather than claiming a "sent for verification" wait this
+     * site doesn't actually have for this field.
+     */
+    public function businessEstablishedForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-established', compact('listing'));
+    }
+
+    public function updateEstablished(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'established_month' => 'nullable|integer|between:1,12',
+            'established_year' => 'nullable|digits:4|integer|min:1900|max:' . date('Y'),
+        ]);
+
+        $listing->established_month = $request->established_month ?: null;
+        $listing->established_year = $request->established_year ?: null;
+        $listing->save();
+
+        return back()->withAlert(['success', 'Year of establishment updated.']);
+    }
+
+    /**
+     * "Business Categories" — real subcategories on the real
+     * subcategory_ids column (same one the admin listing form's own
+     * search-and-tag picker already writes to; see Admin\ListingController
+     * and Listing::getSubcategoryAttribute()). Search is scoped to this
+     * listing's own category, since a subcategory only ever belongs to one
+     * category and a plumber's listing has no use for "MS Flat Bar
+     * Wholesalers" suggestions.
+     */
+    public function businessCategoriesForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $selected = $listing->subcategory; // accessor: real Subcategory rows for subcategory_ids
+
+        return view($this->theme.'user.listing.business-categories', compact('listing', 'selected'));
+    }
+
+    public function searchSubcategories(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $term = trim((string) $request->query('q'));
+
+        if ($term === '' || !$listing->category_id) {
+            return response()->json([]);
+        }
+
+        $results = \App\Models\Subcategory::where('status', 1)
+            ->where('category_id', $listing->category_id)
+            ->where('name', 'like', '%' . $term . '%')
+            ->orderBy('name')
+            ->take(20)
+            ->get(['id', 'name']);
+
+        return response()->json($results);
+    }
+
+    public function updateCategories(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'subcategory_ids' => 'nullable|array',
+            'subcategory_ids.*' => 'integer|exists:subcategories,id',
+        ]);
+
+        $listing->subcategory_ids = array_values(array_unique(array_filter((array) $request->subcategory_ids)));
+        $listing->save();
+
+        return back()->withAlert(['success', 'Business categories updated.']);
+    }
+
+    /**
+     * "Photos and Videos" — real gallery, same extra_images table and
+     * upload path addExtraImage() already writes to on the main edit form;
+     * this is a second, focused entry point to it, plus a cover-photo flag
+     * and a YouTube link field neither of which existed before.
+     */
+    public function businessPhotosForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $photos = $listing->extraImages()->where('type', 'gallery')->orderByDesc('is_cover')->latest()->get();
+
+        return view($this->theme.'user.listing.business-photos', compact('listing', 'photos'));
+    }
+
+    public function uploadGalleryPhotos(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        $this->addExtraImage($request, $listing);
+
+        return back()->withAlert(['success', 'Photos uploaded successfully.']);
+    }
+
+    public function setCoverPhoto($listingId, $imageId)
+    {
+        $listing = Listing::where('id', $listingId)->where('user_id', auth()->id())->firstOrFail();
+
+        $image = $listing->extraImages()->where('id', $imageId)->firstOrFail();
+
+        $listing->extraImages()->update(['is_cover' => false]);
+        $image->is_cover = true;
+        $image->save();
+
+        return back()->withAlert(['success', 'Cover photo updated.']);
+    }
+
+    public function updateVideoLink(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'youtube_video_url' => ['nullable', 'url', 'regex:/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//'],
+        ], [
+            'youtube_video_url.regex' => 'That doesn\'t look like a YouTube link.',
+        ]);
+
+        $listing->youtube_video_url = $request->youtube_video_url ?: null;
+        $listing->save();
+
+        return back()->withAlert(['success', 'Video link saved.']);
+    }
+
+    /**
+     * "Rate Card / Catalogue" — same extra_images table and upload path as
+     * the photo gallery, kept apart only by type='catalogue' so the two
+     * pages never see each other's images.
+     */
+    public function businessCatalogueForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $catalogueImages = $listing->extraImages()->where('type', 'catalogue')->latest()->get();
+
+        return view($this->theme.'user.listing.business-catalogue', compact('listing', 'catalogueImages'));
+    }
+
+    public function uploadCatalogueImages(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        foreach ($request->file('images') as $file) {
+            $image = $this->uploadFile('image', [
+                'file' => $file,
+                'path' => 'assets/images/listing/extra/',
+                'size' => '1000x1000',
+                'prevFile' => null,
+            ]);
+
+            $extraImage = new ExtraImage();
+            $extraImage->listing_id = $listing->id;
+            $extraImage->type = 'catalogue';
+            $extraImage->image = $image;
+            $extraImage->save();
+        }
+
+        return back()->withAlert(['success', 'Catalogue image(s) uploaded.']);
+    }
+
+    /**
+     * "Business Website" — its own page over listings.website (already
+     * real, already saved directly by updatesection() for the owner) plus
+     * extra_websites for "+ Add Another Website".
+     */
+    public function businessWebsiteForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-website', compact('listing'));
+    }
+
+    public function updateWebsite(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'website' => 'nullable|url|max:255',
+            'extra_websites' => 'nullable|array',
+            'extra_websites.*' => 'nullable|url|max:255',
+        ]);
+
+        $listing->website = $request->website ?: null;
+        // Same pending/approval columns updatesection() uses stay untouched
+        // here — this route only ever runs for the listing's own owner
+        // (see the firstOrFail() above), which is the branch that already
+        // applies immediately there too.
+        $listing->pending_website = null;
+        $listing->website_approval_status = null;
+
+        $listing->extra_websites = collect($request->extra_websites ?? [])
+            ->map(fn ($url) => trim((string) $url))
+            ->filter()
+            ->values()
+            ->all();
+
+        $listing->save();
+
+        return back()->withAlert(['success', 'Business website updated.']);
+    }
+
+    /**
+     * "Social Media" — one JSON column, five keys (facebook/x/linkedin/
+     * youtube/instagram), each a plain array of URLs so multiple links per
+     * platform are just extra entries in that platform's array.
+     */
+    const SOCIAL_PLATFORMS = ['facebook', 'x', 'linkedin', 'youtube', 'instagram'];
+
+    public function businessSocialForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $socialLinks = collect(self::SOCIAL_PLATFORMS)
+            ->mapWithKeys(fn ($platform) => [$platform => collect((array) (($listing->social_links ?? [])[$platform] ?? []))]);
+
+        return view($this->theme.'user.listing.business-social', compact('listing', 'socialLinks'));
+    }
+
+    public function updateSocialLinks(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $rules = [];
+        foreach (self::SOCIAL_PLATFORMS as $platform) {
+            $rules[$platform] = 'nullable|array';
+            $rules[$platform . '.*'] = 'nullable|url|max:255';
+        }
+        $request->validate($rules);
+
+        $social = [];
+        foreach (self::SOCIAL_PLATFORMS as $platform) {
+            $social[$platform] = collect($request->input($platform, []))
+                ->map(fn ($url) => trim((string) $url))
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        $listing->social_links = $social;
+        $listing->save();
+
+        return back()->withAlert(['success', 'Social media links updated.']);
+    }
+
     public function importLeadsSample()
     {
         $csv = "Enquiry Date,Name,Mobile Number\n"

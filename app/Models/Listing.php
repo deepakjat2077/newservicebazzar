@@ -23,6 +23,8 @@ class Listing extends Model
         'landline_country_code'  => 'array',
         'landline_numbers'       => 'array',
         'extra_emails'           => 'array',
+        'extra_websites'         => 'array',
+        'social_links'           => 'array',
 
         'business_days'          => 'array',
         'open_time'              => 'array',
