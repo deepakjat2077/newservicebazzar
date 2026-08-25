@@ -666,6 +666,14 @@
         height:100%;
         overflow-y:auto;
     }
+    /* On a phone, 92vw still leaves a strip of the dashboard visible down
+       the left edge (the gap between the panel and the screen edge in the
+       reported screenshot) — JustDial's own panel runs edge-to-edge on
+       mobile, so this does the same rather than looking like a drawer
+       that didn't quite open all the way. */
+    @media (max-width:480px){
+        .sb-biz-panel{ width:100vw; max-width:100vw; }
+    }
     .sb-biz-panel-head{
         display:flex;
         align-items:center;
@@ -750,6 +758,24 @@
     .sb-biz-panel-footer{
         padding:16px 18px;
         border-top:1px solid #eceef0;
+    }
+    /* This page never had a base .sb-wizard-primary-btn rule — it was
+       styled correctly on the profile wizard page this class name came
+       from, but every page has its own isolated @push('css'), so here it
+       rendered as a bare unstyled <button> (the "Save and Continue" that
+       showed up as plain black text on grey instead of a blue button). */
+    .sb-wizard-primary-btn{
+        background:#1e90ff;
+        color:#fff;
+        border:0;
+        border-radius:6px;
+        padding:11px 26px;
+        font-size:14px;
+        font-weight:600;
+        cursor:pointer;
+        display:inline-block;
+        text-align:center;
+        text-decoration:none;
     }
     .sb-biz-panel-footer .sb-wizard-primary-btn{ display:block; width:100%; }
 </style>
