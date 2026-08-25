@@ -263,7 +263,7 @@
                 @foreach($categoryOptions as $cat)
                     <label class="sb-category-row">
                         {{ $cat->name }}
-                        <input type="checkbox" name="category_id[]" value="{{ $cat->id }}" {{ in_array($cat->id, (array) request('category_id', [])) ? 'checked' : '' }}>
+                        <input type="checkbox" name="subcategory_id[]" value="{{ $cat->id }}" {{ in_array($cat->id, (array) request('subcategory_id', [])) ? 'checked' : '' }}>
                     </label>
                 @endforeach
             </div>

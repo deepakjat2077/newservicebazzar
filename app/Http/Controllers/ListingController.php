@@ -927,8 +927,18 @@ public function updatesection(Request $request, $id)
             $query->where('is_hidden', 0);
         }
 
-        if ($request->filled('category_id')) {
-            $query->whereIn('category_id', (array) $request->category_id);
+        if ($request->filled('subcategory_id')) {
+            // Enquiries only ever carry a top-level category_id, never a
+            // subcategory — the listing's subcategories (subcategory_ids)
+            // have no column to join against. Matching on name is the only
+            // real link between "what the buyer's enquiry says it's about"
+            // and "which subcategory the owner picked for this listing".
+            $subcategoryNames = \App\Models\Subcategory::whereIn('id', (array) $request->subcategory_id)
+                ->pluck('name');
+
+            $query->whereHas('category', function ($q) use ($subcategoryNames) {
+                $q->whereIn('name', $subcategoryNames);
+            });
         }
 
         // Real date-range filter — Today / Yesterday / This Week / This
@@ -959,17 +969,11 @@ public function updatesection(Request $request, $id)
 
         $leads = $query->latest()->paginate(20)->withQueryString();
 
-        // Only categories this listing's enquiries have actually carried —
-        // real options, not the site's whole category tree.
-        $categoryOptions = \App\Models\Enquiry::where('listing_id', $listing->id)
-            ->whereNotNull('category_id')
-            ->with('category:id,name')
-            ->get()
-            ->pluck('category')
-            ->filter()
-            ->unique('id')
-            ->sortBy('name')
-            ->values();
+        // The subcategories the owner actually picked for this listing when
+        // they added/edited it — not a fixed list, and not derived from
+        // enquiries either (a subcategory with zero enquiries so far should
+        // still be pickable as a filter).
+        $categoryOptions = $listing->subcategory;
 
         return view($this->theme.'user.listing.leads', compact(
             'listing', 'leads', 'newCount', 'missedCount', 'totalCount', 'filter',
