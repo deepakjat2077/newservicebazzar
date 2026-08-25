@@ -853,6 +853,133 @@ public function updatesection(Request $request, $id)
         return view($this->theme.'user.listing.edit',compact('listing','categories','locations'));
     }
 
+    /**
+     * The business owner's "M S Infotech" panel — real counts pulled from
+     * the enquiries table, nothing invented. There's no call-tracking,
+     * competitor data or profile-scoring pipeline behind this site, so
+     * unlike a JustDial-style dashboard this only ever shows numbers this
+     * listing's own enquiry rows can actually answer for.
+     */
+    public function businessDashboard($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $enquiries = \App\Models\Enquiry::where('listing_id', $listing->id);
+
+        $todayCount = (clone $enquiries)->whereDate('created_at', today())->count();
+        $totalCount = (clone $enquiries)->count();
+        $missedCount = (clone $enquiries)->where('is_read', 0)->count();
+        $respondedCount = $totalCount - $missedCount;
+        $respondedPercent = $totalCount > 0 ? round(($respondedCount / $totalCount) * 100) : 0;
+        // "Hot" is plainly defined as "arrived in the last 24 hours" — a
+        // real, derivable cut, not a fabricated interest score.
+        $hotCount = (clone $enquiries)->where('created_at', '>=', now()->subDay())->count();
+
+        $recentEnquiries = (clone $enquiries)->latest()->take(10)->get();
+
+        return view($this->theme.'user.listing.dashboard', compact(
+            'listing', 'todayCount', 'totalCount', 'missedCount',
+            'respondedCount', 'respondedPercent', 'hotCount', 'recentEnquiries'
+        ));
+    }
+
+    public function importLeadsForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.import-leads', compact('listing'));
+    }
+
+    public function importLeadsSample()
+    {
+        $csv = "Enquiry Date,Name,Mobile Number\n"
+             . date('d-m-Y') . ",Ramesh Kumar,9876543210\n";
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="example.csv"',
+        ]);
+    }
+
+    public function importLeadsUpload(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'data_file' => 'required|file|mimes:csv,txt,xlsx,xls|max:2048',
+        ]);
+
+        $rows = \Maatwebsite\Excel\Facades\Excel::toArray(new \stdClass(), $request->file('data_file'));
+        $sheet = $rows[0] ?? [];
+
+        if (count($sheet) < 2) {
+            return back()->withAlert(['danger', 'That file has no data rows to import.']);
+        }
+
+        $header = array_map(fn ($cell) => strtolower(trim((string) $cell)), $sheet[0]);
+
+        $dateCol = null;
+        $mobileCol = null;
+        $nameCol = null;
+
+        foreach ($header as $index => $label) {
+            if ($dateCol === null && str_contains($label, 'date')) {
+                $dateCol = $index;
+            }
+            if ($mobileCol === null && (str_contains($label, 'mobile') || str_contains($label, 'phone'))) {
+                $mobileCol = $index;
+            }
+            if ($nameCol === null && str_contains($label, 'name')) {
+                $nameCol = $index;
+            }
+        }
+
+        if ($dateCol === null || $mobileCol === null) {
+            return back()->withAlert(['danger', 'The file must have an "Enquiry Date" column and a "Mobile Number" column.']);
+        }
+
+        $imported = 0;
+        $skipped = 0;
+        $oneYearAgo = now()->subYear();
+
+        foreach (array_slice($sheet, 1) as $row) {
+            $phone = trim((string) ($row[$mobileCol] ?? ''));
+            $rawDate = trim((string) ($row[$dateCol] ?? ''));
+
+            if ($phone === '' || $rawDate === '') {
+                $skipped++;
+                continue;
+            }
+
+            try {
+                $date = \Carbon\Carbon::parse($rawDate);
+            } catch (\Throwable $e) {
+                $skipped++;
+                continue;
+            }
+
+            // "Only 1 year data from current day can be viewed" — matches
+            // the note shown on the upload page.
+            if ($date->lt($oneYearAgo)) {
+                $skipped++;
+                continue;
+            }
+
+            \App\Models\Enquiry::create([
+                'listing_id' => $listing->id,
+                'name'       => $nameCol !== null ? trim((string) ($row[$nameCol] ?? '')) ?: 'Imported Lead' : 'Imported Lead',
+                'phone'      => $phone,
+                'is_read'    => 0,
+                'created_at' => $date,
+                'updated_at' => now(),
+            ]);
+
+            $imported++;
+        }
+
+        return back()->withAlert(['success', "Imported {$imported} lead(s)." . ($skipped ? " {$skipped} row(s) skipped (missing/invalid date or mobile)." : '')]);
+    }
+
 public function update(Request $request, $id)
 {
     $request->validate([

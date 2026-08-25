@@ -4045,12 +4045,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     <div class="sb-profile-menu">
         @if($sbMyBusiness)
-            <a href="{{ route('user.listing.edit', $sbMyBusiness->id) }}" class="sb-profile-item sb-profile-item--business">
+            <a href="{{ route('user.listing.dashboard', $sbMyBusiness->id) }}" class="sb-profile-item sb-profile-item--business">
                 <i class="fa-solid fa-store"></i>
                 <span>
                     {{ $sbMyBusiness->name }}
                     <small>My Business</small>
                 </span>
+            </a>
+            <a href="{{ route('free.listing') }}" class="sb-profile-item">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add New Business</span>
             </a>
         @else
             <a href="{{ route('free.listing') }}" class="sb-profile-item sb-profile-item--highlight">
@@ -4058,11 +4062,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <span>List Your Business</span>
             </a>
         @endif
-
-        <a href="{{ route('user.listing.index') }}" class="sb-profile-item">
-            <i class="fa-solid fa-store"></i>
-            <span>My Listings</span>
-        </a>
 
         <a href="{{ route('user.dashboard') }}" class="sb-profile-item">
             <i class="fa-solid fa-gauge"></i>

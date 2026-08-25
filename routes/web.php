@@ -605,6 +605,11 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::post('update/{id}', 'ListingController@update')->name('update');
                     Route::get('image-remove/{id}', 'ListingController@imageRemove')->name('imageRemove');
                     Route::put('updatesection/{id}', 'ListingController@updatesection')->name('updatesection');
+
+                    Route::get('import-leads/sample', 'ListingController@importLeadsSample')->name('import-leads.sample');
+                    Route::get('{id}/dashboard', 'ListingController@businessDashboard')->name('dashboard');
+                    Route::get('{id}/import-leads', 'ListingController@importLeadsForm')->name('import-leads');
+                    Route::post('{id}/import-leads', 'ListingController@importLeadsUpload')->name('import-leads.upload');
                 });
             });
         });

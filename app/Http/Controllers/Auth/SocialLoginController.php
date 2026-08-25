@@ -74,6 +74,12 @@ class SocialLoginController extends Controller
         $user = User::where('email', $email)->first();
         $isNewUser = !$user;
 
+        // Google (and Facebook, when the scope allows it) hand over a phone
+        // number under a couple of different raw-payload keys depending on
+        // the provider — this only ever fills a gap, never overwrites a
+        // number the user already has on file.
+        $socialPhone = $this->extractPhone($socialUser);
+
         if (!$user) {
             $name = trim((string) $socialUser->getName()) ?: 'User';
             $nameParts = explode(' ', $name, 2);
@@ -96,10 +102,37 @@ class SocialLoginController extends Controller
                 'email'          => $email,
                 'email_verified' => 1,
                 'image'          => $socialUser->getAvatar(),
+                'mobile'         => $socialPhone,
                 'password'       => Hash::make(Str::random(16)),
             ]);
 
             event(new Registered($user));
+        } else {
+            // Returning account — only backfill whatever it's still missing,
+            // so a name/photo/number the user has since edited by hand is
+            // never clobbered by what Google happens to say this time.
+            $updates = [];
+
+            if (blank($user->first_name) && blank($user->last_name)) {
+                $name = trim((string) $socialUser->getName());
+                if ($name !== '') {
+                    $nameParts = explode(' ', $name, 2);
+                    $updates['first_name'] = $nameParts[0] ?? '';
+                    $updates['last_name'] = $nameParts[1] ?? '';
+                }
+            }
+
+            if (blank($user->image) && $socialUser->getAvatar()) {
+                $updates['image'] = $socialUser->getAvatar();
+            }
+
+            if (blank($user->mobile) && $socialPhone) {
+                $updates['mobile'] = $socialPhone;
+            }
+
+            if ($updates) {
+                $user->fill($updates)->save();
+            }
         }
 
         $booster = new Booster();
@@ -120,5 +153,26 @@ class SocialLoginController extends Controller
     {
         return filled(config('services.' . $provider . '.client_id'))
             && filled(config('services.' . $provider . '.client_secret'));
+    }
+
+    /**
+     * Neither provider hands a phone number to Socialite's User object
+     * directly — it only ever shows up (if at all) buried in the raw
+     * payload, and under a different key per provider, so this checks every
+     * shape either one is known to use instead of trusting a single field.
+     */
+    protected function extractPhone($socialUser): ?string
+    {
+        $raw = $socialUser->getRaw() ?? [];
+
+        if (!empty($raw['phone_number'])) {
+            return $raw['phone_number'];
+        }
+
+        if (!empty($raw['phoneNumbers'][0]['value'])) {
+            return $raw['phoneNumbers'][0]['value'];
+        }
+
+        return null;
     }
 }
