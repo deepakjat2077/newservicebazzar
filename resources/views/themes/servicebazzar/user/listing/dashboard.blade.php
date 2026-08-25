@@ -52,12 +52,72 @@
                 || empty($listing->business_days);
         @endphp
 
-        {{-- "My Business" — wide action rows, the other shape this same set
-             of shortcuts takes on the dashboard (the circular grid further
-             down is the same actions, different layout). Leads and Support
-             open real pages this site already has; Business Profile opens
-             the same real side panel as the grid's Edit Profile card. The
-             rest have no working feature behind them yet, same as below. --}}
+        {{-- Quick actions — Edit Profile, Reviews and Add Photos open real
+             screens this site already has; the rest are the same shortcuts
+             JustDial's owner panel offers but nothing exists behind them yet
+             on this site, so they're marked coming soon rather than wired to
+             nothing. --}}
+        <div class="sb-biz-actions">
+            <button type="button" class="sb-biz-action-card" id="sbOpenBusinessProfile">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--peach"><i class="fas fa-id-card"></i></span>
+                <span>Edit Profile</span>
+            </button>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--purple"><i class="fas fa-bullhorn"></i></span>
+                <span>Advertise</span>
+                <small>Coming soon</small>
+            </div>
+            <a href="{{ $sbReviewsUrl ?? '#' }}" class="sb-biz-action-card">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
+                <span>Reviews</span>
+            </a>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--yellow"><i class="fas fa-location-dot"></i></span>
+                <span>Serviceable Area / Pincodes</span>
+                <small>Coming soon</small>
+            </div>
+            <a href="{{ route('user.listing.edit', $listing->id) }}#images" class="sb-biz-action-card">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
+                <span>Add Photos</span>
+            </a>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--teal"><i class="fas fa-address-book"></i></span>
+                <span>Add Contact</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
+                <span>Upload Catalogue</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--gold"><i class="fas fa-gear"></i></span>
+                <span>Add Offer</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--pink"><i class="fas fa-video"></i></span>
+                <span>Add Video</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
+                <span>Add Social Links</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-action-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-qrcode"></i></span>
+                <span>Ratings QR</span>
+                <small>Coming soon</small>
+            </div>
+        </div>
+
+        {{-- "My Business" — wide action rows, the other shape the same set
+             of shortcuts takes on the dashboard (the circular grid above is
+             the same actions, different layout). Leads and Support open
+             real pages this site already has; Business Profile opens the
+             same real side panel as the grid's Edit Profile card. The rest
+             have no working feature behind them yet, same as above. --}}
         <div class="sb-biz-wide-list">
             <h5>My Business</h5>
 
@@ -144,66 +204,6 @@
                     </div>
                     <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
                 </a>
-            </div>
-        </div>
-
-        {{-- Quick actions — Edit Profile, Reviews and Add Photos open real
-             screens this site already has; the rest are the same shortcuts
-             JustDial's owner panel offers but nothing exists behind them yet
-             on this site, so they're marked coming soon rather than wired to
-             nothing. --}}
-        <div class="sb-biz-actions">
-            <button type="button" class="sb-biz-action-card" id="sbOpenBusinessProfile">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--peach"><i class="fas fa-id-card"></i></span>
-                <span>Edit Profile</span>
-            </button>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--purple"><i class="fas fa-bullhorn"></i></span>
-                <span>Advertise</span>
-                <small>Coming soon</small>
-            </div>
-            <a href="{{ $sbReviewsUrl ?? '#' }}" class="sb-biz-action-card">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
-                <span>Reviews</span>
-            </a>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--yellow"><i class="fas fa-location-dot"></i></span>
-                <span>Serviceable Area / Pincodes</span>
-                <small>Coming soon</small>
-            </div>
-            <a href="{{ route('user.listing.edit', $listing->id) }}#images" class="sb-biz-action-card">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
-                <span>Add Photos</span>
-            </a>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--teal"><i class="fas fa-address-book"></i></span>
-                <span>Add Contact</span>
-                <small>Coming soon</small>
-            </div>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
-                <span>Upload Catalogue</span>
-                <small>Coming soon</small>
-            </div>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--gold"><i class="fas fa-gear"></i></span>
-                <span>Add Offer</span>
-                <small>Coming soon</small>
-            </div>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--pink"><i class="fas fa-video"></i></span>
-                <span>Add Video</span>
-                <small>Coming soon</small>
-            </div>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
-                <span>Add Social Links</span>
-                <small>Coming soon</small>
-            </div>
-            <div class="sb-biz-action-card is-disabled">
-                <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-qrcode"></i></span>
-                <span>Ratings QR</span>
-                <small>Coming soon</small>
             </div>
         </div>
 
