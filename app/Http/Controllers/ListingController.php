@@ -884,6 +884,75 @@ public function updatesection(Request $request, $id)
     }
 
     /**
+     * Analytics — every number here comes from either the enquiries table
+     * or listing_daily_stats (both already tracked for other reasons: leads
+     * and the admin analytics dashboard). There is no call telephony, no
+     * competitor data and no profile-scoring pipeline behind this site, so
+     * unlike JustDial's version this page simply does not have a Response
+     * Time / Competitors / Profile Score section — showing one would mean
+     * inventing numbers this site has no way to know.
+     */
+    public function analytics($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $months = collect(range(5, 0))->map(fn ($i) => now()->subMonths($i)->startOfMonth());
+
+        $enquiryRows = \App\Models\Enquiry::where('listing_id', $listing->id)
+            ->where('created_at', '>=', $months->first())
+            ->get();
+
+        $statRows = \App\Models\ListingDailyStats::where('listing_id', $listing->id)
+            ->where('date', '>=', $months->first())
+            ->get();
+
+        $ratingRows = $listing->ratings()->where('created_at', '>=', $months->first())->get();
+
+        $monthly = $months->map(function ($month) use ($enquiryRows, $statRows, $ratingRows) {
+            $inMonth = fn ($date) => $date->isSameMonth($month) && $date->isSameYear($month);
+
+            $monthEnquiries = $enquiryRows->filter(fn ($e) => $inMonth($e->created_at));
+            $monthStats = $statRows->filter(fn ($s) => $inMonth($s->date));
+
+            return [
+                'label' => $month->format('M'),
+                'enquiries' => $monthEnquiries->count(),
+                'responded' => $monthEnquiries->where('is_read', 1)->count(),
+                'views' => (int) $monthStats->sum('views'),
+                'phone_clicks' => (int) $monthStats->sum('phone_clicks'),
+                'whatsapp_clicks' => (int) $monthStats->sum('whatsapp_clicks'),
+                'direction_clicks' => (int) $monthStats->sum('direction_clicks'),
+                'gallery_clicks' => (int) $monthStats->sum('gallery_clicks'),
+                'reviews' => $ratingRows->filter(fn ($r) => $inMonth($r->created_at))->count(),
+            ];
+        });
+
+        $totals = [
+            'enquiries' => $enquiryRows->count(),
+            'responded' => $enquiryRows->where('is_read', 1)->count(),
+            'views' => (int) $statRows->sum('views'),
+            'unique_views' => (int) $statRows->sum('unique_views'),
+            'phone_clicks' => (int) $statRows->sum('phone_clicks'),
+            'whatsapp_clicks' => (int) $statRows->sum('whatsapp_clicks'),
+            'website_clicks' => (int) $statRows->sum('website_clicks'),
+            'direction_clicks' => (int) $statRows->sum('direction_clicks'),
+            'gallery_clicks' => (int) $statRows->sum('gallery_clicks'),
+            'share_clicks' => (int) $statRows->sum('share_clicks'),
+            'favourite_clicks' => (int) $statRows->sum('favourite_clicks'),
+        ];
+        $totals['responded_percent'] = $totals['enquiries'] > 0
+            ? round(($totals['responded'] / $totals['enquiries']) * 100)
+            : 0;
+
+        $totalReviews = $listing->ratings()->count();
+        $avgRating = round($listing->ratings()->avg('ratings') ?? 0, 1);
+
+        return view($this->theme.'user.listing.analytics', compact(
+            'listing', 'monthly', 'totals', 'totalReviews', 'avgRating'
+        ));
+    }
+
+    /**
      * Leads screen for one listing — every filter tab and the category
      * picker are real, derived from this listing's own enquiry rows rather
      * than a fixed list, so a business with only three categories of

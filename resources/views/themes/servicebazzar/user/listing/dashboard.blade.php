@@ -236,9 +236,10 @@
 
 {{-- "View More" — back to the original 5 options. There's no
      call-tracking, quotation, or competitor data behind this site, so
-     Response Time / Quotation Request / Analytics / Competitors are marked
-     coming soon rather than shown with invented numbers; Import Leads is a
-     real, working feature. --}}
+     Response Time / Quotation Request / Competitors are marked coming soon
+     rather than shown with invented numbers; Import Leads and Analytics are
+     real, working features — Analytics is built entirely off the enquiries
+     table and listing_daily_stats, both already tracked for other reasons. --}}
 <div class="sb-biz-modal-overlay" id="sbBizModalOverlay">
     <div class="sb-biz-modal">
         <button type="button" class="sb-biz-modal-close" id="sbBizModalClose">&times;</button>
@@ -253,11 +254,10 @@
                 <span>Quotation Request</span>
                 <small>Coming soon</small>
             </div>
-            <div class="sb-biz-modal-card is-disabled">
+            <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-biz-modal-card">
                 <i class="fas fa-chart-line"></i>
                 <span>Analytics</span>
-                <small>Coming soon</small>
-            </div>
+            </a>
             <div class="sb-biz-modal-card is-disabled">
                 <i class="fas fa-users"></i>
                 <span>Competitors</span>
