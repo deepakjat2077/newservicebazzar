@@ -28,6 +28,8 @@
             </div>
         </div>
 
+        @include($themeView.'user.listing.partials.analytics-tabs', ['activeTab' => 'response-time'])
+
         <div class="sb-an-card">
             <h5><i class="fas fa-stopwatch"></i> Average Response Time</h5>
             <p class="sb-an-sub">Average time between an enquiry arriving and you opening its details</p>
@@ -39,11 +41,10 @@
                     feature existed.
                 </p>
             @else
-                <div class="sb-an-stat-row">
-                    <div class="is-good">
-                        <strong>{{ $sbFormatDuration($overallAvgSeconds) }}</strong>
-                        <span>Your Response Time ({{ $responded->count() }} enquiries)</span>
-                    </div>
+                <div class="sb-an-response-box">
+                    <strong>{{ $sbFormatDuration($overallAvgSeconds) }}</strong>
+                    <span class="sb-an-pill sb-an-pill--good">Good</span>
+                    <p>Your Response Time ({{ $responded->count() }} {{ Str::plural('enquiry', $responded->count()) }})</p>
                 </div>
 
                 <canvas id="sbChartResponseTime" height="90"></canvas>
@@ -76,6 +77,24 @@
     .sb-an-stat-row strong{ display:block; font-size:20px; font-weight:700; color:#222; }
     .sb-an-stat-row span{ font-size:12px; color:#888; }
     .sb-an-stat-row .is-good strong{ color:#22a45d; }
+    .sb-an-response-box{
+        border:1px solid #eceef0;
+        border-radius:8px;
+        padding:16px 20px;
+        margin-bottom:18px;
+        max-width:280px;
+    }
+    .sb-an-response-box strong{ font-size:22px; font-weight:700; color:#222; margin-right:8px; }
+    .sb-an-response-box p{ margin:4px 0 0; font-size:12px; color:#888; }
+    .sb-an-pill{
+        display:inline-block;
+        font-size:11px;
+        font-weight:700;
+        border-radius:12px;
+        padding:2px 10px;
+    }
+    .sb-an-pill--good{ background:#e6f7ec; color:#22a45d; }
+    .sb-an-pill--poor{ background:#fdecec; color:#d9364f; }
     .sb-an-note{ font-size:12px; color:#888; background:#f7f8f9; border-radius:8px; padding:12px 14px; line-height:1.6; }
     .sb-an-note i{ color:#1e90ff; margin-right:4px; }
 </style>

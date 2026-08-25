@@ -12,17 +12,17 @@
             </div>
         </div>
 
-        <p class="sb-an-range">Last 6 months — {{ $monthly->first()['label'] }} to {{ $monthly->last()['label'] }}</p>
+        @include($themeView.'user.listing.partials.analytics-tabs', ['activeTab' => 'overview'])
 
         {{-- Interactions overview --}}
         <div class="sb-an-card">
             <h5>Interactions Overview</h5>
-            <p class="sb-an-sub">Enquiries, views &amp; direction requests</p>
+            <p class="sb-an-sub">Enquiries, views &amp; direction requests — last 6 months</p>
             <canvas id="sbChartOverview" height="90"></canvas>
         </div>
 
         {{-- Enquiries --}}
-        <div class="sb-an-card">
+        <div class="sb-an-card" id="enquiries">
             <h5>Enquiries</h5>
             <p class="sb-an-sub">Enquiries received vs responded</p>
             <div class="sb-an-stat-row">
@@ -36,7 +36,7 @@
         </div>
 
         {{-- Phone clicks --}}
-        <div class="sb-an-card">
+        <div class="sb-an-card" id="calls">
             <h5>Calls</h5>
             <p class="sb-an-sub">"Call" button taps on your listing — this site can't confirm whether a call was answered, only that a visitor tapped to call</p>
             <div class="sb-an-stat-row">
@@ -47,7 +47,7 @@
         </div>
 
         {{-- Business views --}}
-        <div class="sb-an-card">
+        <div class="sb-an-card" id="views">
             <h5>Business Views</h5>
             <p class="sb-an-sub">How customers are viewing your business listing</p>
             <div class="sb-an-stat-row">
@@ -58,7 +58,7 @@
         </div>
 
         {{-- Reviews --}}
-        <div class="sb-an-card">
+        <div class="sb-an-card" id="reviews">
             <h5>Reviews</h5>
             <p class="sb-an-sub">Ratings left on your listing</p>
             <div class="sb-an-stat-row">
@@ -69,7 +69,7 @@
         </div>
 
         {{-- Gallery / Directions --}}
-        <div class="sb-an-card">
+        <div class="sb-an-card" id="media">
             <h5>Photos &amp; Directions</h5>
             <p class="sb-an-sub">Gallery views and "Get Directions" taps</p>
             <div class="sb-an-stat-row">
