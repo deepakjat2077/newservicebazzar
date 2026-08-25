@@ -895,7 +895,14 @@ public function updatesection(Request $request, $id)
 
         $base = \App\Models\Enquiry::where('listing_id', $listing->id);
 
+        $totalCount = (clone $base)->where('is_hidden', 0)->count();
+        // "Missed" here means the same thing "Missed Enquiries" means on the
+        // business dashboard — never responded to — because there's no call
+        // telephony behind this site to know a call rang and was not
+        // answered (that's "Missed Call" / "Not Connected" below, which
+        // this site genuinely cannot know and says so rather than guessing).
         $newCount = (clone $base)->where('is_hidden', 0)->where('is_read', 0)->count();
+        $missedCount = $newCount;
 
         $query = (clone $base)->with('category');
 
@@ -908,12 +915,46 @@ public function updatesection(Request $request, $id)
             $query->where('is_hidden', 0)->whereNotNull('note')->where('note', '!=', '');
         } elseif ($filter === 'hot') {
             $query->where('is_hidden', 0)->where('created_at', '>=', now()->subDay());
+        } elseif ($filter === 'today') {
+            // Same cut the dashboard's "Today's Enquiries" count uses —
+            // clicking that number should show exactly the rows it counted.
+            $query->where('is_hidden', 0)->whereDate('created_at', today());
+        } elseif ($filter === 'new') {
+            $query->where('is_hidden', 0)->where('is_read', 0);
+        } elseif ($filter === 'missed') {
+            $query->where('is_hidden', 0)->where('is_read', 0);
         } else {
             $query->where('is_hidden', 0);
         }
 
         if ($request->filled('category_id')) {
             $query->whereIn('category_id', (array) $request->category_id);
+        }
+
+        // Real date-range filter — Today / Yesterday / This Week / This
+        // Month / a picked range, all against the enquiry's own created_at.
+        $dateRange = $request->query('date_range');
+        if ($dateRange === 'today') {
+            $query->whereDate('created_at', today());
+        } elseif ($dateRange === 'yesterday') {
+            $query->whereDate('created_at', today()->subDay());
+        } elseif ($dateRange === 'week') {
+            $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($dateRange === 'month') {
+            $query->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+        } elseif ($dateRange === 'custom' && $request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('created_at', [
+                \Carbon\Carbon::parse($request->date_from)->startOfDay(),
+                \Carbon\Carbon::parse($request->date_to)->endOfDay(),
+            ]);
+        }
+
+        // Real read/unread filter — the "Enquiry Status" dropdown.
+        $status = $request->query('status');
+        if ($status === 'read') {
+            $query->where('is_read', 1);
+        } elseif ($status === 'unread') {
+            $query->where('is_read', 0);
         }
 
         $leads = $query->latest()->paginate(20)->withQueryString();
@@ -931,7 +972,8 @@ public function updatesection(Request $request, $id)
             ->values();
 
         return view($this->theme.'user.listing.leads', compact(
-            'listing', 'leads', 'newCount', 'filter', 'categoryOptions'
+            'listing', 'leads', 'newCount', 'missedCount', 'totalCount', 'filter',
+            'categoryOptions', 'dateRange', 'status'
         ));
     }
 

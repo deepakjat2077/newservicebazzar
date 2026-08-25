@@ -13,12 +13,25 @@
             <a href="{{ route('contact') }}" class="sb-leads-help"><i class="fas fa-headset"></i> Help</a>
         </div>
 
-        <div class="sb-leads-newcount">New : {{ $newCount }}</div>
+        <div class="sb-leads-newcount">Total Enquiries : {{ $totalCount }}</div>
 
+        {{-- New / Missed Enquiries carry real unread-count badges. Missed
+             Call and Not Connected are left as coming-soon: this site has
+             no telephony behind it, so it genuinely cannot know whether a
+             call rang and went unanswered — unlike New/Missed, which are
+             derived straight from this listing's own enquiry rows. --}}
         <div class="sb-leads-filters">
-            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-leads-filter-btn {{ !$filter ? 'is-active' : '' }}">
-                <i class="fas fa-inbox"></i> All
+            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'new']) }}" class="sb-leads-filter-btn {{ $filter === 'new' ? 'is-active' : '' }}">
+                @if($newCount > 0)<span class="sb-leads-filter-badge">{{ $newCount }}</span>@endif
+                New
             </a>
+            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'missed']) }}" class="sb-leads-filter-btn {{ $filter === 'missed' ? 'is-active' : '' }}">
+                @if($missedCount > 0)<span class="sb-leads-filter-badge">{{ $missedCount }}</span>@endif
+                Missed Enquiries
+            </a>
+            <button type="button" class="sb-leads-filter-btn" id="sbLeadsDateBtn">
+                <i class="fas fa-calendar"></i> Date <i class="fas fa-chevron-down"></i>
+            </button>
             <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'hidden']) }}" class="sb-leads-filter-btn {{ $filter === 'hidden' ? 'is-active' : '' }}">
                 <i class="fas fa-eye-slash"></i> Hidden
             </a>
@@ -28,13 +41,52 @@
             <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'notes']) }}" class="sb-leads-filter-btn {{ $filter === 'notes' ? 'is-active' : '' }}">
                 <i class="fas fa-note-sticky"></i> Notes
             </a>
+            <div class="sb-leads-filter-btn is-disabled" title="No call telephony on this site yet">
+                <i class="fas fa-phone-slash"></i> Missed Call
+            </div>
             <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'hot']) }}" class="sb-leads-filter-btn {{ $filter === 'hot' ? 'is-active' : '' }}">
                 <i class="fas fa-fire"></i> Hot Enquiries
             </a>
+            <div class="sb-leads-filter-btn is-disabled" title="No call telephony on this site yet">
+                <i class="fas fa-phone"></i> Not Connected
+            </div>
             @if($categoryOptions->isNotEmpty())
                 <button type="button" class="sb-leads-filter-btn" id="sbLeadsCategoryBtn">
                     Category <i class="fas fa-chevron-down"></i>
                 </button>
+            @endif
+            <button type="button" class="sb-leads-filter-btn" id="sbLeadsStatusBtn">
+                Enquiry Status <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="sb-leads-filter-btn is-disabled" title="No review-per-enquiry data on this site yet">
+                Rating <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+
+        {{-- Date dropdown --}}
+        <div class="sb-leads-dropdown" id="sbLeadsDateDropdown" hidden>
+            <a href="{{ request()->fullUrlWithQuery(['date_range' => 'today']) }}" class="sb-leads-dropdown-item {{ $dateRange === 'today' ? 'is-active' : '' }}">Today</a>
+            <a href="{{ request()->fullUrlWithQuery(['date_range' => 'yesterday']) }}" class="sb-leads-dropdown-item {{ $dateRange === 'yesterday' ? 'is-active' : '' }}">Yesterday</a>
+            <a href="{{ request()->fullUrlWithQuery(['date_range' => 'week']) }}" class="sb-leads-dropdown-item {{ $dateRange === 'week' ? 'is-active' : '' }}">This Week</a>
+            <a href="{{ request()->fullUrlWithQuery(['date_range' => 'month']) }}" class="sb-leads-dropdown-item {{ $dateRange === 'month' ? 'is-active' : '' }}">This Month</a>
+            <form action="{{ route('user.listing.leads', $listing->id) }}" method="get" class="sb-leads-dropdown-custom">
+                @if($filter)<input type="hidden" name="filter" value="{{ $filter }}">@endif
+                <input type="hidden" name="date_range" value="custom">
+                <input type="date" name="date_from" class="sb-input">
+                <input type="date" name="date_to" class="sb-input">
+                <button type="submit" class="sb-wizard-secondary-btn">Apply</button>
+            </form>
+            @if($dateRange)
+                <a href="{{ route('user.listing.leads', array_filter(['id' => $listing->id, 'filter' => $filter])) }}" class="sb-leads-dropdown-clear">Clear date filter</a>
+            @endif
+        </div>
+
+        {{-- Enquiry Status dropdown --}}
+        <div class="sb-leads-dropdown" id="sbLeadsStatusDropdown" hidden>
+            <a href="{{ request()->fullUrlWithQuery(['status' => 'unread']) }}" class="sb-leads-dropdown-item {{ $status === 'unread' ? 'is-active' : '' }}">Unread</a>
+            <a href="{{ request()->fullUrlWithQuery(['status' => 'read']) }}" class="sb-leads-dropdown-item {{ $status === 'read' ? 'is-active' : '' }}">Responded</a>
+            @if($status)
+                <a href="{{ route('user.listing.leads', array_filter(['id' => $listing->id, 'filter' => $filter])) }}" class="sb-leads-dropdown-clear">Clear status filter</a>
             @endif
         </div>
 
@@ -241,6 +293,10 @@
         padding:11px 26px; font-size:14px; font-weight:600; cursor:pointer;
         display:inline-block; text-align:center; text-decoration:none;
     }
+    .sb-wizard-secondary-btn{
+        background:#fff; color:#1e90ff; border:1px solid #1e90ff; border-radius:6px;
+        padding:9px 18px; font-size:13px; font-weight:600; cursor:pointer;
+    }
     .sb-input{
         width:100%; border:1px solid #d5d9dd; border-radius:6px;
         padding:9px 12px; font-size:14px; color:#222; background:#fff;
@@ -279,6 +335,10 @@
         border-bottom:1px solid #eceef0;
     }
     .sb-leads-filter-btn{
+        position:relative;
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
         border:1px solid #d5d9dd;
         border-radius:6px;
         background:#fff;
@@ -288,6 +348,41 @@
         color:#444;
     }
     .sb-leads-filter-btn.is-active{ border-color:#1e90ff; color:#1e90ff; background:#eaf4fe; }
+    .sb-leads-filter-btn.is-disabled{ color:#bbb; cursor:default; }
+    .sb-leads-filter-badge{
+        background:#d9364f;
+        color:#fff;
+        font-size:10px;
+        font-weight:700;
+        border-radius:10px;
+        padding:1px 6px;
+        position:absolute;
+        top:-8px;
+        right:-6px;
+    }
+
+    .sb-leads-dropdown{
+        position:relative;
+        background:#fff;
+        border:1px solid #e6e8eb;
+        border-radius:8px;
+        padding:12px;
+        margin:-10px 0 20px;
+        max-width:320px;
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+    }
+    .sb-leads-dropdown-item{
+        padding:8px 10px;
+        border-radius:6px;
+        font-size:13px;
+        color:#333;
+    }
+    .sb-leads-dropdown-item.is-active{ background:#eaf4fe; color:#1e90ff; font-weight:600; }
+    .sb-leads-dropdown-custom{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+    .sb-leads-dropdown-custom .sb-input{ flex:1; min-width:110px; }
+    .sb-leads-dropdown-clear{ font-size:12px; color:#d9364f; margin-top:4px; }
 
     .sb-lead-card{ border:1px solid #eceef0; border-radius:8px; margin-bottom:14px; padding:16px 18px; }
     .sb-lead-badges{ display:flex; gap:8px; margin-bottom:6px; }
@@ -566,6 +661,20 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // Date / Enquiry Status dropdowns.
+    function toggleDropdown(btnId, dropdownId) {
+        var btn = document.getElementById(btnId);
+        var dropdown = document.getElementById(dropdownId);
+        if (!btn || !dropdown) return;
+        btn.addEventListener('click', function () {
+            var willShow = dropdown.hidden;
+            document.querySelectorAll('.sb-leads-dropdown').forEach(function (d) { d.hidden = true; });
+            dropdown.hidden = !willShow;
+        });
+    }
+    toggleDropdown('sbLeadsDateBtn', 'sbLeadsDateDropdown');
+    toggleDropdown('sbLeadsStatusBtn', 'sbLeadsStatusDropdown');
 });
 </script>
 @endpush

@@ -13,7 +13,7 @@
         </div>
 
         <div class="sb-biz-stats">
-            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-biz-stat">
+            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'today']) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Today's Enquiries</span>
                 <strong class="sb-biz-stat-value">{{ $todayCount }}</strong>
             </a>
