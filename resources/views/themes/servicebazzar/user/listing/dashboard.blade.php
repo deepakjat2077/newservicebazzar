@@ -234,12 +234,10 @@
     </div>
 </section>
 
-{{-- "View More" — back to the original 5 options. There's no call-tracking
-     or competitor data behind this site, so Competitors is marked coming
-     soon rather than shown with invented numbers; Import Leads, Analytics,
-     Response Time and Quotation Request are real, working features —
-     built off the enquiries table, listing_daily_stats and, for quotation
-     requests, the real fan-out from requestQuoteStore(). --}}
+{{-- "View More" — all 5 are now real, working features. Competitors ranks
+     against the real other listings sharing this listing's category and
+     city, built off the enquiries table, listing_daily_stats, ratings and
+     extra_images — no invented search-volume trend or profile score. --}}
 <div class="sb-biz-modal-overlay" id="sbBizModalOverlay">
     <div class="sb-biz-modal">
         <button type="button" class="sb-biz-modal-close" id="sbBizModalClose">&times;</button>
@@ -257,11 +255,10 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Analytics</span>
             </a>
-            <div class="sb-biz-modal-card is-disabled">
+            <a href="{{ route('user.listing.competitors', $listing->id) }}" class="sb-biz-modal-card">
                 <i class="fas fa-users"></i>
                 <span>Competitors</span>
-                <small>Coming soon</small>
-            </div>
+            </a>
             <a href="{{ route('user.listing.import-leads', $listing->id) }}" class="sb-biz-modal-card">
                 <i class="fas fa-file-import"></i>
                 <span>Import Leads</span>

@@ -1008,6 +1008,94 @@ public function updatesection(Request $request, $id)
     }
 
     /**
+     * Competitors — ranks this listing against the real other listings in
+     * the same category and city, using numbers this site actually has:
+     * enquiry counts, ratings, review counts, gallery photo counts and
+     * response rate. No search-volume trend, no "Call Answered Rate", no
+     * profile-scoring algorithm and no "Most Liked Features" carousel —
+     * this site tracks none of that, so unlike JustDial's version this
+     * page simply doesn't have those sections instead of inventing them.
+     */
+    public function competitors($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $peers = Listing::where('category_id', $listing->category_id)
+            ->where('location_id', $listing->location_id)
+            ->where('status', 1)
+            ->notExpired()
+            ->get();
+
+        // Always include this listing in its own peer set even if it
+        // somehow fell out of the query above (e.g. expired/inactive) —
+        // it still needs to appear in its own ranking.
+        if (!$peers->contains('id', $listing->id)) {
+            $peers->push($listing);
+        }
+
+        $peerIds = $peers->pluck('id');
+
+        $enquiryCounts = \App\Models\Enquiry::whereIn('listing_id', $peerIds)
+            ->where('type', 'enquiry')
+            ->selectRaw('listing_id, count(*) as total')
+            ->groupBy('listing_id')
+            ->pluck('total', 'listing_id');
+
+        $respondedCounts = \App\Models\Enquiry::whereIn('listing_id', $peerIds)
+            ->where('type', 'enquiry')->where('is_read', 1)
+            ->selectRaw('listing_id, count(*) as total')
+            ->groupBy('listing_id')
+            ->pluck('total', 'listing_id');
+
+        $ratingStats = \App\Models\Rating::whereIn('listing_id', $peerIds)
+            ->selectRaw('listing_id, count(*) as cnt, avg(ratings) as avg_rating')
+            ->groupBy('listing_id')
+            ->get()
+            ->keyBy('listing_id');
+
+        $photoCounts = \App\Models\ExtraImage::whereIn('listing_id', $peerIds)
+            ->selectRaw('listing_id, count(*) as total')
+            ->groupBy('listing_id')
+            ->pluck('total', 'listing_id');
+
+        $ranking = $peers->map(function ($peer) use ($enquiryCounts, $respondedCounts, $ratingStats, $photoCounts) {
+            $enquiries = (int) ($enquiryCounts[$peer->id] ?? 0);
+            $responded = (int) ($respondedCounts[$peer->id] ?? 0);
+
+            return [
+                'id' => $peer->id,
+                'name' => $peer->name,
+                'is_self' => false, // set by caller
+                'leads' => $enquiries,
+                'response_percent' => $enquiries > 0 ? round(($responded / $enquiries) * 100) : null,
+                'review_count' => (int) ($ratingStats[$peer->id]->cnt ?? 0),
+                'avg_rating' => round((float) ($ratingStats[$peer->id]->avg_rating ?? 0), 1),
+                'photo_count' => (int) ($photoCounts[$peer->id] ?? 0),
+            ];
+        })->sortByDesc('leads')->values();
+
+        $ranking = $ranking->map(function ($row, $index) use ($listing) {
+            $row['rank'] = $index + 1;
+            $row['is_self'] = $row['id'] === $listing->id;
+            return $row;
+        });
+
+        $self = $ranking->firstWhere('id', $listing->id);
+        $others = $ranking->where('id', '!=', $listing->id);
+
+        $competitionAverages = [
+            'response_percent' => $others->pluck('response_percent')->filter(fn ($v) => $v !== null)->avg(),
+            'avg_rating' => $others->pluck('avg_rating')->filter()->avg(),
+            'review_count' => $others->pluck('review_count')->avg(),
+            'photo_count' => $others->pluck('photo_count')->avg(),
+        ];
+
+        return view($this->theme.'user.listing.competitors', compact(
+            'listing', 'ranking', 'self', 'competitionAverages'
+        ));
+    }
+
+    /**
      * Leads screen for one listing — every filter tab and the category
      * picker are real, derived from this listing's own enquiry rows rather
      * than a fixed list, so a business with only three categories of
