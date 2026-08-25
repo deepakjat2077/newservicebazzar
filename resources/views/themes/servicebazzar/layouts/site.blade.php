@@ -4066,11 +4066,6 @@ document.addEventListener("DOMContentLoaded", function () {
             <span>Edit Profile</span>
         </a>
 
-        <a href="{{ route('user.password.edit') }}" class="sb-profile-item">
-            <i class="fa-solid fa-lock"></i>
-            <span>Change Password</span>
-        </a>
-
         <a href="{{ route('contact') }}" class="sb-profile-item">
             <i class="fa-solid fa-headset"></i>
             <span>Customer Service</span>
@@ -4196,6 +4191,20 @@ document.addEventListener("DOMContentLoaded", function () {
 .sb-profile-item--danger span{
     color:#d9364f;
 }
+
+/*
+ * The header profile trigger reuses .nav-btn (the same class as the
+ * "Login / Sign Up" button) for its layout, but it should just be the
+ * round avatar — not a bordered/background button around it.
+ */
+.header-area .bottom-header .navbar ul li a.nav-btn.profile-dashboard-link{
+    border:0;
+    padding:0;
+    background:transparent;
+}
+.header-area .bottom-header .navbar ul li a.nav-btn.profile-dashboard-link:hover{
+    background:transparent;
+}
 </style>
 
 <script>
@@ -4209,12 +4218,14 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         panel.classList.add('show');
         overlay.classList.add('show');
+        document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
     }
 
     function closePanel() {
         panel.classList.remove('show');
         overlay.classList.remove('show');
+        document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
     }
 
