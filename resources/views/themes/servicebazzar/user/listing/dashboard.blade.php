@@ -29,7 +29,7 @@
                 <span class="sb-biz-stat-label">Total Enquiries</span>
                 <strong class="sb-biz-stat-value">{{ $totalCount }}</strong>
             </a>
-            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-biz-stat">
+            <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-biz-stat">
                 <span class="sb-biz-stat-label">Responded</span>
                 <strong class="sb-biz-stat-value">{{ $respondedCount }}</strong>
                 <small class="sb-biz-stat-pct {{ $respondedPercent < 50 ? 'is-poor' : 'is-good' }}">{{ $respondedPercent }}%</small>

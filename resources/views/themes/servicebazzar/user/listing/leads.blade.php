@@ -90,13 +90,10 @@
 
         {{-- Enquiry Status dropdown --}}
         <div class="sb-leads-dropdown" id="sbLeadsStatusDropdown" hidden>
+            {{-- "Responded" isn't a filter here — the dashboard's own
+                 "Responded" stat card opens Analytics directly, where the
+                 real received-vs-responded numbers and chart live. --}}
             <a href="{{ request()->fullUrlWithQuery(['status' => 'unread']) }}" class="sb-leads-dropdown-item {{ $status === 'unread' ? 'is-active' : '' }}">Unread</a>
-            {{-- "Responded" opens Analytics rather than just filtering the
-                 list — that's where the real received-vs-responded numbers
-                 and chart actually live, not a second copy of them here. --}}
-            <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-leads-dropdown-item">
-                Responded <small class="sb-leads-dropdown-hint">(opens Analytics)</small>
-            </a>
             @if($status)
                 <a href="{{ route('user.listing.leads', array_filter(['id' => $listing->id, 'filter' => $filter])) }}" class="sb-leads-dropdown-clear">Clear status filter</a>
             @endif
