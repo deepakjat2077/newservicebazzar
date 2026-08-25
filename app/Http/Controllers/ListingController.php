@@ -1284,11 +1284,22 @@ public function updatesection(Request $request, $id)
     }
 
     /**
-     * Business Profile panel's "Business Name" edit — same pending-approval
-     * rule the main edit form already enforces (see update(), "Business
-     * name approval"): a changed name never applies straight away, it sits
-     * as pending_name until an admin approves it. This just gives that same
-     * rule a second, focused entry point instead of duplicating the logic.
+     * "Business Name" — its own real page (not a panel-within-a-panel),
+     * same as every other business-owner screen on this site.
+     */
+    public function businessNameForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-name', compact('listing'));
+    }
+
+    /**
+     * Same pending-approval rule the main edit form already enforces (see
+     * update(), "Business name approval"): a changed name never applies
+     * straight away, it sits as pending_name until an admin approves it.
+     * This just gives that same rule a second, focused entry point instead
+     * of duplicating the logic.
      */
     public function requestNameChange(Request $request, $id)
     {
@@ -1299,23 +1310,39 @@ public function updatesection(Request $request, $id)
         ]);
 
         $newName = trim($request->name);
+        $changed = $newName !== trim((string) $listing->name);
 
-        if ($newName === trim((string) $listing->name)) {
-            return response()->json(['status' => 'unchanged']);
+        if ($changed) {
+            $listing->pending_name = $newName;
+            $listing->name_approval_status = 'pending';
+            $listing->save();
         }
 
-        $listing->pending_name = $newName;
-        $listing->name_approval_status = 'pending';
-        $listing->save();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => $changed ? 'pending' : 'unchanged',
+                'message' => $changed ? 'Your new business name has been sent for admin approval.' : "That's already your business name.",
+            ]);
+        }
 
-        return response()->json([
-            'status' => 'pending',
-            'message' => 'Your new business name has been sent for admin approval.',
+        return back()->withAlert([
+            $changed ? 'success' : 'info',
+            $changed ? 'Your new business name has been sent for admin approval.' : "That's already your business name.",
         ]);
     }
 
     /**
-     * Same pending-approval rule as the name, for the address row.
+     * "Business Address" — its own real page, same reasoning as the name.
+     */
+    public function businessAddressForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-address', compact('listing'));
+    }
+
+    /**
+     * Same pending-approval rule as the name, for the address.
      */
     public function requestAddressChange(Request $request, $id)
     {
@@ -1326,18 +1353,24 @@ public function updatesection(Request $request, $id)
         ]);
 
         $newAddress = trim($request->address);
+        $changed = $newAddress !== trim((string) $listing->address);
 
-        if ($newAddress === trim((string) $listing->address)) {
-            return response()->json(['status' => 'unchanged']);
+        if ($changed) {
+            $listing->pending_address = $newAddress;
+            $listing->address_approval_status = 'pending';
+            $listing->save();
         }
 
-        $listing->pending_address = $newAddress;
-        $listing->address_approval_status = 'pending';
-        $listing->save();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => $changed ? 'pending' : 'unchanged',
+                'message' => $changed ? 'Your new business address has been sent for admin approval.' : "That's already your business address.",
+            ]);
+        }
 
-        return response()->json([
-            'status' => 'pending',
-            'message' => 'Your new business address has been sent for admin approval.',
+        return back()->withAlert([
+            $changed ? 'success' : 'info',
+            $changed ? 'Your new business address has been sent for admin approval.' : "That's already your business address.",
         ]);
     }
 

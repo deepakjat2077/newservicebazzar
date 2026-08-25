@@ -611,7 +611,9 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::get('{id}/analytics', 'ListingController@analytics')->name('analytics');
                     Route::get('{id}/response-time', 'ListingController@responseTime')->name('response-time');
                     Route::get('{id}/competitors', 'ListingController@competitors')->name('competitors');
+                    Route::get('{id}/business-name', 'ListingController@businessNameForm')->name('business-name');
                     Route::post('{id}/request-name-change', 'ListingController@requestNameChange')->name('request-name-change');
+                    Route::get('{id}/business-address', 'ListingController@businessAddressForm')->name('business-address');
                     Route::post('{id}/request-address-change', 'ListingController@requestAddressChange')->name('request-address-change');
                     Route::get('{id}/leads', 'ListingController@leads')->name('leads');
                     Route::post('leads/{enquiry}/star', 'ListingController@leadStar')->name('leads.star');

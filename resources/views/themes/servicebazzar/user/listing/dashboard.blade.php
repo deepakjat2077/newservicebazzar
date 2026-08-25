@@ -278,7 +278,7 @@
         </div>
 
         <div class="sb-biz-panel-body" id="sbBizPanelBodyMain">
-            <button type="button" class="sb-biz-panel-row" id="sbOpenNameEdit">
+            <a href="{{ route('user.listing.business-name', $listing->id) }}" class="sb-biz-panel-row">
                 <i class="fas fa-id-card"></i>
                 <div>
                     <strong>Business Name</strong>
@@ -288,7 +288,7 @@
                     @endif
                 </div>
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
-            </button>
+            </a>
 
             <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
                 <i class="fas fa-address-card"></i>
@@ -299,7 +299,7 @@
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
             </a>
 
-            <button type="button" class="sb-biz-panel-row" id="sbOpenAddressEdit">
+            <a href="{{ route('user.listing.business-address', $listing->id) }}" class="sb-biz-panel-row">
                 <i class="fas fa-location-dot"></i>
                 <div>
                     <strong>Business Address</strong>
@@ -309,7 +309,7 @@
                     @endif
                 </div>
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
-            </button>
+            </a>
 
             <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
                 <i class="fas fa-list"></i>
@@ -334,58 +334,6 @@
             </a>
         </div>
 
-        {{-- Business Name sub-screen — the name never changes the moment
-             this is submitted; it's sent to requestNameChange(), which
-             stores it as pending_name and leaves name_approval_status
-             pending, exactly like the main edit form's name field already
-             does (see ListingController::update()). --}}
-        <div class="sb-biz-panel-sub" id="sbBizPanelNameSub" hidden>
-            <div class="sb-biz-panel-head">
-                <button type="button" class="sb-biz-panel-back sb-biz-subpanel-back" data-back-to="sbBizPanelNameSub"><i class="fas fa-arrow-left"></i></button>
-                <h5>Business Name</h5>
-            </div>
-            <div class="sb-biz-panel-body">
-                <div class="sb-biz-panel-info-banner">
-                    <i class="fas fa-circle-info"></i>
-                    Enter your business name exactly as you want it to appear to customers.
-                    Changes are reviewed by our team before they go live.
-                </div>
-
-                <div class="sb-biz-panel-field">
-                    <label>Enter Business Name</label>
-                    <input type="text" id="sbBizNameInput" class="sb-input" value="{{ $listing->pending_name ?: $listing->name }}">
-                </div>
-
-                <p class="sb-biz-panel-msg" id="sbBizNameMsg"></p>
-            </div>
-            <div class="sb-biz-panel-footer">
-                <button type="button" class="sb-wizard-primary-btn" id="sbBizNameSaveBtn">Save and Continue</button>
-            </div>
-        </div>
-
-        {{-- Business Address sub-screen — same pending-approval rule. --}}
-        <div class="sb-biz-panel-sub" id="sbBizPanelAddressSub" hidden>
-            <div class="sb-biz-panel-head">
-                <button type="button" class="sb-biz-panel-back sb-biz-subpanel-back" data-back-to="sbBizPanelAddressSub"><i class="fas fa-arrow-left"></i></button>
-                <h5>Business Address</h5>
-            </div>
-            <div class="sb-biz-panel-body">
-                <div class="sb-biz-panel-info-banner">
-                    <i class="fas fa-circle-info"></i>
-                    Changes to your address are reviewed by our team before they go live.
-                </div>
-
-                <div class="sb-biz-panel-field">
-                    <label>Enter Business Address</label>
-                    <textarea id="sbBizAddressInput" class="sb-input sb-biz-panel-textarea">{{ $listing->pending_address ?: $listing->address }}</textarea>
-                </div>
-
-                <p class="sb-biz-panel-msg" id="sbBizAddressMsg"></p>
-            </div>
-            <div class="sb-biz-panel-footer">
-                <button type="button" class="sb-wizard-primary-btn" id="sbBizAddressSaveBtn">Save and Continue</button>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
@@ -420,85 +368,6 @@ document.addEventListener('DOMContentLoaded', function(){
         profileCloseBtn.addEventListener('click', function(){ profileOverlay.classList.remove('show'); });
     }
     profileOverlay.addEventListener('click', function(e){ if (e.target === profileOverlay) profileOverlay.classList.remove('show'); });
-
-    // Business Profile sub-screens (Business Name / Business Address) —
-    // slide over the row list, back arrow returns to it.
-    var csrf = '{{ csrf_token() }}';
-
-    function openSubPanel(id){ document.getElementById(id).hidden = false; }
-    function closeSubPanel(id){ document.getElementById(id).hidden = true; }
-
-    var openNameBtn = document.getElementById('sbOpenNameEdit');
-    if (openNameBtn) openNameBtn.addEventListener('click', function(){ openSubPanel('sbBizPanelNameSub'); });
-
-    var openAddressBtn = document.getElementById('sbOpenAddressEdit');
-    if (openAddressBtn) openAddressBtn.addEventListener('click', function(){ openSubPanel('sbBizPanelAddressSub'); });
-
-    document.querySelectorAll('.sb-biz-subpanel-back').forEach(function(btn){
-        btn.addEventListener('click', function(){ closeSubPanel(btn.getAttribute('data-back-to')); });
-    });
-
-    function postJson(url, body){
-        return fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrf,
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify(body),
-        }).then(function(r){ return r.json(); });
-    }
-
-    var nameSaveBtn = document.getElementById('sbBizNameSaveBtn');
-    if (nameSaveBtn) {
-        nameSaveBtn.addEventListener('click', function(){
-            var msg = document.getElementById('sbBizNameMsg');
-            var value = document.getElementById('sbBizNameInput').value.trim();
-
-            if (!value) { msg.textContent = 'Business name cannot be empty.'; msg.className = 'sb-biz-panel-msg is-error'; return; }
-
-            postJson('{{ route('user.listing.request-name-change', $listing->id) }}', { name: value })
-                .then(function(data){
-                    if (data.status === 'unchanged') {
-                        msg.textContent = 'That\'s already your business name.';
-                        msg.className = 'sb-biz-panel-msg';
-                    } else {
-                        msg.textContent = data.message || 'Sent for admin approval.';
-                        msg.className = 'sb-biz-panel-msg is-success';
-                    }
-                })
-                .catch(function(){
-                    msg.textContent = 'Something went wrong — please try again.';
-                    msg.className = 'sb-biz-panel-msg is-error';
-                });
-        });
-    }
-
-    var addressSaveBtn = document.getElementById('sbBizAddressSaveBtn');
-    if (addressSaveBtn) {
-        addressSaveBtn.addEventListener('click', function(){
-            var msg = document.getElementById('sbBizAddressMsg');
-            var value = document.getElementById('sbBizAddressInput').value.trim();
-
-            if (!value) { msg.textContent = 'Business address cannot be empty.'; msg.className = 'sb-biz-panel-msg is-error'; return; }
-
-            postJson('{{ route('user.listing.request-address-change', $listing->id) }}', { address: value })
-                .then(function(data){
-                    if (data.status === 'unchanged') {
-                        msg.textContent = 'That\'s already your business address.';
-                        msg.className = 'sb-biz-panel-msg';
-                    } else {
-                        msg.textContent = data.message || 'Sent for admin approval.';
-                        msg.className = 'sb-biz-panel-msg is-success';
-                    }
-                })
-                .catch(function(){
-                    msg.textContent = 'Something went wrong — please try again.';
-                    msg.className = 'sb-biz-panel-msg is-error';
-                });
-        });
-    }
 });
 </script>
 @endpush
