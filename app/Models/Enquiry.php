@@ -19,6 +19,7 @@ class Enquiry extends Model
         // was changing — no query, no error, and a "marked as read" message
         // either way. The flag never moved.
         'is_read',
+        'responded_at',
         'is_starred',
         'is_hidden',
         'note',
@@ -31,6 +32,7 @@ class Enquiry extends Model
         'is_starred' => 'boolean',
         'is_hidden' => 'boolean',
         'reminder_at' => 'datetime',
+        'responded_at' => 'datetime',
     ];
 
 

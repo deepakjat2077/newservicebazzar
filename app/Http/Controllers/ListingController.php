@@ -953,6 +953,50 @@ public function updatesection(Request $request, $id)
     }
 
     /**
+     * Average Response Time — real, but only from the point responded_at
+     * started being recorded (see the migration that added it): the moment
+     * an enquiry first has its details opened. Enquiries from before that
+     * column existed have no responded_at and are excluded rather than
+     * guessed at. There is no competitor response time anywhere in this
+     * site's data, so unlike JustDial's version this page has nothing next
+     * to "Your Response Time" — not a placeholder, just absent.
+     */
+    public function responseTime($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $weeks = collect(range(3, 0))->map(fn ($i) => now()->subWeeks($i)->startOfWeek());
+
+        $responded = \App\Models\Enquiry::where('listing_id', $listing->id)
+            ->whereNotNull('responded_at')
+            ->where('created_at', '>=', $weeks->first())
+            ->get();
+
+        $weekly = $weeks->map(function ($weekStart) use ($responded) {
+            $weekEnd = $weekStart->copy()->endOfWeek();
+            $inWeek = $responded->filter(fn ($e) => $e->created_at->between($weekStart, $weekEnd));
+
+            $avgSeconds = $inWeek->isNotEmpty()
+                ? $inWeek->avg(fn ($e) => $e->responded_at->diffInSeconds($e->created_at))
+                : null;
+
+            return [
+                'label' => $weekStart->format('d M'),
+                'avg_seconds' => $avgSeconds,
+                'count' => $inWeek->count(),
+            ];
+        });
+
+        $overallAvgSeconds = $responded->isNotEmpty()
+            ? $responded->avg(fn ($e) => $e->responded_at->diffInSeconds($e->created_at))
+            : null;
+
+        return view($this->theme.'user.listing.response-time', compact(
+            'listing', 'weekly', 'overallAvgSeconds', 'responded'
+        ));
+    }
+
+    /**
      * Leads screen for one listing — every filter tab and the category
      * picker are real, derived from this listing's own enquiry rows rather
      * than a fixed list, so a business with only three categories of
@@ -1103,6 +1147,7 @@ public function updatesection(Request $request, $id)
 
         if (!$enquiry->is_read) {
             $enquiry->is_read = 1;
+            $enquiry->responded_at = now();
             $enquiry->save();
         }
 
