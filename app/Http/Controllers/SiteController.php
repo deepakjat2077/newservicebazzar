@@ -731,6 +731,81 @@ public function authorContact(Request $request)
 
     return back()->withAlert(['success', 'Enquiry sent successfully']);
 }
+
+/**
+ * "Get Free Quotes" — one submission goes out to several matching
+ * businesses at once (real fan-out, capped at 5 so it can't silently
+ * spam an entire category), rather than one enquiry to one listing.
+ * This is what powers the "Quotation Request" section on a business
+ * owner's dashboard; before this there was nowhere any quote request
+ * could come from.
+ */
+public function requestQuoteForm(Request $request)
+{
+    $category = $request->filled('category_id')
+        ? Category::where('status', 1)->find($request->category_id)
+        : null;
+
+    $location = $request->filled('location_id')
+        ? Location::where('status', 1)->find($request->location_id)
+        : null;
+
+    $categories = Category::where('status', 1)->orderBy('name')->get();
+    $locations = activeLocations();
+
+    return view($this->theme.'request-quote', compact('category', 'location', 'categories', 'locations'));
+}
+
+public function requestQuoteStore(Request $request)
+{
+    if (FormGuard::looksAutomated($request, $why)) {
+        Log::info('Quote request rejected as automated', ['reason' => $why, 'ip' => $request->ip()]);
+
+        return back()->withAlert(['success', 'Your quote request has been sent.']);
+    }
+
+    $request->validate([
+        'name' => ['required', 'string', 'max:255', new RealName()],
+        'phone' => ['required', 'string', 'max:20', new IndianMobile()],
+        'email' => 'nullable|email|max:255',
+        'category_id' => 'required|integer|exists:categories,id',
+        'location_id' => 'nullable|integer|exists:locations,id',
+        'message' => 'nullable|string|max:1000',
+    ]);
+
+    $matchingListings = Listing::notExpired()
+        ->where('status', 1)
+        ->where('category_id', $request->category_id)
+        ->when($request->filled('location_id'), fn ($q) => $q->where('location_id', $request->location_id))
+        ->orderByDesc('is_featured')
+        ->orderByDesc('trust')
+        ->orderByDesc('verified')
+        ->take(5)
+        ->get();
+
+    if ($matchingListings->isEmpty()) {
+        return back()->withAlert(['danger', 'No businesses currently match this category/location — please try a different one.'])->withInput();
+    }
+
+    foreach ($matchingListings as $listing) {
+        Enquiry::create([
+            'type' => 'quotation',
+            'listing_id' => $listing->id,
+            'category_id' => $request->category_id,
+            'location_id' => $request->location_id,
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'email' => $request->email,
+            'message' => $request->message,
+            'is_read' => 0,
+        ]);
+    }
+
+    \App\Support\Tracking\Tracker::conversion($request, 'quote_request', ['category_id' => $request->category_id]);
+
+    return back()->withAlert(['success', 'Your quote request has been sent to '.$matchingListings->count().' matching business(es). They will contact you shortly.']);
+}
+
     public function pricing()
     {
         $packages = Package::where('status', 1)->get();

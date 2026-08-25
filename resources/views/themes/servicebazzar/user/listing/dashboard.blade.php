@@ -234,12 +234,12 @@
     </div>
 </section>
 
-{{-- "View More" — back to the original 5 options. There's no
-     call-tracking, quotation, or competitor data behind this site, so
-     Quotation Request / Competitors are marked coming soon rather than
-     shown with invented numbers; Import Leads, Analytics and Response Time
-     are real, working features — built off the enquiries table and
-     listing_daily_stats, both already tracked for other reasons. --}}
+{{-- "View More" — back to the original 5 options. There's no call-tracking
+     or competitor data behind this site, so Competitors is marked coming
+     soon rather than shown with invented numbers; Import Leads, Analytics,
+     Response Time and Quotation Request are real, working features —
+     built off the enquiries table, listing_daily_stats and, for quotation
+     requests, the real fan-out from requestQuoteStore(). --}}
 <div class="sb-biz-modal-overlay" id="sbBizModalOverlay">
     <div class="sb-biz-modal">
         <button type="button" class="sb-biz-modal-close" id="sbBizModalClose">&times;</button>
@@ -248,11 +248,11 @@
                 <i class="fas fa-stopwatch"></i>
                 <span>Response Time</span>
             </a>
-            <div class="sb-biz-modal-card is-disabled">
+            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'type' => 'quotation']) }}" class="sb-biz-modal-card">
                 <i class="fas fa-file-invoice"></i>
                 <span>Quotation Request</span>
-                <small>Coming soon</small>
-            </div>
+                @if($quotationCount > 0)<small class="sb-biz-modal-count">{{ $quotationCount }}</small>@endif
+            </a>
             <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-biz-modal-card">
                 <i class="fas fa-chart-line"></i>
                 <span>Analytics</span>
@@ -537,6 +537,7 @@
     .sb-biz-modal-card.is-disabled{ color:#aaa; cursor:default; }
     .sb-biz-modal-card.is-disabled i{ color:#c3c7cc; }
     .sb-biz-modal-card.is-disabled small{ color:#c3c7cc; font-weight:400; }
+    .sb-biz-modal-count{ color:#1e90ff; font-weight:700; }
 
     /* Quick-actions grid on the dashboard itself (Edit Profile, Advertise,
        Reviews, ...) — the colourful circular badges. */

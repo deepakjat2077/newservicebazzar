@@ -864,7 +864,10 @@ public function updatesection(Request $request, $id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
-        $enquiries = \App\Models\Enquiry::where('listing_id', $listing->id);
+        // type='enquiry' only — quotation requests (see requestQuoteStore())
+        // are a different thing with their own count below, not folded into
+        // these numbers.
+        $enquiries = \App\Models\Enquiry::where('listing_id', $listing->id)->where('type', 'enquiry');
 
         $todayCount = (clone $enquiries)->whereDate('created_at', today())->count();
         $totalCount = (clone $enquiries)->count();
@@ -877,9 +880,15 @@ public function updatesection(Request $request, $id)
 
         $recentEnquiries = (clone $enquiries)->latest()->take(10)->get();
 
+        $quotationCount = \App\Models\Enquiry::where('listing_id', $listing->id)
+            ->where('type', 'quotation')
+            ->where('is_hidden', 0)
+            ->count();
+
         return view($this->theme.'user.listing.dashboard', compact(
             'listing', 'todayCount', 'totalCount', 'missedCount',
-            'respondedCount', 'respondedPercent', 'hotCount', 'recentEnquiries'
+            'respondedCount', 'respondedPercent', 'hotCount', 'recentEnquiries',
+            'quotationCount'
         ));
     }
 
@@ -899,6 +908,7 @@ public function updatesection(Request $request, $id)
         $months = collect(range(5, 0))->map(fn ($i) => now()->subMonths($i)->startOfMonth());
 
         $enquiryRows = \App\Models\Enquiry::where('listing_id', $listing->id)
+            ->where('type', 'enquiry')
             ->where('created_at', '>=', $months->first())
             ->get();
 
@@ -968,6 +978,7 @@ public function updatesection(Request $request, $id)
         $weeks = collect(range(3, 0))->map(fn ($i) => now()->subWeeks($i)->startOfWeek());
 
         $responded = \App\Models\Enquiry::where('listing_id', $listing->id)
+            ->where('type', 'enquiry')
             ->whereNotNull('responded_at')
             ->where('created_at', '>=', $weeks->first())
             ->get();
@@ -1006,7 +1017,12 @@ public function updatesection(Request $request, $id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
-        $base = \App\Models\Enquiry::where('listing_id', $listing->id);
+        // Two screens share this one method: plain enquiries (default) and
+        // Quotation Request (type=quotation) — same filters, same row
+        // markup, just a different base slice of the same table.
+        $type = $request->query('type') === 'quotation' ? 'quotation' : 'enquiry';
+
+        $base = \App\Models\Enquiry::where('listing_id', $listing->id)->where('type', $type);
 
         $totalCount = (clone $base)->where('is_hidden', 0)->count();
         // "Missed" here means the same thing "Missed Enquiries" means on the
@@ -1082,6 +1098,24 @@ public function updatesection(Request $request, $id)
 
         $leads = $query->latest()->paginate(20)->withQueryString();
 
+        // For a Quotation Request, "also sent to N other businesses" is a
+        // real count — every fan-out from requestQuoteStore() shares the
+        // same phone + category_id + a created_at within the same second,
+        // since all rows for one submission are inserted in one loop.
+        // Nothing here says *which* businesses — just how many, which is
+        // as far as this data can honestly go.
+        $alsoSentCounts = [];
+        if ($type === 'quotation' && $leads->count()) {
+            foreach ($leads as $lead) {
+                $alsoSentCounts[$lead->id] = \App\Models\Enquiry::where('type', 'quotation')
+                    ->where('phone', $lead->phone)
+                    ->where('category_id', $lead->category_id)
+                    ->where('created_at', $lead->created_at)
+                    ->where('listing_id', '!=', $listing->id)
+                    ->count();
+            }
+        }
+
         // The subcategories the owner actually picked for this listing when
         // they added/edited it — not a fixed list, and not derived from
         // enquiries either (a subcategory with zero enquiries so far should
@@ -1090,7 +1124,7 @@ public function updatesection(Request $request, $id)
 
         return view($this->theme.'user.listing.leads', compact(
             'listing', 'leads', 'newCount', 'missedCount', 'totalCount', 'filter',
-            'categoryOptions', 'dateRange', 'status'
+            'categoryOptions', 'dateRange', 'status', 'type', 'alsoSentCounts'
         ));
     }
 

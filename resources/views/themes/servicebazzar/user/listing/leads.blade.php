@@ -1,6 +1,6 @@
 @extends($themeView.'layouts.app')
 @section('content')
-@section('title', 'Leads — '.$listing->name)
+@section('title', ($type === 'quotation' ? 'Quotation Requests' : 'Leads').' — '.$listing->name)
 
 <section class="pt-30 pb-80">
     <div class="container">
@@ -13,7 +13,7 @@
             <a href="{{ route('contact') }}" class="sb-leads-help"><i class="fas fa-headset"></i> Help</a>
         </div>
 
-        <div class="sb-leads-newcount">Total Enquiries : {{ $totalCount }}</div>
+        <div class="sb-leads-newcount">{{ $type === 'quotation' ? 'Quotation Request' : 'Total Enquiries' }} : {{ $totalCount }}</div>
 
         {{-- The "Today's Enquiries" link from the dashboard lands here with
              filter=today — that's a single fixed view (today's leads, full
@@ -21,37 +21,48 @@
              stays hidden for it rather than showing tabs that would just
              re-filter away from "today" the moment one was clicked.
 
-             New / Missed Enquiries carry real unread-count badges. Missed
-             Call and Not Connected are left as coming-soon: this site has
-             no telephony behind it, so it genuinely cannot know whether a
-             call rang and went unanswered — unlike New/Missed, which are
-             derived straight from this listing's own enquiry rows. --}}
+             New / Missed Enquiries carry real unread-count badges and only
+             apply to plain enquiries — every quote request already goes to
+             several businesses at once, so "missed" doesn't mean the same
+             thing there. Missed Call and Not Connected are left as
+             coming-soon either way: this site has no telephony behind it,
+             so it genuinely cannot know whether a call rang and went
+             unanswered — unlike New/Missed, which are derived straight
+             from this listing's own enquiry rows.
+
+             Every filter link uses fullUrlWithQuery rather than a fixed
+             params array, so clicking one filter never silently drops
+             another that's already active (including type=quotation). --}}
         @if($filter !== 'today')
         <div class="sb-leads-filters">
-            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'new']) }}" class="sb-leads-filter-btn {{ $filter === 'new' ? 'is-active' : '' }}">
-                @if($newCount > 0)<span class="sb-leads-filter-badge">{{ $newCount }}</span>@endif
-                New
-            </a>
-            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'missed']) }}" class="sb-leads-filter-btn {{ $filter === 'missed' ? 'is-active' : '' }}">
-                @if($missedCount > 0)<span class="sb-leads-filter-badge">{{ $missedCount }}</span>@endif
-                Missed Enquiries
-            </a>
+            @if($type !== 'quotation')
+                <a href="{{ request()->fullUrlWithQuery(['filter' => 'new']) }}" class="sb-leads-filter-btn {{ $filter === 'new' ? 'is-active' : '' }}">
+                    @if($newCount > 0)<span class="sb-leads-filter-badge">{{ $newCount }}</span>@endif
+                    New
+                </a>
+                <a href="{{ request()->fullUrlWithQuery(['filter' => 'missed']) }}" class="sb-leads-filter-btn {{ $filter === 'missed' ? 'is-active' : '' }}">
+                    @if($missedCount > 0)<span class="sb-leads-filter-badge">{{ $missedCount }}</span>@endif
+                    Missed Enquiries
+                </a>
+            @endif
             <button type="button" class="sb-leads-filter-btn" id="sbLeadsDateBtn">
                 <i class="fas fa-calendar"></i> Date <i class="fas fa-chevron-down"></i>
             </button>
-            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'hidden']) }}" class="sb-leads-filter-btn {{ $filter === 'hidden' ? 'is-active' : '' }}">
+            <a href="{{ request()->fullUrlWithQuery(['filter' => 'hidden']) }}" class="sb-leads-filter-btn {{ $filter === 'hidden' ? 'is-active' : '' }}">
                 <i class="fas fa-eye-slash"></i> Hidden
             </a>
-            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'starred']) }}" class="sb-leads-filter-btn {{ $filter === 'starred' ? 'is-active' : '' }}">
+            <a href="{{ request()->fullUrlWithQuery(['filter' => 'starred']) }}" class="sb-leads-filter-btn {{ $filter === 'starred' ? 'is-active' : '' }}">
                 <i class="fas fa-star"></i> Starred
             </a>
-            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'notes']) }}" class="sb-leads-filter-btn {{ $filter === 'notes' ? 'is-active' : '' }}">
+            <a href="{{ request()->fullUrlWithQuery(['filter' => 'notes']) }}" class="sb-leads-filter-btn {{ $filter === 'notes' ? 'is-active' : '' }}">
                 <i class="fas fa-note-sticky"></i> Notes
             </a>
-            <div class="sb-leads-filter-btn is-disabled" title="No call telephony on this site yet">
-                <i class="fas fa-phone-slash"></i> Missed Call
-            </div>
-            <a href="{{ route('user.listing.leads', ['id' => $listing->id, 'filter' => 'hot']) }}" class="sb-leads-filter-btn {{ $filter === 'hot' ? 'is-active' : '' }}">
+            @if($type !== 'quotation')
+                <div class="sb-leads-filter-btn is-disabled" title="No call telephony on this site yet">
+                    <i class="fas fa-phone-slash"></i> Missed Call
+                </div>
+            @endif
+            <a href="{{ request()->fullUrlWithQuery(['filter' => 'hot']) }}" class="sb-leads-filter-btn {{ $filter === 'hot' ? 'is-active' : '' }}">
                 <i class="fas fa-fire"></i> Hot Enquiries
             </a>
             <div class="sb-leads-filter-btn is-disabled" title="No call telephony on this site yet">
@@ -76,15 +87,16 @@
             <a href="{{ request()->fullUrlWithQuery(['date_range' => 'yesterday']) }}" class="sb-leads-dropdown-item {{ $dateRange === 'yesterday' ? 'is-active' : '' }}">Yesterday</a>
             <a href="{{ request()->fullUrlWithQuery(['date_range' => 'week']) }}" class="sb-leads-dropdown-item {{ $dateRange === 'week' ? 'is-active' : '' }}">This Week</a>
             <a href="{{ request()->fullUrlWithQuery(['date_range' => 'month']) }}" class="sb-leads-dropdown-item {{ $dateRange === 'month' ? 'is-active' : '' }}">This Month</a>
-            <form action="{{ route('user.listing.leads', $listing->id) }}" method="get" class="sb-leads-dropdown-custom">
+            <form action="{{ url()->current() }}" method="get" class="sb-leads-dropdown-custom">
                 @if($filter)<input type="hidden" name="filter" value="{{ $filter }}">@endif
+                @if($type === 'quotation')<input type="hidden" name="type" value="quotation">@endif
                 <input type="hidden" name="date_range" value="custom">
                 <input type="date" name="date_from" class="sb-input">
                 <input type="date" name="date_to" class="sb-input">
                 <button type="submit" class="sb-wizard-secondary-btn">Apply</button>
             </form>
             @if($dateRange)
-                <a href="{{ route('user.listing.leads', array_filter(['id' => $listing->id, 'filter' => $filter])) }}" class="sb-leads-dropdown-clear">Clear date filter</a>
+                <a href="{{ request()->fullUrlWithQuery(['date_range' => null, 'date_from' => null, 'date_to' => null]) }}" class="sb-leads-dropdown-clear">Clear date filter</a>
             @endif
         </div>
 
@@ -95,7 +107,7 @@
                  real received-vs-responded numbers and chart live. --}}
             <a href="{{ request()->fullUrlWithQuery(['status' => 'unread']) }}" class="sb-leads-dropdown-item {{ $status === 'unread' ? 'is-active' : '' }}">Unread</a>
             @if($status)
-                <a href="{{ route('user.listing.leads', array_filter(['id' => $listing->id, 'filter' => $filter])) }}" class="sb-leads-dropdown-clear">Clear status filter</a>
+                <a href="{{ request()->fullUrlWithQuery(['status' => null]) }}" class="sb-leads-dropdown-clear">Clear status filter</a>
             @endif
         </div>
         @endif
@@ -131,6 +143,13 @@
                                     <strong>{{ $lead->name ?: 'Unknown' }}</strong>
                                     <div class="sb-lead-meta">{{ optional($lead->location)->name }}</div>
                                     <div class="sb-lead-meta">{{ optional($lead->category)->name ?? $sbFallbackCategoryName ?? '' }}</div>
+
+                                    @if($type === 'quotation' && ($alsoSentCounts[$lead->id] ?? 0) > 0)
+                                        <div class="sb-lead-meta sb-lead-also-sent">
+                                            <i class="fas fa-circle-info"></i>
+                                            Also sent to {{ $alsoSentCounts[$lead->id] }} other {{ Str::plural('business', $alsoSentCounts[$lead->id]) }}
+                                        </div>
+                                    @endif
 
                                     <button type="button" class="sb-lead-price-btn is-disabled" title="No pricing/offers feature yet">
                                         <i class="fas fa-gear"></i> Send Special Price
@@ -173,8 +192,14 @@
                                         </div>
                                         <div class="sb-lead-detail-block">
                                             <span>Enquiry Source</span>
-                                            <strong>{{ $lead->category_id ? 'Category Search Enquiry' : 'Listing Enquiry' }}</strong>
+                                            <strong>{{ $type === 'quotation' ? 'Quotation Request' : ($lead->category_id ? 'Category Search Enquiry' : 'Listing Enquiry') }}</strong>
                                         </div>
+                                        @if($lead->message)
+                                            <div class="sb-lead-detail-block">
+                                                <span>What they need</span>
+                                                <strong>{{ $lead->message }}</strong>
+                                            </div>
+                                        @endif
 
                                         <div class="sb-lead-share-panel" id="sbShare{{ $lead->id }}" hidden>
                                             <p>Choose what you want to share on: <span class="sb-lead-share-wa">WhatsApp</span></p>
@@ -267,8 +292,9 @@
         <h5>Categories</h5>
         <input type="text" class="sb-input" id="sbCategorySearch" placeholder="Search Category">
 
-        <form action="{{ route('user.listing.leads', $listing->id) }}" method="get" id="sbCategoryForm">
+        <form action="{{ url()->current() }}" method="get" id="sbCategoryForm">
             @if($filter)<input type="hidden" name="filter" value="{{ $filter }}">@endif
+            @if($type === 'quotation')<input type="hidden" name="type" value="quotation">@endif
             <div class="sb-category-list">
                 @foreach($categoryOptions as $cat)
                     <label class="sb-category-row">
@@ -420,6 +446,8 @@
     .sb-lead-star.is-starred{ color:#f2b400; }
     .sb-lead-info strong{ font-size:15px; color:#222; }
     .sb-lead-meta{ font-size:12.5px; color:#777; margin:2px 0 0 20px; }
+    .sb-lead-also-sent{ color:#1e90ff; margin-top:6px; }
+    .sb-lead-also-sent i{ margin-right:4px; }
     .sb-lead-price-btn{
         margin:10px 0 8px 0;
         border:1px solid #d5d9dd;

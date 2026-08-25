@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Enquiry extends Model
 {
     protected $fillable = [
+        'type',
         'listing_id',
         'author_id',
         'category_id',
         'name',
         'phone',
         'email',
+        'message',
         'location_id',
         // Missing here, so the admin panel's Mark as read / unread called
         // update(['is_read' => …]) and Eloquent dropped the one attribute it

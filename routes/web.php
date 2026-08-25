@@ -739,6 +739,9 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
      * has to stop actual flooding, which 30 still does.
      */
     Route::post('author-contact', 'SiteController@authorContact')->middleware('throttle:30,1')->name('contact.author');
+
+    Route::get('request-quote', 'SiteController@requestQuoteForm')->name('request-quote');
+    Route::post('request-quote', 'SiteController@requestQuoteStore')->middleware('throttle:10,1')->name('request-quote.store');
     Route::post('author-email-contact', 'SiteController@authorEmailContact')
     ->middleware('throttle:30,1')->name('contact.author.email');
     Route::post('listing-click-track', 'SiteController@listingClickTrack')->middleware('throttle:60,1')->name('listing.click.track');
