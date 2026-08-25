@@ -1977,8 +1977,15 @@ public function linkDetails($slug)
 
     $subcategories = Subcategory::where('status', 1)->get();
 
+    // Logged-in with at least one business already: land on "Select Your
+    // Business" instead of straight into the form, so re-visiting this page
+    // to add a second listing doesn't look like it forgot the first one.
+    $existingListings = auth()->check()
+        ? auth()->user()->listings()->with('location')->latest()->get()
+        : collect();
+
     return view($this->theme.'listing_form',
-        compact('categories','locations','subcategories')
+        compact('categories','locations','subcategories','existingListings')
     );
 }
 

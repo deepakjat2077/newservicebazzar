@@ -12,13 +12,54 @@
                 </div>
 
             <div class="row justify-content-center align-items-start">
-              <div class="col-lg-5 mb-4 mb-lg-0 d-flex justify-content-center align-items-center free-listing-left">
+              <div class="col-lg-5 mb-4 mb-lg-0 d-flex justify-content-center align-items-center free-listing-left {{ $existingListings->isNotEmpty() ? 'd-none' : '' }}" id="sbFreeListingLeftCol">
                     <img src="{{ asset('assets/images/image.png') }}" class="shadow rounded img-fluid" style="width:350px;"
                         alt="Business Preview">
                 </div>
 
-                
-             <div class="col-lg-7 free-listing-form-scroll">
+                @if($existingListings->isNotEmpty())
+                    {{-- Already run a business (or more than one) — pick which
+                         one to manage, or start a fresh listing, instead of
+                         landing straight back in the "add a business" form
+                         every time this page is opened. --}}
+                    <div class="col-lg-7" id="sbSelectBusinessCol">
+                        <div class="card shadow border-0 listing-card">
+                            <div class="card-body p-4 p-md-5">
+                                <h3 class="mb-4">Select Your Business</h3>
+
+                                <div class="sb-select-business-list">
+                                    @foreach($existingListings as $existingListing)
+                                        <a href="{{ route('user.listing.dashboard', $existingListing->id) }}" class="sb-select-business-row">
+                                            <span class="sb-select-business-avatar">
+                                                @if($existingListing->image)
+                                                    <img src="{{ loadImage('assets/images/listings/'.$existingListing->image) }}" alt="{{ $existingListing->name }}">
+                                                @else
+                                                    {{ strtoupper(substr($existingListing->name, 0, 1)) }}
+                                                @endif
+                                            </span>
+                                            <span class="sb-select-business-body">
+                                                <strong>
+                                                    {{ $existingListing->name }}
+                                                    @if($existingListing->verified)
+                                                        <i class="fas fa-circle-check sb-select-business-verified"></i>
+                                                    @endif
+                                                </strong>
+                                                <small>{{ optional($existingListing->location)->name ?? $existingListing->area }}</small>
+                                            </span>
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    @endforeach
+                                </div>
+
+                                <div class="sb-select-business-or">OR</div>
+
+                                <button type="button" class="btn btn__base w-100" id="sbAddNewBusinessBtn">Add New Business</button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+             <div class="col-lg-7 free-listing-form-scroll {{ $existingListings->isNotEmpty() ? 'd-none' : '' }}" id="sbNewBusinessFormCol">
                     <div class="card shadow border-0 listing-card">
                         <div class="card-body p-4 p-md-5">
 
@@ -2861,11 +2902,59 @@ body:has(.free-listing-page) .float-whatsapp {
     z-index: 9999;
 }
 
+.sb-select-business-list{ margin-bottom: 20px; }
+.sb-select-business-row{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 4px;
+    border-bottom: 1px solid #eee;
+    color: #222;
+}
+.sb-select-business-row:last-child{ border-bottom: 0; }
+.sb-select-business-avatar{
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: #7c6fe8;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.sb-select-business-avatar img{ width: 100%; height: 100%; object-fit: cover; }
+.sb-select-business-body{ flex: 1; min-width: 0; }
+.sb-select-business-body strong{ display: block; font-size: 15px; font-weight: 700; color: #222; }
+.sb-select-business-verified{ color: #1e90ff; font-size: 13px; margin-left: 4px; }
+.sb-select-business-body small{ display: block; font-size: 12.5px; color: #888; }
+.sb-select-business-row > i:last-child{ color: #bbb; font-size: 13px; }
+.sb-select-business-or{ text-align: center; color: #999; font-size: 13px; margin: 6px 0 22px; }
+
 </style>
 
 <button type="button" id="freeListingChatFloat" class="free-listing-chat-float">
     <i class="las la-comments"></i>
 </button>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var addNewBtn = document.getElementById('sbAddNewBusinessBtn');
+    var selectCol = document.getElementById('sbSelectBusinessCol');
+    var formCol = document.getElementById('sbNewBusinessFormCol');
+    var leftCol = document.getElementById('sbFreeListingLeftCol');
+
+    if (addNewBtn) {
+        addNewBtn.addEventListener('click', function () {
+            selectCol.classList.add('d-none');
+            formCol.classList.remove('d-none');
+            if (leftCol) leftCol.classList.remove('d-none');
+        });
+    }
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
