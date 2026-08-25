@@ -31,8 +31,8 @@
                                     @foreach($existingListings as $existingListing)
                                         <a href="{{ route('user.listing.dashboard', $existingListing->id) }}" class="sb-select-business-row">
                                             <span class="sb-select-business-avatar">
-                                                @if($existingListing->image)
-                                                    <img src="{{ loadImage('assets/images/listings/'.$existingListing->image) }}" alt="{{ $existingListing->name }}">
+                                                @if($existingListing->thumb)
+                                                    <img src="{{ loadImage('assets/images/listing/thumb/'.$existingListing->thumb) }}" alt="{{ $existingListing->name }}">
                                                 @else
                                                     {{ strtoupper(substr($existingListing->name, 0, 1)) }}
                                                 @endif
