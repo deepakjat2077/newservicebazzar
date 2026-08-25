@@ -72,6 +72,11 @@ class User extends Authenticatable
         return $this->hasMany(UserFavoriteCategory::class);
     }
 
+    public function favoriteListings()
+    {
+        return $this->hasMany(UserFavoriteListing::class);
+    }
+
     public function getFullnameAttribute()
 {
     return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\FileHandler;
+use App\Models\Category;
+use App\Models\Listing;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserFavoriteCategory;
+use App\Models\UserFavoriteListing;
 use App\Models\UserSchedule;
 use Exception;
 use Illuminate\Http\Request;
@@ -22,18 +25,21 @@ class UserController extends Controller
 	/**
 	 * Fixed grid for the wizard's Favorites step — everyday-need categories
 	 * a user might want quick access to, not the site's business-listing
-	 * category tree. Key is what gets stored; label/icon are display-only.
+	 * category tree. Key/label drive matching against the real Category
+	 * table (see favoriteListings()); icon names are Font Awesome 5 Free
+	 * Solid, which is what this theme actually ships — the 6-only names
+	 * (fa-user-doctor, fa-basket-shopping, ...) rendered as blank boxes.
 	 */
 	const FAVORITE_CATEGORIES = [
-		'doctor'          => ['label' => 'Doctor', 'icon' => 'fa-user-doctor'],
+		'doctor'          => ['label' => 'Doctor', 'icon' => 'fa-user-md'],
 		'hospital'        => ['label' => 'Hospital', 'icon' => 'fa-hospital'],
-		'grocery_store'   => ['label' => 'Grocery Store', 'icon' => 'fa-basket-shopping'],
+		'grocery_store'   => ['label' => 'Grocery Store', 'icon' => 'fa-shopping-basket'],
 		'chemist'         => ['label' => 'Chemist', 'icon' => 'fa-pills'],
-		'laundry_service' => ['label' => 'Laundry Service', 'icon' => 'fa-shirt'],
+		'laundry_service' => ['label' => 'Laundry Service', 'icon' => 'fa-tshirt'],
 		'spa_salon'       => ['label' => 'Spa & Salon', 'icon' => 'fa-spa'],
 		'car_service'     => ['label' => 'Car Service', 'icon' => 'fa-car'],
-		'ac_service'      => ['label' => 'AC Service', 'icon' => 'fa-fan'],
-		'water_purifier'  => ['label' => 'Water Purifier Service', 'icon' => 'fa-droplet'],
+		'ac_service'      => ['label' => 'AC Service', 'icon' => 'fa-wind'],
+		'water_purifier'  => ['label' => 'Water Purifier Service', 'icon' => 'fa-tint'],
 		'plumber'         => ['label' => 'Plumber', 'icon' => 'fa-wrench'],
 		'restaurant'      => ['label' => 'Restaurant', 'icon' => 'fa-utensils'],
 		'pizza'           => ['label' => 'Pizza', 'icon' => 'fa-pizza-slice'],
@@ -53,13 +59,88 @@ class UserController extends Controller
 
     public function profile()
     {
-        $user = auth()->user()->load('addresses');
+        $user = auth()->user()->load(['addresses', 'favoriteListings.listing']);
 
         $favoriteCategories = self::FAVORITE_CATEGORIES;
-        $selectedFavorites = $user->favoriteCategories()->pluck('category_key')->toArray();
+        $favoritedListingIds = $user->favoriteListings->pluck('listing_id')->toArray();
         $progress = $this->profileWizardProgress($user);
 
-        return view($this->theme.'user.profile', compact('user', 'favoriteCategories', 'selectedFavorites', 'progress'));
+        return view($this->theme.'user.profile', compact('user', 'favoriteCategories', 'favoritedListingIds', 'progress'));
+    }
+
+    /**
+     * Real businesses to show under a Favorites category card — matched
+     * against the site's own Category table by name rather than a fixed
+     * id, since the fixed grid (FAVORITE_CATEGORIES) is a generic
+     * everyday-need list that doesn't necessarily line up 1:1 with however
+     * categories happen to be named in this install.
+     */
+    public function favoriteListings(Request $request)
+    {
+        $request->validate([
+            'category_key' => 'required|string|in:' . implode(',', array_keys(self::FAVORITE_CATEGORIES)),
+        ]);
+
+        $label = self::FAVORITE_CATEGORIES[$request->category_key]['label'];
+
+        $category = Category::where('status', 1)
+            ->where('name', 'like', '%' . $label . '%')
+            ->first();
+
+        $listings = collect();
+
+        if ($category) {
+            $listingQuery = Listing::notExpired()
+                ->where('status', 1)
+                ->where('category_id', $category->id)
+                ->with('location');
+
+            $userLocationId = session('selected_location_id');
+
+            if ($userLocationId) {
+                $scoped = (clone $listingQuery)->where('location_id', $userLocationId)->take(20)->get();
+                $listings = $scoped->isNotEmpty() ? $scoped : $listingQuery->take(20)->get();
+            } else {
+                $listings = $listingQuery->take(20)->get();
+            }
+        }
+
+        $favoritedListingIds = auth()->user()->favoriteListings()->pluck('listing_id')->toArray();
+
+        return response()->json([
+            'category' => $label,
+            'matched' => (bool) $category,
+            'listings' => $listings->map(fn ($listing) => [
+                'id' => $listing->id,
+                'name' => $listing->name,
+                'area' => optional($listing->location)->name,
+                'is_favorited' => in_array($listing->id, $favoritedListingIds),
+            ]),
+        ]);
+    }
+
+    public function favoriteListingToggle(Request $request)
+    {
+        $request->validate([
+            'listing_id' => 'required|exists:listings,id',
+            'category_key' => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        $existing = $user->favoriteListings()->where('listing_id', $request->listing_id)->first();
+
+        if ($existing) {
+            $existing->delete();
+            $selected = false;
+        } else {
+            $user->favoriteListings()->create([
+                'listing_id' => $request->listing_id,
+                'category_key' => $request->category_key,
+            ]);
+            $selected = true;
+        }
+
+        return response()->json(['selected' => $selected]);
     }
 
     /**
@@ -72,7 +153,7 @@ class UserController extends Controller
     {
         $hasPersonal = filled($user->first_name) && filled($user->last_name);
         $hasAddress = $user->addresses()->exists();
-        $hasFavorite = $user->favoriteCategories()->exists();
+        $hasFavorite = $user->favoriteListings()->exists() || $user->favoriteCategories()->exists();
 
         $completedSteps = collect([$hasPersonal, $hasAddress, $hasFavorite])->filter()->count();
 
@@ -153,6 +234,9 @@ class UserController extends Controller
         $user->area = $request->area;
         $user->pincode = $request->pincode;
         $user->occupation = $request->occupation;
+        if ($request->filled('mobile_2')) {
+            $user->mobile_2 = $request->mobile_2;
+        }
         $user->image = $image;
         $user->save();
 

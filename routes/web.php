@@ -578,7 +578,8 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
 
                 Route::post('profile/address', 'UserController@addressStore')->name('profile.address.store');
                 Route::delete('profile/address/{address}', 'UserController@addressDestroy')->name('profile.address.destroy');
-                Route::post('profile/favorite', 'UserController@favoriteToggle')->name('profile.favorite.toggle');
+                Route::post('profile/favorite-listings', 'UserController@favoriteListings')->name('profile.favorite.listings');
+                Route::post('profile/favorite-listing-toggle', 'UserController@favoriteListingToggle')->name('profile.favorite.listing.toggle');
 
                 Route::get('schedules', 'UserController@schedules')->name('schedules');
                 Route::get('schedule-removed/{id}', 'UserController@scheduleRemoved')->name('schedule.removed');

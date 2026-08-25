@@ -24,15 +24,15 @@
 
                 <ol class="sb-wizard-steps">
                     <li class="sb-wizard-step {{ $progress['hasPersonal'] ? 'is-done' : '' }}" data-step-trigger="1">
-                        <span class="sb-wizard-step-dot">{!! $progress['hasPersonal'] ? '<i class="fa-solid fa-check"></i>' : '1' !!}</span>
+                        <span class="sb-wizard-step-dot">{!! $progress['hasPersonal'] ? '<i class="fas fa-check"></i>' : '1' !!}</span>
                         <span class="sb-wizard-step-label">Personal Details</span>
                     </li>
                     <li class="sb-wizard-step {{ $progress['hasAddress'] ? 'is-done' : '' }}" data-step-trigger="2">
-                        <span class="sb-wizard-step-dot">{!! $progress['hasAddress'] ? '<i class="fa-solid fa-check"></i>' : '2' !!}</span>
+                        <span class="sb-wizard-step-dot">{!! $progress['hasAddress'] ? '<i class="fas fa-check"></i>' : '2' !!}</span>
                         <span class="sb-wizard-step-label">Addresses</span>
                     </li>
                     <li class="sb-wizard-step {{ $progress['hasFavorite'] ? 'is-done' : '' }}" data-step-trigger="3">
-                        <span class="sb-wizard-step-dot">{!! $progress['hasFavorite'] ? '<i class="fa-solid fa-check"></i>' : '3' !!}</span>
+                        <span class="sb-wizard-step-dot">{!! $progress['hasFavorite'] ? '<i class="fas fa-check"></i>' : '3' !!}</span>
                         <span class="sb-wizard-step-label">Favorites</span>
                     </li>
                     <li class="sb-wizard-step">
@@ -92,18 +92,25 @@
                                 </div>
 
                                 <div class="sb-field-row">
+                                    <label>Pincode :</label>
+                                    <input type="text" name="pincode" id="sbPincodeInput" class="sb-input" value="{{ $user->pincode }}" placeholder="Enter Pincode" maxlength="6" inputmode="numeric">
+                                </div>
+
+                                <div class="sb-field-row">
                                     <label>City :</label>
-                                    <input type="text" name="city" class="sb-input" value="{{ $user->city }}" placeholder="Enter City">
+                                    <input type="text" name="city" id="sbCityInput" class="sb-input" value="{{ $user->city }}" placeholder="Enter City">
                                 </div>
 
                                 <div class="sb-field-row">
                                     <label>Area :</label>
-                                    <input type="text" name="area" class="sb-input" value="{{ $user->area }}" placeholder="Enter Area">
-                                </div>
-
-                                <div class="sb-field-row">
-                                    <label>Pincode :</label>
-                                    <input type="text" name="pincode" class="sb-input" value="{{ $user->pincode }}" placeholder="Enter Pincode">
+                                    <select name="area" id="sbAreaSelect" class="sb-select sb-select-full">
+                                        @if($user->area)
+                                            <option value="{{ $user->area }}" selected>{{ $user->area }}</option>
+                                        @else
+                                            <option value="">Enter Pincode to pick an area</option>
+                                        @endif
+                                    </select>
+                                    <small class="sb-field-hint" id="sbAreaHint"></small>
                                 </div>
 
                                 <div class="sb-field-row">
@@ -130,7 +137,7 @@
                                     <label>Email ID :</label>
                                     <div class="sb-field-combo">
                                         <input type="email" class="sb-input" value="{{ $user->email }}" readonly>
-                                        <i class="fa-solid fa-circle-check sb-verified-icon"></i>
+                                        <i class="fas fa-check-circle sb-verified-icon"></i>
                                     </div>
                                 </div>
 
@@ -139,7 +146,16 @@
                                     <div class="sb-field-combo">
                                         <span class="sb-code-chip">+91</span>
                                         <input type="text" class="sb-input" value="{{ $user->mobile }}" readonly>
-                                        <i class="fa-solid fa-lock sb-locked-icon"></i>
+                                        <i class="fas fa-lock sb-locked-icon"></i>
+                                    </div>
+                                </div>
+
+                                <div class="sb-field-row">
+                                    <label>Mobile Number 2 :</label>
+                                    <div class="sb-field-combo">
+                                        <span class="sb-code-chip">+91</span>
+                                        <input type="text" name="mobile_2" class="sb-input" value="{{ $user->mobile_2 }}" placeholder="Add another number" maxlength="10" inputmode="numeric">
+                                        <button type="button" class="sb-verify-btn">{{ $user->mobile_2 ? 'Saved' : 'Verify' }}</button>
                                     </div>
                                 </div>
                             </div>
@@ -171,7 +187,7 @@
                                     </div>
                                     <form action="{{ route('user.profile.address.destroy', $savedAddress) }}" method="post" onsubmit="return confirm('Remove this address?');">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="sb-address-remove" title="Remove"><i class="fa-solid fa-trash"></i></button>
+                                        <button type="submit" class="sb-address-remove" title="Remove"><i class="fas fa-trash"></i></button>
                                     </form>
                                 </div>
                             @endforeach
@@ -239,19 +255,48 @@
 
                 {{-- Step 3: Favorites --}}
                 <div class="sb-wizard-panel" data-step-panel="3" hidden>
-                    <h4 class="sb-wizard-heading">Please select a category to enter details</h4>
+                    <div id="sbFavoriteGridView">
+                        <h4 class="sb-wizard-heading">Please select a category to enter details</h4>
 
-                    <div class="sb-favorite-grid">
-                        @foreach($favoriteCategories as $key => $cat)
-                            <button type="button"
-                                    class="sb-favorite-card {{ in_array($key, $selectedFavorites) ? 'is-selected' : '' }}"
-                                    data-favorite-key="{{ $key }}"
-                                    data-toggle-url="{{ route('user.profile.favorite.toggle') }}">
-                                <i class="fa-solid {{ $cat['icon'] }}"></i>
-                                <span>{{ $cat['label'] }}</span>
-                            </button>
-                        @endforeach
+                        <div class="sb-favorite-grid">
+                            @foreach($favoriteCategories as $key => $cat)
+                                <button type="button"
+                                        class="sb-favorite-card"
+                                        data-favorite-key="{{ $key }}"
+                                        data-favorite-label="{{ $cat['label'] }}">
+                                    <i class="fas {{ $cat['icon'] }}"></i>
+                                    <span>{{ $cat['label'] }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <button type="button" class="sb-wizard-primary-btn sb-wizard-primary-btn--standalone" data-step-next="4">Continue</button>
                     </div>
+
+                    {{-- Filled in by JS with the real businesses under whichever
+                         category card was clicked, from this site's own listings. --}}
+                    <div id="sbFavoriteListingsView" hidden>
+                        <button type="button" class="sb-wizard-back-btn" id="sbFavoriteBackBtn">
+                            <i class="fas fa-arrow-left"></i> Back to categories
+                        </button>
+                        <h4 class="sb-wizard-heading" id="sbFavoriteListingsHeading">Businesses</h4>
+
+                        <div id="sbFavoriteListingsBody">
+                            <p class="sb-wizard-loading">Loading businesses…</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Step 4: Completed --}}
+                <div class="sb-wizard-panel sb-wizard-panel--complete" data-step-panel="4" hidden>
+                    <div class="sb-complete-icon"><i class="fas fa-check-circle"></i></div>
+                    <h4 class="sb-wizard-heading">You're all set, {{ $user->first_name }}!</h4>
+                    <p class="sb-complete-text">
+                        Your profile is filled in — personal details, address and your favorite
+                        businesses are all saved. You can come back to any step above any time
+                        to update them.
+                    </p>
+                    <a href="{{ route('user.dashboard') }}" class="sb-wizard-primary-btn">Go to Dashboard</a>
                 </div>
 
             </div>
@@ -516,6 +561,73 @@
         color:#0e6fd6;
     }
     .sb-favorite-card.is-selected i{ color:#1e90ff; }
+
+    .sb-field-hint{ display:block; font-size:11px; color:#999; margin-top:4px; }
+    .sb-verify-btn{
+        border:1px solid #d5d9dd;
+        background:#f7f8f9;
+        border-radius:6px;
+        padding:9px 14px;
+        font-size:12px;
+        font-weight:600;
+        color:#444;
+        cursor:pointer;
+        flex-shrink:0;
+    }
+
+    .sb-wizard-back-btn{
+        border:0;
+        background:transparent;
+        color:#1e90ff;
+        font-size:13px;
+        font-weight:600;
+        cursor:pointer;
+        margin-bottom:14px;
+        padding:0;
+    }
+    .sb-wizard-loading{ font-size:13px; color:#888; }
+    .sb-listing-row{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        border:1px solid #eceef0;
+        border-radius:8px;
+        padding:12px 14px;
+        margin-bottom:10px;
+    }
+    .sb-listing-row strong{ font-size:14px; color:#222; display:block; }
+    .sb-listing-row small{ font-size:12px; color:#888; }
+    .sb-listing-fav-btn{
+        border:1px solid #1e90ff;
+        background:#fff;
+        color:#1e90ff;
+        border-radius:6px;
+        padding:7px 14px;
+        font-size:12px;
+        font-weight:600;
+        cursor:pointer;
+        flex-shrink:0;
+        white-space:nowrap;
+    }
+    .sb-listing-fav-btn.is-selected{
+        background:#1e90ff;
+        color:#fff;
+    }
+    .sb-wizard-empty{ font-size:13px; color:#888; }
+
+    .sb-wizard-panel--complete{
+        text-align:center;
+        padding:30px 10px;
+    }
+    .sb-complete-icon{ font-size:44px; color:#22a45d; margin-bottom:14px; }
+    .sb-complete-text{
+        font-size:14px;
+        color:#666;
+        max-width:440px;
+        margin:0 auto 22px;
+        line-height:1.6;
+    }
 </style>
 @endpush
 
@@ -561,13 +673,125 @@
         });
     }
 
-    // Favorites — toggle without leaving the step.
+    // Mobile Number 2 — no OTP flow yet, so "Verify" just confirms the
+    // number will be saved along with the rest of the form on submit.
+    var mobile2Btn = document.querySelector('.sb-verify-btn');
+    var mobile2Input = document.querySelector('input[name="mobile_2"]');
+    if (mobile2Btn && mobile2Input) {
+        mobile2Btn.addEventListener('click', function(){
+            if (mobile2Input.value.trim().length >= 10) {
+                mobile2Btn.textContent = 'Saved';
+            }
+        });
+    }
+
+    // Pincode -> City/Area — looked up from India Post's public pincode API
+    // so typing a pincode fills the area dropdown instead of the user
+    // having to type a locality name freehand.
+    var pincodeInput = document.getElementById('sbPincodeInput');
+    var citySelectTarget = document.getElementById('sbCityInput');
+    var areaSelect = document.getElementById('sbAreaSelect');
+    var areaHint = document.getElementById('sbAreaHint');
+
+    function lookupPincode(pin){
+        areaHint.textContent = 'Looking up areas for ' + pin + '…';
+
+        fetch('https://api.postalpincode.in/pincode/' + pin)
+            .then(function(res){ return res.json(); })
+            .then(function(data){
+                var result = data && data[0];
+
+                if (!result || result.Status !== 'Success' || !result.PostOffice || !result.PostOffice.length) {
+                    areaHint.textContent = 'No areas found for this pincode — type it in manually.';
+                    return;
+                }
+
+                areaSelect.innerHTML = '';
+                result.PostOffice.forEach(function(po){
+                    var opt = document.createElement('option');
+                    opt.value = po.Name;
+                    opt.textContent = po.Name;
+                    areaSelect.appendChild(opt);
+                });
+
+                if (citySelectTarget && !citySelectTarget.value.trim()) {
+                    citySelectTarget.value = result.PostOffice[0].District;
+                }
+
+                areaHint.textContent = result.PostOffice.length + ' area(s) found — pick one.';
+            })
+            .catch(function(){
+                areaHint.textContent = 'Could not look up this pincode right now.';
+            });
+    }
+
+    if (pincodeInput) {
+        pincodeInput.addEventListener('blur', function(){
+            var pin = pincodeInput.value.trim();
+            if (/^\d{6}$/.test(pin)) {
+                lookupPincode(pin);
+            }
+        });
+    }
+
+    // Favorites — clicking a category card fetches this site's own real
+    // listings under a matching category, instead of a fake sample list.
+    var gridView = document.getElementById('sbFavoriteGridView');
+    var listingsView = document.getElementById('sbFavoriteListingsView');
+    var listingsHeading = document.getElementById('sbFavoriteListingsHeading');
+    var listingsBody = document.getElementById('sbFavoriteListingsBody');
+    var backBtn = document.getElementById('sbFavoriteBackBtn');
+    var listingsUrl = '{{ route('user.profile.favorite.listings') }}';
+    var listingToggleUrl = '{{ route('user.profile.favorite.listing.toggle') }}';
+
+    function renderListingRow(listing, categoryKey){
+        var row = document.createElement('div');
+        row.className = 'sb-listing-row';
+
+        var info = document.createElement('div');
+        info.innerHTML = '<strong></strong><small></small>';
+        info.querySelector('strong').textContent = listing.name;
+        info.querySelector('small').textContent = listing.area || '';
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sb-listing-fav-btn' + (listing.is_favorited ? ' is-selected' : '');
+        btn.textContent = listing.is_favorited ? 'Added to Favorite' : 'Add to Favorite';
+
+        btn.addEventListener('click', function(){
+            fetch(listingToggleUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ listing_id: listing.id, category_key: categoryKey }),
+            })
+            .then(function(res){ return res.json(); })
+            .then(function(data){
+                btn.classList.toggle('is-selected', !!data.selected);
+                btn.textContent = data.selected ? 'Added to Favorite' : 'Add to Favorite';
+            })
+            .catch(function(){});
+        });
+
+        row.appendChild(info);
+        row.appendChild(btn);
+        return row;
+    }
+
     document.querySelectorAll('[data-favorite-key]').forEach(function(card){
         card.addEventListener('click', function(){
-            var url = card.getAttribute('data-toggle-url');
             var key = card.getAttribute('data-favorite-key');
+            var label = card.getAttribute('data-favorite-label');
 
-            fetch(url, {
+            gridView.hidden = true;
+            listingsView.hidden = false;
+            listingsHeading.textContent = label;
+            listingsBody.innerHTML = '<p class="sb-wizard-loading">Loading businesses…</p>';
+
+            fetch(listingsUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -578,11 +802,34 @@
             })
             .then(function(res){ return res.json(); })
             .then(function(data){
-                card.classList.toggle('is-selected', !!data.selected);
+                listingsBody.innerHTML = '';
+
+                if (!data.listings || !data.listings.length) {
+                    var empty = document.createElement('p');
+                    empty.className = 'sb-wizard-empty';
+                    empty.textContent = data.matched
+                        ? 'No ' + label + ' businesses are listed yet — check back soon.'
+                        : 'This category isn\'t on Service Bazzar yet.';
+                    listingsBody.appendChild(empty);
+                    return;
+                }
+
+                data.listings.forEach(function(listing){
+                    listingsBody.appendChild(renderListingRow(listing, key));
+                });
             })
-            .catch(function(){});
+            .catch(function(){
+                listingsBody.innerHTML = '<p class="sb-wizard-empty">Something went wrong loading businesses.</p>';
+            });
         });
     });
+
+    if (backBtn) {
+        backBtn.addEventListener('click', function(){
+            listingsView.hidden = true;
+            gridView.hidden = false;
+        });
+    }
 })();
 </script>
 @endpush
