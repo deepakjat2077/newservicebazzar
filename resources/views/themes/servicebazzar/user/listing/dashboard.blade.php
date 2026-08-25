@@ -43,7 +43,109 @@
             $sbReviewsUrl = $listing->category
                 ? route('listings.details', [$listing->category->slug, $listing->slug])
                 : null;
+
+            // Real, derived — not a fixed badge: this only says "Info
+            // Missing" when a field the Business Profile panel actually
+            // shows is genuinely empty.
+            $sbProfileInfoMissing = blank($listing->category)
+                || blank(collect($listing->mobile_numbers ?? [])->filter()->first())
+                || empty($listing->business_days);
         @endphp
+
+        {{-- "My Business" — wide action rows, the other shape this same set
+             of shortcuts takes on the dashboard (the circular grid further
+             down is the same actions, different layout). Leads and Support
+             open real pages this site already has; Business Profile opens
+             the same real side panel as the grid's Edit Profile card. The
+             rest have no working feature behind them yet, same as below. --}}
+        <div class="sb-biz-wide-list">
+            <h5>My Business</h5>
+
+            <div class="sb-biz-wide-card is-disabled">
+                <i class="fas fa-bullhorn"></i>
+                <div class="sb-biz-wide-body">
+                    <div class="sb-biz-wide-title">
+                        Advertise on Service Bazzar
+                        <span class="sb-biz-wide-badge sb-biz-wide-badge--green">Coming soon</span>
+                    </div>
+                    <p>Reach more customers searching for your category</p>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+            </div>
+
+            <a href="{{ route('user.guest-chats.index') }}" class="sb-biz-wide-card">
+                <i class="fas fa-envelope"></i>
+                <div class="sb-biz-wide-body">
+                    <div class="sb-biz-wide-title">Leads &amp; Enquiries</div>
+                    <p>View leads and respond to enquiries</p>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+            </a>
+
+            <button type="button" class="sb-biz-wide-card" id="sbOpenBusinessProfileWide">
+                <i class="fas fa-id-card"></i>
+                <div class="sb-biz-wide-body">
+                    <div class="sb-biz-wide-title">
+                        Business Profile
+                        @if($sbProfileInfoMissing)
+                            <span class="sb-biz-wide-badge sb-biz-wide-badge--red"><i class="fas fa-circle-exclamation"></i> Info Missing</span>
+                        @endif
+                    </div>
+                    <p>Update category, contact numbers &amp; business timings</p>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+            </button>
+
+            <div class="sb-biz-wide-grid-2">
+                <div class="sb-biz-wide-card is-disabled">
+                    <i class="fas fa-file-lines"></i>
+                    <div class="sb-biz-wide-body">
+                        <div class="sb-biz-wide-title">Catalogue</div>
+                        <p>Showcase products &amp; services</p>
+                    </div>
+                    <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+                </div>
+
+                <div class="sb-biz-wide-card is-disabled">
+                    <i class="fas fa-toolbox"></i>
+                    <div class="sb-biz-wide-body">
+                        <div class="sb-biz-wide-title">Business Tools</div>
+                        <p>Manage offers, reviews and more</p>
+                    </div>
+                    <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+                </div>
+
+                <div class="sb-biz-wide-card is-disabled">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <div class="sb-biz-wide-body">
+                        <div class="sb-biz-wide-title">KYC, Payments &amp; Invoices</div>
+                        <p>Update KYC details</p>
+                    </div>
+                    <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+                </div>
+
+                <div class="sb-biz-wide-card is-disabled">
+                    <i class="fas fa-award"></i>
+                    <div class="sb-biz-wide-body">
+                        <div class="sb-biz-wide-title">
+                            Additional Business Info
+                            <span class="sb-biz-wide-badge sb-biz-wide-badge--red"><i class="fas fa-circle-exclamation"></i> Info Missing</span>
+                        </div>
+                        <p>Financial service providers, broker &amp; insurance types and more</p>
+                    </div>
+                    <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+                </div>
+
+                <a href="{{ route('contact') }}" class="sb-biz-wide-card">
+                    <i class="fas fa-headset"></i>
+                    <div class="sb-biz-wide-body">
+                        <div class="sb-biz-wide-title">Support</div>
+                        <p>Connect with us</p>
+                    </div>
+                    <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
+                </a>
+            </div>
+        </div>
 
         {{-- Quick actions — Edit Profile, Reviews and Add Photos open real
              screens this site already has; the rest are the same shortcuts
@@ -291,6 +393,65 @@
         white-space:nowrap;
     }
 
+    .sb-biz-wide-list{ margin-bottom:30px; }
+    .sb-biz-wide-list h5{ font-size:20px; font-weight:700; color:#222; margin-bottom:16px; }
+    .sb-biz-wide-card{
+        display:flex;
+        align-items:center;
+        gap:16px;
+        border:1px solid #e6e8eb;
+        border-radius:8px;
+        padding:16px 18px;
+        margin-bottom:14px;
+        text-align:left;
+        background:#fff;
+        width:100%;
+        color:#222;
+    }
+    .sb-biz-wide-card > i:first-child{ font-size:20px; color:#1e90ff; width:22px; text-align:center; flex-shrink:0; }
+    .sb-biz-wide-card.is-disabled{ cursor:default; }
+    .sb-biz-wide-card.is-disabled > i:first-child{ color:#bbb; }
+    .sb-biz-wide-body{ flex:1; min-width:0; }
+    .sb-biz-wide-title{
+        display:flex;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:8px;
+        font-size:15px;
+        font-weight:700;
+        color:#222;
+    }
+    .sb-biz-wide-body p{ margin:3px 0 0; font-size:12.5px; color:#888; }
+    .sb-biz-wide-badge{
+        font-size:11px;
+        font-weight:700;
+        border-radius:4px;
+        padding:2px 8px;
+    }
+    .sb-biz-wide-badge--green{ background:#e6f7ec; color:#22a45d; }
+    .sb-biz-wide-badge--red{ background:#fdecec; color:#d9364f; }
+    .sb-biz-wide-chevron{
+        width:30px;
+        height:30px;
+        border:1px solid #e0e3e7;
+        border-radius:50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:12px;
+        color:#555;
+        flex-shrink:0;
+    }
+    .sb-biz-wide-grid-2{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:0 16px;
+    }
+    @media (max-width:700px){
+        .sb-biz-wide-grid-2{ grid-template-columns:1fr; }
+    }
+    .sb-biz-wide-grid-2 .sb-biz-wide-card{ align-items:flex-start; }
+
     .sb-biz-leads h5{ font-size:15px; font-weight:700; color:#222; margin-bottom:14px; }
     .sb-biz-lead-row{
         display:flex;
@@ -488,16 +649,17 @@ document.addEventListener('DOMContentLoaded', function(){
     if (closeBtn) closeBtn.addEventListener('click', function(){ overlay.classList.remove('show'); });
     overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.classList.remove('show'); });
 
-    var profileOpenBtn = document.getElementById('sbOpenBusinessProfile');
     var profileOverlay = document.getElementById('sbBizProfilePanelOverlay');
     var profileCloseBtn = document.getElementById('sbBizProfilePanelClose');
 
-    if (profileOpenBtn) {
-        profileOpenBtn.addEventListener('click', function(){
+    ['sbOpenBusinessProfile', 'sbOpenBusinessProfileWide'].forEach(function(id){
+        var btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('click', function(){
             overlay.classList.remove('show');
             profileOverlay.classList.add('show');
         });
-    }
+    });
     if (profileCloseBtn) {
         profileCloseBtn.addEventListener('click', function(){ profileOverlay.classList.remove('show'); });
     }
