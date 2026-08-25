@@ -226,7 +226,20 @@
 <style>
     /* Shared with the dashboard page (header, empty-state, modal shell,
        primary button) — duplicated here since this is a separate page with
-       its own @push('css'). */
+       its own CSS push block.
+
+       That sentence used to spell out the actual directive syntax here
+       (at-push-open-quote-css-close-quote) as plain descriptive text. Blade
+       compiles directives by scanning the raw file text, comments included
+       — it can't tell "this is inside a CSS comment" from "this is real
+       code" — so that literal text opened a second, nested copy of the
+       directive at the top of this file, right inside this comment,
+       before the real one below ever closed.
+       The mismatched push/pop broke output buffering for the whole page:
+       this block's own CSS ended up flushed to the very start of the
+       response, ahead of <!DOCTYPE html> itself, which is why the page
+       rendered with no styling at all. Describe the syntax in words, never
+       spell it out literally in a comment. */
     .sb-biz-header{
         display:flex; align-items:center; gap:14px;
         padding-bottom:18px; margin-bottom:20px; border-bottom:1px solid #eceef0;
