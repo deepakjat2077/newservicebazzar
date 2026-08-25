@@ -1371,8 +1371,9 @@ window.addEventListener('pageshow', function () {
 								</li>
 							@else
 								<li class="nav-item">
-									<a href="{{ route('user.dashboard') }}" class="nav-link nav-btn">
-										Dashboard
+									<a href="{{ route('user.dashboard') }}" class="nav-link nav-btn profile-dashboard-link d-flex align-items-center gap-2">
+										<img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->fullname() }}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
+										{{ Str::limit(auth()->user()->fullname(), 14) }}
 									</a>
 								</li>
 							@endguest
@@ -4013,6 +4014,212 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
     </div>
 </div>
+
+@auth
+{{--
+    Logged-in profile panel — a JustDial-style slide-in from the right,
+    opened by the avatar icon in the header instead of that icon linking
+    straight to /dashboard. Every link below is a route that already
+    exists elsewhere on the site (dashboard, profile, listings, wallet,
+    leads inbox, password, contact) — nothing here is a placeholder.
+--}}
+<div id="sbProfilePanelOverlay" class="sb-profile-overlay"></div>
+<div id="sbProfilePanel" class="sb-profile-panel">
+    <div class="sb-profile-head">
+        <a href="{{ route('user.profile') }}" class="sb-profile-identity">
+            <img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->fullname() }}">
+            <span>
+                <strong>{{ auth()->user()->fullname() }}</strong>
+                <small>Click to view profile</small>
+            </span>
+        </a>
+        <button type="button" class="sb-profile-close" id="sbProfilePanelClose">&times;</button>
+    </div>
+
+    <div class="sb-profile-menu">
+        <a href="{{ route('free.listing') }}" class="sb-profile-item sb-profile-item--highlight">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+            <span>List Your Business</span>
+        </a>
+
+        <a href="{{ route('user.listing.index') }}" class="sb-profile-item">
+            <i class="fa-solid fa-store"></i>
+            <span>My Listings</span>
+        </a>
+
+        <a href="{{ route('user.dashboard') }}" class="sb-profile-item">
+            <i class="fa-solid fa-gauge"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="{{ route('user.guest-chats.index') }}" class="sb-profile-item">
+            <i class="fa-solid fa-inbox"></i>
+            <span>Leads &amp; Enquiries</span>
+        </a>
+
+        <a href="{{ route('user.deposit') }}" class="sb-profile-item">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+
+        <a href="{{ route('user.profile') }}" class="sb-profile-item">
+            <i class="fa-solid fa-user-pen"></i>
+            <span>Edit Profile</span>
+        </a>
+
+        <a href="{{ route('user.password.edit') }}" class="sb-profile-item">
+            <i class="fa-solid fa-lock"></i>
+            <span>Change Password</span>
+        </a>
+
+        <a href="{{ route('contact') }}" class="sb-profile-item">
+            <i class="fa-solid fa-headset"></i>
+            <span>Customer Service</span>
+        </a>
+
+        <a href="{{ url('/privacy-policy') }}" class="sb-profile-item">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Policy</span>
+        </a>
+
+        <a href="{{ route('user.logout') }}" class="sb-profile-item sb-profile-item--danger">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+</div>
+
+<style>
+.sb-profile-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:2000;
+}
+.sb-profile-overlay.show{ display:block; }
+.sb-profile-panel{
+    position:fixed;
+    top:0;
+    right:-360px;
+    width:340px;
+    max-width:88vw;
+    height:100%;
+    background:#fff;
+    z-index:2001;
+    box-shadow:-4px 0 24px rgba(0,0,0,.15);
+    transition:right .25s ease;
+    display:flex;
+    flex-direction:column;
+    overflow-y:auto;
+}
+.sb-profile-panel.show{ right:0; }
+.sb-profile-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:20px 18px;
+    border-bottom:1px solid #eee;
+}
+.sb-profile-identity{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-decoration:none;
+    color:#111;
+    min-width:0;
+}
+.sb-profile-identity img{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    object-fit:cover;
+    flex-shrink:0;
+}
+.sb-profile-identity strong{
+    display:block;
+    font-size:16px;
+    font-weight:700;
+    color:#111;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.sb-profile-identity small{
+    display:block;
+    font-size:12px;
+    color:#777;
+}
+.sb-profile-close{
+    border:0;
+    background:transparent;
+    font-size:26px;
+    line-height:1;
+    color:#111;
+    flex-shrink:0;
+}
+.sb-profile-menu{
+    padding:8px 0;
+}
+.sb-profile-item{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px 18px;
+    color:#222;
+    text-decoration:none;
+    font-size:15px;
+    border-bottom:1px solid #f3f3f3;
+}
+.sb-profile-item:hover{
+    background:#f7f8f9;
+    color:#222;
+}
+.sb-profile-item i{
+    width:18px;
+    text-align:center;
+    color:#087dde;
+}
+.sb-profile-item--highlight{
+    background:#eaf4fe;
+    font-weight:600;
+}
+.sb-profile-item--danger i,
+.sb-profile-item--danger span{
+    color:#d9364f;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const panel = document.getElementById('sbProfilePanel');
+    const overlay = document.getElementById('sbProfilePanelOverlay');
+    const closeBtn = document.getElementById('sbProfilePanelClose');
+    const triggers = document.querySelectorAll('.profile-dashboard-link');
+
+    function openPanel(e) {
+        e.preventDefault();
+        panel.classList.add('show');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePanel() {
+        panel.classList.remove('show');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    triggers.forEach(function (trigger) {
+        trigger.addEventListener('click', openPanel);
+    });
+
+    closeBtn.addEventListener('click', closePanel);
+    overlay.addEventListener('click', closePanel);
+});
+</script>
+@endauth
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
