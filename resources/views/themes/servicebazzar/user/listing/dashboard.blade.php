@@ -71,11 +71,10 @@
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
                 <span>Reviews</span>
             </a>
-            <div class="sb-biz-action-card is-disabled">
+            <a href="{{ route('user.listing.serviceable-area', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--yellow"><i class="fas fa-location-dot"></i></span>
                 <span>Serviceable Area / Pincodes</span>
-                <small>Coming soon</small>
-            </div>
+            </a>
             <a href="{{ route('user.listing.edit', $listing->id) }}#images" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
                 <span>Add Photos</span>
@@ -307,6 +306,15 @@
                     @if($listing->address_approval_status === 'pending')
                         <small class="sb-biz-panel-pending">Pending approval</small>
                     @endif
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.serviceable-area', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-map-location-dot"></i>
+                <div>
+                    <strong>Serviceable Area / Pincodes</strong>
+                    <span>{{ $listing->receive_leads_other_cities ? 'Also receiving leads from other cities' : (optional($listing->location)->name ?? 'Your city').' only' }}</span>
                 </div>
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
             </a>

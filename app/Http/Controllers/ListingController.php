@@ -1444,6 +1444,35 @@ public function updatesection(Request $request, $id)
         return back()->withAlert(['success', 'Contact details updated successfully.']);
     }
 
+    /**
+     * "Serviceable Area / Pincodes" — the one real, working choice out of
+     * that JustDial screen: whether this listing can ever be reached by a
+     * quote request from outside its own city. There's no pincode/suburb
+     * boundary system on this site, so unlike JustDial's version there's no
+     * pincode picker here — just the choice that actually does something,
+     * in SiteController::requestQuoteStore()'s cross-city fallback.
+     */
+    public function businessServiceableAreaForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-serviceable-area', compact('listing'));
+    }
+
+    public function updateServiceableArea(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'receive_leads_other_cities' => 'required|in:0,1',
+        ]);
+
+        $listing->receive_leads_other_cities = (bool) $request->receive_leads_other_cities;
+        $listing->save();
+
+        return back()->withAlert(['success', 'Serviceable area preference saved.']);
+    }
+
     public function importLeadsSample()
     {
         $csv = "Enquiry Date,Name,Mobile Number\n"

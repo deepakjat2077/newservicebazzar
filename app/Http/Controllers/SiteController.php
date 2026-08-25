@@ -773,15 +773,33 @@ public function requestQuoteStore(Request $request)
         'message' => 'nullable|string|max:1000',
     ]);
 
-    $matchingListings = Listing::notExpired()
+    $baseQuery = fn () => Listing::notExpired()
         ->where('status', 1)
         ->where('category_id', $request->category_id)
-        ->when($request->filled('location_id'), fn ($q) => $q->where('location_id', $request->location_id))
         ->orderByDesc('is_featured')
         ->orderByDesc('trust')
-        ->orderByDesc('verified')
-        ->take(5)
-        ->get();
+        ->orderByDesc('verified');
+
+    $matchingListings = $request->filled('location_id')
+        ? $baseQuery()->where('location_id', $request->location_id)->take(5)->get()
+        : $baseQuery()->take(5)->get();
+
+    // Same-city businesses didn't fill the fan-out (or none were picked) —
+    // top up from other cities, but only listings that opted in via
+    // "Serviceable Area / Pincodes" (receive_leads_other_cities), and never
+    // a listing already in the same-city batch above.
+    if ($request->filled('location_id') && $matchingListings->count() < 5) {
+        $remaining = 5 - $matchingListings->count();
+
+        $fallback = $baseQuery()
+            ->where('location_id', '!=', $request->location_id)
+            ->where('receive_leads_other_cities', 1)
+            ->whereNotIn('id', $matchingListings->pluck('id'))
+            ->take($remaining)
+            ->get();
+
+        $matchingListings = $matchingListings->concat($fallback);
+    }
 
     if ($matchingListings->isEmpty()) {
         return back()->withAlert(['danger', 'No businesses currently match this category/location — please try a different one.'])->withInput();
