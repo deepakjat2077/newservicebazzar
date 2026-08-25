@@ -1370,7 +1370,7 @@ window.addEventListener('pageshow', function () {
 </a>
 								</li>
 							@else
-								<li class="nav-item">
+								<li class="nav-item profile-dashboard-item">
 									<a href="{{ route('user.dashboard') }}" class="nav-link nav-btn profile-dashboard-link d-flex align-items-center gap-2" title="{{ auth()->user()->fullname() }}">
 										<img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->fullname() }}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
 									</a>
@@ -4141,8 +4141,8 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .sb-profile-identity strong{
     display:block;
-    font-size:16px;
-    font-weight:700;
+    font-size:18px;
+    font-weight:800;
     color:#111;
     white-space:nowrap;
     overflow:hidden;
@@ -4201,9 +4201,17 @@ document.addEventListener("DOMContentLoaded", function () {
     border:0;
     padding:0;
     background:transparent;
+    line-height:normal;
 }
 .header-area .bottom-header .navbar ul li a.nav-btn.profile-dashboard-link:hover{
     background:transparent;
+}
+/* Every other nav item keeps its vertical spot via nav-btn's own padding;
+   this one lost that when the padding was zeroed above, so it needs to be
+   centered against its siblings explicitly instead. */
+.header-area .bottom-header .navbar ul li.profile-dashboard-item{
+    display:flex;
+    align-items:center;
 }
 </style>
 

@@ -62,6 +62,16 @@ class User extends Authenticatable
         return $this->hasMany(UserSchedule::class)->orderBy('opening_time');
     }
 
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class)->latest();
+    }
+
+    public function favoriteCategories()
+    {
+        return $this->hasMany(UserFavoriteCategory::class);
+    }
+
     public function getFullnameAttribute()
 {
     return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Traits\FileHandler;
 use App\Models\Setting;
 use App\Models\User;
+use App\Models\UserAddress;
+use App\Models\UserFavoriteCategory;
 use App\Models\UserSchedule;
 use Exception;
 use Illuminate\Http\Request;
@@ -16,6 +18,27 @@ class UserController extends Controller
 
 	protected $setting;
 	protected $theme;
+
+	/**
+	 * Fixed grid for the wizard's Favorites step — everyday-need categories
+	 * a user might want quick access to, not the site's business-listing
+	 * category tree. Key is what gets stored; label/icon are display-only.
+	 */
+	const FAVORITE_CATEGORIES = [
+		'doctor'          => ['label' => 'Doctor', 'icon' => 'fa-user-doctor'],
+		'hospital'        => ['label' => 'Hospital', 'icon' => 'fa-hospital'],
+		'grocery_store'   => ['label' => 'Grocery Store', 'icon' => 'fa-basket-shopping'],
+		'chemist'         => ['label' => 'Chemist', 'icon' => 'fa-pills'],
+		'laundry_service' => ['label' => 'Laundry Service', 'icon' => 'fa-shirt'],
+		'spa_salon'       => ['label' => 'Spa & Salon', 'icon' => 'fa-spa'],
+		'car_service'     => ['label' => 'Car Service', 'icon' => 'fa-car'],
+		'ac_service'      => ['label' => 'AC Service', 'icon' => 'fa-fan'],
+		'water_purifier'  => ['label' => 'Water Purifier Service', 'icon' => 'fa-droplet'],
+		'plumber'         => ['label' => 'Plumber', 'icon' => 'fa-wrench'],
+		'restaurant'      => ['label' => 'Restaurant', 'icon' => 'fa-utensils'],
+		'pizza'           => ['label' => 'Pizza', 'icon' => 'fa-pizza-slice'],
+		'cinema_hall'     => ['label' => 'Cinema Hall', 'icon' => 'fa-film'],
+	];
 
 	public function __construct(){
 		$this->setting = Setting::first();
@@ -30,8 +53,37 @@ class UserController extends Controller
 
     public function profile()
     {
-        $user = auth()->user();
-        return view($this->theme.'user.profile',compact('user'));
+        $user = auth()->user()->load('addresses');
+
+        $favoriteCategories = self::FAVORITE_CATEGORIES;
+        $selectedFavorites = $user->favoriteCategories()->pluck('category_key')->toArray();
+        $progress = $this->profileWizardProgress($user);
+
+        return view($this->theme.'user.profile', compact('user', 'favoriteCategories', 'selectedFavorites', 'progress'));
+    }
+
+    /**
+     * How far the wizard sidebar should show as complete: personal details
+     * are always step 1's own form (already required on save), addresses
+     * unlock once at least one is saved, favorites once at least one pick
+     * is saved.
+     */
+    protected function profileWizardProgress(User $user): array
+    {
+        $hasPersonal = filled($user->first_name) && filled($user->last_name);
+        $hasAddress = $user->addresses()->exists();
+        $hasFavorite = $user->favoriteCategories()->exists();
+
+        $completedSteps = collect([$hasPersonal, $hasAddress, $hasFavorite])->filter()->count();
+
+        return [
+            'hasPersonal' => $hasPersonal,
+            'hasAddress' => $hasAddress,
+            'hasFavorite' => $hasFavorite,
+            // 4 steps total (Personal, Addresses, Favorites, Completed) —
+            // matches the "Overall Progress" bar under the wizard heading.
+            'percent' => (int) round(($completedSteps / 4) * 100),
+        ];
     }
 
     public function search(Request $request)
@@ -89,15 +141,79 @@ class UserController extends Controller
     		}
         }
 
+        $user->title = $request->title;
         $user->first_name = $request->first_name;
+        $user->middle_name = $request->middle_name;
         $user->last_name = $request->last_name;
         $user->address = $request->address;
         $user->website = $request->website;
+        $user->dob = $request->filled('dob') ? $request->dob : null;
+        $user->marital_status = $request->marital_status;
+        $user->city = $request->city;
+        $user->area = $request->area;
+        $user->pincode = $request->pincode;
+        $user->occupation = $request->occupation;
         $user->image = $image;
         $user->save();
 
         $alert = ['success','Profile updated successfully'];
         return back()->withAlert($alert);
+    }
+
+    public function addressStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'nullable|string|max:191',
+            'contact_number' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:191',
+            'address' => 'nullable|string',
+            'landmark' => 'nullable|string|max:191',
+            'pincode' => 'nullable|string|max:10',
+            'city' => 'nullable|string|max:191',
+            'landline_std' => 'nullable|string|max:10',
+            'landline_number' => 'nullable|string|max:20',
+            'tag' => 'nullable|string|max:20',
+        ]);
+
+        auth()->user()->addresses()->create($request->only([
+            'name', 'contact_number', 'email', 'address', 'landmark',
+            'pincode', 'city', 'landline_std', 'landline_number', 'tag',
+        ]));
+
+        return back()->withAlert(['success', 'Address added successfully']);
+    }
+
+    public function addressDestroy(UserAddress $address)
+    {
+        abort_unless($address->user_id === auth()->id(), 403);
+
+        $address->delete();
+
+        return back()->withAlert(['success', 'Address removed']);
+    }
+
+    public function favoriteToggle(Request $request)
+    {
+        $request->validate([
+            'category_key' => 'required|string|in:' . implode(',', array_keys(self::FAVORITE_CATEGORIES)),
+        ]);
+
+        $user = auth()->user();
+        $existing = $user->favoriteCategories()->where('category_key', $request->category_key)->first();
+
+        if ($existing) {
+            $existing->delete();
+            $selected = false;
+        } else {
+            $user->favoriteCategories()->create(['category_key' => $request->category_key]);
+            $selected = true;
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['selected' => $selected]);
+        }
+
+        return back();
     }
 
     public function passwordChange(){
