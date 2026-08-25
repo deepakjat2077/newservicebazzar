@@ -5,7 +5,7 @@
 <section class="pt-30 pb-80">
     <div class="container">
         <div class="sb-biz-header">
-            <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 <h4>{{ $listing->name }}</h4>
                 <span>{{ optional($listing->location)->name ?? $listing->area }}</span>
@@ -26,7 +26,7 @@
             <div class="sb-import-note">
                 <div class="sb-import-note-head">
                     <strong>Important Note:</strong>
-                    <a href="{{ route('user.listing.import-leads.sample') }}"><i class="fa-solid fa-download"></i> example.csv</a>
+                    <a href="{{ route('user.listing.import-leads.sample') }}"><i class="fas fa-download"></i> example.csv</a>
                 </div>
                 <ol>
                     <li>Supports CSV or excel file formats only</li>

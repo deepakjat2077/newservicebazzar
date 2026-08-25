@@ -5,7 +5,7 @@
 <section class="pt-30 pb-80">
     <div class="container">
         <div class="sb-biz-header">
-            <a href="{{ route('user.listing.index') }}" class="sb-biz-back"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="{{ route('user.listing.index') }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 <h4>{{ $listing->name }}</h4>
                 <span>{{ optional($listing->location)->name ?? $listing->area }}</span>
@@ -36,7 +36,7 @@
                 <small class="sb-biz-stat-pct {{ $respondedPercent < 50 ? 'is-poor' : 'is-good' }}">{{ $respondedPercent }}%</small>
             </div>
             <button type="button" class="sb-biz-viewmore" id="sbBizViewMoreBtn">
-                View More <i class="fa-solid fa-chevron-right"></i>
+                View More <i class="fas fa-chevron-right"></i>
             </button>
         </div>
 
@@ -77,27 +77,27 @@
         <button type="button" class="sb-biz-modal-close" id="sbBizModalClose">&times;</button>
         <div class="sb-biz-modal-grid">
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fa-solid fa-stopwatch"></i>
+                <i class="fas fa-stopwatch"></i>
                 <span>Response Time</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fa-solid fa-file-invoice"></i>
+                <i class="fas fa-file-invoice"></i>
                 <span>Quotation Request</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fa-solid fa-chart-line"></i>
+                <i class="fas fa-chart-line"></i>
                 <span>Analytics</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fa-solid fa-users"></i>
+                <i class="fas fa-users"></i>
                 <span>Competitors</span>
                 <small>Coming soon</small>
             </div>
             <a href="{{ route('user.listing.import-leads', $listing->id) }}" class="sb-biz-modal-card">
-                <i class="fa-solid fa-file-import"></i>
+                <i class="fas fa-file-import"></i>
                 <span>Import Leads</span>
             </a>
         </div>

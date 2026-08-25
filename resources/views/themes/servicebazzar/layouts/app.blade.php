@@ -3,6 +3,11 @@
 <head>
     @include('includes.seo')
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/all.min.css') }}">
+    {{-- Same FA7 kit the main site layout (layouts/site.blade.php) loads —
+         without it, any icon using the newer "fa-solid fa-*" classes (as
+         opposed to this theme's older "fas fa-*") renders blank on every
+         page that extends this layout, e.g. the user dashboard pages. --}}
+    <link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap2.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/toastr.min.css') }}">
