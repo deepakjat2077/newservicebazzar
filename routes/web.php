@@ -640,10 +640,13 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
 
     Route::middleware(['auth', 'verified'])->name('user.')->prefix('dashboard')->group(function () {
         Route::get('guest-chats', 'OwnerChatController@index')->name('guest-chats.index');
+        // Must come before guest-chats/{conversation} — that wildcard route
+        // was matching "notifications" as a conversation id and 404ing on
+        // every poll, since Laravel matches routes in declaration order.
+        Route::get('guest-chats/notifications', 'OwnerChatController@notifications')->middleware('throttle:30,1')->name('guest-chats.notifications');
         Route::get('guest-chats/{conversation}', 'OwnerChatController@show')->name('guest-chats.show');
         Route::post('guest-chats/{conversation}/send', 'OwnerChatController@send')->middleware('throttle:30,1')->name('guest-chats.send');
         Route::get('guest-chats/{conversation}/messages', 'OwnerChatController@messages')->middleware('throttle:30,1')->name('guest-chats.messages');
-        Route::get('guest-chats/notifications', 'OwnerChatController@notifications')->middleware('throttle:30,1')->name('guest-chats.notifications');
     });
 
 

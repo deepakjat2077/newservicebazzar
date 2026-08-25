@@ -112,6 +112,15 @@
     <script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}"></script>
     <script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
     <script src="{{ asset($themeAsset.'summernote/summernote-lite.min.js') }}"></script>
+    {{-- app.js's toggleFixedHeader() reads this global unconditionally.
+         layouts/site.blade.php defines it before loading app.js; this
+         layout never did, so every page built on it (dashboard, business
+         dashboard, leads, ...) hit "currentRoute is not defined" as soon as
+         app.js ran, which aborted its whole ready-handler — including the
+         header/nav setup that depends on the rest of that handler running. --}}
+    <script>
+        var currentRoute = @json(request()->route() ? request()->route()->getName() : '');
+    </script>
     <script src="{{ asset($themeAsset.'js/app.js') }}"></script>
     <script src="{{ asset('assets/js/tracking.js') }}" defer></script>
     @stack('js')
