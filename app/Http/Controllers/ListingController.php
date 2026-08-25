@@ -1473,6 +1473,35 @@ public function updatesection(Request $request, $id)
         return back()->withAlert(['success', 'Serviceable area preference saved.']);
     }
 
+    /**
+     * "Map and Location" — a real, draggable-pin map (Leaflet + OpenStreetMap
+     * tiles, same source the edit form's own pincode-to-coordinates lookup
+     * already uses) over this listing's actual latitude/longitude, not a
+     * static screenshot.
+     */
+    public function businessMapLocationForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return view($this->theme.'user.listing.business-map-location', compact('listing'));
+    }
+
+    public function updateMapLocation(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        $listing->latitude = $request->latitude;
+        $listing->longitude = $request->longitude;
+        $listing->save();
+
+        return back()->withAlert(['success', 'Map location updated.']);
+    }
+
     public function importLeadsSample()
     {
         $csv = "Enquiry Date,Name,Mobile Number\n"

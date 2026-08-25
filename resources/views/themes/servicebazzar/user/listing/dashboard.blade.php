@@ -319,6 +319,15 @@
                 <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
             </a>
 
+            <a href="{{ route('user.listing.map-location', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-map"></i>
+                <div>
+                    <strong>Map Location</strong>
+                    <span>{{ $listing->latitude ? 'Pinned' : 'Not pinned yet' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
             <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
                 <i class="fas fa-list"></i>
                 <div>

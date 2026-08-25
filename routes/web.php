@@ -619,6 +619,8 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::post('{id}/business-contact', 'ListingController@updateContactDetails')->name('business-contact.update');
                     Route::get('{id}/serviceable-area', 'ListingController@businessServiceableAreaForm')->name('serviceable-area');
                     Route::post('{id}/serviceable-area', 'ListingController@updateServiceableArea')->name('serviceable-area.update');
+                    Route::get('{id}/map-location', 'ListingController@businessMapLocationForm')->name('map-location');
+                    Route::post('{id}/map-location', 'ListingController@updateMapLocation')->name('map-location.update');
                     Route::get('{id}/leads', 'ListingController@leads')->name('leads');
                     Route::post('leads/{enquiry}/star', 'ListingController@leadStar')->name('leads.star');
                     Route::post('leads/{enquiry}/hide', 'ListingController@leadHide')->name('leads.hide');
