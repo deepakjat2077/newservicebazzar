@@ -796,43 +796,24 @@
 <script>
     var editTimingSeed = @json($timingSeed);
 </script>
-                            <div id="timeSlotsWrapper">
-                                @foreach($openTimes as $i => $open)
-                                    <div class="time-slot-box time-slot-item border rounded p-3 mb-3">
-                                        <div class="row">
-                                            <div class="col-md-5 mb-3">
-                                                <label class="form-label">Open at</label>
-                                                <select class="form-control" name="open_time[]">
-                                                    <option value="">Select Opening Time</option>
-                                                    @foreach($timeOptions as $time)
-                                                        <option value="{{ $time }}" {{ $open == $time ? 'selected' : '' }}>
-                                                            {{ $time }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
+                            {{--
+                                Deliberately empty. generateSlotsByDays() (see the
+                                script at the bottom of this file) renders every row
+                                itself on page load from editTimingSeed — that's the
+                                only place that produces rows carrying data-day and a
+                                timing_days[] hidden input, which the per-day JS
+                                system (add/remove shift, checkbox sync) depends on.
 
-                                            <div class="col-md-5 mb-3">
-                                                <label class="form-label">Close at</label>
-                                                <select class="form-control" name="close_time[]">
-                                                    <option value="">Select Closing Time</option>
-                                                    @foreach($timeOptions as $time)
-                                                        <option value="{{ $time }}" {{ ($closeTimes[$i] ?? '') == $time ? 'selected' : '' }}>
-                                                            {{ $time }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-2 d-flex align-items-end mb-3">
-                                                @if($i > 0)
-                                                    <button type="button" class="btn btn-danger remove-time-slot w-100">×</button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
+                                A server-rendered row used to sit here instead. It
+                                had no data-day and no timing_days[] input, so the
+                                moment generateSlotsByDays() ran on load it saw
+                                #timeSlotsWrapper already non-empty, skipped seeding
+                                from editTimingSeed entirely, and rebuilt every
+                                checked day as a blank row — silently emptying the
+                                Open/Close selects for a listing that had saved
+                                hours, on nothing more than opening the edit page.
+                            --}}
+                            <div id="timeSlotsWrapper"></div>
 
                             <a href="javascript:void(0)" class="add-link" id="addTimeSlot">+ Add Another Time Slot</a>
                         </div>

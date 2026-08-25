@@ -503,43 +503,17 @@
         }
     @endphp
 
-    <div id="timeSlotsWrapper">
-        @foreach($openTimes as $i => $open)
-            <div class="time-slot-box time-slot-item border rounded p-3 mb-3">
-                <div class="row">
-                    <div class="col-md-5 mb-3">
-                        <label class="form-label">Open at</label>
-                        <select class="form-control" name="open_time[]">
-                            <option value="">Select Opening Time</option>
-                            @foreach($timeOptions as $time)
-                                <option value="{{ $time }}" {{ $open == $time ? 'selected' : '' }}>
-                                    {{ $time }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-5 mb-3">
-                        <label class="form-label">Close at</label>
-                        <select class="form-control" name="close_time[]">
-                            <option value="">Select Closing Time</option>
-                            @foreach($timeOptions as $time)
-                                <option value="{{ $time }}" {{ ($closeTimes[$i] ?? '') == $time ? 'selected' : '' }}>
-                                    {{ $time }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-2 d-flex align-items-end mb-3">
-                        @if($i > 0)
-                            <button type="button" class="btn btn-danger remove-time-slot w-100">×</button>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
+    {{--
+        Deliberately empty — see the matching comment in listing/edit.blade.php.
+        generateSlotsByDays() builds every row itself on page load (from
+        editTimingSeed if this were an edit, or from scratch here), and only
+        its rows carry the data-day/timing_days[] the per-day JS depends on.
+        A single dead row used to sit here instead ($openTimes = ['']), so
+        the very first generateSlotsByDays() call saw the wrapper already
+        non-empty and skipped its own seeding — same bug as the edit page,
+        just with nothing saved yet to lose here.
+    --}}
+    <div id="timeSlotsWrapper"></div>
 
     {{-- "+ Add Shift" now sits on each day's own row (2 shifts per day —
          e.g. 9-1, lunch break, 5-9) instead of one global link here; kept
