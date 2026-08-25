@@ -10,7 +10,6 @@
                 <h4>{{ $listing->name }}</h4>
                 <span>{{ optional($listing->location)->name ?? $listing->area }}</span>
             </div>
-            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-edit-link">Edit Listing</a>
         </div>
 
         <div class="sb-biz-stats">
@@ -67,38 +66,135 @@
     </div>
 </section>
 
-{{-- "View More" action grid — only Import Leads is a real, working feature
-     right now. The other four cards are the same options JustDial's owner
-     panel shows, but this site has no call-tracking, quotation, or
-     competitor data behind them, so they're marked coming soon rather than
-     shown with invented numbers. --}}
+@php
+    $sbReviewsUrl = $listing->category
+        ? route('listings.details', [$listing->category->slug, $listing->slug])
+        : null;
+@endphp
+
+{{-- "View More" action grid. Edit Profile, Add Photos and Reviews open real
+     screens this site already has (the listing edit form's fields, and the
+     public listing page's reviews); the rest are the same shortcuts
+     JustDial's owner panel offers but nothing behind them exists yet on
+     this site (advertising, catalogues, QR codes, ...), so they're marked
+     coming soon rather than wired to nothing. --}}
 <div class="sb-biz-modal-overlay" id="sbBizModalOverlay">
     <div class="sb-biz-modal">
         <button type="button" class="sb-biz-modal-close" id="sbBizModalClose">&times;</button>
         <div class="sb-biz-modal-grid">
+            <button type="button" class="sb-biz-modal-card" id="sbOpenBusinessProfile">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--peach"><i class="fas fa-id-card"></i></span>
+                <span>Edit Profile</span>
+            </button>
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fas fa-stopwatch"></i>
-                <span>Response Time</span>
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--purple"><i class="fas fa-bullhorn"></i></span>
+                <span>Advertise</span>
+                <small>Coming soon</small>
+            </div>
+            <a href="{{ $sbReviewsUrl ?? '#' }}" class="sb-biz-modal-card">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
+                <span>Reviews</span>
+            </a>
+            <div class="sb-biz-modal-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--yellow"><i class="fas fa-location-dot"></i></span>
+                <span>Serviceable Area / Pincodes</span>
+                <small>Coming soon</small>
+            </div>
+            <a href="{{ route('user.listing.edit', $listing->id) }}#images" class="sb-biz-modal-card">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
+                <span>Add Photos</span>
+            </a>
+            <div class="sb-biz-modal-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--teal"><i class="fas fa-address-book"></i></span>
+                <span>Add Contact</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fas fa-file-invoice"></i>
-                <span>Quotation Request</span>
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
+                <span>Upload Catalogue</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fas fa-chart-line"></i>
-                <span>Analytics</span>
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--gold"><i class="fas fa-gear"></i></span>
+                <span>Add Offer</span>
                 <small>Coming soon</small>
             </div>
             <div class="sb-biz-modal-card is-disabled">
-                <i class="fas fa-users"></i>
-                <span>Competitors</span>
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--pink"><i class="fas fa-video"></i></span>
+                <span>Add Video</span>
+                <small>Coming soon</small>
+            </div>
+            <div class="sb-biz-modal-card is-disabled">
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
+                <span>Add Social Links</span>
                 <small>Coming soon</small>
             </div>
             <a href="{{ route('user.listing.import-leads', $listing->id) }}" class="sb-biz-modal-card">
-                <i class="fas fa-file-import"></i>
+                <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-file-import"></i></span>
                 <span>Import Leads</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+{{-- Business Profile — a read-summary slide-in of this listing's real,
+     already-saved fields. It links out to the existing edit form for actual
+     changes rather than duplicating every field's save logic here. --}}
+<div class="sb-biz-panel-overlay" id="sbBizProfilePanelOverlay">
+    <div class="sb-biz-panel" id="sbBizProfilePanel">
+        <div class="sb-biz-panel-head">
+            <button type="button" class="sb-biz-panel-back" id="sbBizProfilePanelClose"><i class="fas fa-arrow-left"></i></button>
+            <h5>Business Profile</h5>
+        </div>
+
+        <div class="sb-biz-panel-body">
+            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-id-card"></i>
+                <div>
+                    <strong>Business Name</strong>
+                    <span>{{ $listing->name }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-address-card"></i>
+                <div>
+                    <strong>Contact Details</strong>
+                    <span>{{ collect($listing->mobile_numbers ?? [])->filter()->first() ?: (collect($listing->extra_emails ?? [])->filter()->first() ?: 'Not added yet') }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-location-dot"></i>
+                <div>
+                    <strong>Business Address</strong>
+                    <span>{{ $listing->address ?: 'Not added yet' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-list"></i>
+                <div>
+                    <strong>Business Category</strong>
+                    <span>{{ optional($listing->category)->name ?? 'Not set' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-biz-panel-row">
+                <i class="fas fa-clock"></i>
+                <div>
+                    <strong>Business Timings</strong>
+                    <span>{{ !empty($listing->business_days) ? 'Set' : 'Not added yet' }}</span>
+                </div>
+                <i class="fas fa-chevron-right sb-biz-panel-chevron"></i>
+            </a>
+
+            <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-wizard-primary-btn sb-biz-panel-edit-btn">
+                Edit Full Listing
             </a>
         </div>
     </div>
@@ -199,26 +295,34 @@
     .sb-biz-modal{
         background:#fff;
         border-radius:10px;
-        padding:24px;
+        padding:30px 24px 24px;
         width:100%;
-        max-width:420px;
+        max-width:460px;
         position:relative;
     }
     .sb-biz-modal-close{
         position:absolute;
-        top:14px;
-        right:16px;
+        top:-16px;
+        right:-16px;
+        width:34px;
+        height:34px;
+        border-radius:50%;
         border:0;
-        background:transparent;
-        font-size:22px;
-        color:#888;
+        background:#fff;
+        box-shadow:0 2px 10px rgba(0,0,0,.18);
+        font-size:20px;
+        line-height:1;
+        color:#333;
         cursor:pointer;
+        display:flex;
+        align-items:center;
+        justify-content:center;
     }
     .sb-biz-modal-grid{
         display:grid;
         grid-template-columns:repeat(3,1fr);
-        gap:14px;
-        margin-top:10px;
+        gap:18px 14px;
+        margin-top:6px;
     }
     .sb-biz-modal-card{
         display:flex;
@@ -226,20 +330,84 @@
         align-items:center;
         gap:8px;
         text-align:center;
-        border:1px solid #e6e8eb;
-        border-radius:8px;
-        padding:16px 10px;
+        border:0;
+        background:transparent;
+        padding:0;
         font-size:12px;
         font-weight:600;
         color:#333;
     }
-    .sb-biz-modal-card i{ font-size:20px; color:#1e90ff; }
-    .sb-biz-modal-card.is-disabled{
-        color:#aaa;
-        cursor:default;
+    .sb-biz-modal-icon{
+        width:52px;
+        height:52px;
+        border-radius:50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:20px;
+        color:#fff;
     }
-    .sb-biz-modal-card.is-disabled i{ color:#c3c7cc; }
+    .sb-biz-modal-icon--peach{ background:#f6a97a; }
+    .sb-biz-modal-icon--purple{ background:#9b7ff0; }
+    .sb-biz-modal-icon--blue{ background:#6fb1f2; }
+    .sb-biz-modal-icon--yellow{ background:#e9c65f; }
+    .sb-biz-modal-icon--green{ background:#7bc696; }
+    .sb-biz-modal-icon--teal{ background:#5fbfae; }
+    .sb-biz-modal-icon--gray{ background:#b7bcc2; }
+    .sb-biz-modal-icon--gold{ background:#d9b45a; }
+    .sb-biz-modal-icon--pink{ background:#ea94b4; }
+    .sb-biz-modal-icon--mint{ background:#7fd0c2; }
+    .sb-biz-modal-icon--indigo{ background:#6f8ff0; }
+    .sb-biz-modal-card.is-disabled{ color:#aaa; cursor:default; }
+    .sb-biz-modal-card.is-disabled .sb-biz-modal-icon{ background:#e4e6e9; color:#bbb; }
     .sb-biz-modal-card.is-disabled small{ color:#c3c7cc; font-weight:400; }
+
+    .sb-biz-panel-overlay{
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.4);
+        z-index:3100;
+        justify-content:flex-end;
+    }
+    .sb-biz-panel-overlay.show{ display:flex; }
+    .sb-biz-panel{
+        background:#fff;
+        width:380px;
+        max-width:92vw;
+        height:100%;
+        overflow-y:auto;
+    }
+    .sb-biz-panel-head{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding:18px;
+        border-bottom:1px solid #eceef0;
+    }
+    .sb-biz-panel-back{
+        border:0;
+        background:transparent;
+        font-size:16px;
+        color:#333;
+        cursor:pointer;
+    }
+    .sb-biz-panel-head h5{ margin:0; font-size:16px; font-weight:700; color:#222; }
+    .sb-biz-panel-body{ padding:6px 18px 24px; }
+    .sb-biz-panel-row{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding:14px 0;
+        border-bottom:1px solid #f3f3f3;
+        color:#222;
+    }
+    .sb-biz-panel-row > i:first-child{ font-size:16px; color:#1e90ff; width:20px; text-align:center; }
+    .sb-biz-panel-row div{ flex:1; min-width:0; }
+    .sb-biz-panel-row strong{ display:block; font-size:13px; font-weight:600; color:#222; }
+    .sb-biz-panel-row span{ display:block; font-size:12px; color:#888; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .sb-biz-panel-chevron{ font-size:12px; color:#bbb; }
+    .sb-biz-panel-edit-btn{ display:block; text-align:center; margin-top:20px; }
 </style>
 @endpush
 
@@ -253,6 +421,21 @@ document.addEventListener('DOMContentLoaded', function(){
     if (openBtn) openBtn.addEventListener('click', function(){ overlay.classList.add('show'); });
     if (closeBtn) closeBtn.addEventListener('click', function(){ overlay.classList.remove('show'); });
     overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.classList.remove('show'); });
+
+    var profileOpenBtn = document.getElementById('sbOpenBusinessProfile');
+    var profileOverlay = document.getElementById('sbBizProfilePanelOverlay');
+    var profileCloseBtn = document.getElementById('sbBizProfilePanelClose');
+
+    if (profileOpenBtn) {
+        profileOpenBtn.addEventListener('click', function(){
+            overlay.classList.remove('show');
+            profileOverlay.classList.add('show');
+        });
+    }
+    if (profileCloseBtn) {
+        profileCloseBtn.addEventListener('click', function(){ profileOverlay.classList.remove('show'); });
+    }
+    profileOverlay.addEventListener('click', function(e){ if (e.target === profileOverlay) profileOverlay.classList.remove('show'); });
 });
 </script>
 @endpush
