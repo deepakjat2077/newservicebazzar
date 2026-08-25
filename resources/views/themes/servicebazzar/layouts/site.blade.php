@@ -4035,11 +4035,29 @@ document.addEventListener("DOMContentLoaded", function () {
         <button type="button" class="sb-profile-close" id="sbProfilePanelClose">&times;</button>
     </div>
 
+    @php
+        // Shown as "My Business" the way JustDial surfaces the listing you
+        // already run — pulled straight from this user's own listings
+        // rather than anything typed in on this page, so it's only ever as
+        // current as the listing itself.
+        $sbMyBusiness = auth()->user()->listings()->latest()->first();
+    @endphp
+
     <div class="sb-profile-menu">
-        <a href="{{ route('free.listing') }}" class="sb-profile-item sb-profile-item--highlight">
-            <i class="fa-solid fa-arrow-trend-up"></i>
-            <span>List Your Business</span>
-        </a>
+        @if($sbMyBusiness)
+            <a href="{{ route('user.listing.edit', $sbMyBusiness->id) }}" class="sb-profile-item sb-profile-item--business">
+                <i class="fa-solid fa-store"></i>
+                <span>
+                    {{ $sbMyBusiness->name }}
+                    <small>My Business</small>
+                </span>
+            </a>
+        @else
+            <a href="{{ route('free.listing') }}" class="sb-profile-item sb-profile-item--highlight">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+                <span>List Your Business</span>
+            </a>
+        @endif
 
         <a href="{{ route('user.listing.index') }}" class="sb-profile-item">
             <i class="fa-solid fa-store"></i>
@@ -4186,6 +4204,21 @@ document.addEventListener("DOMContentLoaded", function () {
 .sb-profile-item--highlight{
     background:#eaf4fe;
     font-weight:600;
+}
+.sb-profile-item--business span{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+.sb-profile-item--business span strong,
+.sb-profile-item--business span{
+    font-weight:600;
+    color:#222;
+}
+.sb-profile-item--business small{
+    font-size:11px;
+    font-weight:600;
+    color:#22a45d;
 }
 .sb-profile-item--danger i,
 .sb-profile-item--danger span{
