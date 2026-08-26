@@ -11,16 +11,29 @@ namespace App\Support;
  * it over WhatsApp and the enquiry is only accepted once that code comes back.
  *
  * State lives in the visitor's session: they are guests, there is no account to
- * hang it off. A number stays proven for a day, so somebody comparing five
- * businesses fills five forms and sees the OTP step once.
+ * hang it off.
+ *
+ * One OTP per enquiry, deliberately. A proof is spent the moment an enquiry is
+ * accepted (consume()), and being signed in — even with the very number typed
+ * into the form — does not stand in for it. That is the site owner's call:
+ * every lead that reaches a business is to have a code answered on that
+ * handset first. It costs a WhatsApp message per enquiry; loosen it by giving
+ * a proof a longer life below and not consuming it.
  */
 class OtpGate
 {
     /** How long a code stays usable. */
     public const CODE_TTL_MINUTES = 10;
 
-    /** How long a proven number stays proven, in the same session. */
-    public const VERIFIED_TTL_HOURS = 24;
+    /**
+     * How long an unused proof stays good.
+     *
+     * Short, because it is single-use: it covers the gap between answering the
+     * code and the enquiry going through — including a second try after the
+     * form comes back with "the name field is required", which must not cost
+     * the visitor another OTP.
+     */
+    public const VERIFIED_TTL_MINUTES = 15;
 
     /** Wrong guesses allowed before the code is burned. */
     public const MAX_ATTEMPTS = 5;
@@ -53,14 +66,6 @@ class OtpGate
             return false;
         }
 
-        // Someone signed in with this very number over WhatsApp has already
-        // done exactly what this gate asks for.
-        $user = auth()->user();
-
-        if ($user && $user->isMobileVerified() && MobileNumber::national($user->mobile) === $key) {
-            return true;
-        }
-
         $verified = (array) session(self::VERIFIED_KEY, []);
 
         return isset($verified[$key]) && $verified[$key] > now()->timestamp;
@@ -69,10 +74,25 @@ class OtpGate
     public static function markVerified($mobile): void
     {
         $verified = (array) session(self::VERIFIED_KEY, []);
-        $verified[self::key($mobile)] = now()->addHours(self::VERIFIED_TTL_HOURS)->timestamp;
+        $verified[self::key($mobile)] = now()->addMinutes(self::VERIFIED_TTL_MINUTES)->timestamp;
 
         session([self::VERIFIED_KEY => $verified]);
         session()->forget(self::PENDING_KEY);
+    }
+
+    /**
+     * Spend the proof.
+     *
+     * Called once an enquiry has actually been accepted, so the next one asks
+     * for a fresh code rather than riding on this one.
+     */
+    public static function consume($mobile): void
+    {
+        $verified = (array) session(self::VERIFIED_KEY, []);
+
+        unset($verified[self::key($mobile)]);
+
+        session([self::VERIFIED_KEY => $verified]);
     }
 
     /** Seconds left before another code may be sent to this number, 0 if now. */

@@ -777,10 +777,14 @@ public function authorContact(Request $request)
                 return $this->enquiryFeedback($request, 'danger', 'We could not save your enquiry just now. Please try again in a moment.');
             }
 
+            OtpGate::consume($request->phone);
+
             return $this->enquiryFeedback($request, 'success', 'We have already received your enquiry. We will contact you soon.');
         }
 
         if (!$enquiry->wasRecentlyCreated) {
+            OtpGate::consume($request->phone);
+
             return $this->enquiryFeedback($request, 'success', 'We have already received your enquiry. We will contact you soon.');
         }
     } else {
@@ -801,6 +805,9 @@ public function authorContact(Request $request)
     event(new AdminNotification('enquiry', $count));
 
     \App\Support\Tracking\Tracker::conversion($request, 'enquiry', ['listing_id' => $listingId]);
+
+    // One code, one enquiry — the next one asks again. See OtpGate.
+    OtpGate::consume($request->phone);
 
     return $this->enquiryFeedback($request, 'success', 'Enquiry sent successfully. The business will contact you shortly.');
 }
@@ -897,6 +904,8 @@ public function requestQuoteStore(Request $request)
     }
 
     \App\Support\Tracking\Tracker::conversion($request, 'quote_request', ['category_id' => $request->category_id]);
+
+    OtpGate::consume($request->phone);
 
     return $this->enquiryFeedback($request, 'success', 'Your quote request has been sent to '.$matchingListings->count().' matching business(es). They will contact you shortly.');
 }
@@ -2548,6 +2557,8 @@ public function authorEmailContact(Request $request, SendMail $mail)
 
         return $this->enquiryFeedback($request, 'danger', 'We could not deliver your message right now. Please try again in a moment.');
     }
+
+    OtpGate::consume($request->phone);
 
     return $this->enquiryFeedback($request, 'success', 'Email enquiry sent successfully');
 }
