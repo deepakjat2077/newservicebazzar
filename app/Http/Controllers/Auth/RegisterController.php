@@ -8,12 +8,14 @@ use App\Http\Libs\SendMail;
 use App\Models\Setting;
 use App\Models\Theme;
 use App\Models\User;
+use App\Support\HttpRetry;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 
@@ -180,12 +182,11 @@ class RegisterController extends Controller
     }
 
 
-public function quickAuthSend(Request $request, SendMail $mail)
+public function quickAuthSend(Request $request)
 {
     $validated = $request->validate([
         'name'        => ['required', 'string', 'max:60'],
         'mobile'      => ['required', 'string', 'max:20'],
-        'email'       => ['required', 'email', 'max:255'],
         'current_url' => ['nullable', 'string'],
     ]);
 
@@ -198,30 +199,110 @@ public function quickAuthSend(Request $request, SendMail $mail)
     if (strlen($mobile) < 11 || strlen($mobile) > 15) {
         return response()->json([
             'status'  => false,
-            'message' => 'Please enter a valid mobile number.',
+            'message' => 'Please enter a valid WhatsApp mobile number.',
         ], 422);
     }
 
-    // Quick-login OTP goes out over email now, not WhatsApp — the site's
-    // mail settings (already configured under admin) are the single place
-    // this depends on, instead of a separate Gupshup account/template.
+    $apiKey = config('services.gupshup.api_key');
+    $appName = config('services.gupshup.app_name');
+    $source = config('services.gupshup.source');
+    $templateId = config('services.gupshup.otp_template_id');
+
+    if (!$apiKey || !$appName || !$source || !$templateId) {
+        Log::error('Gupshup configuration is incomplete', [
+            'api_key_exists' => !empty($apiKey),
+            'app_name'       => $appName,
+            'source'         => $source,
+            'template_id'    => $templateId,
+        ]);
+
+        return response()->json([
+            'status'  => false,
+            'message' => 'WhatsApp configuration is incomplete.',
+        ], 500);
+    }
+
     $otp = (string) verification_code(6);
 
     try {
-        $mail->sendMail([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'template' => 'verification_code',
-            'value'    => [
-                'code' => $otp,
-            ],
+        $attempt = HttpRetry::send(function () use ($apiKey, $source, $mobile, $appName, $templateId, $otp) {
+            return Http::asForm()
+                ->connectTimeout(10)
+                ->timeout(30)
+                ->withHeaders([
+                    'apikey' => $apiKey,
+                    'Accept' => 'application/json',
+                ])
+                ->post('https://api.gupshup.io/wa/api/v1/template/msg', [
+                    'channel'     => 'whatsapp',
+                    'source'      => $source,
+                    'destination' => $mobile,
+                    'src.name'    => $appName,
+                    // Authentication-category templates (like otp222) carry
+                    // one {{1}} variable, reused for both the body and the
+                    // "Copy code" button — a single param, not the repeated
+                    // pair a two-placeholder marketing template needed.
+                    'template'    => json_encode([
+                        'id' => $templateId,
+                        'params' => [$otp],
+                    ]),
+                ]);
+        }, 3, 1500, 'gupshup.otp', 20);
+
+        $response = $attempt['response'];
+
+        if ($response === null) {
+            Log::error('Gupshup WhatsApp OTP unreachable', [
+                'mobile'   => $mobile,
+                'attempts' => $attempt['attempts'],
+                'error'    => optional($attempt['exception'])->getMessage(),
+            ]);
+
+            return response()->json([
+                'status'  => false,
+                'message' => 'Could not send the OTP right now. Please try again in a moment.',
+            ], 502);
+        }
+
+        $responseData = $response->json();
+
+        Log::info('Gupshup WhatsApp OTP response', [
+            'http_status' => $response->status(),
+            'attempts'    => $attempt['attempts'],
+            'response'    => $responseData ?: $response->body(),
+            'mobile'      => $mobile,
         ]);
+
+        if (!$response->successful()) {
+            return response()->json([
+                'status'  => false,
+                'message' => HttpRetry::retryable($response)
+                    ? 'Could not send the OTP right now. Please try again in a moment.'
+                    : ($responseData['message']
+                        ?? 'Gupshup rejected the WhatsApp OTP request.'),
+            ], HttpRetry::clientStatus($response->status()));
+        }
+
+        $status = strtolower((string) ($responseData['status'] ?? ''));
+
+        if (!in_array($status, ['success', 'submitted'], true)) {
+            return response()->json([
+                'status'  => false,
+                'message' => $responseData['message']
+                    ?? 'Failed to send WhatsApp OTP.',
+            ], 500);
+        }
 
         session([
             'quick_auth_data' => [
                 'name'   => $validated['name'],
                 'mobile' => $mobile,
-                'email'  => $validated['email'],
+                // The account still needs a unique, non-null email row —
+                // WhatsApp never hands us one, so a mobile-derived
+                // placeholder stands in. Never shown, never mailed to;
+                // quickAuthVerify() below still matches accounts by
+                // mobile, the channel actually proven by the OTP.
+                'email'  => $mobile . '@whatsapp.servicebazzar.com',
             ],
             'quick_auth_otp' => $otp,
             'quick_auth_otp_expires_at' => now()->addMinutes(10)->timestamp,
@@ -230,23 +311,23 @@ public function quickAuthSend(Request $request, SendMail $mail)
 
         return response()->json([
             'status'  => true,
-            'message' => 'OTP has been sent successfully to your email.',
-            'email'   => $validated['email'],
+            'message' => 'OTP has been sent successfully via WhatsApp.',
+            'mobile'  => $mobile,
         ]);
     } catch (\Throwable $exception) {
-        Log::error('Quick-auth email OTP exception', [
+        Log::error('Gupshup WhatsApp OTP exception', [
             'exception_class' => get_class($exception),
             'message'         => $exception->getMessage(),
             'file'            => $exception->getFile(),
             'line'            => $exception->getLine(),
-            'email'           => $validated['email'],
+            'mobile'          => $mobile,
         ]);
 
         return response()->json([
             'status'  => false,
             'message' => config('app.debug')
                 ? $exception->getMessage()
-                : 'Unable to send the OTP email right now. Please try again in a moment.',
+                : 'Unable to connect to the WhatsApp service.',
         ], 500);
     }
 }
@@ -289,17 +370,18 @@ public function quickAuthVerify(Request $request)
 
     $redirectUrl = session('quick_auth_redirect', url('/'));
 
-    // Match strictly on `email` — the only channel the OTP actually proved
-    // ownership of now that it's sent by mail, not WhatsApp. Matching on
-    // `mobile` too would let an attacker supply a victim's mobile number
-    // alongside their own email address and log in as the victim once the
-    // OTP (sent to the attacker's own inbox) passes verification.
-    $user = User::where('email', $data['email'])->first();
+    // Match strictly on `mobile` — the only channel the OTP actually proved
+    // ownership of, now that it's sent over WhatsApp again. Matching on
+    // `email` too would let an attacker supply a victim's mobile number
+    // alongside their own email/placeholder and log in as the victim once
+    // the OTP (sent to the attacker's own WhatsApp) passes verification.
+    $user = User::where('mobile', $data['mobile'])->first();
 
-    if (!$user && User::where('mobile', $data['mobile'])->exists()) {
-        // The email is new, but the mobile number already belongs to a
-        // different account — refuse rather than crash on a duplicate-mobile
-        // insert, and don't silently attach it to the wrong account either.
+    if (!$user && User::where('email', $data['email'])->exists()) {
+        // The mobile number is new, but the placeholder email it's paired
+        // with already belongs to a different account (same mobile reused
+        // after a resend, effectively) — refuse rather than crash on a
+        // duplicate-email insert.
         session()->forget([
             'quick_auth_data',
             'quick_auth_otp',
@@ -309,7 +391,7 @@ public function quickAuthVerify(Request $request)
 
         return response()->json([
             'status' => false,
-            'message' => 'This mobile number is already registered with a different email. Please log in with your password instead.',
+            'message' => 'Something went wrong. Please try again.',
         ], 422);
     }
 
@@ -341,7 +423,12 @@ public function quickAuthVerify(Request $request)
             'username'             => $username,
             'mobile'               => $data['mobile'],
             'email'                => $data['email'],
-            'email_verified'       => 1,
+            // Not 1 — this email is a mobile-derived placeholder (see
+            // quickAuthSend()), never a real address anyone confirmed.
+            // Marking it verified would misrepresent what the WhatsApp OTP
+            // actually proved: ownership of the mobile number, not this
+            // email.
+            'email_verified'       => 0,
             'email_otp'            => null,
             'email_otp_expires_at' => null,
             'password'             => Hash::make(Str::random(12)),
@@ -374,7 +461,7 @@ public function quickAuthVerify(Request $request)
     ]);
 }
 
-public function quickAuthResend(SendMail $mail)
+public function quickAuthResend()
 {
     if (!session()->has('quick_auth_data')) {
         return response()->json([
@@ -385,48 +472,134 @@ public function quickAuthResend(SendMail $mail)
     }
 
     $data = session('quick_auth_data');
-    $email = (string) ($data['email'] ?? '');
+    $mobile = preg_replace('/\D/', '', (string) ($data['mobile'] ?? ''));
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if (!preg_match('/^[1-9][0-9]{10,14}$/', $mobile)) {
         return response()->json([
             'success' => false,
             'status'  => false,
-            'message' => 'A valid email was not found in the session.',
+            'message' => 'A valid WhatsApp number was not found in the session.',
         ], 422);
+    }
+
+    $apiKey = trim((string) config('services.gupshup.api_key'));
+    $appName = trim((string) config('services.gupshup.app_name'));
+    $source = preg_replace('/\D/', '', (string) config('services.gupshup.source'));
+    $templateId = trim((string) config('services.gupshup.otp_template_id'));
+
+    if ($apiKey === '' || $appName === '' || $source === '' || $templateId === '') {
+        Log::error('Gupshup resend configuration is incomplete.', [
+            'api_key_exists'  => $apiKey !== '',
+            'app_name_exists' => $appName !== '',
+            'source_exists'   => $source !== '',
+            'template_exists' => $templateId !== '',
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'status'  => false,
+            'message' => 'WhatsApp configuration is incomplete.',
+        ], 500);
     }
 
     $otp = (string) random_int(100000, 999999);
 
     try {
-        $mail->sendMail([
-            'name'     => $data['name'] ?? 'Subscriber',
-            'email'    => $email,
-            'template' => 'verification_code',
-            'value'    => [
-                'code' => $otp,
-            ],
+        $attempt = HttpRetry::send(function () use ($apiKey, $source, $mobile, $appName, $templateId, $otp) {
+            return Http::asForm()
+                ->connectTimeout(10)
+                ->timeout(30)
+                ->withHeaders([
+                    'apikey' => $apiKey,
+                    'Accept' => 'application/json',
+                ])
+                ->post('https://api.gupshup.io/wa/api/v1/template/msg', [
+                    'channel'     => 'whatsapp',
+                    'source'      => $source,
+                    'destination' => $mobile,
+                    'src.name'    => $appName,
+                    'template'    => json_encode([
+                        'id' => $templateId,
+                        'params' => [$otp],
+                    ], JSON_UNESCAPED_SLASHES),
+                ]);
+        }, 3, 1500, 'gupshup.otp.resend', 20);
+
+        $response = $attempt['response'];
+
+        if ($response === null) {
+            Log::error('Gupshup WhatsApp OTP resend unreachable', [
+                'destination' => $mobile,
+                'attempts'    => $attempt['attempts'],
+                'error'       => optional($attempt['exception'])->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'status'  => false,
+                'message' => 'Could not resend the OTP right now. Please try again in a moment.',
+            ], 422);
+        }
+
+        $responseData = $response->json();
+
+        Log::info('Gupshup WhatsApp OTP resend response.', [
+            'http_status' => $response->status(),
+            'attempts'    => $attempt['attempts'],
+            'response'    => $responseData ?: $response->body(),
+            'destination' => $mobile,
+            'message_id'  => $responseData['messageId'] ?? null,
         ]);
+
+        if (!$response->successful()) {
+            return response()->json([
+                'success' => false,
+                'status'  => false,
+                'message' => is_array($responseData)
+                    ? ($responseData['message']
+                        ?? 'Gupshup rejected the OTP resend request.')
+                    : 'Gupshup rejected the OTP resend request.',
+                'debug' => app()->isLocal()
+                    ? ($responseData ?: $response->body())
+                    : null,
+            ], 422);
+        }
+
+        $gupshupStatus = strtolower((string) ($responseData['status'] ?? ''));
+
+        if (!in_array($gupshupStatus, ['success', 'submitted'], true)) {
+            return response()->json([
+                'success' => false,
+                'status'  => false,
+                'message' => $responseData['message']
+                    ?? 'The OTP resend request was not accepted.',
+                'debug' => app()->isLocal()
+                    ? $responseData
+                    : null,
+            ], 422);
+        }
 
         session([
             'quick_auth_otp' => $otp,
             'quick_auth_otp_expires_at' => now()
                 ->addMinutes(10)
                 ->timestamp,
+            'quick_auth_message_id' => $responseData['messageId'] ?? null,
         ]);
 
         return response()->json([
             'success' => true,
             'status'  => true,
-            'message' => 'OTP has been resent successfully to your email.',
-            'email'   => $email,
+            'message' => 'OTP has been resent successfully via WhatsApp.',
+            'mobile'  => $mobile,
         ]);
     } catch (\Throwable $exception) {
-        Log::error('Quick-auth email OTP resend exception.', [
+        Log::error('Gupshup WhatsApp OTP resend exception.', [
             'exception_class' => get_class($exception),
             'message'         => $exception->getMessage(),
             'file'            => $exception->getFile(),
             'line'            => $exception->getLine(),
-            'email'           => $email,
+            'destination'     => $mobile,
         ]);
 
         return response()->json([
@@ -434,7 +607,7 @@ public function quickAuthResend(SendMail $mail)
             'status'  => false,
             'message' => app()->isLocal()
                 ? $exception->getMessage()
-                : 'Unable to resend the OTP email right now.',
+                : 'Unable to resend the WhatsApp OTP.',
         ], 500);
     }
 }

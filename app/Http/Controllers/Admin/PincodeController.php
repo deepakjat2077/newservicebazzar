@@ -67,7 +67,7 @@ class PincodeController extends Controller
                 ->where('pincode', $pin)
                 ->whereNotNull('area')
                 ->where('area', '<>', '')
-                ->select('area', 'city')
+                ->select('area', 'city', 'state')
                 ->get();
 
             return [
@@ -78,7 +78,12 @@ class PincodeController extends Controller
                     ->values()
                     ->all(),
                 'city'  => optional($rows->firstWhere('city', '<>', ''))->city ?? '',
-                'state' => '',
+                // Was hardcoded to '' — the column is right there on the
+                // same rows city comes from, it just was never selected or
+                // read. That's why City filled in from an earlier listing
+                // at this pincode but State never did, even when we had a
+                // perfectly good state on file for it.
+                'state' => optional($rows->firstWhere('state', '<>', ''))->state ?? '',
             ];
         });
     }

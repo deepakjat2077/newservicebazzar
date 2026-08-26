@@ -2856,6 +2856,12 @@ $('#pincode').on('keyup change', function () {
                 $('#city').val(data.city || '');
                 $('#state').val(data.state || '');
 
+                // Same fix as add.blade.php — readonly with nothing to fill
+                // it in was a dead end whenever the postal directory (and
+                // our own listings) had no record for this pincode.
+                $('#city').prop('readonly', !!data.city);
+                $('#state').prop('readonly', !!data.state);
+
                 if (data.city && typeof window.autoSelectListingLocation === 'function') {
                     // Location is the same city under another name — keep it
                     // in step instead of making it a second manual choice.
@@ -2889,6 +2895,8 @@ $('#pincode').on('keyup change', function () {
                 }
             })
             .catch(() => {
+                $('#city').prop('readonly', false);
+                $('#state').prop('readonly', false);
                 setAreaAsFreeText('Area load nahi ho paya — type kar dijiye');
             });
     });

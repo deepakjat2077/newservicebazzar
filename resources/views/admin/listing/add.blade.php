@@ -2844,6 +2844,20 @@ toggleOpen24Hours();
                 $('#city').val(data.city || '');
                 $('#state').val(data.state || '');
 
+                /*
+                 * City/State are readonly by default — trusted, so the admin
+                 * can't accidentally fat-finger a mismatch against the
+                 * pincode. But readonly with nothing to fill it stays empty
+                 * forever with no way in: the postal directory is missing
+                 * plenty of real pincodes (see PincodeController's own
+                 * comment), and our own listings won't have every pincode
+                 * either. Same fix as the Area field just below — a miss
+                 * unlocks the field for manual entry instead of being a
+                 * dead end.
+                 */
+                $('#city').prop('readonly', !!data.city);
+                $('#state').prop('readonly', !!data.state);
+
                 if (data.city && typeof window.autoSelectListingLocation === 'function') {
                     // Location is the same city under another name — keep it
                     // in step instead of making it a second manual choice.
@@ -2886,6 +2900,8 @@ toggleOpen24Hours();
             .catch(() => {
                 $('#latitude').val('');
                 $('#longitude').val('');
+                $('#city').prop('readonly', false);
+                $('#state').prop('readonly', false);
                 setAreaAsFreeText('Area load nahi ho paya — type kar dijiye');
             });
     }, 500));

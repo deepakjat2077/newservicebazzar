@@ -3970,9 +3970,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="sb-field">
                     <input type="text" name="mobile" placeholder="Enter Mobile Number" required>
                 </div>
-                <div class="sb-field">
-                    <input type="email" name="email" placeholder="Enter Email Address" required>
-                </div>
                 <div class="sb-terms">
                     <label>
                         <input type="checkbox" required checked>
@@ -4334,18 +4331,18 @@ document.addEventListener('DOMContentLoaded', function () {
             throw data;
         }
 
-        const email = data.email || '';
+        const mobile = data.mobile || data.phone || '';
 
-        sentText.textContent = email
-            ? email
-            : 'your email';
+        sentText.textContent = mobile
+            ? `WhatsApp number ${mobile}`
+            : 'your WhatsApp number';
 
         stepOne.style.display = 'none';
         stepOtp.style.display = 'block';
 
         showMsg(
             'success',
-            data.message || 'OTP sent successfully to your email.'
+            data.message || 'OTP sent successfully on WhatsApp.'
         );
 
         setTimeout(() => {
