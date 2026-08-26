@@ -3895,16 +3895,21 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 .sb-otp-boxes{
     display:flex;
-    gap:12px;
+    gap:8px;
     margin-bottom:34px;
 }
 .sb-otp-boxes input{
-    width:58px;
-    height:68px;
+    /* 6 of these at the old 58px + 12px gap needed 408px, but the popup
+       itself (.sb-auth-box) is only 380px wide minus its own padding —
+       about 328px of actual room — so the last box or two always poked
+       out past the popup's edge. This width/gap is the largest that still
+       fits all 6 with room to spare, at every width .sb-auth-box can be. */
+    width:44px;
+    height:56px;
     border:1px solid #aaa;
     border-radius:8px;
     text-align:center;
-    font-size:24px;
+    font-size:22px;
     outline:none;
 }
 .sb-otp-bottom{

@@ -192,14 +192,20 @@ public function quickAuthSend(Request $request)
 
     $mobile = preg_replace('/\D+/', '', $validated['mobile']);
 
-    if (strlen($mobile) === 10) {
-        $mobile = '91' . $mobile;
+    // A "91" the user typed themselves is just noise here, not part of the
+    // number — Gupshup's own "Test template" tool was sent the bare 10
+    // digits (no country code) and delivered; the same request with "91"
+    // prepended came back "submitted" from the API too but never actually
+    // arrived on WhatsApp, so the destination format Gupshup accepts as
+    // valid and the one it actually routes on aren't the same thing here.
+    if (strlen($mobile) === 12 && str_starts_with($mobile, '91')) {
+        $mobile = substr($mobile, 2);
     }
 
-    if (strlen($mobile) < 11 || strlen($mobile) > 15) {
+    if (strlen($mobile) !== 10) {
         return response()->json([
             'status'  => false,
-            'message' => 'Please enter a valid WhatsApp mobile number.',
+            'message' => 'Please enter a valid 10-digit WhatsApp mobile number.',
         ], 422);
     }
 
