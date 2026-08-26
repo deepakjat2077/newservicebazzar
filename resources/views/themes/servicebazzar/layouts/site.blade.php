@@ -4019,6 +4019,10 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
 </div>
 
+{{-- OTP step every enquiry form goes through before it submits. Sits here so
+     one copy covers every page, including forms injected after load. --}}
+@include('themes.servicebazzar.partials.enquiry-otp')
+
 @auth
 {{--
     Logged-in profile panel — a JustDial-style slide-in from the right,

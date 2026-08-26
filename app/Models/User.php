@@ -45,12 +45,18 @@ class User extends Authenticatable
     }
 
     /**
-     * Accounts created from a WhatsApp OTP login carry a mobile-derived
-     * placeholder address (RegisterController::quickAuthSend) — no mailbox
-     * exists behind it, so nothing may be sent there.
+     * Whether there is a real address to reach this account at.
+     *
+     * A WhatsApp OTP login records no email at all, and accounts made before
+     * that (RegisterController::quickAuthSend) carry a mobile-derived
+     * "<number>@whatsapp.servicebazzar.com" placeholder with no mailbox behind
+     * it. Neither may be mailed, and neither can complete an email
+     * verification — the profile page offers them a field to add a real one.
      */
-    public function hasPlaceholderEmail(){
-        return str_ends_with(strtolower((string) $this->email), '@whatsapp.servicebazzar.com');
+    public function hasMailableEmail(){
+        $email = trim((string) $this->email);
+
+        return $email !== '' && !str_ends_with(strtolower($email), '@whatsapp.servicebazzar.com');
     }
 
     /**
@@ -66,12 +72,12 @@ class User extends Authenticatable
             return true;
         }
 
-        // A placeholder address counts on its own: it only ever gets onto an
-        // account through the WhatsApp OTP flow, and its owner has no way to
-        // complete an email verification. True for accounts made before the
+        // Having no mailable address counts on its own: that only happens
+        // through the WhatsApp OTP flow, and its owner has no way to complete
+        // an email verification. True for accounts made before the
         // `mobile_verified` column existed, and when code is deployed ahead
         // of `php artisan migrate`.
-        return $this->hasPlaceholderEmail();
+        return !$this->hasMailableEmail();
     }
 
     /** Records the proof above; a no-op until the column exists. */

@@ -29,6 +29,7 @@ use App\Models\ListingClick;
 use App\Rules\IndianMobile;
 use App\Rules\RealName;
 use App\Support\Forms\FormGuard;
+use App\Support\OtpGate;
 use Illuminate\Support\Facades\Http;
 
 class SiteController extends Controller
@@ -635,6 +636,35 @@ public function contact()
 
     }
 
+/**
+ * The OTP gate every enquiry form sits behind.
+ *
+ * A lead is only worth the number attached to it, so the number has to be
+ * proven before the enquiry is stored or mailed to a business owner. The
+ * forms' own JavaScript walks the visitor through this (see the
+ * enquiry-otp partial) and only submits once it passes; this is the check
+ * that actually enforces it, for anything that posts here directly.
+ *
+ * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse|null
+ *         a rejection to return, or null to carry on
+ */
+protected function requireVerifiedPhone(Request $request)
+{
+    if (OtpGate::isVerified($request->phone)) {
+        return null;
+    }
+
+    $message = 'Please verify your mobile number with the OTP we send on WhatsApp before submitting.';
+
+    if ($request->expectsJson()) {
+        return response()->json(['message' => $message, 'otp_required' => true], 422);
+    }
+
+    return back()
+        ->withInput()
+        ->withAlert(['danger', $message]);
+}
+
 public function authorContact(Request $request)
 {
     /*
@@ -666,6 +696,10 @@ public function authorContact(Request $request)
         'category_name' => 'nullable|string|max:255',
         'location_name' => 'nullable|string|max:255',
     ]);
+
+    if ($response = $this->requireVerifiedPhone($request)) {
+        return $response;
+    }
 
     $listingId  = $request->listing_id ?: null;
     $categoryId = $request->category_id ?: null;
@@ -772,6 +806,10 @@ public function requestQuoteStore(Request $request)
         'location_id' => 'nullable|integer|exists:locations,id',
         'message' => 'nullable|string|max:1000',
     ]);
+
+    if ($response = $this->requireVerifiedPhone($request)) {
+        return $response;
+    }
 
     $baseQuery = fn () => Listing::notExpired()
         ->where('status', 1)
@@ -2399,6 +2437,10 @@ public function authorEmailContact(Request $request, SendMail $mail)
         'email'      => 'required|email|max:255',
         'message'    => 'required|string|max:5000',
     ]);
+
+    if ($response = $this->requireVerifiedPhone($request)) {
+        return $response;
+    }
 
     $listing = Listing::findOrFail($request->listing_id);
 

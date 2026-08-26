@@ -346,14 +346,17 @@ class WhatsappSender
                 return $this->log($phone, $templateId, 'failed', $meta, [
                     'error'   => is_string($reason) ? $reason : json_encode($reason),
                     'payload' => $data,
-                    'body'    => implode(' | ', $template['params']),
+                    'body'    => $meta['log_body'] ?? implode(' | ', $template['params']),
                 ]);
             }
 
             return $this->log($phone, $templateId, 'submitted', $meta, [
                 'message_id' => $data['messageId'] ?? $data['message_id'] ?? null,
                 'payload'    => $data,
-                'body'       => implode(' | ', $template['params']),
+                // `log_body` lets a caller keep the parameters out of the
+                // admin-readable log — a one-time code has no business
+                // sitting in a table anybody with that screen can read.
+                'body'       => $meta['log_body'] ?? implode(' | ', $template['params']),
             ]);
 
         } catch (ConnectionException $exception) {

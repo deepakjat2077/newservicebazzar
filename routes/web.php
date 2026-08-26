@@ -814,6 +814,17 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
     Route::post('request-quote', 'SiteController@requestQuoteStore')->middleware('throttle:10,1')->name('request-quote.store');
     Route::post('author-email-contact', 'SiteController@authorEmailContact')
     ->middleware('throttle:30,1')->name('contact.author.email');
+
+    /*
+     * The OTP step in front of every enquiry form. Tighter limits than the
+     * enquiry endpoints themselves: each send costs a WhatsApp message, so
+     * this is the one place worth rate-limiting hard. OtpGate adds a per-number
+     * cooldown and a per-session budget on top of these per-IP caps.
+     */
+    Route::post('enquiry-otp/send', 'EnquiryOtpController@send')
+        ->middleware('throttle:8,1')->name('enquiry.otp.send');
+    Route::post('enquiry-otp/verify', 'EnquiryOtpController@verify')
+        ->middleware('throttle:15,1')->name('enquiry.otp.verify');
     Route::post('listing-click-track', 'SiteController@listingClickTrack')->middleware('throttle:60,1')->name('listing.click.track');
 
     Route::prefix('track')->middleware('throttle:120,1')->group(function () {

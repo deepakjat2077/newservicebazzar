@@ -14,6 +14,7 @@ use App\Models\UserSchedule;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -199,12 +200,22 @@ class UserController extends Controller
 
 
     public function profileUpdate(Request $request){
-    	$request->validate([
+    	$user = auth()->user();
+
+        // The email field is editable only while the account has nothing
+        // verified in it — a WhatsApp OTP login records no address at all, so
+        // this is where its owner adds one. An address they already confirmed
+        // is left alone (the form renders that one read-only).
+        $canEditEmail = !$user->hasMailableEmail() || !$user->email_verified;
+
+    	$request->validate(array_filter([
     		'first_name'=>'required',
     		'last_name'=>'required',
     		'image'=>'nullable|image|mimes:jpg,jpeg,png',
-    	]);
-    	$user = auth()->user();
+    		'email'=> $canEditEmail
+    			? ['nullable','email','max:191',Rule::unique('users','email')->ignore($user->id)]
+    			: null,
+    	]));
 
     	$image = $user->image;
     	if ($request->hasFile('image')) {
@@ -236,6 +247,17 @@ class UserController extends Controller
         $user->occupation = $request->occupation;
         if ($request->filled('mobile_2')) {
             $user->mobile_2 = $request->mobile_2;
+        }
+        if ($canEditEmail && $request->filled('email')) {
+            $email = trim($request->email);
+
+            if ($email !== (string) $user->email) {
+                $user->email = $email;
+                // Newly typed in, so nobody has confirmed it yet. The account
+                // still gets through the `verified` middleware on the strength
+                // of its WhatsApp OTP (see App\Http\Middleware\Verification).
+                $user->email_verified = 0;
+            }
         }
         $user->image = $image;
         $user->save();

@@ -136,9 +136,19 @@
                                 <div class="sb-field-row">
                                     <label>Email ID :</label>
                                     <div class="sb-field-combo">
-                                        <input type="email" class="sb-input" value="{{ $user->email }}" readonly>
-                                        <i class="fas fa-check-circle sb-verified-icon"></i>
+                                        {{-- An account created from a WhatsApp OTP has no email at all,
+                                             so this is where its owner adds one. Only an address they
+                                             have actually confirmed is locked with the verified tick. --}}
+                                        @if($user->hasMailableEmail() && $user->email_verified)
+                                            <input type="email" class="sb-input" value="{{ $user->email }}" readonly>
+                                            <i class="fas fa-check-circle sb-verified-icon"></i>
+                                        @else
+                                            <input type="email" name="email" class="sb-input" value="{{ old('email', $user->hasMailableEmail() ? $user->email : '') }}" placeholder="Add your email ID" maxlength="191">
+                                        @endif
                                     </div>
+                                    @error('email')
+                                        <small class="sb-field-error">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
                                 <div class="sb-field-row">
@@ -210,7 +220,7 @@
                             </div>
                             <div class="sb-field-row">
                                 <label>Email ID :</label>
-                                <input type="email" name="email" class="sb-input" value="{{ $user->email }}">
+                                <input type="email" name="email" class="sb-input" value="{{ $user->hasMailableEmail() ? $user->email : '' }}" placeholder="Enter Email ID">
                             </div>
 
                             <div class="sb-field-row sb-field-row-tall">
@@ -441,6 +451,7 @@
         flex-shrink:0;
     }
     .sb-verified-icon{ color:#22a45d; }
+    .sb-field-error{ display:block; margin-top:4px; color:#d63939; font-size:12px; }
     .sb-locked-icon{ color:#b0b5ba; }
 
     .sb-avatar-row{

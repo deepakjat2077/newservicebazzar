@@ -299,13 +299,11 @@ public function quickAuthSend(Request $request)
             'quick_auth_data' => [
                 'name'   => $validated['name'],
                 'mobile' => $mobile,
-                // The account still needs a unique, non-null email row —
-                // WhatsApp never hands us one, so a mobile-derived
-                // placeholder stands in. Never shown, and never mailed to
-                // — SendMail drops anything addressed to this subdomain.
-                // quickAuthVerify() below still matches accounts by mobile,
-                // the channel actually proven by the OTP.
-                'email'  => MobileNumber::national($mobile) . '@whatsapp.servicebazzar.com',
+                // No email: WhatsApp never hands us one, and the account row
+                // now holds NULL rather than a made-up
+                // "<number>@whatsapp.servicebazzar.com" address. Inventing one
+                // put a fake, undeliverable address on the owner's own profile
+                // page. They add a real one there when they want to.
             ],
             'quick_auth_otp' => $otp,
             'quick_auth_otp_expires_at' => now()->addMinutes(10)->timestamp,
@@ -409,18 +407,6 @@ public function quickAuthVerify(Request $request)
             $i++;
         }
 
-        $email = $data['email'];
-
-        if (User::where('email', $email)->exists()) {
-            // Placeholder addresses are derived from the number, so a clash
-            // means some older row is already parked on this one. Keep the
-            // login working with a unique variant rather than refusing it —
-            // nothing is ever delivered to these addresses anyway.
-            $email = MobileNumber::national($data['mobile'])
-                . '-' . Str::lower(Str::random(6))
-                . '@whatsapp.servicebazzar.com';
-        }
-
         $user = User::create([
             'first_name'           => $firstName,
             'last_name'            => $lastName,
@@ -428,12 +414,10 @@ public function quickAuthVerify(Request $request)
             // Stored in the national form the rest of the accounts on this
             // site use, so the next login matches this row directly.
             'mobile'               => MobileNumber::national($data['mobile']),
-            'email'                => $email,
-            // Not 1 — this email is a mobile-derived placeholder (see
-            // quickAuthSend()), never a real address anyone confirmed.
-            // Marking it verified would misrepresent what the WhatsApp OTP
-            // actually proved: ownership of the mobile number, not this
-            // email. markMobileVerified() below records what it did prove.
+            // Left empty on purpose — the OTP proved a mobile number, not an
+            // address. The profile page offers an "add your email" field, and
+            // markMobileVerified() below records what the OTP did prove.
+            'email'                => null,
             'email_verified'       => 0,
             'email_otp'            => null,
             'email_otp_expires_at' => null,
