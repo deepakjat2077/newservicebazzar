@@ -2785,6 +2785,12 @@ closeCategoryDropdown();
         ->values();
 @endphp
 
+{{-- Pure-CSS open/close switch for the "More Categories" panel. The
+     label-driven checkbox keeps the panel usable when JS is off or
+     has died earlier on the page; the JS below only syncs the blur +
+     scroll lock on top of it. --}}
+<input type="checkbox" id="categoryPopupToggle" class="category-popup-toggle" aria-hidden="true" tabindex="-1">
+
 <section class="custom-right category-area py-5">
     <div class="container-fildu">
 
@@ -2833,10 +2839,11 @@ closeCategoryDropdown();
             @endforeach
 
             <div class="category-item text-center more-category-item">
-                <button
-                    type="button"
+                <label
+                    for="categoryPopupToggle"
                     class="more-btn"
-                    onclick="openCategoryPopup()"
+                    role="button"
+                    tabindex="0"
                 >
                     <div class="category-box d-flex align-items-center justify-content-center">
                         <i class="fas fa-bars more"></i>
@@ -2845,7 +2852,7 @@ closeCategoryDropdown();
                     <div class="font14 color111 fw400">
                         More Categories
                     </div>
-                </button>
+                </label>
             </div>
 
         </div>
@@ -2880,6 +2887,145 @@ closeCategoryDropdown();
     cursor: pointer;
 }
 
+/* ===== No-JS "More Categories" panel =====
+ * #categoryPopupToggle sits before both the overlay and the panel, so the
+ * two rules below open them with CSS only. Specificity (1,2,0) clears the
+ * base .category-popup / .popup-overlay rules in css/index.css without
+ * !important, and the .active class stays supported so the JS path and the
+ * CSS path can never fight each other. */
+.category-popup-toggle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+#categoryPopupToggle:checked ~ .popup-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+#categoryPopupToggle:checked ~ .category-popup {
+    right: 0;
+}
+
+label.more-btn,
+label.close-btn {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* The overlay is a <label> now (so it can close the panel without JS);
+   labels are inline by default. */
+label.popup-overlay {
+    display: block;
+    margin: 0;
+}
+
+/* ===== "Location off" strip inside the panel ===== */
+.popup-location-notice {
+    margin: 12px 0 18px;
+    padding: 12px 14px;
+    border: 1px solid #ffd9a6;
+    border-radius: 10px;
+    background: #fff8ec;
+}
+
+.popup-location-notice__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.popup-location-notice__steps {
+    margin: 10px 0 0;
+    padding-left: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #7a4a00;
+}
+
+.popup-location-notice__steps[hidden] {
+    display: none;
+}
+
+/* Confirmation state — same strip, no longer a warning. */
+.popup-location-notice--done {
+    border-color: #b7e2c0;
+    background: #f1faf3;
+}
+
+.popup-location-notice--done .popup-location-notice__text {
+    color: #1d6b33;
+}
+
+.popup-location-notice--done .popup-location-notice__text i {
+    color: #2f9e50;
+}
+
+.popup-location-notice[hidden] {
+    display: none;
+}
+
+.popup-location-notice__text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #7a4a00;
+    min-width: 0;
+}
+
+.popup-location-notice__text i {
+    color: #e5581e;
+    font-size: 16px;
+    flex: 0 0 auto;
+}
+
+.popup-location-notice__btn {
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 8px;
+    background: #e5581e;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.popup-location-notice__btn:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+@media (max-width: 767px) {
+    .popup-location-notice {
+        margin: 10px 0 14px;
+        padding: 10px 12px;
+    }
+
+    .popup-location-notice__text {
+        font-size: 13px;
+    }
+
+    .popup-location-notice__btn {
+        width: 100%;
+        padding: 10px 14px;
+    }
+}
+
 @media (max-width: 767px) {
     .hide-mobile {
         display: none !important;
@@ -2891,13 +3037,13 @@ closeCategoryDropdown();
 }
 </style>
 
-<div class="popup-overlay" id="popupOverlay"></div>
+<label class="popup-overlay" id="popupOverlay" for="categoryPopupToggle" aria-label="Close categories"></label>
 
 <!-- Panel -->
 <div class="category-popup" id="categoryPopup">
     <div class="popup-top">
         <div class="d-flex align-items-center gap-3">
-            <button onclick="closeCategoryPopup()" class="close-btn">✕</button>
+            <label for="categoryPopupToggle" class="close-btn" role="button" tabindex="0">✕</label>
             <h5 class="mb-0">Popular Categories</h5>
         </div>
 
@@ -2908,6 +3054,31 @@ closeCategoryDropdown();
                    class="search-input">
             <span class="clear-search" onclick="clearSearch()">✕</span>
         </div>
+    </div>
+
+    {{-- Shown only when no city is known: category links still work (their
+         href redirects to a default city), but the results are not local
+         until the visitor turns location on. --}}
+    <div class="popup-location-notice" id="popupLocationNotice" hidden>
+        <div class="popup-location-notice__row">
+            <div class="popup-location-notice__text">
+                <i class="fas fa-location-dot"></i>
+                <span id="popupLocationNoticeMsg">Location is turned off. Turn it on to see services near you.</span>
+            </div>
+            <button type="button" class="popup-location-notice__btn" id="popupLocationEnableBtn">
+                Turn on location
+            </button>
+        </div>
+
+        {{-- Only used for the blocked case: once a site is blocked the
+             browser will not show its prompt again, so a button cannot fix
+             it — the visitor has to change it in the browser itself. --}}
+        <ol class="popup-location-notice__steps" id="popupLocationSteps" hidden>
+            <li>Click the lock or info icon next to the website address.</li>
+            <li>Open <strong>Site settings</strong> (or <strong>Permissions</strong>).</li>
+            <li>Set <strong>Location</strong> to <strong>Allow</strong>.</li>
+            <li>Reload this page.</li>
+        </ol>
     </div>
 
     
@@ -2925,7 +3096,11 @@ closeCategoryDropdown();
 <div class="popup-grid" id="popupCategoryList">
     @foreach($categories as $categoryItem)
 
-        <a href="#"
+        {{-- Real href, not "#": the JS handler below only takes over when it
+             can build a city-prefixed URL. With location denied/unset — or
+             with JS off entirely — the browser follows this link and
+             listings.category redirects to the visitor's city. --}}
+        <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
    class="popup-item dynamic-category-link"
    data-slug="{{ $categoryItem->slug }}">
 
@@ -2964,7 +3139,8 @@ closeCategoryDropdown();
 }
 
 .category-item a,
-.category-item button{
+.category-item button,
+.category-item label{
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -5325,22 +5501,19 @@ color: #555;
 }
 </style>
     <script>
-function openCategoryPopup(){
-    document.getElementById('categoryPopup').classList.add('active');
-    document.getElementById('popupOverlay').classList.add('active');
-    document.body.style.overflow='hidden';
-}
-
-function closeCategoryPopup(){
-    document.getElementById('categoryPopup').classList.remove('active');
-    document.getElementById('popupOverlay').classList.remove('active');
-    document.body.style.overflow='auto';
-}
-
-document.getElementById('popupOverlay').onclick=closeCategoryPopup;
-
+/* The panel's open/close state now lives on #categoryPopupToggle so that a
+ * label click alone opens it — no JS required. openCategoryPopup() /
+ * closeCategoryPopup() are defined once further down and just drive that
+ * checkbox; the overlay is itself a <label> for it, so it needs no handler.
+ * Escape still has to be wired up by hand. */
 document.addEventListener('keydown',function(e){
-    if(e.key==="Escape"){ closeCategoryPopup(); }
+    if(e.key!=="Escape") return;
+
+    const toggle=document.getElementById('categoryPopupToggle');
+    if(toggle && toggle.checked){
+        toggle.checked=false;
+        toggle.dispatchEvent(new Event('change',{bubbles:true}));
+    }
 });
 
 const searchInput=document.getElementById('categorySearch');
@@ -5663,8 +5836,10 @@ document.querySelectorAll('.dynamic-category-link').forEach(function (link) {
 
     link.addEventListener('click', function (e) {
 
-        e.preventDefault();
-
+        // preventDefault() is deliberately NOT called up here. If anything
+        // below cannot produce a city-prefixed URL (location denied, never
+        // set, or cleared) the click must fall through to the anchor's own
+        // href instead of being swallowed and landing on "#".
         const categorySlug = this.dataset.slug || "";
 
         if (!categorySlug) {
@@ -5702,7 +5877,8 @@ if (!locationText) {
         }
 
         if (!city) {
-            window.location.href = this.href;
+            // No city to build a pretty URL from — let the browser follow
+            // the server-rendered href, which redirects to the right city.
             return;
         }
 
@@ -5713,6 +5889,7 @@ if (!locationText) {
             finalUrl += `-in-${slugify(area)}`;
         }
 
+        e.preventDefault();
         window.location.href = finalUrl;
 
     });
@@ -5971,35 +6148,258 @@ window.addEventListener("pageshow", function () {
 
 let popupScrollY = 0;
 
+/*
+ * #categoryPopupToggle is the single source of truth for "is the panel
+ * open" — CSS opens the overlay and the panel straight off :checked, so the
+ * panel works with JS disabled. This function only layers the JS-only
+ * extras (background blur + scroll lock) on top of that state.
+ */
+function applyCategoryPopupState(isOpen){
+    const panel   = document.getElementById('categoryPopup');
+    const overlay = document.getElementById('popupOverlay');
+
+    if(isOpen){
+        popupScrollY = window.scrollY;
+
+        if(overlay) overlay.classList.add('active');
+        if(panel)   panel.classList.add('active');
+
+        document.documentElement.classList.add('popup-open');
+        document.body.classList.add('popup-open');
+        document.body.style.top = `-${popupScrollY}px`;
+
+        // Opening via openCategoryPopup() sets .checked without firing
+        // 'change', so re-check the location strip from here as well.
+        if(typeof window.refreshPopupLocationNotice === 'function'){
+            window.refreshPopupLocationNotice();
+        }
+    } else {
+        if(overlay) overlay.classList.remove('active');
+        if(panel)   panel.classList.remove('active');
+
+        document.documentElement.classList.remove('popup-open');
+        document.body.classList.remove('popup-open');
+        document.body.style.top = '';
+
+        window.scrollTo(0, popupScrollY);
+    }
+}
+
+// Assigning .checked from script does not fire 'change', so these two can
+// drive the checkbox without re-entering the change handler below.
 function openCategoryPopup(){
-    popupScrollY = window.scrollY;
-
-    document.getElementById('popupOverlay').classList.add('active');
-    document.getElementById('categoryPopup').classList.add('active');
-
-    document.documentElement.classList.add('popup-open');
-    document.body.classList.add('popup-open');
-    document.body.style.top = `-${popupScrollY}px`;
+    const toggle = document.getElementById('categoryPopupToggle');
+    if(toggle) toggle.checked = true;
+    applyCategoryPopupState(true);
 }
 
 function closeCategoryPopup(){
-    document.getElementById('popupOverlay').classList.remove('active');
-    document.getElementById('categoryPopup').classList.remove('active');
-
-    document.documentElement.classList.remove('popup-open');
-    document.body.classList.remove('popup-open');
-    document.body.style.top = '';
-
-    window.scrollTo(0, popupScrollY);
+    const toggle = document.getElementById('categoryPopupToggle');
+    if(toggle) toggle.checked = false;
+    applyCategoryPopupState(false);
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-    const overlay = document.getElementById('popupOverlay');
+    const toggle = document.getElementById('categoryPopupToggle');
 
-    if(overlay){
-        overlay.addEventListener('click', closeCategoryPopup);
+    if(toggle){
+        toggle.addEventListener('change', function(){
+            applyCategoryPopupState(this.checked);
+        });
+
+        // Browsers restore checkbox state on a back-navigation, so pick up
+        // an already-open panel instead of leaving the blur/lock off.
+        if(toggle.checked) applyCategoryPopupState(true);
     }
+
+    // The trigger and close control are <label>s (that is what makes them
+    // work without JS), and a label is not natively focusable — give them
+    // Enter/Space so keyboard users still get button behaviour.
+    document.querySelectorAll('label.more-btn, label.close-btn').forEach(function(el){
+        el.addEventListener('keydown', function(ev){
+            if(ev.key === 'Enter' || ev.key === ' '){
+                ev.preventDefault();
+                el.click();
+            }
+        });
+    });
+
+    initPopupLocationNotice(toggle);
 });
+
+// Back-navigation restores the checkbox (and can restore the body classes)
+// from bfcache without firing DOMContentLoaded, so re-sync the JS-only
+// extras against whatever state the checkbox came back in.
+window.addEventListener('pageshow', function(){
+    const toggle = document.getElementById('categoryPopupToggle');
+    if(toggle) applyCategoryPopupState(toggle.checked);
+});
+
+/*
+ * "Location off" strip inside the panel.
+ *
+ * Category links work either way — their href falls back to a server-side
+ * redirect — but without a city the visitor lands on the default city's
+ * listings instead of their own, and there was nothing on screen saying so.
+ * This surfaces that state at the moment they are picking a category, and
+ * offers the permission prompt right there.
+ */
+function initPopupLocationNotice(toggle){
+    const notice  = document.getElementById('popupLocationNotice');
+    const message = document.getElementById('popupLocationNoticeMsg');
+    const button  = document.getElementById('popupLocationEnableBtn');
+    const steps   = document.getElementById('popupLocationSteps');
+
+    if(!notice || !message || !button) return;
+
+    const DEFAULT_MSG = 'Location is turned off. Turn it on to see services near you.';
+    const DENIED_MSG  = 'Location is blocked for this site, so we cannot detect your city.';
+
+    function knownCity(){
+        const input = document.getElementById('homeLocationInput')
+                   || document.getElementById('locationInput');
+
+        if(input && input.value.trim() !== '') return input.value.trim();
+
+        return (localStorage.getItem('jf_selected_location_name')
+             || localStorage.getItem('jf_detected_city')
+             || localStorage.getItem('jf_city')
+             || '').trim();
+    }
+
+    // mode: 'enable'  -> the browser will still show its prompt
+    //       'blocked'  -> only the browser's own settings can undo it
+    //       'done'     -> location is sorted, confirm it and stop nagging
+    //       'none'     -> nothing actionable, message only
+    function setState(text, mode){
+        message.textContent = text;
+
+        button.hidden   = (mode !== 'enable');
+        button.disabled = false;
+        button.textContent = 'Turn on location';
+
+        if(steps) steps.hidden = (mode !== 'blocked');
+
+        notice.classList.toggle('popup-location-notice--done', mode === 'done');
+        notice.hidden = false;
+    }
+
+    function refresh(){
+        if(knownCity()){
+            notice.hidden = true;
+            return;
+        }
+
+        if(!navigator.geolocation){
+            setState('This browser does not support location. Please pick your city from the search box above.', 'none');
+            return;
+        }
+
+        setState(DEFAULT_MSG, 'enable');
+
+        // permissions.query is advisory only (Safari lacks it) — the click
+        // handler still deals with a denial on its own.
+        if(navigator.permissions && navigator.permissions.query){
+            navigator.permissions.query({ name: 'geolocation' }).then(function(status){
+                if(status.state === 'denied' && !knownCity()){
+                    setState(DENIED_MSG, 'blocked');
+                }
+
+                // If they flip it in browser settings while the tab is open,
+                // drop the notice without needing a reload.
+                status.onchange = function(){
+                    if(status.state === 'granted') button.click();
+                    else if(status.state === 'denied' && !knownCity()) setState(DENIED_MSG, 'blocked');
+                };
+            }).catch(function(){ /* ignore — keep the default prompt */ });
+        }
+    }
+
+    function applyCity(city, lat, lng){
+        localStorage.setItem('jf_detected_city', city);
+        localStorage.setItem('jf_city', city);
+        localStorage.setItem('jf_lat', lat);
+        localStorage.setItem('jf_lng', lng);
+
+        const input = document.getElementById('homeLocationInput')
+                   || document.getElementById('locationInput');
+
+        if(input){
+            input.value = city;
+            input.dataset.selectedLocation = '1';
+        }
+
+        const latInput = document.getElementById('homeSearchLatitude');
+        const lngInput = document.getElementById('homeSearchLongitude');
+
+        if(latInput) latInput.value = lat;
+        if(lngInput) lngInput.value = lng;
+    }
+
+    button.addEventListener('click', function(){
+        if(!navigator.geolocation) return;
+
+        button.disabled = true;
+        button.textContent = 'Getting location…';
+
+        navigator.geolocation.getCurrentPosition(async function(position){
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+                    { headers: { "Accept": "application/json" } }
+                );
+
+                const data    = await response.json();
+                const address = data.address || {};
+
+                const city = address.city
+                          || address.town
+                          || address.village
+                          || address.state_district
+                          || address.state
+                          || '';
+
+                if(city){
+                    applyCity(city, lat, lng);
+                    setState('Showing services in ' + city + '.', 'done');
+                    return;
+                }
+
+                setState('We could not work out your city. Please pick it from the search box above.', 'none');
+
+            } catch (error) {
+                console.error('Location detect failed:', error);
+                setState('We could not detect your location. Please try again.', 'enable');
+            }
+
+        }, function(error){
+            if(error && error.code === error.PERMISSION_DENIED){
+                setState(DENIED_MSG, 'blocked');
+            } else if(error && error.code === error.TIMEOUT){
+                setState('Getting your location took too long. Please try again.', 'enable');
+            } else {
+                setState('We could not get your location. Please try again.', 'enable');
+            }
+        }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 });
+    });
+
+    window.refreshPopupLocationNotice = refresh;
+
+    // Re-check every time the panel opens: the city may have been detected
+    // or chosen since the page loaded.
+    if(toggle){
+        toggle.addEventListener('change', function(){
+            if(this.checked) refresh();
+        });
+
+        if(toggle.checked) refresh();
+    } else {
+        refresh();
+    }
+}
 </script>
 <script>
 document.addEventListener("click", function(e){

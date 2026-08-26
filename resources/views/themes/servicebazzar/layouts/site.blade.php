@@ -2720,7 +2720,9 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
 
     document.querySelectorAll(".dynamic-category-link").forEach(function (link) {
         link.addEventListener("click", function (e) {
-            e.preventDefault();
+            // No preventDefault() until a city-prefixed URL actually exists:
+            // otherwise a link whose location is unknown gets swallowed here
+            // and the click does nothing at all.
             const categorySlug = this.dataset.slug || "";
             if (!categorySlug) return;
             let selectedLocation = "";
@@ -2732,7 +2734,7 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
                 selectedLocation = localStorage.getItem("jf_detected_city") || "";
             }
             if (!selectedLocation) {
-                window.location.href = this.href;
+                // Fall through to the anchor's own href.
                 return;
             }
             selectedLocation = selectedLocation.trim();
@@ -2748,6 +2750,7 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
             const citySlug = slugify(city);
             let finalUrl = `${window.location.origin}/${citySlug}/${categorySlug}`;
             if (area !== "") finalUrl += `-in-${slugify(area)}`;
+            e.preventDefault();
             window.location.href = finalUrl;
         });
     });
