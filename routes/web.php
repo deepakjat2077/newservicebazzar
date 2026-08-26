@@ -570,9 +570,13 @@ Route::get('/enquiry-clicks/export', 'EnquiryController@exportClicks')->middlewa
 
 
 
-        Route::post('quick-auth/send', 'Auth\RegisterController@quickAuthSend')->middleware('throttle:5,1')->name('quick.auth.send');
-Route::post('quick-auth/verify', 'Auth\RegisterController@quickAuthVerify')->middleware('throttle:5,1')->name('quick.auth.verify');
-Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->middleware('throttle:5,1')->name('quick.auth.resend');
+        // Raised from 5/min — each send costs a real Gupshup WhatsApp
+        // message, so this stays in place rather than being removed
+        // outright, just loose enough that normal repeated testing/retries
+        // don't trip it the way 5/min did.
+        Route::post('quick-auth/send', 'Auth\RegisterController@quickAuthSend')->middleware('throttle:20,1')->name('quick.auth.send');
+Route::post('quick-auth/verify', 'Auth\RegisterController@quickAuthVerify')->middleware('throttle:20,1')->name('quick.auth.verify');
+Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->middleware('throttle:20,1')->name('quick.auth.resend');
 
         Route::get('social-login/{provider}/redirect', 'Auth\SocialLoginController@redirect')
             ->where('provider', 'google|facebook')
