@@ -1817,10 +1817,6 @@ public function listingsDetails(Request $request, $category, $slug)
 
     $facts = [];
 
-    if ($categoryName) {
-        $facts[] = $categoryName . ($place ? ' in ' . $place : '');
-    }
-
     // withCount/withAvg on the query that loaded this listing, so these cost
     // nothing extra here.
     $ratingCount = (int) ($listing->ratings_count ?? 0);
@@ -1846,7 +1842,17 @@ public function listingsDetails(Request $request, $category, $slug)
         }
     }
 
-    $facts[] = 'Get Address, Contact Number and Timings on ' . $siteName;
+    // Nothing to say about the business itself — a card reading only "Get
+    // Address, Contact Number" is not worth sending, so name the trade and the
+    // locality instead. Never alongside the facts above: the title already
+    // carries the locality, and WhatsApp truncates a long description.
+    if (empty($facts) && $categoryName) {
+        $facts[] = $categoryName . ($place ? ' in ' . $place : '');
+    }
+
+    // No site name on the end: WhatsApp appends the domain itself, and every
+    // character spent here is one it cuts off the front.
+    $facts[] = 'Get Address, Contact Number and Timings';
 
     $data['ogDescription'] = Str::limit(implode('. ', $facts) . '.', 200, '');
 
