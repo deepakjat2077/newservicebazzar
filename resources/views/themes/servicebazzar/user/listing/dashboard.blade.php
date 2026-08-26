@@ -101,11 +101,10 @@
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
                 <span>Add Social Links</span>
             </a>
-            <div class="sb-biz-action-card is-disabled">
+            <a href="{{ route('user.listing.ratings-qr', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-qrcode"></i></span>
                 <span>Ratings QR</span>
-                <small>Coming soon</small>
-            </div>
+            </a>
         </div>
 
         {{-- "My Business" — wide action rows, the other shape the same set

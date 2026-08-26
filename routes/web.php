@@ -638,6 +638,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::post('{id}/business-website', 'ListingController@updateWebsite')->name('business-website.update');
                     Route::get('{id}/business-social', 'ListingController@businessSocialForm')->name('business-social');
                     Route::post('{id}/business-social', 'ListingController@updateSocialLinks')->name('business-social.update');
+                    Route::get('{id}/ratings-qr', 'ListingController@businessRatingsQrForm')->name('ratings-qr');
                     Route::get('{id}/leads', 'ListingController@leads')->name('leads');
                     Route::post('leads/{enquiry}/star', 'ListingController@leadStar')->name('leads.star');
                     Route::post('leads/{enquiry}/hide', 'ListingController@leadHide')->name('leads.hide');

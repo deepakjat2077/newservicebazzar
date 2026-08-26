@@ -1837,6 +1837,24 @@ public function updatesection(Request $request, $id)
         return back()->withAlert(['success', 'Social media links updated.']);
     }
 
+    /**
+     * "Ratings QR" — a real QR code (generated client-side, no external
+     * API/key needed) encoding this listing's actual public page URL —
+     * the same page its "Ask Rating" WhatsApp message already links to.
+     * Scanning it lands a customer on the real review form that page
+     * already has; nothing new needed on the review side.
+     */
+    public function businessRatingsQrForm($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $reviewUrl = $listing->category
+            ? route('listings.details', [$listing->category->slug, $listing->slug])
+            : null;
+
+        return view($this->theme.'user.listing.business-ratings-qr', compact('listing', 'reviewUrl'));
+    }
+
     public function importLeadsSample()
     {
         $csv = "Enquiry Date,Name,Mobile Number\n"
