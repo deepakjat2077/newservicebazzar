@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Libs\SendMail;
 use App\Models\Setting;
+use App\Support\MailProbe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use HTMLPurifier;
 
 class EmailController extends Controller
@@ -57,21 +59,47 @@ class EmailController extends Controller
         return back()->withAlert($alert);
     }
 
-    public function testMail(Request $request,SendMail $mail){
+    /**
+     * The whole point of this button is to find out what is wrong with the
+     * mail settings, so it must not answer with a stack trace: sending through
+     * SendMail let PHPMailer's exception escape as a 500, which told the admin
+     * nothing except that something broke.
+     *
+     * MailProbe runs the same send and keeps the server's side of the
+     * conversation, so the reply that actually explains the refusal — a 535, a
+     * 550, an SSL/TLS port mismatch — is what comes back.
+     */
+    public function testMail(Request $request){
         $request->validate([
             'email'=>'required|email'
         ]);
-        $data = [
-            'name'=>'Admin',
-            'email'=>$request->email,
-            'subject'=>'Test Mail',
-            'template'=>'test_mail',
-            'value'=>[
-                'message'=>'This is a test email from your Directory360 system.'
-            ]
-        ];
-        $mail->sendMail($data);
-        $alert = ['success','Mail sent successfully'];
-        return back()->withAlert($alert);
+
+        $result = MailProbe::send(
+            $request->email,
+            'Test Mail',
+            '<p>This is a test email from your ' . (Setting::first()->site_name ?? config('app.name')) . ' website.</p>'
+        );
+
+        if ($result['ok']) {
+            return back()->withAlert(['success', 'Mail sent successfully to ' . $request->email]);
+        }
+
+        Log::error('Test mail failed', [
+            'error'      => $result['error'],
+            'reply'      => $result['reply'],
+            'transcript' => array_slice($result['transcript'], -12),
+        ]);
+
+        $message = $result['error'];
+
+        if ($result['reply']) {
+            $message .= ' Server said: ' . $result['reply'] . '.';
+        }
+
+        if ($result['hint']) {
+            $message .= ' ' . $result['hint'];
+        }
+
+        return back()->withAlert(['danger', $message]);
     }
 }
