@@ -1748,6 +1748,70 @@ public function listingsDetails(Request $request, $category, $slug)
 
     $data['seoType'] = 'article';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Share card (WhatsApp, Facebook, X)
+    |--------------------------------------------------------------------------
+    |
+    | Separate from the meta above on purpose. `meta_title`/`meta_description`
+    | are written for Google and read as prose — pasted into a chat they arrive
+    | cut off mid-sentence ("...specializing in Kundli reading, love problem")
+    | and give the reader nothing to act on.
+    |
+    | A share card is competing with JustDial's in the same conversation, so it
+    | carries what theirs does: which locality the business is in, what people
+    | rated it, how many photos there are, and that the address and number are
+    | one tap away. All of it from data already loaded with the listing.
+    */
+    $areaName = trim((string) $listing->area);
+    $placeName = $cityName ?: $locationName;
+
+    $place = collect([$areaName, $placeName])
+        ->filter()
+        ->unique(fn ($part) => Str::lower($part))
+        ->implode(', ');
+
+    $data['ogTitle'] = trim(
+        $listing->name
+        . ($place ? ', ' . $place : '')
+        . ' - ' . $siteName
+    );
+
+    $facts = [];
+
+    if ($categoryName) {
+        $facts[] = $categoryName . ($place ? ' in ' . $place : '');
+    }
+
+    // withCount/withAvg on the query that loaded this listing, so these cost
+    // nothing extra here.
+    $ratingCount = (int) ($listing->ratings_count ?? 0);
+    $ratingAvg   = round((float) ($listing->ratings_avg_ratings ?: $listing->review), 1);
+
+    if ($ratingCount > 0 && $ratingAvg > 0) {
+        $facts[] = 'Rated ' . $ratingAvg . '/5';
+        $facts[] = $ratingCount . ' ' . Str::plural('Rating', $ratingCount)
+            . ' & ' . Str::plural('Review', $ratingCount);
+    }
+
+    $photoCount = count($listing->photos ?? []) + (!empty($listing->thumb) ? 1 : 0);
+
+    if ($photoCount > 0) {
+        $facts[] = $photoCount . ' ' . Str::plural('Photo', $photoCount);
+    }
+
+    if (!empty($listing->established_year) && $listing->established_year <= now()->year) {
+        $years = now()->year - (int) $listing->established_year;
+
+        if ($years > 0) {
+            $facts[] = $years . ' ' . Str::plural('Year', $years) . ' in Business';
+        }
+    }
+
+    $facts[] = 'Get Address, Contact Number and Timings on ' . $siteName;
+
+    $data['ogDescription'] = Str::limit(implode('. ', $facts) . '.', 200, '');
+
     // Analytics: read by the tracking script (via data-* attributes on
     // <body>) to auto-fire a listing_view event and let per-listing
     // rollups resolve listing_id without parsing the URL.

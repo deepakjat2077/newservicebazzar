@@ -18,6 +18,15 @@
     $seoUrl = $seoUrl ?? url()->current();
     $seoType = $seoType ?? 'website';
     $seoRobots = $seoRobots ?? 'index, follow';
+
+    /*
+     * A page may want its share card to read differently from its Google
+     * listing: search results reward a written description, a card pasted into
+     * a chat rewards facts someone can act on. Pages that do not care fall back
+     * to the same text as before.
+     */
+    $ogTitle = $ogTitle ?? $seoTitle;
+    $ogDescription = $ogDescription ?? $seoDescription;
 @endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,20 +55,22 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="{{ $seoTitle }}">
 
-<meta itemprop="name" content="{{ $seoTitle }}">
-<meta itemprop="description" content="{{ $seoDescription }}">
+<meta itemprop="name" content="{{ $ogTitle }}">
+<meta itemprop="description" content="{{ $ogDescription }}">
 <meta itemprop="image" content="{{ $seoImage }}">
 
 <meta property="og:type" content="{{ $seoType }}">
-<meta property="og:title" content="{{ $seoTitle }}">
-<meta property="og:description" content="{{ $seoDescription }}">
+<meta property="og:title" content="{{ $ogTitle }}">
+<meta property="og:description" content="{{ $ogDescription }}">
 <meta property="og:image" content="{{ $seoImage }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="{{ $seoUrl }}">
 <meta property="og:site_name" content="{{ $setting->site_name }}">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ $seoTitle }}">
-<meta name="twitter:description" content="{{ $seoDescription }}">
+<meta name="twitter:title" content="{{ $ogTitle }}">
+<meta name="twitter:description" content="{{ $ogDescription }}">
 <meta name="twitter:image" content="{{ $seoImage }}">
 <meta name="twitter:url" content="{{ $seoUrl }}">
 <meta name="csrf-token" content="{{ csrf_token() }}">
