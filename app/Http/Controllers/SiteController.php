@@ -1737,9 +1737,47 @@ public function listingsDetails(Request $request, $category, $slug)
         $data['seoKeywords'] = implode(', ', array_unique($keywords));
     }
 
-    $data['seoImage'] = !empty($listing->thumb)
-        ? asset('assets/images/listing/thumb/' . $listing->thumb)
-        : asset('assets/images/logo/favicon_new.png');
+    /*
+     * The picture on the share card.
+     *
+     * WhatsApp and Facebook cannot decode AVIF (nor SVG), and a good number of
+     * listing thumbnails are stored that way — which is why a shared listing
+     * arrived in a chat as a bare "www.servicebazzar.com" card with no image
+     * at all. The gallery photos next to those thumbnails are ordinary JPEGs,
+     * so the first image a crawler can actually render is what gets offered,
+     * whichever field it happens to live in.
+     *
+     * Nothing found falls back to the site's own SEO image (or the logo) — the
+     * favicon that used to stand in here is far too small for a card and gets
+     * ignored by both.
+     */
+    $rendersInAShareCard = fn ($file) => in_array(
+        strtolower(pathinfo((string) $file, PATHINFO_EXTENSION)),
+        ['jpg', 'jpeg', 'png', 'webp'],
+        true
+    );
+
+    $shareImage = null;
+
+    if (!empty($listing->thumb) && $rendersInAShareCard($listing->thumb)) {
+        $shareImage = asset('assets/images/listing/thumb/' . $listing->thumb);
+    }
+
+    if (!$shareImage) {
+        foreach ((array) $listing->photos as $photo) {
+            if ($rendersInAShareCard($photo)) {
+                $shareImage = asset('assets/images/listing/photos/' . $photo);
+                break;
+            }
+        }
+    }
+
+    // Always set: the page's schema block reads $seoImage directly, so leaving
+    // it unset breaks the view rather than falling through to a default.
+    $data['seoImage'] = $shareImage
+        ?: (!empty($this->setting->seo->image)
+            ? asset('assets/images/seo/' . $this->setting->seo->image)
+            : asset('assets/images/logo/logo.png'));
 
     $data['seoUrl'] = route('listings.details', [
         'category' => $listing->category->slug,
