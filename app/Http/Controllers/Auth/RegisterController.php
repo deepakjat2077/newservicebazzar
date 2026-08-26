@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\Theme;
 use App\Models\User;
 use App\Support\HttpRetry;
+use App\Support\MobileNumber;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
@@ -190,22 +191,17 @@ public function quickAuthSend(Request $request)
         'current_url' => ['nullable', 'string'],
     ]);
 
-    $mobile = preg_replace('/\D+/', '', $validated['mobile']);
+    // Gupshup routes on the country-code form, so that is what gets sent.
+    // Which account the caller lands on is no longer decided here:
+    // quickAuthVerify() matches every shape the number may already be stored
+    // in, so a "91" added for delivery can't strand anyone on a fresh, empty
+    // account with none of their listings on it.
+    $mobile = MobileNumber::destination($validated['mobile']);
 
-    // A "91" the user typed themselves is just noise here, not part of the
-    // number — Gupshup's own "Test template" tool was sent the bare 10
-    // digits (no country code) and delivered; the same request with "91"
-    // prepended came back "submitted" from the API too but never actually
-    // arrived on WhatsApp, so the destination format Gupshup accepts as
-    // valid and the one it actually routes on aren't the same thing here.
-    if (strlen($mobile) === 12 && str_starts_with($mobile, '91')) {
-        $mobile = substr($mobile, 2);
-    }
-
-    if (strlen($mobile) !== 10) {
+    if (strlen($mobile) < 11 || strlen($mobile) > 15) {
         return response()->json([
             'status'  => false,
-            'message' => 'Please enter a valid 10-digit WhatsApp mobile number.',
+            'message' => 'Please enter a valid WhatsApp mobile number.',
         ], 422);
     }
 
@@ -305,10 +301,11 @@ public function quickAuthSend(Request $request)
                 'mobile' => $mobile,
                 // The account still needs a unique, non-null email row —
                 // WhatsApp never hands us one, so a mobile-derived
-                // placeholder stands in. Never shown, never mailed to;
-                // quickAuthVerify() below still matches accounts by
-                // mobile, the channel actually proven by the OTP.
-                'email'  => $mobile . '@whatsapp.servicebazzar.com',
+                // placeholder stands in. Never shown, and never mailed to
+                // — SendMail drops anything addressed to this subdomain.
+                // quickAuthVerify() below still matches accounts by mobile,
+                // the channel actually proven by the OTP.
+                'email'  => MobileNumber::national($mobile) . '@whatsapp.servicebazzar.com',
             ],
             'quick_auth_otp' => $otp,
             'quick_auth_otp_expires_at' => now()->addMinutes(10)->timestamp,
@@ -381,25 +378,14 @@ public function quickAuthVerify(Request $request)
     // `email` too would let an attacker supply a victim's mobile number
     // alongside their own email/placeholder and log in as the victim once
     // the OTP (sent to the attacker's own WhatsApp) passes verification.
-    $user = User::where('mobile', $data['mobile'])->first();
-
-    if (!$user && User::where('email', $data['email'])->exists()) {
-        // The mobile number is new, but the placeholder email it's paired
-        // with already belongs to a different account (same mobile reused
-        // after a resend, effectively) — refuse rather than crash on a
-        // duplicate-email insert.
-        session()->forget([
-            'quick_auth_data',
-            'quick_auth_otp',
-            'quick_auth_otp_expires_at',
-            'quick_auth_redirect'
-        ]);
-
-        return response()->json([
-            'status' => false,
-            'message' => 'Something went wrong. Please try again.',
-        ], 422);
-    }
+    //
+    // The lookup goes through MobileNumber so every shape the number may be
+    // stored in counts as the same person: most accounts here hold the bare
+    // 10 digits, while `$data['mobile']` carries the "91" Gupshup needs. An
+    // exact-string match missed those accounts and quietly created a second,
+    // empty one instead — which is why a returning owner saw none of their
+    // listings after logging in.
+    $user = MobileNumber::findUser($data['mobile']);
 
     $isNewUser = !$user;
 
@@ -423,17 +409,31 @@ public function quickAuthVerify(Request $request)
             $i++;
         }
 
+        $email = $data['email'];
+
+        if (User::where('email', $email)->exists()) {
+            // Placeholder addresses are derived from the number, so a clash
+            // means some older row is already parked on this one. Keep the
+            // login working with a unique variant rather than refusing it —
+            // nothing is ever delivered to these addresses anyway.
+            $email = MobileNumber::national($data['mobile'])
+                . '-' . Str::lower(Str::random(6))
+                . '@whatsapp.servicebazzar.com';
+        }
+
         $user = User::create([
             'first_name'           => $firstName,
             'last_name'            => $lastName,
             'username'             => $username,
-            'mobile'               => $data['mobile'],
-            'email'                => $data['email'],
+            // Stored in the national form the rest of the accounts on this
+            // site use, so the next login matches this row directly.
+            'mobile'               => MobileNumber::national($data['mobile']),
+            'email'                => $email,
             // Not 1 — this email is a mobile-derived placeholder (see
             // quickAuthSend()), never a real address anyone confirmed.
             // Marking it verified would misrepresent what the WhatsApp OTP
             // actually proved: ownership of the mobile number, not this
-            // email.
+            // email. markMobileVerified() below records what it did prove.
             'email_verified'       => 0,
             'email_otp'            => null,
             'email_otp_expires_at' => null,
@@ -442,6 +442,12 @@ public function quickAuthVerify(Request $request)
 
         event(new Registered($user));
     }
+
+    // The OTP just proved this number belongs to whoever is holding the
+    // session, on an existing account as much as a fresh one. Without this
+    // the `verified` middleware bounces them to the email-verification page,
+    // which tries to mail a placeholder address no SMTP server will accept.
+    $user->markMobileVerified();
 
     $booster = new Booster();
     $booster->createLoginLog($user);

@@ -17,7 +17,11 @@ class Verification
     public function handle(Request $request, Closure $next)
     {
         $user = auth()->user();
-        if (!$user->email_verified) {
+        // A WhatsApp OTP login proves the account owner just as well as a
+        // clicked email link does — and those accounts carry a mobile-derived
+        // placeholder address (see RegisterController::quickAuthSend), so the
+        // email route is one they could never complete.
+        if (!$user->email_verified && !$user->isMobileVerified()) {
             return redirect()->route('user.verification');
         }elseif(!$user->status){
             return redirect()->route('user.banned');

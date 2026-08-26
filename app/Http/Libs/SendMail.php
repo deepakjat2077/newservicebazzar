@@ -5,6 +5,7 @@ namespace App\Http\Libs;
 use App\Jobs\SendEmailJob;
 use App\Models\NotificationTemplate;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Log;
 use PHPMailer\PHPMailer\PHPMailer;
 
 class SendMail
@@ -32,6 +33,22 @@ class SendMail
 
     public function sendMailProcess($data)
     {
+        $recipient = trim((string) ($data['email'] ?? ''));
+
+        // Accounts created from a WhatsApp OTP login carry a mobile-derived
+        // placeholder address (RegisterController::quickAuthSend). No mailbox
+        // exists behind it, so handing it to the SMTP server only earns a
+        // "data not accepted" exception that surfaces as a 500 on whatever
+        // page happened to trigger the mail.
+        if ($recipient === '' || str_ends_with(strtolower($recipient), '@whatsapp.servicebazzar.com')) {
+            Log::info('Mail skipped for an address with no mailbox behind it', [
+                'email'    => $recipient,
+                'template' => $data['template'] ?? null,
+            ]);
+
+            return;
+        }
+
         $setting = Setting::first();
         $notification = NotificationTemplate::where('act', $data['template'] ?? null)->first();
 
