@@ -5,10 +5,13 @@
      * listing partial — is covered the moment it posts to one of these.
      */
     $otpGatedPaths = collect([
-        route('contact.author'),
-        route('contact.author.email'),
-        route('request-quote.store'),
-    ])->map(fn ($url) => rtrim((string) parse_url($url, PHP_URL_PATH), '/'))->unique()->values();
+        route('contact.author')       => 'enquiry',
+        route('contact.author.email') => 'enquiry',
+        route('request-quote.store')  => 'quote request',
+        route('contact.sumbit')       => 'message',
+    ])->mapWithKeys(fn ($label, $url) => [
+        rtrim((string) parse_url($url, PHP_URL_PATH), '/') => $label,
+    ]);
 @endphp
 
 {{--
@@ -110,6 +113,7 @@
 
 <script>
 (function () {
+    /* path => what the visitor just sent, so the popup can name it. */
     var GATED_PATHS = @json($otpGatedPaths);
     var SEND_URL    = "{{ route('enquiry.otp.send') }}";
     var VERIFY_URL  = "{{ route('enquiry.otp.verify') }}";
@@ -136,12 +140,17 @@
 
     var activeForm  = null;
     var activePhone = '';
+    var activeLabel = 'enquiry';
     var resendTimer = null;
     var busy        = false;
 
     // One OTP round per attempt. Without this, a server that keeps answering
     // "verify first" would bounce the visitor round the loop forever.
     var otpRounds   = 0;
+
+    function capitalise(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
 
     function digitsOf(value) {
         var digits = String(value || '').replace(/\D+/g, '');
@@ -338,7 +347,7 @@
     function submitEnquiry(form) {
         if (!form) return;
 
-        showResult('loading', 'Sending your enquiry…', 'Please wait a moment.');
+        showResult('loading', 'Sending your ' + activeLabel + '…', 'Please wait a moment.');
 
         fetch(form.getAttribute('action'), {
             method: 'POST',
@@ -353,7 +362,7 @@
             if (result.ok && result.data.status) {
                 form.reset();
                 closeHostOverlay(form);
-                showResult('success', 'Enquiry sent', result.data.message || 'The business will contact you shortly.');
+                showResult('success', capitalise(activeLabel) + ' sent', result.data.message || 'The business will contact you shortly.');
                 return;
             }
 
@@ -371,12 +380,12 @@
 
             showResult(
                 'error',
-                'Enquiry not sent',
+                capitalise(activeLabel) + ' not sent',
                 messages.length ? 'Please fix the following and try again:' : firstError(result.data),
                 messages
             );
         }).catch(function () {
-            showResult('error', 'Enquiry not sent', 'Network error. Please check your connection and try again.');
+            showResult('error', capitalise(activeLabel) + ' not sent', 'Network error. Please check your connection and try again.');
         });
     }
 
@@ -435,7 +444,7 @@
             return;
         }
 
-        if (GATED_PATHS.indexOf(path) === -1) return;
+        if (!Object.prototype.hasOwnProperty.call(GATED_PATHS, path)) return;
 
         var field = form.querySelector('[name="phone"]');
 
@@ -448,6 +457,7 @@
 
         activeForm  = form;
         activePhone = digitsOf(field.value);
+        activeLabel = GATED_PATHS[path] || 'enquiry';
         otpRounds   = 0;
 
         // Send the enquiry first and let the server say whether an OTP is

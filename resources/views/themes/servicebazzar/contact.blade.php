@@ -365,6 +365,12 @@
                         </div>
 
                         <div class="form-group">
+                            <label>@lang('Mobile Number')</label>
+                            <input type="text" name="phone" class="form-control" placeholder="Your Mobile Number"
+                                   maxlength="15" inputmode="numeric" value="{{ old('phone') }}">
+                        </div>
+
+                        <div class="form-group">
                             <label>@lang('Subject')</label>
                             <input type="text" name="subject" class="form-control" placeholder="Subject">
                         </div>

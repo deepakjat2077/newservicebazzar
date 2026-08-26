@@ -608,31 +608,56 @@ public function contact()
                 'ip'     => $request->ip(),
             ]);
 
-            return back()->withAlert(['success', 'Message sent successfully']);
+            return $this->enquiryFeedback($request, 'success', 'Message sent successfully');
         }
 
         $request->validate([
             'name' => ['required', 'string', 'max:255', new RealName()],
             'email' => 'required|email|max:255',
+            'phone' => ['required', 'string', 'max:20', new IndianMobile()],
             'message' => 'required|string|max:5000',
             'subject' => 'required|string|max:255',
         ]);
+
+        // Same gate as the enquiry forms: whoever writes in leaves a number
+        // that answered a code, so a reply can actually reach them.
+        if ($response = $this->requireVerifiedPhone($request)) {
+            return $response;
+        }
+
+        // Escaped before it goes anywhere near the mail template — this lands
+        // in somebody's inbox as HTML, and the sender is a stranger.
+        $details = '<p>'
+            . '<strong>Name:</strong> ' . e($request->name) . '<br>'
+            . '<strong>Mobile:</strong> ' . e($request->phone) . '<br>'
+            . '<strong>Email:</strong> ' . e($request->email)
+            . '</p>';
 
         $data = [
             'name' => $request->name,
             'email' => $this->setting->mail->email_from,
             'template' => 'contact',
             'value' => [
-                'message' => $request->message,
+                'message' => $details . '<p>' . nl2br(e($request->message)) . '</p>',
                 'subject' => $request->subject,
             ],
         ];
-        $mail->sendMail($data);
-        $alert = ['success', 'Message sent successfully'];
+
+        try {
+            $mail->sendMail($data);
+        } catch (\Throwable $exception) {
+            Log::error('Contact message could not be delivered', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return $this->enquiryFeedback($request, 'danger', 'We could not send your message right now. Please try again in a moment.');
+        }
 
         \App\Support\Tracking\Tracker::conversion($request, 'contact_form_submitted');
 
-        return back()->withAlert($alert);
+        OtpGate::consume($request->phone);
+
+        return $this->enquiryFeedback($request, 'success', 'Message sent successfully. We will get back to you shortly.');
 
     }
 

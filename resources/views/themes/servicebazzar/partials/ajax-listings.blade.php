@@ -1115,11 +1115,12 @@
                          it, so nobody could tell which listing it was for. --}}
                     <input type="hidden" name="listing_id" id="popupListingInput" value="">
 
-                    <input type="hidden" name="category_id" id="popupCategoryIdInput" value="{{ $selectedCategory->id ?? '' }}">
+                    <input type="hidden" name="category_id" id="popupCategoryIdInput" value="{{ $selectedCategory->id ?? '' }}" data-page-value="{{ $selectedCategory->id ?? '' }}">
                     <input type="hidden" name="category_name" id="popupCategoryInput" value="{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}">
                     <input type="hidden" name="location_name" value="{{ request('location_name') }}">
                      <input type="hidden" name="location_id" id="popupLocationIdInput"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}">
+       value="{{ request('location_id') ?? ($location->id ?? '') }}"
+       data-page-value="{{ request('location_id') ?? ($location->id ?? '') }}">
 
                     <div class="best-price-field">
                         <label>Name*</label>
@@ -1715,55 +1716,66 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+/*
+ * Opening the "Get best price" popup.
+ *
+ * Delegated on document rather than bound to each button: cards loaded later
+ * by infinite scroll are never individually re-bound. Registered here at parse
+ * time instead of on DOMContentLoaded, and every element looked up inside the
+ * handler, so a visitor who clicks while the rest of the page is still loading
+ * still gets a popup that knows which listing they clicked.
+ */
+document.addEventListener('click', function (e) {
+    const button = e.target.closest('.open-enquiry-modal');
+
+    if (!button) {
+        return;
+    }
+
     const modal = document.getElementById('bestPriceModal');
-    const closeBtn = document.getElementById('closeBestPriceModal');
+
+    if (!modal) {
+        return;
+    }
+
     const categoryText = document.getElementById('popupCategoryName');
     const categoryInput = document.getElementById('popupCategoryInput');
     const listingInput = document.getElementById('popupListingInput');
     const categoryIdInput = document.getElementById('popupCategoryIdInput');
     const locationIdInput = document.getElementById('popupLocationIdInput');
 
-    /* Page-level defaults, restored when the popup is opened from something
-       that is not a particular listing. */
-    const pageCategoryId = categoryIdInput ? categoryIdInput.value : '';
-    const pageLocationId = locationIdInput ? locationIdInput.value : '';
+    const category = button.getAttribute('data-category') || 'Listings';
 
-    /*
-     * Delegated on document instead of bound to each button directly — cards
-     * loaded later by infinite scroll (see the loader script further down)
-     * are never individually re-bound, so a direct querySelectorAll().forEach
-     * here would silently do nothing for them.
-     */
-    document.addEventListener('click', function (e) {
-        const button = e.target.closest('.open-enquiry-modal');
-        if (!button) {
-            return;
-        }
+    if (categoryText) categoryText.textContent = category;
+    if (categoryInput) categoryInput.value = category;
 
-        const category = button.getAttribute('data-category') || 'Listings';
-        categoryText.textContent = category;
-        categoryInput.value = category;
+    // Which business the visitor was actually looking at when they asked.
+    // Every one of these buttons carries its card's ids (data-listing-id and
+    // friends); the popup used to read only the category off them, so the lead
+    // reached the admin with no listing against it.
+    if (listingInput) {
+        listingInput.value = button.getAttribute('data-listing-id') || '';
+    }
 
-        // Which business the visitor was actually looking at when they asked.
-        // Every one of these buttons carries its card's ids (data-listing-id
-        // and friends); the popup used to read only the category off them, so
-        // the lead arrived with no listing attached.
-        if (listingInput) {
-            listingInput.value = button.getAttribute('data-listing-id') || '';
-        }
+    // `data-page-value` and not the input's current value: a previous click
+    // has already overwritten that.
+    if (categoryIdInput) {
+        categoryIdInput.value = button.getAttribute('data-category-id')
+            || categoryIdInput.getAttribute('data-page-value') || '';
+    }
 
-        if (categoryIdInput) {
-            categoryIdInput.value = button.getAttribute('data-category-id') || pageCategoryId;
-        }
+    if (locationIdInput) {
+        locationIdInput.value = button.getAttribute('data-location-id')
+            || locationIdInput.getAttribute('data-page-value') || '';
+    }
 
-        if (locationIdInput) {
-            locationIdInput.value = button.getAttribute('data-location-id') || pageLocationId;
-        }
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+});
 
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('bestPriceModal');
+    const closeBtn = document.getElementById('closeBestPriceModal');
 
     if (closeBtn) {
         closeBtn.addEventListener('click', function () {

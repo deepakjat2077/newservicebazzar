@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Cache;
+
 /**
  * The OTP check standing in front of the enquiry forms.
  *
@@ -10,8 +12,12 @@ namespace App\Support;
  * rings them back. A number nobody proved is a wasted call, so a code goes to
  * it over WhatsApp and the enquiry is only accepted once that code comes back.
  *
- * State lives in the visitor's session: they are guests, there is no account to
- * hang it off.
+ * State is keyed by the visitor's session id but kept in the cache, not in the
+ * session payload. The site fires tracking beacons alongside every page, and
+ * two requests that both loaded the session before either wrote it back means
+ * the later write wins wholesale — which was enough to restore a proof this
+ * gate had just spent and let a second enquiry through on one code. A cache
+ * entry is written on its own and cannot be rolled back that way.
  *
  * One OTP per enquiry, deliberately. A proof is spent the moment an enquiry is
  * accepted (consume()), and being signed in — even with the very number typed
@@ -48,9 +54,16 @@ class OtpGate
      */
     public const SEND_BUDGET_PER_HOUR = 8;
 
-    protected const PENDING_KEY  = 'otp_gate_pending';
-    protected const VERIFIED_KEY = 'otp_gate_verified';
-    protected const BUDGET_KEY   = 'otp_gate_sends';
+    /** Everything this visitor's gate stores hangs off one prefix. */
+    protected static function scope(): string
+    {
+        return 'otp_gate:' . session()->getId();
+    }
+
+    protected static function store()
+    {
+        return Cache::store(config('cache.default'));
+    }
 
     /** One number, one key, however the visitor typed it. */
     public static function key($mobile): string
@@ -66,18 +79,18 @@ class OtpGate
             return false;
         }
 
-        $verified = (array) session(self::VERIFIED_KEY, []);
-
-        return isset($verified[$key]) && $verified[$key] > now()->timestamp;
+        return (bool) self::store()->get(self::scope() . ':verified:' . $key);
     }
 
     public static function markVerified($mobile): void
     {
-        $verified = (array) session(self::VERIFIED_KEY, []);
-        $verified[self::key($mobile)] = now()->addMinutes(self::VERIFIED_TTL_MINUTES)->timestamp;
+        self::store()->put(
+            self::scope() . ':verified:' . self::key($mobile),
+            true,
+            now()->addMinutes(self::VERIFIED_TTL_MINUTES)
+        );
 
-        session([self::VERIFIED_KEY => $verified]);
-        session()->forget(self::PENDING_KEY);
+        self::store()->forget(self::scope() . ':pending');
     }
 
     /**
@@ -88,11 +101,7 @@ class OtpGate
      */
     public static function consume($mobile): void
     {
-        $verified = (array) session(self::VERIFIED_KEY, []);
-
-        unset($verified[self::key($mobile)]);
-
-        session([self::VERIFIED_KEY => $verified]);
+        self::store()->forget(self::scope() . ':verified:' . self::key($mobile));
     }
 
     /** Seconds left before another code may be sent to this number, 0 if now. */
@@ -117,17 +126,18 @@ class OtpGate
 
     public static function challenge($mobile, string $code): void
     {
-        session([self::PENDING_KEY => [
+        self::store()->put(self::scope() . ':pending', [
             'mobile'     => self::key($mobile),
             'code'       => $code,
             'expires_at' => now()->addMinutes(self::CODE_TTL_MINUTES)->timestamp,
             'sent_at'    => now()->timestamp,
             'attempts'   => 0,
-        ]]);
+        ], now()->addMinutes(self::CODE_TTL_MINUTES));
 
         $sends = self::recentSends();
         $sends[] = now()->timestamp;
-        session([self::BUDGET_KEY => $sends]);
+
+        self::store()->put(self::scope() . ':sends', $sends, now()->addHour());
     }
 
     /**
@@ -144,20 +154,25 @@ class OtpGate
         }
 
         if ($pending['expires_at'] < now()->timestamp) {
-            session()->forget(self::PENDING_KEY);
+            self::store()->forget(self::scope() . ':pending');
 
             return 'expired';
         }
 
         if ($pending['attempts'] >= self::MAX_ATTEMPTS) {
-            session()->forget(self::PENDING_KEY);
+            self::store()->forget(self::scope() . ':pending');
 
             return 'too_many';
         }
 
         if (!hash_equals((string) $pending['code'], $code)) {
             $pending['attempts']++;
-            session([self::PENDING_KEY => $pending]);
+
+            self::store()->put(
+                self::scope() . ':pending',
+                $pending,
+                now()->addSeconds(max(1, $pending['expires_at'] - now()->timestamp))
+            );
 
             return 'invalid';
         }
@@ -178,7 +193,7 @@ class OtpGate
     /** The live challenge, but only if it belongs to this number. */
     protected static function pending($mobile): ?array
     {
-        $pending = session(self::PENDING_KEY);
+        $pending = self::store()->get(self::scope() . ':pending');
 
         if (!is_array($pending) || ($pending['mobile'] ?? null) !== self::key($mobile)) {
             return null;
@@ -192,7 +207,7 @@ class OtpGate
         $cutoff = now()->subHour()->timestamp;
 
         return array_values(array_filter(
-            (array) session(self::BUDGET_KEY, []),
+            (array) self::store()->get(self::scope() . ':sends', []),
             fn ($at) => $at > $cutoff
         ));
     }
