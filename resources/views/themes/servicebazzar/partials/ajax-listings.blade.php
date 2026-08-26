@@ -1109,10 +1109,16 @@
                     @csrf
                     @include('themes.servicebazzar.partials.form-guard')
 
-                    <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
+                    {{-- Filled by the opener below from the card whose "Get Best
+                         Price" was clicked. Without it every enquiry from this
+                         shared popup reached the admin with no business against
+                         it, so nobody could tell which listing it was for. --}}
+                    <input type="hidden" name="listing_id" id="popupListingInput" value="">
+
+                    <input type="hidden" name="category_id" id="popupCategoryIdInput" value="{{ $selectedCategory->id ?? '' }}">
                     <input type="hidden" name="category_name" id="popupCategoryInput" value="{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}">
                     <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-                     <input type="hidden" name="location_id"
+                     <input type="hidden" name="location_id" id="popupLocationIdInput"
        value="{{ request('location_id') ?? ($location->id ?? '') }}">
 
                     <div class="best-price-field">
@@ -1714,6 +1720,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeBtn = document.getElementById('closeBestPriceModal');
     const categoryText = document.getElementById('popupCategoryName');
     const categoryInput = document.getElementById('popupCategoryInput');
+    const listingInput = document.getElementById('popupListingInput');
+    const categoryIdInput = document.getElementById('popupCategoryIdInput');
+    const locationIdInput = document.getElementById('popupLocationIdInput');
+
+    /* Page-level defaults, restored when the popup is opened from something
+       that is not a particular listing. */
+    const pageCategoryId = categoryIdInput ? categoryIdInput.value : '';
+    const pageLocationId = locationIdInput ? locationIdInput.value : '';
 
     /*
      * Delegated on document instead of bound to each button directly — cards
@@ -1730,6 +1744,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const category = button.getAttribute('data-category') || 'Listings';
         categoryText.textContent = category;
         categoryInput.value = category;
+
+        // Which business the visitor was actually looking at when they asked.
+        // Every one of these buttons carries its card's ids (data-listing-id
+        // and friends); the popup used to read only the category off them, so
+        // the lead arrived with no listing attached.
+        if (listingInput) {
+            listingInput.value = button.getAttribute('data-listing-id') || '';
+        }
+
+        if (categoryIdInput) {
+            categoryIdInput.value = button.getAttribute('data-category-id') || pageCategoryId;
+        }
+
+        if (locationIdInput) {
+            locationIdInput.value = button.getAttribute('data-location-id') || pageLocationId;
+        }
+
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     });

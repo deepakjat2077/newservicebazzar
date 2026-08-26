@@ -300,6 +300,39 @@
         }, 1000);
     }
 
+    /*
+     * Several enquiry forms live inside something that opens over the page —
+     * the "Get the list of best listings" popup, the SMS/email modal, the
+     * sticky side form. A full page reload used to take that with it; now that
+     * the form posts over AJAX, nothing does, and the visitor is left looking
+     * at the form they have already sent.
+     *
+     * The page's own close button is clicked where there is one, so whatever
+     * it resets (page scroll, the "popup already shown" flag) is reset the way
+     * that page expects; the open-state class is dropped either way.
+     */
+    function closeHostOverlay(form) {
+        var node = form.parentElement;
+
+        while (node && node !== document.body) {
+            var style = window.getComputedStyle(node);
+
+            if (style.position === 'fixed' && style.display !== 'none') {
+                var dismiss = node.querySelector(
+                    '[data-bs-dismiss="modal"], [data-dismiss="modal"], button[id*="close" i], button[class*="close" i]'
+                );
+
+                if (dismiss) dismiss.click();
+
+                node.classList.remove('show', 'active', 'open', 'is-open');
+
+                return;
+            }
+
+            node = node.parentElement;
+        }
+    }
+
     /* ---- sending the enquiry itself ---------------------------------- */
 
     function submitEnquiry(form) {
@@ -319,6 +352,7 @@
         }).then(readJson).then(function (result) {
             if (result.ok && result.data.status) {
                 form.reset();
+                closeHostOverlay(form);
                 showResult('success', 'Enquiry sent', result.data.message || 'The business will contact you shortly.');
                 return;
             }
