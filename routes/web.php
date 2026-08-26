@@ -5,6 +5,43 @@ use Illuminate\Support\Facades\Route;
 Route::get('/health', fn () => response('ok', 200))->name('health');
 
 /*
+ * One URL to hit after every deploy on hosting where PHP-FPM can't be
+ * restarted by hand: `php artisan view:clear` only clears Laravel's own
+ * file-based caches, but with opcache.validate_timestamps off (common on
+ * shared hosting for performance) the running PHP-FPM workers keep serving
+ * the *compiled bytecode* of the old files from memory regardless — a
+ * deployed change quietly does nothing until the process restarts. This
+ * calls opcache_reset() (the in-process fix that doesn't need a restart)
+ * alongside the usual artisan cache clears, all in one request.
+ *
+ * Gated by a token in the query string, not a route parameter, so it never
+ * shows up as a path segment in any log or browser history entry by
+ * accident. Set DEPLOY_REFRESH_TOKEN in .env to something long and random;
+ * the route 404s (not just denies) when it's unset, so it can't be hit at
+ * all on an environment that never opted in.
+ */
+Route::get('/deploy/refresh-cache', function (\Illuminate\Http\Request $request) {
+    $expected = config('app.deploy_refresh_token');
+
+    if (!$expected || !hash_equals($expected, (string) $request->query('token'))) {
+        abort(404);
+    }
+
+    $opcacheReset = function_exists('opcache_reset') ? opcache_reset() : null;
+
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+
+    return response()->json([
+        'status' => 'ok',
+        'opcache_reset' => $opcacheReset === null ? 'not available (opcache extension off)' : ($opcacheReset ? 'done' : 'failed'),
+        'artisan_caches_cleared' => true,
+    ]);
+})->name('deploy.refresh-cache');
+
+/*
  * Old requests/links with a literal "/public" segment (from before
  * AppServiceProvider::stripPublicPrefixFromUrls() stopped the site from
  * generating them itself — this document root points straight at public/,
