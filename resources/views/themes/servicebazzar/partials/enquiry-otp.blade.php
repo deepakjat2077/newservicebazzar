@@ -12,7 +12,7 @@
 @endphp
 
 {{--
-    The OTP step in front of the enquiry forms.
+    The OTP step and the result popup that sit in front of every enquiry form.
 
     Included once in the site layout rather than bolted onto each form: there
     are a dozen enquiry forms across the listing pages, the search results, the
@@ -20,9 +20,15 @@
     endpoints. One delegated submit handler covers every one of them, including
     forms that did not exist when the page loaded.
 
+    The forms are submitted over AJAX from here on purpose. For a logged-out
+    visitor the listing pages are served from the shared HTML cache
+    (CachePublicPages), and a redirect back to a cached page cannot show a
+    flash message — which is why a submitted enquiry, a wrong mobile number and
+    a missing field all used to look identical: an unchanged page. Now every
+    one of those gets a popup that says what happened.
+
     This is the visitor's side of the check only — SiteController rejects an
-    unverified number regardless of what happens here (see
-    requireVerifiedPhone()).
+    unverified number regardless of what happens here (requireVerifiedPhone()).
 --}}
 <div id="sbEnquiryOtpPopup" class="sb-auth-popup">
     <div class="sb-auth-box">
@@ -62,6 +68,46 @@
     </div>
 </div>
 
+<div id="sbEnqResultPopup" class="sb-auth-popup">
+    <div class="sb-auth-box sb-enq-result">
+        <button type="button" class="sb-auth-close" id="sbEnqResultClose">&times;</button>
+
+        <div class="sb-enq-icon" id="sbEnqResultIcon"></div>
+
+        <h4 id="sbEnqResultTitle"></h4>
+        <p id="sbEnqResultText"></p>
+        <ul id="sbEnqResultList"></ul>
+
+        <button type="button" class="sb-btn" id="sbEnqResultOk">Done</button>
+    </div>
+</div>
+
+<style>
+    .sb-enq-result{ text-align:center; }
+    .sb-enq-result h4{ margin:0 0 8px; font-size:20px; font-weight:700; }
+    .sb-enq-result p{ margin:0 0 12px; color:#5b6b7f; font-size:14px; line-height:1.55; }
+    .sb-enq-result ul{ list-style:none; padding:0; margin:0 0 14px; text-align:left; }
+    .sb-enq-result ul:empty{ display:none; }
+    .sb-enq-result ul li{
+        background:#fdecec; color:#b02a2a; border-radius:8px;
+        padding:9px 12px; margin-bottom:6px; font-size:13px; line-height:1.4;
+    }
+    .sb-enq-icon{
+        width:64px; height:64px; border-radius:50%; margin:8px auto 16px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:32px; font-weight:700; line-height:1;
+    }
+    .sb-enq-icon.is-success{ background:#e6f7ee; color:#22a45d; }
+    .sb-enq-icon.is-error{ background:#fdecec; color:#d63939; }
+    .sb-enq-icon.is-loading{ background:#eef2f7; }
+    .sb-enq-icon.is-loading::after{
+        content:''; width:26px; height:26px; border-radius:50%;
+        border:3px solid #c9d4e2; border-top-color:#5b6b7f;
+        animation:sbEnqSpin .7s linear infinite;
+    }
+    @keyframes sbEnqSpin{ to{ transform:rotate(360deg); } }
+</style>
+
 <script>
 (function () {
     var GATED_PATHS = @json($otpGatedPaths);
@@ -78,15 +124,24 @@
     var verifyBtn = document.getElementById('sbEnqOtpVerify');
     var resendBtn = document.getElementById('sbEnqOtpResend');
 
-    if (!popup || !otpForm) return;
+    var resultPopup = document.getElementById('sbEnqResultPopup');
+    var resultIcon  = document.getElementById('sbEnqResultIcon');
+    var resultTitle = document.getElementById('sbEnqResultTitle');
+    var resultText  = document.getElementById('sbEnqResultText');
+    var resultList  = document.getElementById('sbEnqResultList');
+    var resultOk    = document.getElementById('sbEnqResultOk');
+    var resultClose = document.getElementById('sbEnqResultClose');
 
-    // Numbers this visitor has already proven, mirroring the session so a
-    // second enquiry does not ask again. The server keeps the real record.
-    var verified    = Object.create(null);
+    if (!popup || !otpForm || !resultPopup) return;
+
     var activeForm  = null;
     var activePhone = '';
     var resendTimer = null;
     var busy        = false;
+
+    // One OTP round per attempt. Without this, a server that keeps answering
+    // "verify first" would bounce the visitor round the loop forever.
+    var otpRounds   = 0;
 
     function digitsOf(value) {
         var digits = String(value || '').replace(/\D+/g, '');
@@ -107,6 +162,12 @@
         return meta ? meta.getAttribute('content') : '';
     }
 
+    function readJson(response) {
+        return response.json().catch(function () { return {}; }).then(function (data) {
+            return { ok: response.ok, status: response.status, data: data };
+        });
+    }
+
     function post(url, token, payload) {
         var body = new FormData();
 
@@ -122,19 +183,26 @@
             },
             body: body,
             credentials: 'same-origin'
-        }).then(function (response) {
-            return response.json().catch(function () { return {}; }).then(function (data) {
-                return { ok: response.ok, data: data };
+        }).then(readJson);
+    }
+
+    /** Every validation message the server sent back, in order. */
+    function errorList(data) {
+        var messages = [];
+
+        if (data && data.errors) {
+            Object.keys(data.errors).forEach(function (key) {
+                (data.errors[key] || []).forEach(function (text) { messages.push(text); });
             });
-        });
+        }
+
+        return messages;
     }
 
     function firstError(data) {
-        if (data && data.errors) {
-            for (var key in data.errors) {
-                if (data.errors[key] && data.errors[key].length) return data.errors[key][0];
-            }
-        }
+        var messages = errorList(data);
+
+        if (messages.length) return messages[0];
 
         return (data && data.message) || 'Something went wrong. Please try again.';
     }
@@ -147,16 +215,6 @@
         msgBox.innerHTML = '';
     }
 
-    function announce(type, text) {
-        if (popup.classList.contains('show')) {
-            showMsg(type, text);
-        } else if (window.toastr) {
-            type === 'success' ? toastr.success(text) : toastr.error(text);
-        } else {
-            alert(text);
-        }
-    }
-
     function syncVerifyBtn() {
         verifyBtn.disabled = typedOtp().length !== 6;
     }
@@ -165,9 +223,12 @@
         return boxes.map(function (box) { return box.value.replace(/\D/g, ''); }).join('');
     }
 
+    function lockScroll() { document.body.style.overflow = 'hidden'; }
+    function unlockScroll() { document.body.style.overflow = ''; }
+
     function openPopup() {
         popup.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        lockScroll();
         boxes.forEach(function (box) { box.value = ''; });
         syncVerifyBtn();
         if (boxes[0]) boxes[0].focus();
@@ -175,10 +236,40 @@
 
     function closePopup() {
         popup.classList.remove('show');
-        document.body.style.overflow = '';
+        if (!resultPopup.classList.contains('show')) unlockScroll();
         clearMsg();
         stopResendCountdown();
-        activeForm = null;
+    }
+
+    /* ---- the result popup: the only thing the visitor is told by ------ */
+
+    function showResult(kind, title, text, messages) {
+        popup.classList.remove('show');
+
+        resultIcon.className = 'sb-enq-icon is-' + kind;
+        resultIcon.textContent = kind === 'success' ? '✓' : (kind === 'error' ? '!' : '');
+        resultTitle.textContent = title;
+        resultText.textContent = text || '';
+        resultList.innerHTML = '';
+
+        (messages || []).forEach(function (message) {
+            var item = document.createElement('li');
+            item.textContent = message;
+            resultList.appendChild(item);
+        });
+
+        // Nothing to dismiss while the request is still in flight.
+        resultOk.style.display  = kind === 'loading' ? 'none' : '';
+        resultClose.style.display = kind === 'loading' ? 'none' : '';
+        resultOk.textContent = kind === 'success' ? 'Done' : 'Close';
+
+        resultPopup.classList.add('show');
+        lockScroll();
+    }
+
+    function closeResult() {
+        resultPopup.classList.remove('show');
+        unlockScroll();
     }
 
     function stopResendCountdown() {
@@ -209,17 +300,50 @@
         }, 1000);
     }
 
-    /* The number is proven — let the form go through untouched. */
-    function release(form) {
+    /* ---- sending the enquiry itself ---------------------------------- */
+
+    function submitEnquiry(form) {
         if (!form) return;
 
-        form.dataset.sbOtpDone = '1';
+        showResult('loading', 'Sending your enquiry…', 'Please wait a moment.');
 
-        if (typeof form.requestSubmit === 'function') {
-            form.requestSubmit();
-        } else {
-            form.submit();
-        }
+        fetch(form.getAttribute('action'), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': tokenFor(form),
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new FormData(form),
+            credentials: 'same-origin'
+        }).then(readJson).then(function (result) {
+            if (result.ok && result.data.status) {
+                form.reset();
+                showResult('success', 'Enquiry sent', result.data.message || 'The business will contact you shortly.');
+                return;
+            }
+
+            // The number has not been proven yet (or the session lost it
+            // between the OTP and the submit). This is the normal path for a
+            // first-time visitor: the server asks, and the OTP step starts.
+            if (result.data && result.data.otp_required && otpRounds < 1) {
+                otpRounds++;
+                closeResult();
+                requestOtp(form, activePhone, false);
+                return;
+            }
+
+            var messages = errorList(result.data);
+
+            showResult(
+                'error',
+                'Enquiry not sent',
+                messages.length ? 'Please fix the following and try again:' : firstError(result.data),
+                messages
+            );
+        }).catch(function () {
+            showResult('error', 'Enquiry not sent', 'Network error. Please check your connection and try again.');
+        });
     }
 
     function requestOtp(form, phone, isResend) {
@@ -231,20 +355,24 @@
             busy = false;
 
             if (!result.ok) {
-                announce('error', firstError(result.data));
+                showResult('error', 'Could not send the OTP', firstError(result.data));
                 return;
             }
 
+            // Already proven in this session — nothing to ask, straight back
+            // to the enquiry.
             if (result.data.verified) {
-                verified[phone] = true;
                 closePopup();
-                release(form);
+                submitEnquiry(form);
                 return;
             }
 
             numberEl.textContent = '+91 ' + phone;
 
-            if (!popup.classList.contains('show')) openPopup();
+            if (!popup.classList.contains('show')) {
+                closeResult();
+                openPopup();
+            }
 
             clearMsg();
 
@@ -253,7 +381,7 @@
             startResendCountdown();
         }).catch(function () {
             busy = false;
-            announce('error', 'Network error. Please try again.');
+            showResult('error', 'Could not send the OTP', 'Network error. Please check your connection and try again.');
         });
     }
 
@@ -263,7 +391,6 @@
         var form = event.target;
 
         if (!form || form.tagName !== 'FORM') return;
-        if (form.dataset.sbOtpDone === '1') return;
 
         var path;
 
@@ -280,27 +407,35 @@
 
         if (!field) return;
 
-        var phone = digitsOf(field.value);
-
-        // Not a number worth spending an OTP on — let the server's own
-        // validation give the visitor the usual message.
-        if (phone.length !== 10) return;
-        if (verified[phone]) return;
-
+        // Nothing about an enquiry form submits the old way any more: even an
+        // obviously wrong number goes through here, so the visitor gets a
+        // popup that says what is wrong instead of a silent page reload.
         event.preventDefault();
 
         activeForm  = form;
-        activePhone = phone;
+        activePhone = digitsOf(field.value);
+        otpRounds   = 0;
 
-        requestOtp(form, phone, false);
+        // Send the enquiry first and let the server say whether an OTP is
+        // still owed. Asking the OTP endpoint up front spent a request (and a
+        // slice of its much tighter rate limit) even for a visitor who had
+        // already verified, and every form-level validation message — a name
+        // that is not a name, a missing field — arrives from here in one go.
+        submitEnquiry(form);
     }, true);
 
     /* ---- modal wiring ------------------------------------------------ */
 
     closeBtn.addEventListener('click', closePopup);
+    resultOk.addEventListener('click', closeResult);
+    resultClose.addEventListener('click', closeResult);
 
     popup.addEventListener('click', function (event) {
         if (event.target === popup) closePopup();
+    });
+
+    resultPopup.addEventListener('click', function (event) {
+        if (event.target === resultPopup && resultOk.style.display !== 'none') closeResult();
     });
 
     boxes.forEach(function (box, index) {
@@ -357,12 +492,10 @@
                 return;
             }
 
-            verified[activePhone] = true;
-
             var form = activeForm;
 
             closePopup();
-            release(form);
+            submitEnquiry(form);
         }).catch(function () {
             busy = false;
             verifyBtn.textContent = 'Verify & Send Enquiry';

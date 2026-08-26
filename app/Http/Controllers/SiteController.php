@@ -637,6 +637,34 @@ public function contact()
     }
 
 /**
+ * One answer shape for every enquiry form, however it was submitted.
+ *
+ * The enquiry forms sit on listing pages, and for a logged-out visitor those
+ * pages are served from the shared HTML cache (see CachePublicPages). A
+ * redirect back to a cached page cannot show a flash message — the stored copy
+ * was rendered for somebody else's request — so `withAlert()` on its own left
+ * the visitor staring at an unchanged page with no idea whether the enquiry
+ * went anywhere. The forms therefore submit over AJAX and get told plainly,
+ * in a popup; this returns that answer, and still falls back to the old
+ * redirect for a browser without JavaScript.
+ */
+protected function enquiryFeedback(Request $request, string $type, string $message, array $extra = [])
+{
+    $ok = $type === 'success';
+
+    if ($request->expectsJson()) {
+        return response()->json(array_merge([
+            'status'  => $ok,
+            'message' => $message,
+        ], $extra), $ok ? 200 : 422);
+    }
+
+    return $ok
+        ? back()->withAlert(['success', $message])
+        : back()->withInput()->withAlert(['danger', $message]);
+}
+
+/**
  * The OTP gate every enquiry form sits behind.
  *
  * A lead is only worth the number attached to it, so the number has to be
@@ -654,15 +682,12 @@ protected function requireVerifiedPhone(Request $request)
         return null;
     }
 
-    $message = 'Please verify your mobile number with the OTP we send on WhatsApp before submitting.';
-
-    if ($request->expectsJson()) {
-        return response()->json(['message' => $message, 'otp_required' => true], 422);
-    }
-
-    return back()
-        ->withInput()
-        ->withAlert(['danger', $message]);
+    return $this->enquiryFeedback(
+        $request,
+        'danger',
+        'Please verify your mobile number with the OTP we send on WhatsApp before submitting.',
+        ['otp_required' => true]
+    );
 }
 
 public function authorContact(Request $request)
@@ -682,7 +707,7 @@ public function authorContact(Request $request)
             'agent'  => substr((string) $request->userAgent(), 0, 120),
         ]);
 
-        return back()->withAlert(['success', 'Enquiry sent successfully']);
+        return $this->enquiryFeedback($request, 'success', 'Enquiry sent successfully');
     }
 
     $request->validate([
@@ -738,11 +763,25 @@ public function authorContact(Request $request)
                 ]
             );
         } catch (\Illuminate\Database\QueryException $e) {
-            return back()->withAlert(['success', 'We have already received your enquiry. We will contact you soon.']);
+            // Only a duplicate on `dedupe_key` means "we already have this
+            // one". Any other database error means the enquiry was NOT
+            // stored, and answering that with a cheerful "already received"
+            // is how a lead disappears while the visitor walks away happy.
+            if (($e->errorInfo[1] ?? null) !== 1062) {
+                Log::error('Enquiry could not be stored', [
+                    'listing_id' => $listingId,
+                    'sql_state'  => $e->errorInfo[0] ?? null,
+                    'message'    => $e->getMessage(),
+                ]);
+
+                return $this->enquiryFeedback($request, 'danger', 'We could not save your enquiry just now. Please try again in a moment.');
+            }
+
+            return $this->enquiryFeedback($request, 'success', 'We have already received your enquiry. We will contact you soon.');
         }
 
         if (!$enquiry->wasRecentlyCreated) {
-            return back()->withAlert(['success', 'We have already received your enquiry. We will contact you soon.']);
+            return $this->enquiryFeedback($request, 'success', 'We have already received your enquiry. We will contact you soon.');
         }
     } else {
         // No usable phone number, so nothing to recognise a repeat by.
@@ -763,7 +802,7 @@ public function authorContact(Request $request)
 
     \App\Support\Tracking\Tracker::conversion($request, 'enquiry', ['listing_id' => $listingId]);
 
-    return back()->withAlert(['success', 'Enquiry sent successfully']);
+    return $this->enquiryFeedback($request, 'success', 'Enquiry sent successfully. The business will contact you shortly.');
 }
 
 /**
@@ -795,7 +834,7 @@ public function requestQuoteStore(Request $request)
     if (FormGuard::looksAutomated($request, $why)) {
         Log::info('Quote request rejected as automated', ['reason' => $why, 'ip' => $request->ip()]);
 
-        return back()->withAlert(['success', 'Your quote request has been sent.']);
+        return $this->enquiryFeedback($request, 'success', 'Your quote request has been sent.');
     }
 
     $request->validate([
@@ -840,7 +879,7 @@ public function requestQuoteStore(Request $request)
     }
 
     if ($matchingListings->isEmpty()) {
-        return back()->withAlert(['danger', 'No businesses currently match this category/location — please try a different one.'])->withInput();
+        return $this->enquiryFeedback($request, 'danger', 'No businesses currently match this category/location — please try a different one.');
     }
 
     foreach ($matchingListings as $listing) {
@@ -859,7 +898,7 @@ public function requestQuoteStore(Request $request)
 
     \App\Support\Tracking\Tracker::conversion($request, 'quote_request', ['category_id' => $request->category_id]);
 
-    return back()->withAlert(['success', 'Your quote request has been sent to '.$matchingListings->count().' matching business(es). They will contact you shortly.']);
+    return $this->enquiryFeedback($request, 'success', 'Your quote request has been sent to '.$matchingListings->count().' matching business(es). They will contact you shortly.');
 }
 
     public function pricing()
@@ -2427,7 +2466,7 @@ public function authorEmailContact(Request $request, SendMail $mail)
             'ip'     => $request->ip(),
         ]);
 
-        return back()->withAlert(['success', 'Message sent successfully']);
+        return $this->enquiryFeedback($request, 'success', 'Message sent successfully');
     }
 
     $request->validate([
@@ -2447,7 +2486,7 @@ public function authorEmailContact(Request $request, SendMail $mail)
     $ownerEmail = $listing->email ?? optional($listing->user)->email;
 
     if (empty($ownerEmail)) {
-        return back()->withAlert(['danger', 'Listing owner email not found']);
+        return $this->enquiryFeedback($request, 'danger', 'This business has no email on file — please use the enquiry form instead.');
     }
 
     $message = '
@@ -2496,9 +2535,21 @@ public function authorEmailContact(Request $request, SendMail $mail)
         ]
     ];
 
-    $mail->sendMail($data);
+    try {
+        $mail->sendMail($data);
+    } catch (\Throwable $exception) {
+        // A refused address or a down SMTP server is a delivery problem, not
+        // a 500 for the visitor — tell them plainly that it did not go.
+        Log::error('Email enquiry could not be delivered', [
+            'listing_id' => $listing->id,
+            'owner'      => $ownerEmail,
+            'message'    => $exception->getMessage(),
+        ]);
 
-    return back()->withAlert(['success', 'Email enquiry sent successfully']);
+        return $this->enquiryFeedback($request, 'danger', 'We could not deliver your message right now. Please try again in a moment.');
+    }
+
+    return $this->enquiryFeedback($request, 'success', 'Email enquiry sent successfully');
 }
 
 

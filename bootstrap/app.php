@@ -281,9 +281,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            $message = 'Something went wrong at our end. Your details are still here — please press submit again.';
+
+            // The enquiry forms submit over AJAX now (see the enquiry-otp
+            // partial), and a redirect tells that caller nothing it can show.
+            if ($request->expectsJson()) {
+                return response()->json(['status' => false, 'message' => $message], 500);
+            }
+
             return back()
                 ->withInput()
-                ->withAlert(['danger', 'Something went wrong at our end. Your details are still here — please press submit again.']);
+                ->withAlert(['danger', $message]);
         });
 
         /*
