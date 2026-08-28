@@ -1433,9 +1433,15 @@ window.addEventListener('pageshow', function () {
 			<span>Contact</span>
 		</a>
 
-		<a href="{{ route('user.listing.create') }}" class="mobile-action-btn">
-			Free Listing
-		</a>
+		@guest
+			<a href="javascript:void(0);" onclick="openSbAuthPopup()" class="mobile-action-btn">
+				Free Listing
+			</a>
+		@else
+			<a href="{{ route('user.listing.create') }}" class="mobile-action-btn">
+				Free Listing
+			</a>
+		@endguest
 	</div>
 
 

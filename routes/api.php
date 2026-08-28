@@ -25,21 +25,7 @@ Route::prefix('admin')->group(function () {
     });
 });
 
-/*
-|--------------------------------------------------------------------------
-| Mobile app — user authentication
-|--------------------------------------------------------------------------
-|
-| Consumed by the Service Bazzar Android/iOS app. Stateless bearer-token auth
-| (see AuthenticateUserApi, alias `user.api`): the app logs in once via
-| WhatsApp OTP / Google / Facebook, gets a token, and sends it as
-| `Authorization: Bearer {id}|{secret}` from then on.
-|
-| The open endpoints are throttled per IP so a lost/hostile device cannot
-| pound the OTP send or brute-force a code; the per-number budget and cooldown
-| in ApiOtpStore back that up on the WhatsApp bill.
-|
-*/
+
 Route::prefix('auth')->group(function () {
 
     // Login screen calls this first to know which buttons to show.
@@ -67,17 +53,7 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-/*
-|--------------------------------------------------------------------------
-| Mobile app — signed-in user account / profile
-|--------------------------------------------------------------------------
-|
-| The account section behind the login: the "Fill Profile in Few Steps"
-| wizard (personal details, addresses, favorites), the businesses the user
-| liked, and the reviews they left. JSON twin of the website's UserController;
-| every route needs a valid bearer token (`user.api`).
-|
-*/
+
 Route::prefix('profile')->middleware('user.api')->group(function () {
 
     // Personal details (view + edit).
@@ -102,16 +78,6 @@ Route::prefix('profile')->middleware('user.api')->group(function () {
     Route::get('ratings', [ProfileController::class, 'ratings']);
 });
 
-/*
-|--------------------------------------------------------------------------
-| Mobile app — Discovery (find a business: home, search, detail, reviews)
-|--------------------------------------------------------------------------
-|
-| Consumer side. The app is login-first, so these sit behind `user.api` too —
-| which also lets each business card report whether the user favourited it.
-| JSON twin of the public SiteController.
-|
-*/
 Route::middleware('user.api')->group(function () {
 
     Route::get('home',       [BrowseController::class, 'home']);
@@ -142,15 +108,7 @@ Route::middleware('user.api')->group(function () {
     Route::get('deposit/{trx}/status',  [PaymentController::class, 'status']);
 });
 
-/*
-|--------------------------------------------------------------------------
-| Mobile app — account extras (devices, transactions, notifications...)
-|--------------------------------------------------------------------------
-|
-| The account-drawer features with no website equivalent: Manage Devices,
-| My Transactions, Notifications, App Feedback, Settings. All need a token.
-|
-*/
+
 Route::prefix('account')->middleware('user.api')->group(function () {
 
     Route::get('devices',            [AccountController::class, 'devices']);
@@ -178,18 +136,7 @@ Route::prefix('account')->middleware('user.api')->group(function () {
     Route::post('callback',          [AccountController::class, 'requestCallback']);
 });
 
-/*
-|--------------------------------------------------------------------------
-| Mobile app — "My Business" (business-owner side)
-|--------------------------------------------------------------------------
-|
-| The owner screens behind "My Business": the business picker, each business's
-| dashboard, its leads/enquiries (with filters + Quotation Request), analytics,
-| response time, competitors, and CSV/Excel lead import. JSON twin of the owner
-| methods in ListingController; every route needs a valid bearer token
-| (`user.api`) and is scoped to the token owner's own listings.
-|
-*/
+
 Route::prefix('business')->middleware('user.api')->group(function () {
 
     // The "Select Business Profile" list.
