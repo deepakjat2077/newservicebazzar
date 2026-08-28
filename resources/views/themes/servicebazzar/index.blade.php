@@ -2932,11 +2932,13 @@ label.popup-overlay {
 
 /* ===== "Location off" strip inside the panel ===== */
 .popup-location-notice {
+    position: relative;
     margin: 12px 0 18px;
-    padding: 12px 14px;
+    padding: 14px 44px 14px 14px;
     border: 1px solid #ffd9a6;
     border-radius: 10px;
     background: #fff8ec;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .12);
 }
 
 .popup-location-notice__row {
@@ -2987,6 +2989,27 @@ label.popup-overlay {
     min-width: 0;
 }
 
+.popup-location-notice__close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #7a4a00;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.popup-location-notice__close:hover,
+.popup-location-notice__close:focus {
+    background: rgba(122, 74, 0, .08);
+    outline: none;
+}
+
 .popup-location-notice__text i {
     color: #e5581e;
     font-size: 16px;
@@ -3013,7 +3036,7 @@ label.popup-overlay {
 @media (max-width: 767px) {
     .popup-location-notice {
         margin: 10px 0 14px;
-        padding: 10px 12px;
+        padding: 14px 42px 14px 12px;
     }
 
     .popup-location-notice__text {
@@ -3060,6 +3083,10 @@ label.popup-overlay {
          href redirects to a default city), but the results are not local
          until the visitor turns location on. --}}
     <div class="popup-location-notice" id="popupLocationNotice" hidden>
+        <button type="button" class="popup-location-notice__close" id="popupLocationNoticeClose" aria-label="Close location popup">
+            &times;
+        </button>
+
         <div class="popup-location-notice__row">
             <div class="popup-location-notice__text">
                 <i class="fas fa-location-dot"></i>
@@ -6249,11 +6276,13 @@ function initPopupLocationNotice(toggle){
     const message = document.getElementById('popupLocationNoticeMsg');
     const button  = document.getElementById('popupLocationEnableBtn');
     const steps   = document.getElementById('popupLocationSteps');
+    const close   = document.getElementById('popupLocationNoticeClose');
+    let dismissed = false;
 
     if(!notice || !message || !button) return;
 
-    const DEFAULT_MSG = 'Location is turned off. Turn it on to see services near you.';
-    const DENIED_MSG  = 'Location is blocked for this site, so we cannot detect your city.';
+    const DEFAULT_MSG = 'Please turn on location to see services near you.';
+    const DENIED_MSG  = 'Location permission is blocked. Allow location for this site, then tap the button again.';
 
     function knownCity(){
         const input = document.getElementById('homeLocationInput')
@@ -6274,9 +6303,9 @@ function initPopupLocationNotice(toggle){
     function setState(text, mode){
         message.textContent = text;
 
-        button.hidden   = (mode !== 'enable');
+        button.hidden   = (mode === 'none');
         button.disabled = false;
-        button.textContent = 'Turn on location';
+        button.textContent = (mode === 'blocked') ? 'Try again' : 'Turn on location';
 
         if(steps) steps.hidden = (mode !== 'blocked');
 
@@ -6289,6 +6318,8 @@ function initPopupLocationNotice(toggle){
             notice.hidden = true;
             return;
         }
+
+        if(dismissed) return;
 
         if(!navigator.geolocation){
             setState('This browser does not support location. Please pick your city from the search box above.', 'none');
@@ -6334,6 +6365,31 @@ function initPopupLocationNotice(toggle){
 
         if(latInput) latInput.value = lat;
         if(lngInput) lngInput.value = lng;
+
+        fetch("{{ route('save.user.location') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({
+                city: city,
+                latitude: lat,
+                longitude: lng
+            })
+        }).catch(function(){});
+
+        if(typeof loadPopularCategoriesByLocation === 'function'){
+            loadPopularCategoriesByLocation(city, lat, lng, "");
+        }
+    }
+
+    if(close){
+        close.addEventListener('click', function(){
+            dismissed = true;
+            notice.hidden = true;
+        });
     }
 
     button.addEventListener('click', function(){
@@ -6365,6 +6421,9 @@ function initPopupLocationNotice(toggle){
                 if(city){
                     applyCity(city, lat, lng);
                     setState('Showing services in ' + city + '.', 'done');
+                    window.setTimeout(function(){
+                        notice.hidden = true;
+                    }, 1200);
                     return;
                 }
 
@@ -6392,7 +6451,10 @@ function initPopupLocationNotice(toggle){
     // or chosen since the page loaded.
     if(toggle){
         toggle.addEventListener('change', function(){
-            if(this.checked) refresh();
+            if(this.checked){
+                dismissed = false;
+                refresh();
+            }
         });
 
         if(toggle.checked) refresh();
