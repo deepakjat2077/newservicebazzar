@@ -4,6 +4,7 @@ use App\Http\Middleware\AdminApiPermission;
 use App\Http\Middleware\AdminPermission;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\AuthenticateAdminApi;
+use App\Http\Middleware\AuthenticateUserApi;
 use App\Http\Middleware\CachePublicPages;
 use App\Http\Middleware\DecodeShieldedPayload;
 use App\Http\Middleware\EnsureVisitorId;
@@ -75,6 +76,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // redirecting to the HTML login page.
             'admin.api' => AuthenticateAdminApi::class,
             'admin.api.can' => AdminApiPermission::class,
+
+            // Bearer-token auth for the mobile app (Service Bazzar Android/iOS).
+            // Sets the `web` guard user from the token, answering 401 in JSON.
+            'user.api' => AuthenticateUserApi::class,
         ]);
 
         // CORS is not registered here on purpose: Laravel already runs

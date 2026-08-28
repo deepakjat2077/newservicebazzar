@@ -204,6 +204,20 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
             });
 
 
+            // KYC verifications from the mobile app — review & approve/reject.
+            Route::name('kyc.')->prefix('kyc')->group(function () {
+                Route::get('/', 'KycController@index')->middleware('permission:user.view')->name('index');
+                Route::post('approve/{id}', 'KycController@approve')->middleware('permission:user.manage')->name('approve');
+                Route::post('reject/{id}', 'KycController@reject')->middleware('permission:user.manage')->name('reject');
+            });
+
+            // "Get a Callback" requests from the mobile app's Help screen.
+            Route::name('callback.')->prefix('callback')->group(function () {
+                Route::get('/', 'CallbackController@index')->middleware('permission:user.view')->name('index');
+                Route::post('handled/{id}', 'CallbackController@markHandled')->middleware('permission:user.manage')->name('handled');
+            });
+
+
             Route::name('gateway.')->prefix('gateway')->middleware('permission:gateway.manage')->group(function () {
                 Route::name('method.')->prefix('method')->group(function () {
                     Route::get('/', 'PaymentMethodController@index')->name('index');
@@ -362,6 +376,9 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
 
                 Route::get('gupshup', 'SettingController@gupshup')->name('gupshup');
                 Route::post('gupshup/update', 'SettingController@gupshupUpdate')->name('gupshup.update');
+
+                Route::get('push', 'SettingController@push')->name('push');
+                Route::post('push/update', 'SettingController@pushUpdate')->name('push.update');
 
                 Route::get('social-login', 'SocialLoginSettingController@index')->name('social.login');
                 Route::post('social-login/update', 'SocialLoginSettingController@update')->name('social.login.update');
@@ -747,6 +764,10 @@ Route::post('/set-location-session', function (Illuminate\Http\Request $request)
     | IPN Routes
     |--------------------------------------------------------------------------
     */
+
+    // Mobile-app checkout: opened in the app's web-view after POST /api/deposit.
+    // Public (token-authed app holds no web session); the random trx guards it.
+    Route::get('pay/{trx}', 'DepositController@appCheckout')->name('app.pay');
 
     Route::get('ipn/flutterwave/{trx_number}/{type}', 'DepositController@flutterwaveIpn')->name('ipn.flutterwave');
     Route::post('ipn/stripe', 'DepositController@stripeIpn')->name('ipn.stripe');

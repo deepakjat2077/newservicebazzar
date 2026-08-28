@@ -38,6 +38,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'social' => 'object',
+        'app_settings' => 'array',
     ];
 
     public function fullname(){

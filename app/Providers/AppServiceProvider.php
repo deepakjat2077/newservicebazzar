@@ -155,6 +155,24 @@ class AppServiceProvider extends ServiceProvider
                         }
                     }
                 }
+
+                /*
+                 * Firebase (FCM) push credentials — managed from the admin
+                 * panel (Setting > Push Notification) instead of .env, same
+                 * pattern as gupshup / social login above. FcmService reads
+                 * services.fcm.* to send push via the FCM HTTP v1 API.
+                 */
+                if ($setting->push_notification) {
+                    $push = (array) $setting->push_notification;
+
+                    if (!empty($push['enabled']) && !empty($push['service_account'])) {
+                        config([
+                            'services.fcm.enabled'         => true,
+                            'services.fcm.project_id'      => $push['project_id'] ?? null,
+                            'services.fcm.service_account' => (array) $push['service_account'],
+                        ]);
+                    }
+                }
             }
 
             Str::macro('strToKey', function ($str) {

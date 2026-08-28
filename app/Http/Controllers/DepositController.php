@@ -96,4 +96,33 @@ class DepositController extends Controller
         $payment = Payment::where('user_id',auth()->user()->id)->where('status','!=',0)->with('method_currency','package')->where('id',$id)->firstOrFail();
         return view($this->theme.'user.payment.details',compact('payment'));
     }
+
+    /**
+     * Mobile-app checkout entry, opened in the app's web-view as /pay/{trx}.
+     *
+     * Same as depositConfirm() but keyed on the transaction number in the URL
+     * instead of the web session — the app is token-authenticated and holds no
+     * session cookie. The trx is a random, unguessable string that only starts
+     * a payment the user themselves just created (still status 0), so it needs
+     * no login wall of its own; every gateway (redirect or auto-submit view)
+     * runs through the one PaymentGateway path the website already uses.
+     */
+    public function appCheckout($trx){
+        $payment = Payment::where('trx_number',$trx)->where('status',0)->firstOrFail();
+        $methodCurrency = $payment->method_currency;
+        $method = $methodCurrency->paymentMethod;
+        $methodName = $method->act;
+
+        $data = $this->$methodName($payment,$methodCurrency,$method);
+
+        if (@$data['error']) {
+            abort(400, $data['error']);
+        }
+
+        if ($data['redirect'] == true) {
+            return redirect($data['payment_url']);
+        }
+
+        return view($this->theme.$data['view'],compact('data'));
+    }
 }

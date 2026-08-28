@@ -83,6 +83,21 @@ return [
     'redirect'      => env('FACEBOOK_REDIRECT_URI'),
 ],
 
+/*
+ * Firebase Cloud Messaging — push notifications for the mobile app, sent via
+ * the FCM HTTP v1 API. Credentials are managed from the admin panel
+ * (Setting > Push Notification) — the admin pastes the Firebase service-account
+ * JSON and AppServiceProvider fills these in. When disabled/empty, push is
+ * skipped silently and the in-app notification list still works. See
+ * App\Services\FcmService.
+ */
+'fcm' => [
+    'enabled'         => false,
+    'project_id'      => null,
+    // The decoded service-account array (type/project_id/private_key/client_email/…).
+    'service_account' => null,
+],
+
 'gupshup' => [
     'api_key'         => env('GUPSHUP_API_KEY'),
     'app_name'        => env('GUPSHUP_APP_NAME'),

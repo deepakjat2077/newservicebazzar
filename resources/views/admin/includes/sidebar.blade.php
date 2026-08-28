@@ -64,6 +64,20 @@
                                         @lang('Banned Users')</span>
                                 </a>
                             </li>
+                            <li class="sidebar-menu-item">
+                                <a href="{{ route('admin.kyc.index') }}"
+                                    class="{{ menuActive('admin.kyc*')[0] }}">
+                                    <span class="sidebar-menu-title"><i class="fas fa-caret-right mr-0"></i>
+                                        @lang('KYC Verifications')</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-menu-item">
+                                <a href="{{ route('admin.callback.index') }}"
+                                    class="{{ menuActive('admin.callback*')[0] }}">
+                                    <span class="sidebar-menu-title"><i class="fas fa-caret-right mr-0"></i>
+                                        @lang('Callback Requests')</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </li>
@@ -551,6 +565,13 @@
                         class="{{ menuActive('admin.setting.social.login')[0] }}">
                         <i class="fab fa-google"></i>
                         <span class="sidebar-menu-title">@lang('Social Login')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.setting.push') }}"
+                        class="{{ menuActive('admin.setting.push')[0] }}">
+                        <i class="fas fa-bell"></i>
+                        <span class="sidebar-menu-title">@lang('Push Notification')</span>
                     </a>
                 </li>
 {{-- WhatsApp Setting is reachable from the WhatsApp menu above

@@ -226,6 +226,57 @@ class SettingController extends Controller
         return back()->withAlert($alert);
     }
 
+    /**
+     * Firebase (FCM) push notification credentials for the mobile app —
+     * managed here instead of .env, same pattern as gupshup above. The admin
+     * pastes the Firebase service-account JSON (Firebase Console > Project
+     * settings > Service accounts > Generate new private key); FcmService reads
+     * it via services.fcm.* (pushed in by AppServiceProvider) to send push
+     * through the FCM HTTP v1 API.
+     */
+    public function push(){
+        return view('admin.setting.push');
+    }
+
+    public function pushUpdate(Request $request){
+        $request->validate([
+            'push_enabled'         => 'nullable|boolean',
+            // Blank = keep the stored JSON (it is never re-displayed in full).
+            'service_account_json' => 'nullable|string',
+        ]);
+
+        $setting = Setting::first();
+        $current = (array) $setting->push_notification;
+
+        $serviceAccount = $current['service_account'] ?? null;
+        $projectId      = $current['project_id'] ?? null;
+
+        // A freshly pasted JSON replaces the stored one; validate it is real
+        // and carries the three fields FCM v1 needs.
+        if ($request->filled('service_account_json')) {
+            $decoded = json_decode(trim($request->service_account_json), true);
+
+            if (!is_array($decoded)
+                || empty($decoded['project_id'])
+                || empty($decoded['client_email'])
+                || empty($decoded['private_key'])) {
+                return back()->withAlert(['danger', 'That is not a valid Firebase service-account JSON. Download it from Firebase Console > Project settings > Service accounts.']);
+            }
+
+            $serviceAccount = $decoded;
+            $projectId      = $decoded['project_id'];
+        }
+
+        $setting->push_notification = [
+            'enabled'         => $request->boolean('push_enabled'),
+            'project_id'      => $projectId,
+            'service_account' => $serviceAccount,
+        ];
+        $setting->save();
+
+        return back()->withAlert(['success', 'Push notification setting updated successfully']);
+    }
+
     public function SchemaSetting()
 {
     $schemas = SchemaSetting::latest()->get();

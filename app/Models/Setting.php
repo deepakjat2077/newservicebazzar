@@ -44,5 +44,6 @@ class Setting extends Model
     	'recaptcha'=>'object',
     	'gupshup'=>'object',
     	'social_login'=>'object',
+    	'push_notification'=>'object',
     ];
 }

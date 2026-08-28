@@ -1,25 +1,17 @@
 <?php
 
+use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AdminAuthController;
+use App\Http\Controllers\Api\BrowseController;
+use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\BusinessController;
+use App\Http\Controllers\Api\BusinessEditController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\UserAuthController;
 use App\Http\Controllers\Api\WhatsappApiController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API routes — external WhatsApp panel
-|--------------------------------------------------------------------------
-|
-| Consumed by the React panel that runs on its own domain. Everything here is
-| stateless bearer-token auth (see AuthenticateAdminApi); no session, no CSRF,
-| so config/cors.php has to allow the panel's origin.
-|
-| The Gupshup webhook is NOT registered here even though it once was: it is
-| already served from routes/web.php at /gupshup/webhook, and that is the path
-| Gupshup is configured with and the one bootstrap/app.php exempts from CSRF.
-| Registering it here as well would quietly publish a second live endpoint for
-| the same thing.
-|
-*/
 
 Route::prefix('admin')->group(function () {
 
@@ -31,6 +23,222 @@ Route::prefix('admin')->group(function () {
         Route::get('me', [AdminAuthController::class, 'me'])->name('api.admin.me');
         Route::post('logout', [AdminAuthController::class, 'logout'])->name('api.admin.logout');
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mobile app — user authentication
+|--------------------------------------------------------------------------
+|
+| Consumed by the Service Bazzar Android/iOS app. Stateless bearer-token auth
+| (see AuthenticateUserApi, alias `user.api`): the app logs in once via
+| WhatsApp OTP / Google / Facebook, gets a token, and sends it as
+| `Authorization: Bearer {id}|{secret}` from then on.
+|
+| The open endpoints are throttled per IP so a lost/hostile device cannot
+| pound the OTP send or brute-force a code; the per-number budget and cooldown
+| in ApiOtpStore back that up on the WhatsApp bill.
+|
+*/
+Route::prefix('auth')->group(function () {
+
+    // Login screen calls this first to know which buttons to show.
+    Route::get('config', [UserAuthController::class, 'config']);
+
+    // WhatsApp OTP — send / resend / verify.
+    Route::middleware('throttle:6,1')->group(function () {
+        Route::post('otp/send',   [UserAuthController::class, 'sendOtp']);
+        Route::post('otp/resend', [UserAuthController::class, 'resendOtp']);
+    });
+    Route::post('otp/verify', [UserAuthController::class, 'verifyOtp'])
+        ->middleware('throttle:10,1');
+
+    // "Continue with" — the app passes the provider access token its native
+    // SDK already obtained.
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('social/google',   [UserAuthController::class, 'google']);
+        Route::post('social/facebook', [UserAuthController::class, 'facebook']);
+    });
+
+    // Signed-in endpoints.
+    Route::middleware('user.api')->group(function () {
+        Route::get('me',      [UserAuthController::class, 'me']);
+        Route::post('logout', [UserAuthController::class, 'logout']);
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mobile app — signed-in user account / profile
+|--------------------------------------------------------------------------
+|
+| The account section behind the login: the "Fill Profile in Few Steps"
+| wizard (personal details, addresses, favorites), the businesses the user
+| liked, and the reviews they left. JSON twin of the website's UserController;
+| every route needs a valid bearer token (`user.api`).
+|
+*/
+Route::prefix('profile')->middleware('user.api')->group(function () {
+
+    // Personal details (view + edit).
+    Route::get('/',  [ProfileController::class, 'show']);
+    Route::post('/', [ProfileController::class, 'update']);
+
+    // Addresses.
+    Route::get('addresses',            [ProfileController::class, 'addresses']);
+    Route::post('addresses',           [ProfileController::class, 'storeAddress']);
+    Route::delete('addresses/{address}', [ProfileController::class, 'destroyAddress'])->whereNumber('address');
+
+    // Favorites — the wizard grid, its per-category business list, and toggles.
+    Route::get('favorite-categories',          [ProfileController::class, 'favoriteCategories']);
+    Route::post('favorite-categories/toggle',  [ProfileController::class, 'toggleFavoriteCategory']);
+    Route::get('favorite-categories/{key}/listings', [ProfileController::class, 'categoryListings']);
+
+    // Favorite (liked) businesses.
+    Route::get('favorite-listings',         [ProfileController::class, 'favoriteListings']);
+    Route::post('favorite-listings/toggle', [ProfileController::class, 'toggleFavoriteListing']);
+
+    // Reviews this user has given.
+    Route::get('ratings', [ProfileController::class, 'ratings']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mobile app — Discovery (find a business: home, search, detail, reviews)
+|--------------------------------------------------------------------------
+|
+| Consumer side. The app is login-first, so these sit behind `user.api` too —
+| which also lets each business card report whether the user favourited it.
+| JSON twin of the public SiteController.
+|
+*/
+Route::middleware('user.api')->group(function () {
+
+    Route::get('home',       [BrowseController::class, 'home']);
+    Route::get('categories', [BrowseController::class, 'categories']);
+    Route::get('categories/search', [BrowseController::class, 'searchCategories']);
+    Route::get('categories/{slug}/subcategories', [BrowseController::class, 'subcategories']);
+    Route::get('locations/search',  [BrowseController::class, 'searchLocations']);
+
+    Route::get('search', [BrowseController::class, 'search']);
+
+    Route::get('listings/{slug}', [BrowseController::class, 'detail']);
+    Route::post('listings/{id}/review',  [BrowseController::class, 'submitReview'])->whereNumber('id');
+    Route::post('listings/{id}/enquiry', [BrowseController::class, 'enquiry'])->whereNumber('id');
+    Route::post('listings/{id}/click',   [BrowseController::class, 'trackClick'])->whereNumber('id');
+
+    Route::post('reviews/{id}/like',    [BrowseController::class, 'likeReview'])->whereNumber('id');
+    Route::post('reviews/{id}/comment', [BrowseController::class, 'commentReview'])->whereNumber('id');
+    Route::delete('reviews/comments/{id}', [BrowseController::class, 'deleteComment'])->whereNumber('id');
+
+    // News feed (= blog posts) and premium plans.
+    Route::get('news',          [ContentController::class, 'news']);
+    Route::get('news/{slug}',   [ContentController::class, 'newsDetail']);
+    Route::get('plans',         [ContentController::class, 'plans']);
+
+    // Buying a plan through the admin-enabled gateways.
+    Route::get('payment-methods',       [PaymentController::class, 'methods']);
+    Route::post('deposit',              [PaymentController::class, 'deposit']);
+    Route::get('deposit/{trx}/status',  [PaymentController::class, 'status']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mobile app — account extras (devices, transactions, notifications...)
+|--------------------------------------------------------------------------
+|
+| The account-drawer features with no website equivalent: Manage Devices,
+| My Transactions, Notifications, App Feedback, Settings. All need a token.
+|
+*/
+Route::prefix('account')->middleware('user.api')->group(function () {
+
+    Route::get('devices',            [AccountController::class, 'devices']);
+    Route::delete('devices/{id}',    [AccountController::class, 'revokeDevice'])->whereNumber('id');
+
+    Route::get('transactions',       [AccountController::class, 'transactions']);
+
+    Route::get('notifications',              [AccountController::class, 'notifications']);
+    Route::post('notifications/{id}/read',   [AccountController::class, 'readNotification'])->whereNumber('id');
+    Route::post('notifications/read-all',    [AccountController::class, 'readAllNotifications']);
+
+    Route::post('feedback',          [AccountController::class, 'submitFeedback']);
+
+    Route::get('settings',           [AccountController::class, 'getSettings']);
+    Route::post('settings',          [AccountController::class, 'updateSettings']);
+
+    // Firebase push: register this device's FCM token.
+    Route::post('push-token',        [AccountController::class, 'registerPushToken']);
+
+    // KYC verification (document upload -> admin approval).
+    Route::get('kyc',                [AccountController::class, 'kycStatus']);
+    Route::post('kyc',               [AccountController::class, 'submitKyc']);
+
+    // "Get a Callback" from the Help screen -> shows in admin panel.
+    Route::post('callback',          [AccountController::class, 'requestCallback']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Mobile app — "My Business" (business-owner side)
+|--------------------------------------------------------------------------
+|
+| The owner screens behind "My Business": the business picker, each business's
+| dashboard, its leads/enquiries (with filters + Quotation Request), analytics,
+| response time, competitors, and CSV/Excel lead import. JSON twin of the owner
+| methods in ListingController; every route needs a valid bearer token
+| (`user.api`) and is scoped to the token owner's own listings.
+|
+*/
+Route::prefix('business')->middleware('user.api')->group(function () {
+
+    // The "Select Business Profile" list.
+    Route::get('/', [BusinessController::class, 'index']);
+
+    // Add New Business wizard: dropdowns, pincode lookup, category search, create.
+    Route::get('form-data',            [BusinessController::class, 'formData']);
+    Route::get('pincode/{pin}',        [BusinessController::class, 'pincode'])->whereNumber('pin');
+    Route::get('subcategories/search', [BusinessController::class, 'searchSubcategories']);
+    Route::post('/',                   [BusinessController::class, 'store']);
+
+    // Lead actions — keyed by enquiry id (ownership checked in the controller).
+    Route::post('leads/{enquiry}/star',     [BusinessController::class, 'starLead'])->whereNumber('enquiry');
+    Route::post('leads/{enquiry}/hide',     [BusinessController::class, 'hideLead'])->whereNumber('enquiry');
+    Route::post('leads/{enquiry}/note',     [BusinessController::class, 'noteLead'])->whereNumber('enquiry');
+    Route::post('leads/{enquiry}/reminder', [BusinessController::class, 'reminderLead'])->whereNumber('enquiry');
+    Route::post('leads/{enquiry}/read',     [BusinessController::class, 'readLead'])->whereNumber('enquiry');
+
+    // Per-business screens.
+    Route::get('{id}/dashboard',     [BusinessController::class, 'dashboard'])->whereNumber('id');
+    Route::get('{id}/leads',         [BusinessController::class, 'leads'])->whereNumber('id');
+    Route::get('{id}/analytics',     [BusinessController::class, 'analytics'])->whereNumber('id');
+    Route::get('{id}/response-time', [BusinessController::class, 'responseTime'])->whereNumber('id');
+    Route::get('{id}/competitors',   [BusinessController::class, 'competitors'])->whereNumber('id');
+    Route::post('{id}/import-leads', [BusinessController::class, 'importLeads'])->whereNumber('id');
+
+    // Edit Business Profile — section by section (name/address wait for admin
+    // approval; everything else applies immediately).
+    Route::get('{id}/edit',                [BusinessEditController::class, 'show'])->whereNumber('id');
+    Route::post('{id}/name',               [BusinessEditController::class, 'updateName'])->whereNumber('id');
+    Route::post('{id}/address',            [BusinessEditController::class, 'updateAddress'])->whereNumber('id');
+    Route::post('{id}/contact',            [BusinessEditController::class, 'updateContact'])->whereNumber('id');
+    Route::post('{id}/serviceable-area',   [BusinessEditController::class, 'updateServiceableArea'])->whereNumber('id');
+    Route::post('{id}/map-location',       [BusinessEditController::class, 'updateMapLocation'])->whereNumber('id');
+    Route::post('{id}/timings',            [BusinessEditController::class, 'updateTimings'])->whereNumber('id');
+    Route::post('{id}/established',        [BusinessEditController::class, 'updateEstablished'])->whereNumber('id');
+    Route::post('{id}/categories',         [BusinessEditController::class, 'updateCategories'])->whereNumber('id');
+    Route::post('{id}/website',            [BusinessEditController::class, 'updateWebsite'])->whereNumber('id');
+    Route::post('{id}/social',             [BusinessEditController::class, 'updateSocial'])->whereNumber('id');
+    Route::post('{id}/video',              [BusinessEditController::class, 'updateVideo'])->whereNumber('id');
+    Route::post('{id}/photos',             [BusinessEditController::class, 'uploadPhotos'])->whereNumber('id');
+    Route::post('{id}/photos/{imageId}/cover', [BusinessEditController::class, 'setCoverPhoto'])->whereNumber('id')->whereNumber('imageId');
+    Route::delete('{id}/photos/{imageId}', [BusinessEditController::class, 'deletePhoto'])->whereNumber('id')->whereNumber('imageId');
+    Route::post('{id}/catalogue',          [BusinessEditController::class, 'uploadCatalogue'])->whereNumber('id');
+
+    // Business Tools (profile/review link, share, ratings QR data) + Universal
+    // Business Listing interest.
+    Route::get('{id}/tools',                [BusinessController::class, 'tools'])->whereNumber('id');
+    Route::post('{id}/universal-listing',   [BusinessController::class, 'requestUniversalListing'])->whereNumber('id');
 });
 
 Route::prefix('whatsapp')
