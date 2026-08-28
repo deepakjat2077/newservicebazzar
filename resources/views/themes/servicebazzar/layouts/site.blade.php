@@ -1585,6 +1585,133 @@ window.addEventListener('pageshow', function () {
     white-space: nowrap !important;
     padding: 10px 20px !important;
 }
+
+.location-permission-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 999999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(0, 0, 0, .48);
+}
+
+.location-permission-popup[hidden] {
+    display: none;
+}
+
+.location-permission-popup__box {
+    width: min(420px, 100%);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .24);
+    overflow: hidden;
+}
+
+.location-permission-popup__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.location-permission-popup__head h5 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #222;
+}
+
+.location-permission-popup__close {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #333;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.location-permission-popup__close:hover,
+.location-permission-popup__close:focus {
+    background: #f5f5f5;
+    outline: none;
+}
+
+.location-permission-popup__body {
+    padding: 16px;
+}
+
+.location-permission-popup__message {
+    display: flex;
+    gap: 10px;
+    margin: 0;
+    color: #444;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.location-permission-popup__message i {
+    color: #e5581e;
+    font-size: 18px;
+    line-height: 1.4;
+    flex: 0 0 auto;
+}
+
+.location-permission-popup__steps {
+    margin: 12px 0 0;
+    padding-left: 20px;
+    color: #6d4b13;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.location-permission-popup__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 0 16px 16px;
+}
+
+.location-permission-popup__btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 16px;
+    background: #e5581e;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.location-permission-popup__btn--muted {
+    background: #f2f2f2;
+    color: #333;
+}
+
+@media (max-width:767px){
+    .location-permission-popup {
+        align-items: flex-end;
+        padding: 12px;
+    }
+
+    .location-permission-popup__box {
+        border-radius: 12px;
+    }
+
+    .location-permission-popup__actions {
+        flex-direction: column-reverse;
+    }
+
+    .location-permission-popup__btn {
+        width: 100%;
+    }
+}
 @media (max-width:767px){
 
     body.mobile-yt-search-open.show-yt-location #jdMobileLocationSuggestions{
@@ -1619,6 +1746,61 @@ window.addEventListener('pageshow', function () {
 }
 
 </style>
+
+<div class="location-permission-popup" id="locationPermissionPopup" hidden>
+    <div class="location-permission-popup__box" role="dialog" aria-modal="true" aria-labelledby="locationPermissionPopupTitle">
+        <div class="location-permission-popup__head">
+            <h5 id="locationPermissionPopupTitle">Turn on location</h5>
+            <button type="button" class="location-permission-popup__close" data-location-popup-close aria-label="Close">&times;</button>
+        </div>
+        <div class="location-permission-popup__body">
+            <p class="location-permission-popup__message">
+                <i class="fas fa-location-dot"></i>
+                <span id="locationPermissionPopupMessage">Please allow location access to detect your city.</span>
+            </p>
+            <ol class="location-permission-popup__steps" id="locationPermissionPopupSteps" hidden>
+                <li>Tap the lock or info icon near the website address.</li>
+                <li>Open <strong>Site settings</strong> or <strong>Permissions</strong>.</li>
+                <li>Set <strong>Location</strong> to <strong>Allow</strong>.</li>
+                <li>Come back and tap <strong>Try again</strong>.</li>
+            </ol>
+        </div>
+        <div class="location-permission-popup__actions">
+            <button type="button" class="location-permission-popup__btn location-permission-popup__btn--muted" data-location-popup-close>Cancel</button>
+            <button type="button" class="location-permission-popup__btn" id="locationPermissionPopupRetry">Try again</button>
+        </div>
+    </div>
+</div>
+
+<script>
+window.showLocationPermissionPopup = function(options){
+    options = options || {};
+
+    const popup = document.getElementById('locationPermissionPopup');
+    const message = document.getElementById('locationPermissionPopupMessage');
+    const steps = document.getElementById('locationPermissionPopupSteps');
+    const retry = document.getElementById('locationPermissionPopupRetry');
+
+    if(!popup || !message || !steps || !retry) return;
+
+    message.textContent = options.message || 'Please allow location access to detect your city.';
+    steps.hidden = !options.blocked;
+    retry.textContent = options.retryText || (options.blocked ? 'Try again' : 'Turn on location');
+    popup.hidden = false;
+
+    retry.onclick = function(){
+        popup.hidden = true;
+        if(typeof options.onRetry === 'function') options.onRetry();
+    };
+};
+
+document.addEventListener('click', function(event){
+    if(event.target.matches('[data-location-popup-close]')){
+        const popup = document.getElementById('locationPermissionPopup');
+        if(popup) popup.hidden = true;
+    }
+});
+</script>
 
 	<script src="{{ asset($themeAsset.'js/jquery-3.6.0.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/bootstrap.min.js') }}"></script>
@@ -2338,9 +2520,20 @@ if (isListingDetailsPage) {
     // ✅ DETECT CURRENT LOCATION
     async function detectCurrentLocation(detectItem = null) {
         const spinner = detectItem ? detectItem.querySelector(".jd-detect-spinner") : null;
+        const showDetectPopup = function(message, blocked = false) {
+            if (typeof window.showLocationPermissionPopup === "function") {
+                window.showLocationPermissionPopup({
+                    message: message,
+                    blocked: blocked,
+                    onRetry: function () {
+                        detectCurrentLocation(detectItem);
+                    }
+                });
+            }
+        };
         if (!navigator.geolocation) {
             if (spinner) spinner.style.display = "none";
-            alert("Browser support nahi karta");
+            showDetectPopup("This browser does not support location detection.");
             return;
         }
         const activeInput = document.activeElement === jdInput ? jdInput : document.activeElement === homeInput ? homeInput : headerInput;
@@ -2406,8 +2599,11 @@ if (isHomePage && isMobile()) {
             closeDropdown(homeDropdown);
             closeDropdown(headerDropdown);
             closeDropdown(jdDropdown);
-        }, function () {
-            alert("Permission allow karo");
+        }, function (error) {
+            showDetectPopup(
+                "Please allow location access to detect your city.",
+                error && error.code === error.PERMISSION_DENIED
+            );
             if (activeInput) activeInput.value = "";
         });
     }

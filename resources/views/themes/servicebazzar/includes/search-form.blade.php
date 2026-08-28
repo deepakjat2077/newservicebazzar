@@ -823,6 +823,20 @@
             if (item.classList.contains("header-detect-location-item")) {
                 const spinner = item.querySelector(".header-detect-loading-spinner");
                 if (spinner) spinner.style.display = "inline-block";
+                const showDetectPopup = function(message, blocked = false) {
+                    if (typeof window.showLocationPermissionPopup === "function") {
+                        window.showLocationPermissionPopup({
+                            message: message,
+                            blocked: blocked,
+                            onRetry: function () {
+                                item.dispatchEvent(new MouseEvent("mousedown", {
+                                    bubbles: true,
+                                    cancelable: true
+                                }));
+                            }
+                        });
+                    }
+                };
                 headerOpenLocationDropdown();
 
                 if (navigator.geolocation) {
@@ -885,13 +899,16 @@ if (categoryDropdown) {
                             })
                             .catch(() => {
                                 if (spinner) spinner.style.display = "none";
-                                alert("Unable to detect location. Please allow location access.");
+                                showDetectPopup("Unable to detect location. Please try again.");
                                 headerCloseLocationDropdown();
                             });
                         },
                         function (error) {
                             if (spinner) spinner.style.display = "none";
-                            alert("Unable to detect location. Please allow location access.");
+                            showDetectPopup(
+                                "Unable to detect location. Please allow location access.",
+                                error && error.code === error.PERMISSION_DENIED
+                            );
                             headerCloseLocationDropdown();
                         },
                         {
@@ -902,7 +919,7 @@ if (categoryDropdown) {
                     );
                 } else {
                     if (spinner) spinner.style.display = "none";
-                    alert("Geolocation is not supported by this browser.");
+                    showDetectPopup("Geolocation is not supported by this browser.");
                     headerCloseLocationDropdown();
                 }
                 return;
@@ -1700,4 +1717,3 @@ window.location.href = finalUrl;
 
 });
 </script>
-

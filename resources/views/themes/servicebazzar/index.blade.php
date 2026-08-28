@@ -930,6 +930,20 @@ restoreDetectedLocationOnHome();
 
     const spinner = item.querySelector(".detect-loading-spinner");
     if (spinner) spinner.style.display = "inline-block";
+    const showDetectPopup = function(message, blocked = false) {
+        if (typeof window.showLocationPermissionPopup === "function") {
+            window.showLocationPermissionPopup({
+                message: message,
+                blocked: blocked,
+                onRetry: function () {
+                    item.dispatchEvent(new MouseEvent("mousedown", {
+                        bubbles: true,
+                        cancelable: true
+                    }));
+                }
+            });
+        }
+    };
 
     // dropdown abhi band mat karo, spinner dikhne do
     openLocationDropdown();
@@ -997,7 +1011,10 @@ document.activeElement.blur();
             },
             function (error) {
                 if (spinner) spinner.style.display = "none";
-                alert("Unable to detect location. Please allow location access.");
+                showDetectPopup(
+                    "Unable to detect location. Please allow location access.",
+                    error && error.code === error.PERMISSION_DENIED
+                );
                 closeLocationDropdown();
             },
             {
@@ -1008,7 +1025,7 @@ document.activeElement.blur();
         );
     } else {
         if (spinner) spinner.style.display = "none";
-        alert("Geolocation is not supported by this browser.");
+        showDetectPopup("Geolocation is not supported by this browser.");
         closeLocationDropdown();
     }
 
