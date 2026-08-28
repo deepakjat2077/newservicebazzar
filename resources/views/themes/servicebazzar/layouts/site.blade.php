@@ -2890,7 +2890,7 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
         if (!input || !dropdown) return;
         dropdown.innerHTML = "";
         if (!list || list.length === 0) {
-            dropdown.innerHTML = `<li role="option"><span class="dropdown-item" style="color:#888; cursor:default;">No category found</span></li>`;
+            dropdown.innerHTML = `<li role="option"><span class="dropdown-item" style="color:#888; cursor:default;">Not found</span></li>`;
             setDropdownPosition(input, dropdown);
             openCategoryDropdown(dropdown);
             return;
@@ -3506,6 +3506,10 @@ if (!showRecentTrending && data && data.length > 0) {
             if (searchValue === "car" && itemName.startsWith("career")) {
                 return;
             }
+
+            if (searchValue && !itemName.includes(searchValue)) {
+                return;
+            }
         }
 
         const isListing = item.type === "listing" || item.rating || item.reviews || item.area;
@@ -3581,7 +3585,7 @@ if (!showRecentTrending && data && data.length > 0) {
         suggestions.innerHTML = `
             <li>
                 <span style="display:block;padding:20px 16px;color:#999;font-size:14px;text-align:center;">
-                    No results found
+                    Not found
                 </span>
             </li>
         `;

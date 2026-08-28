@@ -1559,6 +1559,12 @@ document.addEventListener("DOMContentLoaded", function () {
         return div;
     }
 
+    function renderNotFoundItem() {
+        const li = document.createElement("li");
+        li.innerHTML = '<span class="dropdown-item" style="color:#888; cursor:default; justify-content:center;">Not found</span>';
+        return li;
+    }
+
     function renderCategoryItem(item, iconType = "search") {
         if (!item || !item.name) return null;
 
@@ -1757,8 +1763,12 @@ categories.slice(0, 10).forEach(item => {
         });
 
         if (!dropdown.children.length) {
-            closeCategoryDropdown();
-            return;
+            if (isTyping) {
+                dropdown.appendChild(renderNotFoundItem());
+            } else {
+                closeCategoryDropdown();
+                return;
+            }
         }
 
         openCategoryDropdown();

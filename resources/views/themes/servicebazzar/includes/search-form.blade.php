@@ -1116,6 +1116,12 @@ if (categoryDropdown) {
             return div;
         }
 
+        function headerRenderNotFoundItem() {
+            const li = document.createElement("li");
+            li.innerHTML = '<span class="header-dropdown-item" style="color:#888; cursor:default; justify-content:center;">Not found</span>';
+            return li;
+        }
+
         function headerRenderCategoryItem(item, iconType = "search") {
             if (!item || !item.name) return null;
 
@@ -1296,8 +1302,12 @@ if (searchText) {
             });
 
             if (!headerCategoryDropdown.children.length) {
-                headerCloseCategoryDropdown();
-                return;
+                if (isTyping) {
+                    headerCategoryDropdown.appendChild(headerRenderNotFoundItem());
+                } else {
+                    headerCloseCategoryDropdown();
+                    return;
+                }
             }
 
             headerOpenCategoryDropdown();
