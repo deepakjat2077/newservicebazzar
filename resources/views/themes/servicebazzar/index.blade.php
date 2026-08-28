@@ -963,7 +963,9 @@ restoreDetectedLocationOnHome();
                 .then(res => res.json())
                 .then(data => {
                     const address = data.address || {};
-                    const city = address.city || address.town || address.village || address.state_district || address.state || '';
+                    const city = window.normalizeEnglishLocationName
+                        ? window.normalizeEnglishLocationName(address.city || address.town || address.village || address.state_district || address.state || '')
+                        : (address.city || address.town || address.village || address.state_district || address.state || '');
 
                     if (city && locationInput) {
                         locationInput.value = city;
@@ -5748,13 +5750,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const address = data.address || {};
 
-                const city =
-                    address.city ||
-                    address.town ||
-                    address.village ||
-                    address.state_district ||
-                    address.state ||
-                    '';
+                const city = window.normalizeEnglishLocationName
+                    ? window.normalizeEnglishLocationName(
+                        address.city ||
+                        address.town ||
+                        address.village ||
+                        address.state_district ||
+                        address.state ||
+                        ''
+                    )
+                    : (
+                        address.city ||
+                        address.town ||
+                        address.village ||
+                        address.state_district ||
+                        address.state ||
+                        ''
+                    );
 localStorage.setItem("jf_detected_city", city);
                 if (city) {
 
@@ -6428,12 +6440,23 @@ function initPopupLocationNotice(toggle){
                 const data    = await response.json();
                 const address = data.address || {};
 
-                const city = address.city
-                          || address.town
-                          || address.village
-                          || address.state_district
-                          || address.state
-                          || '';
+                const city = window.normalizeEnglishLocationName
+                    ? window.normalizeEnglishLocationName(
+                        address.city
+                        || address.town
+                        || address.village
+                        || address.state_district
+                        || address.state
+                        || ''
+                    )
+                    : (
+                        address.city
+                        || address.town
+                        || address.village
+                        || address.state_district
+                        || address.state
+                        || ''
+                    );
 
                 if(city){
                     applyCity(city, lat, lng);

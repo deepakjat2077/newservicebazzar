@@ -1254,7 +1254,7 @@ window.addEventListener('pageshow', function () {
 
 @php
     $mobileSearchValue = session('selected_category', '');
-    $mobileLocationValue = session('selected_location', '');
+    $mobileLocationValue = english_location_name(session('selected_location', ''));
 @endphp
 
 <div class="youtube-mobile-search" id="youtubeMobileSearch">
@@ -2210,8 +2210,87 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
             .replace(/^-+|-+$/g, "");
     }
 
+    const englishLocationNames = {
+        "जयपुर": "Jaipur",
+        "दिल्ली": "Delhi",
+        "नई दिल्ली": "New Delhi",
+        "मुंबई": "Mumbai",
+        "बेंगलुरु": "Bengaluru",
+        "बैंगलोर": "Bengaluru",
+        "हैदराबाद": "Hyderabad",
+        "अहमदाबाद": "Ahmedabad",
+        "चेन्नई": "Chennai",
+        "कोलकाता": "Kolkata",
+        "पुणे": "Pune",
+        "सूरत": "Surat",
+        "लखनऊ": "Lucknow",
+        "कानपुर": "Kanpur",
+        "नागपुर": "Nagpur",
+        "इंदौर": "Indore",
+        "भोपाल": "Bhopal",
+        "पटना": "Patna",
+        "वडोदरा": "Vadodara",
+        "गाजियाबाद": "Ghaziabad",
+        "लुधियाना": "Ludhiana",
+        "आगरा": "Agra",
+        "नासिक": "Nashik",
+        "फरीदाबाद": "Faridabad",
+        "मेरठ": "Meerut",
+        "राजकोट": "Rajkot",
+        "वाराणसी": "Varanasi",
+        "श्रीनगर": "Srinagar",
+        "औरंगाबाद": "Aurangabad",
+        "धनबाद": "Dhanbad",
+        "अमृतसर": "Amritsar",
+        "नवी मुंबई": "Navi Mumbai",
+        "प्रयागराज": "Prayagraj",
+        "इलाहाबाद": "Prayagraj",
+        "रांची": "Ranchi",
+        "हावड़ा": "Howrah",
+        "कोयंबटूर": "Coimbatore",
+        "जबलपुर": "Jabalpur",
+        "ग्वालियर": "Gwalior",
+        "विजयवाड़ा": "Vijayawada",
+        "जोधपुर": "Jodhpur",
+        "मदुरै": "Madurai",
+        "रायपुर": "Raipur",
+        "कोटा": "Kota",
+        "चंडीगढ़": "Chandigarh",
+        "गुवाहाटी": "Guwahati",
+        "मैसूर": "Mysuru",
+        "उदयपुर": "Udaipur",
+        "अजमेर": "Ajmer",
+        "अलवर": "Alwar",
+        "भीलवाड़ा": "Bhilwara",
+        "बीकानेर": "Bikaner"
+    };
+
+    window.normalizeEnglishLocationName = function(value) {
+        let city = String(value || "").replace(/\s+/g, " ").trim();
+        if (!city) return "";
+        if (englishLocationNames[city]) return englishLocationNames[city];
+        if (city.includes(",")) {
+            const parts = city.split(",").map(function(part){ return part.trim(); }).filter(Boolean);
+            for (let i = parts.length - 1; i >= 0; i--) {
+                if (englishLocationNames[parts[i]]) return englishLocationNames[parts[i]];
+            }
+            city = parts.length ? parts[parts.length - 1] : city;
+        }
+        return englishLocationNames[city] || city;
+    };
+
+    function normalizeStoredCityValues() {
+        ["jf_city", "jf_detected_city", "jf_selected_location_name", "jf_user_city"].forEach(function(key) {
+            const value = localStorage.getItem(key);
+            const normalized = window.normalizeEnglishLocationName(value);
+            if (value && normalized && normalized !== value) {
+                localStorage.setItem(key, normalized);
+            }
+        });
+    }
+
     function cleanCity(value) {
-        let city = String(value || "").trim();
+        let city = window.normalizeEnglishLocationName(value);
         if (!city) return "";
         city = city.replace(/\s+/g, " ").trim();
         if (
@@ -2223,6 +2302,8 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
         }
         return city;
     }
+
+    normalizeStoredCityValues();
 
     // ✅ SET CITY - ONLY INPUTS + LOCALSTORAGE (NO URL OVERRIDE)
   function setCity(value, save = false, lat = "", lng = "") {
@@ -2454,6 +2535,7 @@ if (isListingDetailsPage) {
             localStorage.getItem("jf_city") ||
             localStorage.getItem("jf_detected_city") ||
             "";
+        city = window.normalizeEnglishLocationName(city);
         if(city.includes(",")){
             city = city.split(",").pop().trim();
         }
@@ -2544,7 +2626,9 @@ if (isListingDetailsPage) {
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lng}`);
                 const data = await res.json();
                 const address = data.address || {};
-                const city = address.city || address.town || address.village || address.state_district || address.county || address.district || address.state || "";
+                const city = window.normalizeEnglishLocationName(
+                    address.city || address.town || address.village || address.state_district || address.county || address.district || address.state || ""
+                );
                 if (city) {
     setCity(city, true, lat, lng);
 
@@ -4823,7 +4907,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const detectedCity = localStorage.getItem("jf_detected_city") || "";
+    const detectedCity = window.normalizeEnglishLocationName(localStorage.getItem("jf_detected_city") || "");
     const cityText = document.getElementById("jdMobileCityText");
     const jdInput = document.getElementById("jdMobileLocationInput");
     const homeInput = document.getElementById("homeLocationInput");
@@ -4854,7 +4938,7 @@ window.addEventListener("load", function () {
     if (parts.length >= 2) return;
 
     const sessionCity = @json(session('detected_city') ?? session('user_location') ?? session('selected_location') ?? '');
-    const detectedCity = localStorage.getItem("jf_detected_city") || sessionCity || "";
+    const detectedCity = window.normalizeEnglishLocationName(localStorage.getItem("jf_detected_city") || sessionCity || "");
 
     if (!detectedCity) return;
 

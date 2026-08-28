@@ -854,7 +854,9 @@
                             .then(res => res.json())
                             .then(data => {
                                 const address = data.address || {};
-                                const city = address.city || address.town || address.village || address.state_district || address.state || '';
+                                const city = window.normalizeEnglishLocationName
+                                    ? window.normalizeEnglishLocationName(address.city || address.town || address.village || address.state_district || address.state || '')
+                                    : (address.city || address.town || address.village || address.state_district || address.state || '');
 
                                 if (city && headerLocationInput) {
                                     headerLocationInput.value = city;

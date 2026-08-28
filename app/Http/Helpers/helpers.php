@@ -53,6 +53,90 @@ function trxNumber(){
     return Str::random();
 }
 
+if (! function_exists('english_location_name')) {
+    function english_location_name($value)
+    {
+        $city = trim(preg_replace('/\s+/u', ' ', (string) $value));
+
+        if ($city === '') {
+            return '';
+        }
+
+        $map = [
+            'जयपुर' => 'Jaipur',
+            'दिल्ली' => 'Delhi',
+            'नई दिल्ली' => 'New Delhi',
+            'मुंबई' => 'Mumbai',
+            'बेंगलुरु' => 'Bengaluru',
+            'बैंगलोर' => 'Bengaluru',
+            'हैदराबाद' => 'Hyderabad',
+            'अहमदाबाद' => 'Ahmedabad',
+            'चेन्नई' => 'Chennai',
+            'कोलकाता' => 'Kolkata',
+            'पुणे' => 'Pune',
+            'सूरत' => 'Surat',
+            'लखनऊ' => 'Lucknow',
+            'कानपुर' => 'Kanpur',
+            'नागपुर' => 'Nagpur',
+            'इंदौर' => 'Indore',
+            'भोपाल' => 'Bhopal',
+            'पटना' => 'Patna',
+            'वडोदरा' => 'Vadodara',
+            'गाजियाबाद' => 'Ghaziabad',
+            'लुधियाना' => 'Ludhiana',
+            'आगरा' => 'Agra',
+            'नासिक' => 'Nashik',
+            'फरीदाबाद' => 'Faridabad',
+            'मेरठ' => 'Meerut',
+            'राजकोट' => 'Rajkot',
+            'वाराणसी' => 'Varanasi',
+            'श्रीनगर' => 'Srinagar',
+            'औरंगाबाद' => 'Aurangabad',
+            'धनबाद' => 'Dhanbad',
+            'अमृतसर' => 'Amritsar',
+            'नवी मुंबई' => 'Navi Mumbai',
+            'प्रयागराज' => 'Prayagraj',
+            'इलाहाबाद' => 'Prayagraj',
+            'रांची' => 'Ranchi',
+            'हावड़ा' => 'Howrah',
+            'कोयंबटूर' => 'Coimbatore',
+            'जबलपुर' => 'Jabalpur',
+            'ग्वालियर' => 'Gwalior',
+            'विजयवाड़ा' => 'Vijayawada',
+            'जोधपुर' => 'Jodhpur',
+            'मदुरै' => 'Madurai',
+            'रायपुर' => 'Raipur',
+            'कोटा' => 'Kota',
+            'चंडीगढ़' => 'Chandigarh',
+            'गुवाहाटी' => 'Guwahati',
+            'मैसूर' => 'Mysuru',
+            'उदयपुर' => 'Udaipur',
+            'अजमेर' => 'Ajmer',
+            'अलवर' => 'Alwar',
+            'भीलवाड़ा' => 'Bhilwara',
+            'बीकानेर' => 'Bikaner',
+        ];
+
+        if (isset($map[$city])) {
+            return $map[$city];
+        }
+
+        if (str_contains($city, ',')) {
+            $parts = array_values(array_filter(array_map('trim', explode(',', $city))));
+
+            for ($i = count($parts) - 1; $i >= 0; $i--) {
+                if (isset($map[$parts[$i]])) {
+                    return $map[$parts[$i]];
+                }
+            }
+
+            return end($parts) ?: $city;
+        }
+
+        return $city;
+    }
+}
+
 function getDay($month,$year){
     $list=array();
     $month = $month;

@@ -1091,7 +1091,7 @@ public function saveUserLocation(Request $request)
     session(['detected_lng' => $data['longitude']]);
 
     if (!empty($data['city'])) {
-        session(['detected_city' => $data['city']]);
+        session(['detected_city' => english_location_name($data['city'])]);
     }
 
     return response()->json(['status' => true]);

@@ -749,7 +749,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
     Route::get('sitemap.xml', 'SitemapController@index')->name('sitemap');
 
 Route::post('/set-location-session', function (Illuminate\Http\Request $request) {
-        session(['selected_location' => $request->location]);
+        session(['selected_location' => english_location_name($request->location)]);
         return response()->json(['success' => true]);
     })->name('set.location.session');
 
