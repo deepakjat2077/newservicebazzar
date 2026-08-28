@@ -957,7 +957,7 @@ restoreDetectedLocationOnHome();
                 if (latitudeInput) latitudeInput.value = lat;
                 if (longitudeInput) longitudeInput.value = lng;
 
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lng}`, {
                     headers: { "Accept": "application/json" }
                 })
                 .then(res => res.json())
@@ -5736,7 +5736,7 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
 
                 const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lng}`,
                     {
                         headers: {
                             "Accept": "application/json"
@@ -6421,7 +6421,7 @@ function initPopupLocationNotice(toggle){
 
             try {
                 const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+                    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lng}`,
                     { headers: { "Accept": "application/json" } }
                 );
 

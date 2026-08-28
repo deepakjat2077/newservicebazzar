@@ -2541,7 +2541,7 @@ if (isListingDetailsPage) {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lng}`);
                 const data = await res.json();
                 const address = data.address || {};
                 const city = address.city || address.town || address.village || address.state_district || address.county || address.district || address.state || "";
