@@ -1183,3 +1183,21 @@
 })();
 </script>
 @endpush
+
+{{-- Saved and Favorites sections at bottom of profile --}}
+<div style="padding: 20px; border-top: 1px solid #eee; margin-top: 20px;">
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <a href="#saved" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #333; font-weight: 500;">
+                <i class="las la-bookmark" style="font-size: 20px;"></i>
+                Saved
+            </a>
+        </div>
+        <div>
+            <a href="#favorites" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: #333; font-weight: 500;">
+                <i class="las la-heart" style="font-size: 20px;"></i>
+                Favorites
+            </a>
+        </div>
+    </div>
+</div>

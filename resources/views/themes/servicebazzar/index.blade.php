@@ -3942,12 +3942,23 @@ function scrollTrending(direction) {
         background: linear-gradient(to bottom, rgba(0,0,0,0.14), rgba(0,0,0,0.22));
     }
 
+    .trending-same-section .trend-card-overlay > div{
+        min-height: 35px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
     .trending-same-section .trend-card-title{
         font-size: 14px;
         font-weight: 700;
         line-height: 1.25;
         margin: 0;
         color: #fff;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .trending-same-section .trend-card-subtitle{
@@ -4013,6 +4024,10 @@ function scrollTrending(direction) {
 
         .trending-same-section .trend-card-overlay{
             padding: 8px 8px;
+        }
+
+        .trending-same-section .trend-card-overlay > div{
+            min-height: 21px;
         }
 
         .trending-same-section .trend-card-title{
