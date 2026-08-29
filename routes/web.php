@@ -938,7 +938,7 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
  */
 Route::middleware('throttle:60,1')->group(function () {
     Route::get('/{city}/{categoryArea}', 'ListingController@cityCategoryArea')
-        ->where('city', '^(?!admin|user|dashboard|login|contact|blogs|blog|listings|category|search|free-listing|location|popular-services$).*$')
+        ->where('city', '^(?!admin|user|dashboard|login|contact|blogs|blog|listings|category|search|free-listing|location|SbSocial|popular-services$).*$')
         ->name('listings.city.category.area');
 
     Route::get('{location}/{slug}', 'SiteController@listingsCategoryLocation')
