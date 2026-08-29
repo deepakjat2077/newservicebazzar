@@ -33,12 +33,24 @@
             {{-- Right Column: Reviews & Search --}}
             <div class="col-md-8">
 
-                {{-- Recent Search --}}
+                {{-- Recent Search (User's Search History) --}}
                 @php
+                    // Fetch user's recently viewed listings from ratings/searches
                     $recentListings = App\Models\Listing::where('status', 1)
+                        ->whereHas('ratings', function($q) {
+                            $q->where('user_id', $user->id);
+                        })
                         ->latest()
                         ->take(3)
                         ->get();
+
+                    // Fallback: if no rated listings, show latest listings
+                    if($recentListings->count() === 0) {
+                        $recentListings = App\Models\Listing::where('status', 1)
+                            ->latest()
+                            ->take(3)
+                            ->get();
+                    }
                 @endphp
 
                 @if($recentListings->count() > 0)
@@ -56,9 +68,9 @@
                 </div>
                 @endif
 
-                {{-- Reviews Given --}}
+                {{-- Reviews Given by This User --}}
                 @php
-                    $userReviews = App\Models\Rating::whereNotNull('user_id')
+                    $userReviews = App\Models\Rating::where('user_id', $user->id)
                         ->where('is_verified', 1)
                         ->latest()
                         ->take(5)

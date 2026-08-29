@@ -2976,7 +2976,13 @@ public function handleSingleSlug(Request $request, $slug)
 
 public function userProfile($username)
 {
-    $user = User::where('username', $username)->orWhere('first_name', 'LIKE', '%'.$username.'%')->first();
+    // Search by username (exact), first_name (case-insensitive), or slug variants
+    $user = User::where(function($q) use ($username) {
+        $q->where('username', $username)
+          ->orWhereRaw("LOWER(first_name) = LOWER(?)", [$username])
+          ->orWhereRaw("LOWER(CONCAT(LOWER(first_name), '-', LOWER(last_name))) = ?", [strtolower($username)])
+          ->orWhereRaw("LOWER(CONCAT(LOWER(first_name), '_', LOWER(last_name))) = ?", [strtolower($username)]);
+    })->first();
 
     if (!$user) {
         abort(404);

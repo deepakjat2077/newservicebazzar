@@ -4324,7 +4324,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <div id="sbProfilePanelOverlay" class="sb-profile-overlay"></div>
 <div id="sbProfilePanel" class="sb-profile-panel">
     <div class="sb-profile-head">
-        <a href="{{ route('user.profile.view', ['username' => auth()->user()->first_name]) }}" class="sb-profile-identity">
+        <a href="{{ route('user.profile.view', ['username' => Str::slug(auth()->user()->first_name . '-' . auth()->user()->last_name)]) }}" class="sb-profile-identity">
             <img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->fullname() }}">
             <span>
                 <strong>{{ auth()->user()->fullname() }}</strong>
