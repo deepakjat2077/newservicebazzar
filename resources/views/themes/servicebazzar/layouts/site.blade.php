@@ -4405,7 +4405,7 @@ document.addEventListener("DOMContentLoaded", function () {
     position:fixed;
     inset:0;
     background:rgba(0,0,0,.45);
-    z-index:2000;
+    z-index:19999999999;
 }
 .sb-profile-overlay.show{ display:block; }
 .sb-profile-panel{
@@ -4416,7 +4416,7 @@ document.addEventListener("DOMContentLoaded", function () {
     max-width:88vw;
     height:100%;
     background:#fff;
-    z-index:2001;
+    z-index:20000000000;
     box-shadow:-4px 0 24px rgba(0,0,0,.15);
     transition:right .25s ease;
     display:flex;
@@ -4552,9 +4552,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.getElementById('sbProfilePanelOverlay');
     const closeBtn = document.getElementById('sbProfilePanelClose');
     const triggers = document.querySelectorAll('.profile-dashboard-link');
+    const backgroundInputs = Array.from(document.querySelectorAll(
+        '#homeLocationInput, #homeCategorySearch, #locationInput, #CategorySearch, #jdMobileLocationInput, #ytMobileSearchInput'
+    ));
+
+    function setBackgroundInputsDisabled(disabled) {
+        backgroundInputs.forEach(function (input) {
+            input.disabled = disabled;
+            input.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        });
+    }
 
     function openPanel(e) {
         e.preventDefault();
+        if (document.activeElement && backgroundInputs.includes(document.activeElement)) {
+            document.activeElement.blur();
+        }
+        setBackgroundInputsDisabled(true);
         panel.classList.add('show');
         overlay.classList.add('show');
         document.documentElement.style.overflow = 'hidden';
@@ -4564,6 +4578,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function closePanel() {
         panel.classList.remove('show');
         overlay.classList.remove('show');
+        setBackgroundInputsDisabled(false);
         document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
     }
