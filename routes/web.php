@@ -1003,10 +1003,12 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
 
 /*
  * Public user profile view: /SbSocial/profile/deepak-choudhary
- * Registered before catch-all /{slug} so username slugs don't collide with pages.
+ * Registered outside the `App\Http\Controllers` namespace group (which closes
+ * at line 990), so — like the pincode route above — it must use the
+ * fully-qualified controller class, not the bare 'SiteController@...' string.
  */
-Route::prefix('SbSocial')->group(function () {
-    Route::get('/profile/{username}', 'SiteController@userProfile')
+Route::prefix('SbSocial')->middleware('web')->group(function () {
+    Route::get('/profile/{username}', [\App\Http\Controllers\SiteController::class, 'userProfile'])
         ->name('user.profile.view')
         ->where('username', '[a-z0-9_-]+');
 });

@@ -2988,7 +2988,36 @@ public function userProfile($username)
         abort(404);
     }
 
+    // The user's own reviews — each carries the business it was left on, so the
+    // profile can render a JustDial-style social feed (business card + review +
+    // like/comment counts). Eager-loads keep it to a handful of queries.
+    $reviews = \App\Models\Rating::where('user_id', $user->id)
+        ->with(['listing' => function ($q) {
+            $q->with('category', 'location');
+        }])
+        ->withCount(['likes', 'comments'])
+        ->latest('id')
+        ->take(30)
+        ->get()
+        ->filter(fn ($r) => $r->listing !== null)
+        ->values();
+
+    // Businesses shown in the "Recent Search" rail — the ones this user has
+    // most recently engaged with (reviewed), falling back to newest listings
+    // so the rail is never empty on a brand-new account.
+    $recentBusinesses = $reviews->pluck('listing')->unique('id')->take(4)->values();
+    if ($recentBusinesses->count() === 0) {
+        $recentBusinesses = Listing::where('status', 1)
+            ->with('category')
+            ->latest('id')
+            ->take(4)
+            ->get();
+    }
+
     $data['user'] = $user;
+    $data['reviews'] = $reviews;
+    $data['postCount'] = $reviews->count();
+    $data['recentBusinesses'] = $recentBusinesses;
     $data['seoTitle'] = $user->first_name . ' ' . $user->last_name . ' | ' . ($this->setting->site_name ?? 'ServiceBazzar');
     $data['seoDescription'] = 'View ' . $user->first_name . '\'s profile on ' . ($this->setting->site_name ?? 'ServiceBazzar');
 
