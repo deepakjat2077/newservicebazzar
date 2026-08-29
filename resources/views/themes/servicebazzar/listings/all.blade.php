@@ -561,7 +561,7 @@ a {
             }
 
             .listing-main-title {
-                font-size: 15px;
+                font-size: 18px;
                
             }
         }
