@@ -71,8 +71,9 @@ class UserController extends Controller
         $favoriteCategories = self::FAVORITE_CATEGORIES;
         $favoritedListingIds = $user->favoriteListings->pluck('listing_id')->toArray();
         $progress = $this->profileWizardProgress($user);
+        $initialStep = (int) session('profile_step', 0);
 
-        return view($this->theme.'user.profile', compact('user', 'favoriteCategories', 'favoritedListingIds', 'progress'));
+        return view($this->theme.'user.profile', compact('user', 'favoriteCategories', 'favoritedListingIds', 'progress', 'initialStep'));
     }
 
     /**
@@ -163,14 +164,14 @@ class UserController extends Controller
         $hasFavorite = $user->favoriteListings()->exists() || $user->favoriteCategories()->exists();
 
         $completedSteps = collect([$hasPersonal, $hasAddress, $hasFavorite])->filter()->count();
+        $percent = (int) round(($completedSteps / 3) * 100);
 
         return [
             'hasPersonal' => $hasPersonal,
             'hasAddress' => $hasAddress,
             'hasFavorite' => $hasFavorite,
-            // 4 steps total (Personal, Addresses, Favorites, Completed) —
-            // matches the "Overall Progress" bar under the wizard heading.
-            'percent' => (int) round(($completedSteps / 4) * 100),
+            'isComplete' => $completedSteps === 3,
+            'percent' => min(100, $percent),
         ];
     }
 
@@ -537,7 +538,7 @@ class UserController extends Controller
     public function addressStore(Request $request)
     {
         $request->validate([
-            'address' => 'nullable|string',
+            'address' => 'required|string',
             'landmark' => 'nullable|string|max:191',
             'landline_std' => 'nullable|string|max:10',
             'landline_number' => 'nullable|string|max:20',
@@ -565,7 +566,10 @@ class UserController extends Controller
 
         $user->addresses()->create($addressData);
 
-        return back()->withAlert(['success', 'Address added successfully']);
+        return redirect()
+            ->route('user.profile')
+            ->with('profile_step', 2)
+            ->withAlert(['success', 'Address added successfully']);
     }
 
     public function addressDestroy(UserAddress $address)

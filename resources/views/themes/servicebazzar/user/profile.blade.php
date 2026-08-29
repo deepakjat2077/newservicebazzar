@@ -6,7 +6,8 @@
     // Which sidebar step to open first: land on the first one that isn't
     // done yet, so a returning user picks up where they left off instead of
     // always re-seeing Personal Details.
-    $initialStep = !$progress['hasPersonal'] ? 1 : (!$progress['hasAddress'] ? 2 : (!$progress['hasFavorite'] ? 3 : 1));
+    $initialStep = (int) old('profile_step', $initialStep);
+    $initialStep = $initialStep ?: (!$progress['hasPersonal'] ? 1 : (!$progress['hasAddress'] ? 2 : (!$progress['hasFavorite'] ? 3 : ($progress['isComplete'] ? 4 : 1))));
 @endphp
 
 <section class="pt-30 pb-80">
@@ -35,8 +36,8 @@
                         <span class="sb-wizard-step-dot">{!! $progress['hasFavorite'] ? '<i class="fas fa-check"></i>' : '3' !!}</span>
                         <span class="sb-wizard-step-label">Favorites</span>
                     </li>
-                    <li class="sb-wizard-step">
-                        <span class="sb-wizard-step-dot">4</span>
+                    <li class="sb-wizard-step {{ $progress['isComplete'] ? 'is-done' : '' }}" data-step-trigger="4">
+                        <span class="sb-wizard-step-dot">{!! $progress['isComplete'] ? '<i class="fas fa-check"></i>' : '4' !!}</span>
                         <span class="sb-wizard-step-label">Completed</span>
                     </li>
                 </ol>
@@ -210,6 +211,7 @@
 
                     <form action="{{ route('user.profile.address.store') }}" method="post" class="sb-wizard-form sb-address-form">
                         @csrf
+                        <input type="hidden" name="profile_step" value="2">
                         <div class="sb-address-grid">
                             <div class="sb-field-row">
                                 <label>Name :</label>
@@ -229,7 +231,10 @@
 
                             <div class="sb-field-row sb-field-row-tall">
                                 <label>Address:</label>
-                                <textarea name="address" class="sb-input sb-textarea"></textarea>
+                                <textarea name="address" class="sb-input sb-textarea">{{ old('address') }}</textarea>
+                                @error('address')
+                                    <small class="sb-field-error">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="sb-field-row">
                                 <label>Pincode :</label>
