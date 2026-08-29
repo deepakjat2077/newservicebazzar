@@ -66,14 +66,20 @@ class UserController extends Controller
 
     public function profile()
     {
-        $user = auth()->user()->load(['addresses', 'favoriteListings.listing']);
+        $user = auth()->user()->load(['addresses', 'favoriteCategories', 'favoriteListings.listing']);
 
         $favoriteCategories = self::FAVORITE_CATEGORIES;
         $favoritedListingIds = $user->favoriteListings->pluck('listing_id')->toArray();
+        $favoritedCategoryKeys = $user->favoriteCategories
+            ->pluck('category_key')
+            ->merge($user->favoriteListings->pluck('category_key')->filter())
+            ->unique()
+            ->values()
+            ->toArray();
         $progress = $this->profileWizardProgress($user);
         $initialStep = (int) session('profile_step', 0);
 
-        return view($this->theme.'user.profile', compact('user', 'favoriteCategories', 'favoritedListingIds', 'progress', 'initialStep'));
+        return view($this->theme.'user.profile', compact('user', 'favoriteCategories', 'favoritedListingIds', 'favoritedCategoryKeys', 'progress', 'initialStep'));
     }
 
     /**
@@ -148,7 +154,15 @@ class UserController extends Controller
             $selected = true;
         }
 
-        return response()->json(['selected' => $selected]);
+        $categorySelected = $request->category_key
+            ? $user->favoriteListings()->where('category_key', $request->category_key)->exists()
+                || $user->favoriteCategories()->where('category_key', $request->category_key)->exists()
+            : false;
+
+        return response()->json([
+            'selected' => $selected,
+            'category_selected' => $categorySelected,
+        ]);
     }
 
     /**
@@ -537,6 +551,15 @@ class UserController extends Controller
 
     public function addressStore(Request $request)
     {
+        $user = auth()->user();
+
+        if ($user->addresses()->exists()) {
+            return redirect()
+                ->route('user.profile')
+                ->with('profile_step', 2)
+                ->withAlert(['info', 'Address is already added. Remove it first if you want to add a new one.']);
+        }
+
         $request->validate([
             'address' => 'required|string',
             'landmark' => 'nullable|string|max:191',
@@ -544,8 +567,6 @@ class UserController extends Controller
             'landline_number' => 'nullable|string|max:20',
             'tag' => 'nullable|string|max:20',
         ]);
-
-        $user = auth()->user();
 
         $addressData = [
             'name' => $user->fullname(),

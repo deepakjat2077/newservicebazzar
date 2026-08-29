@@ -166,12 +166,21 @@
 
                                 <div class="sb-field-row">
                                     <label>Mobile Number 2 :</label>
+                                    @php
+                                        $mobile2IsVerified = $user->mobile_2 && ($user->mobile_2_verified ?? false);
+                                    @endphp
                                     <div class="sb-field-combo">
                                         <span class="sb-code-chip">+91</span>
-                                        <input type="text" name="mobile_2" id="sbMobile2Input" class="sb-input" value="{{ $user->mobile_2 }}" placeholder="Add another number" maxlength="10" inputmode="numeric">
-                                        <button type="button" class="sb-verify-btn" id="sbMobile2VerifyBtn">{{ $user->mobile_2 && ($user->mobile_2_verified ?? false) ? 'Verified' : 'Verify' }}</button>
+                                        <input type="text" name="mobile_2" id="sbMobile2Input" class="sb-input {{ $mobile2IsVerified ? 'sb-input-locked' : '' }}" value="{{ $user->mobile_2 }}" placeholder="Add another number" maxlength="10" inputmode="numeric" {{ $mobile2IsVerified ? 'readonly' : '' }}>
+                                        <button type="button" class="sb-verify-btn {{ $mobile2IsVerified ? 'is-verified' : '' }}" id="sbMobile2VerifyBtn" data-mode="{{ $mobile2IsVerified ? 'edit' : 'verify' }}">
+                                            @if($mobile2IsVerified)
+                                                <i class="fas fa-pen"></i><span>Edit</span>
+                                            @else
+                                                Verify
+                                            @endif
+                                        </button>
                                     </div>
-                                    <small class="sb-field-hint" id="sbMobile2Status"></small>
+                                    <small class="sb-field-hint {{ $mobile2IsVerified ? 'is-success' : '' }}" id="sbMobile2Status">{{ $mobile2IsVerified ? 'Mobile Number 2 verified.' : '' }}</small>
                                 </div>
                             </div>
                         </div>
@@ -198,7 +207,22 @@
                                         @if($savedAddress->tag)
                                             <span class="sb-address-tag">{{ $savedAddress->tag }}</span>
                                         @endif
-                                        <p>{{ $savedAddress->address }}{{ $savedAddress->area ? ', '.$savedAddress->area : '' }}{{ $savedAddress->city ? ', '.$savedAddress->city : '' }}{{ $savedAddress->pincode ? ' - '.$savedAddress->pincode : '' }}</p>
+                                        @php
+                                            $addressLine = collect([
+                                                $savedAddress->address,
+                                                $savedAddress->landmark,
+                                                $savedAddress->area ?: $user->area,
+                                                $savedAddress->city ?: $user->city,
+                                            ])->filter()->implode(', ');
+                                            $addressPincode = $savedAddress->pincode ?: $user->pincode;
+                                        @endphp
+                                        <p>
+                                            @if($addressLine)
+                                                {{ $addressLine }}{{ $addressPincode ? ' - '.$addressPincode : '' }}
+                                            @else
+                                                Address details not added yet.
+                                            @endif
+                                        </p>
                                     </div>
                                     <form action="{{ route('user.profile.address.destroy', $savedAddress) }}" method="post" onsubmit="return confirm('Remove this address?');">
                                         @csrf @method('DELETE')
@@ -209,6 +233,7 @@
                         </div>
                     @endif
 
+                    @if($user->addresses->isEmpty())
                     <form action="{{ route('user.profile.address.store') }}" method="post" class="sb-wizard-form sb-address-form">
                         @csrf
                         <input type="hidden" name="profile_step" value="2">
@@ -250,7 +275,8 @@
                             </div>
 
                             <div class="sb-field-row">
-                                <input type="text" name="landmark" class="sb-input" placeholder="Enter Landmark">
+                                <label>Landmark:</label>
+                                <input type="text" name="landmark" class="sb-input" value="{{ old('landmark') }}" placeholder="Enter Landmark">
                             </div>
                             <div class="sb-field-row">
                                 <label>Landline Number:</label>
@@ -272,6 +298,7 @@
 
                         <button type="submit" class="sb-wizard-secondary-btn">Add Address</button>
                     </form>
+                    @endif
 
                     <button type="button" class="sb-wizard-primary-btn sb-wizard-primary-btn--standalone" data-step-next="3">Save &amp; Continue</button>
                 </div>
@@ -280,11 +307,14 @@
                 <div class="sb-wizard-panel" data-step-panel="3" hidden>
                     <div id="sbFavoriteGridView">
                         <h4 class="sb-wizard-heading">Please select a category to enter details</h4>
+                        @php
+                            $selectedFavoriteKeys = collect($favoritedCategoryKeys ?? []);
+                        @endphp
 
                         <div class="sb-favorite-grid">
                             @foreach($favoriteCategories as $key => $cat)
                                 <button type="button"
-                                        class="sb-favorite-card"
+                                        class="sb-favorite-card {{ $selectedFavoriteKeys->contains($key) ? 'is-selected' : '' }}"
                                         data-favorite-key="{{ $key }}"
                                         data-favorite-label="{{ $cat['label'] }}">
                                     <i class="fas {{ $cat['icon'] }}"></i>
@@ -622,6 +652,10 @@
         color:#22a45d;
         background:#eefaf3;
     }
+    .sb-verify-btn i{
+        margin-right:5px;
+        font-size:11px;
+    }
     .sb-verify-btn:disabled{
         opacity:.7;
         cursor:not-allowed;
@@ -783,7 +817,7 @@
     var mobile2OtpInput = document.getElementById('sbMobile2OtpInput');
     var mobile2OtpSubmit = document.getElementById('sbMobile2OtpSubmit');
     var mobile2OtpStatus = document.getElementById('sbMobile2OtpStatus');
-    var verifiedMobile2 = mobile2Btn && mobile2Btn.textContent.trim() === 'Verified'
+    var verifiedMobile2 = mobile2Btn && mobile2Btn.dataset.mode === 'edit'
         ? mobile2Input.value.replace(/\D/g, '')
         : '';
 
@@ -794,12 +828,84 @@
         if (type) el.classList.add(type === 'success' ? 'is-success' : 'is-error');
     }
 
-    function setMobile2Verified(number){
+    function setMobile2Button(mode){
+        if (!mobile2Btn) return;
+        mobile2Btn.dataset.mode = mode;
+        mobile2Btn.classList.toggle('is-verified', mode === 'edit');
+
+        if (mode === 'edit') {
+            mobile2Btn.innerHTML = '<i class="fas fa-pen"></i><span>Edit</span>';
+        } else if (mode === 'save') {
+            mobile2Btn.innerHTML = '<i class="fas fa-save"></i><span>Save</span>';
+        } else if (mode === 'sending') {
+            mobile2Btn.textContent = 'Sending...';
+        } else {
+            mobile2Btn.textContent = 'Verify';
+        }
+    }
+
+    function lockMobile2Input(shouldLock){
+        if (!mobile2Input) return;
+        mobile2Input.readOnly = shouldLock;
+        mobile2Input.classList.toggle('sb-input-locked', shouldLock);
+    }
+
+    function setMobile2Verified(number, message){
         verifiedMobile2 = number;
         mobile2Input.value = number;
-        mobile2Btn.textContent = 'Verified';
-        mobile2Btn.classList.add('is-verified');
-        setMobile2Message(mobile2Status, 'Mobile Number 2 verified successfully.', 'success');
+        lockMobile2Input(true);
+        setMobile2Button('edit');
+        setMobile2Message(mobile2Status, message || 'Mobile Number 2 verified successfully.', 'success');
+    }
+
+    function startMobile2Edit(){
+        lockMobile2Input(false);
+        setMobile2Button('save');
+        setMobile2Message(mobile2Status, '', null);
+        mobile2Input.focus();
+        mobile2Input.setSelectionRange(mobile2Input.value.length, mobile2Input.value.length);
+    }
+
+    function resetMobile2Edit(){
+        mobile2Input.value = verifiedMobile2;
+        lockMobile2Input(true);
+        setMobile2Button('edit');
+        setMobile2Message(mobile2Status, 'Mobile Number 2 verified.', 'success');
+    }
+
+    function sendMobile2Otp(number, nextMode){
+        mobile2Btn.disabled = true;
+        setMobile2Button('sending');
+        setMobile2Message(mobile2Status, '', null);
+
+        fetch("{{ route('user.profile.mobile2.send') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ mobile_2: number })
+        })
+        .then(function(response){
+            return response.json().then(function(data){
+                if (!response.ok || data.status === false) throw data;
+                return data;
+            });
+        })
+        .then(function(data){
+            setMobile2Button(nextMode || 'verify');
+            setMobile2Message(mobile2Status, data.message || 'OTP sent on WhatsApp.', 'success');
+            openMobile2OtpModal(number);
+        })
+        .catch(function(error){
+            setMobile2Button(nextMode || 'verify');
+            setMobile2Message(mobile2Status, error.message || 'Could not send OTP. Please try again.', 'error');
+        })
+        .finally(function(){
+            mobile2Btn.disabled = false;
+        });
     }
 
     function openMobile2OtpModal(number){
@@ -822,23 +928,32 @@
 
     if (mobile2Btn && mobile2Input) {
         if (verifiedMobile2) {
-            mobile2Btn.classList.add('is-verified');
+            lockMobile2Input(true);
+            setMobile2Button('edit');
         }
 
         mobile2Input.addEventListener('input', function(){
             mobile2Input.value = mobile2Input.value.replace(/\D/g, '').slice(0, 10);
-            if (mobile2Input.value !== verifiedMobile2) {
-                mobile2Btn.textContent = 'Verify';
-                mobile2Btn.classList.remove('is-verified');
+            if (!verifiedMobile2) {
+                setMobile2Button('verify');
                 setMobile2Message(mobile2Status, '', null);
+            } else if (mobile2Input.value !== verifiedMobile2) {
+                setMobile2Button('save');
+                setMobile2Message(mobile2Status, 'Save to verify this new number.', null);
             } else if (verifiedMobile2) {
-                mobile2Btn.textContent = 'Verified';
-                mobile2Btn.classList.add('is-verified');
+                setMobile2Button('save');
+                setMobile2Message(mobile2Status, 'Same verified number. Save will not send OTP.', 'success');
             }
         });
 
         mobile2Btn.addEventListener('click', function(){
+            var mode = mobile2Btn.dataset.mode || 'verify';
             var number = mobile2Input.value.replace(/\D/g, '');
+
+            if (mode === 'edit') {
+                startMobile2Edit();
+                return;
+            }
 
             if (!/^\d{10}$/.test(number)) {
                 setMobile2Message(mobile2Status, 'Please enter a valid 10 digit mobile number.', 'error');
@@ -846,42 +961,11 @@
             }
 
             if (number === verifiedMobile2) {
-                setMobile2Message(mobile2Status, 'This number is already verified.', 'success');
+                resetMobile2Edit();
                 return;
             }
 
-            mobile2Btn.disabled = true;
-            mobile2Btn.textContent = 'Sending...';
-            setMobile2Message(mobile2Status, '', null);
-
-            fetch("{{ route('user.profile.mobile2.send') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken(),
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ mobile_2: number })
-            })
-            .then(function(response){
-                return response.json().then(function(data){
-                    if (!response.ok || data.status === false) throw data;
-                    return data;
-                });
-            })
-            .then(function(data){
-                mobile2Btn.textContent = 'Verify';
-                setMobile2Message(mobile2Status, data.message || 'OTP sent on WhatsApp.', 'success');
-                openMobile2OtpModal(number);
-            })
-            .catch(function(error){
-                mobile2Btn.textContent = 'Verify';
-                setMobile2Message(mobile2Status, error.message || 'Could not send OTP. Please try again.', 'error');
-            })
-            .finally(function(){
-                mobile2Btn.disabled = false;
-            });
+            sendMobile2Otp(number, verifiedMobile2 ? 'save' : 'verify');
         });
     }
 
@@ -1034,6 +1118,10 @@
             .then(function(data){
                 btn.classList.toggle('is-selected', !!data.selected);
                 btn.textContent = data.selected ? 'Added to Favorite' : 'Add to Favorite';
+                var categoryCard = document.querySelector('[data-favorite-key="' + categoryKey + '"]');
+                if (categoryCard) {
+                    categoryCard.classList.toggle('is-selected', !!data.category_selected);
+                }
             })
             .catch(function(){});
         });
