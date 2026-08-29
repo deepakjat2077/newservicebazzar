@@ -79,6 +79,9 @@
                                 <div class="sb-field-row">
                                     <label>*DOB :</label>
                                     <input type="date" name="dob" class="sb-input" value="{{ optional($user->dob)->format('Y-m-d') }}" required>
+                                    @error('dob')
+                                        <small class="sb-field-error">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
                                 <div class="sb-field-row">
@@ -194,7 +197,7 @@
                                         @if($savedAddress->tag)
                                             <span class="sb-address-tag">{{ $savedAddress->tag }}</span>
                                         @endif
-                                        <p>{{ $savedAddress->address }}{{ $savedAddress->city ? ', '.$savedAddress->city : '' }}{{ $savedAddress->pincode ? ' - '.$savedAddress->pincode : '' }}</p>
+                                        <p>{{ $savedAddress->address }}{{ $savedAddress->area ? ', '.$savedAddress->area : '' }}{{ $savedAddress->city ? ', '.$savedAddress->city : '' }}{{ $savedAddress->pincode ? ' - '.$savedAddress->pincode : '' }}</p>
                                     </div>
                                     <form action="{{ route('user.profile.address.destroy', $savedAddress) }}" method="post" onsubmit="return confirm('Remove this address?');">
                                         @csrf @method('DELETE')
@@ -210,18 +213,18 @@
                         <div class="sb-address-grid">
                             <div class="sb-field-row">
                                 <label>Name :</label>
-                                <input type="text" name="name" class="sb-input" value="{{ $user->fullname() }}">
+                                <input type="text" name="name" class="sb-input sb-input-locked" value="{{ $user->fullname() }}" readonly>
                             </div>
                             <div class="sb-field-row">
                                 <label>Contact Number:</label>
                                 <div class="sb-field-combo">
                                     <span class="sb-code-chip">+91</span>
-                                    <input type="text" name="contact_number" class="sb-input" value="{{ $user->mobile }}">
+                                    <input type="text" name="contact_number" class="sb-input sb-input-locked" value="{{ $user->mobile }}" readonly>
                                 </div>
                             </div>
                             <div class="sb-field-row">
                                 <label>Email ID :</label>
-                                <input type="email" name="email" class="sb-input" value="{{ $user->hasMailableEmail() ? $user->email : '' }}" placeholder="Enter Email ID">
+                                <input type="email" name="email" class="sb-input sb-input-locked" value="{{ $user->hasMailableEmail() ? $user->email : '' }}" placeholder="No email added" readonly>
                             </div>
 
                             <div class="sb-field-row sb-field-row-tall">
@@ -230,11 +233,15 @@
                             </div>
                             <div class="sb-field-row">
                                 <label>Pincode :</label>
-                                <input type="text" name="pincode" class="sb-input" placeholder="Enter Pincode">
+                                <input type="text" name="pincode" class="sb-input sb-input-locked" value="{{ $user->pincode }}" placeholder="Add pincode in Personal Details" readonly>
                             </div>
                             <div class="sb-field-row">
                                 <label>City:</label>
-                                <input type="text" name="city" class="sb-input" placeholder="Enter City">
+                                <input type="text" name="city" class="sb-input sb-input-locked" value="{{ $user->city }}" placeholder="Add city in Personal Details" readonly>
+                            </div>
+                            <div class="sb-field-row">
+                                <label>Area:</label>
+                                <input type="text" name="area" class="sb-input sb-input-locked" value="{{ $user->area }}" placeholder="Add area in Personal Details" readonly>
                             </div>
 
                             <div class="sb-field-row">
@@ -447,6 +454,12 @@
         font-size:14px;
         color:#222;
         background:#fff;
+    }
+    .sb-input-locked,
+    .sb-input[readonly]{
+        background:#f7f8f9;
+        color:#555;
+        cursor:not-allowed;
     }
     .sb-textarea{ min-height:64px; resize:vertical; }
     .sb-field-combo{ display:flex; gap:8px; align-items:center; }

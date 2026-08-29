@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use App\Support\HttpRetry;
 use App\Support\MobileNumber;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -216,11 +217,20 @@ class UserController extends Controller
     	$request->validate(array_filter([
     		'first_name'=>'required',
     		'last_name'=>'required',
+            'dob' => ['required', 'string', 'max:10'],
     		'image'=>'nullable|image|mimes:jpg,jpeg,png',
     		'email'=> $canEditEmail
     			? ['nullable','email','max:191',Rule::unique('users','email')->ignore($user->id)]
     			: null,
     	]));
+
+        $dob = $this->normalizeDob($request->dob);
+
+        if ($dob === null) {
+            return back()
+                ->withInput()
+                ->withErrors(['dob' => 'Please enter a valid date of birth.']);
+        }
 
     	$image = $user->image;
     	if ($request->hasFile('image')) {
@@ -244,7 +254,7 @@ class UserController extends Controller
         $user->last_name = $request->last_name;
         $user->address = $request->address;
         $user->website = $request->website;
-        $user->dob = $request->filled('dob') ? $request->dob : null;
+        $user->dob = $dob;
         $user->marital_status = $request->marital_status;
         $user->city = $request->city;
         $user->area = $request->area;
@@ -277,6 +287,29 @@ class UserController extends Controller
 
         $alert = ['success','Profile updated successfully'];
         return back()->withAlert($alert);
+    }
+
+    protected function normalizeDob($value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        foreach (['Y-m-d', 'd-m-Y', 'd/m/Y'] as $format) {
+            try {
+                $date = Carbon::createFromFormat($format, $value);
+
+                if ($date && $date->format($format) === $value) {
+                    return $date->format('Y-m-d');
+                }
+            } catch (\Throwable $exception) {
+                continue;
+            }
+        }
+
+        return null;
     }
 
     public function sendMobile2Otp(Request $request)
@@ -504,22 +537,33 @@ class UserController extends Controller
     public function addressStore(Request $request)
     {
         $request->validate([
-            'name' => 'nullable|string|max:191',
-            'contact_number' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:191',
             'address' => 'nullable|string',
             'landmark' => 'nullable|string|max:191',
-            'pincode' => 'nullable|string|max:10',
-            'city' => 'nullable|string|max:191',
             'landline_std' => 'nullable|string|max:10',
             'landline_number' => 'nullable|string|max:20',
             'tag' => 'nullable|string|max:20',
         ]);
 
-        auth()->user()->addresses()->create($request->only([
-            'name', 'contact_number', 'email', 'address', 'landmark',
-            'pincode', 'city', 'landline_std', 'landline_number', 'tag',
-        ]));
+        $user = auth()->user();
+
+        $addressData = [
+            'name' => $user->fullname(),
+            'contact_number' => $user->mobile,
+            'email' => $user->hasMailableEmail() ? $user->email : null,
+            'address' => $request->address,
+            'landmark' => $request->landmark,
+            'pincode' => $user->pincode,
+            'city' => $user->city,
+            'landline_std' => $request->landline_std,
+            'landline_number' => $request->landline_number,
+            'tag' => $request->tag,
+        ];
+
+        if (Schema::hasColumn('user_addresses', 'area')) {
+            $addressData['area'] = $user->area;
+        }
+
+        $user->addresses()->create($addressData);
 
         return back()->withAlert(['success', 'Address added successfully']);
     }
