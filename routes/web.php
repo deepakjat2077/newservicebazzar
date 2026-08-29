@@ -1002,9 +1002,11 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->name('admin.pincode.fetch');
 
 /*
- * Public user profile view: /profile/deepak-choudhary
+ * Public user profile view: /SbSocial/profile/deepak-choudhary
  * Registered before catch-all /{slug} so username slugs don't collide with pages.
  */
-Route::get('/profile/{username}', 'SiteController@userProfile')
-    ->name('user.profile.view')
-    ->where('username', '[a-z0-9_-]+');
+Route::prefix('SbSocial')->group(function () {
+    Route::get('/profile/{username}', 'SiteController@userProfile')
+        ->name('user.profile.view')
+        ->where('username', '[a-z0-9_-]+');
+});
