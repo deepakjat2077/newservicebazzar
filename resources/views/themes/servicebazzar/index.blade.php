@@ -3809,6 +3809,7 @@ label.popup-overlay {
 
                                 <img src="{{ asset('assets/images/category/' . $category->image) }}"
                                      loading="lazy"
+                                     onerror="this.hidden=true;"
                                     alt="{{ $category->name }} Near Me">
 
                                 <div class="trend-card-overlay">
@@ -4314,6 +4315,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             <img src="{{ asset('assets/images/category/'.$category->image) }}"
                                  loading="lazy"
+                                 onerror="this.hidden=true;"
                                  alt="{{ $category->name }} Near Me">
 
                             <div class="trend-card-overlay">
@@ -4574,6 +4576,75 @@ function scrollPopular(direction){
         grid-auto-columns: calc((100% - 24px) / 3) !important;
     }
 }
+
+.trending-same-section .trend-card-overlay,
+.seasonal-same-section .trend-card-overlay,
+.popular-same-section .trend-card-overlay{
+    align-items: stretch !important;
+    justify-content: flex-end !important;
+}
+
+.trending-same-section .trend-card-link img,
+.seasonal-same-section .trend-card-link img,
+.popular-same-section .trend-card-link img{
+    color: transparent !important;
+    font-size: 0 !important;
+}
+
+.trending-same-section .trend-card-overlay > div,
+.seasonal-same-section .trend-card-overlay > div,
+.popular-same-section .trend-card-overlay > div{
+    width: 100% !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
+    display: block !important;
+    position: relative !important;
+    align-self: flex-end !important;
+}
+
+.trending-same-section .trend-card-title,
+.seasonal-same-section .trend-card-title,
+.popular-same-section .trend-card-title{
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.25 !important;
+    display: block !important;
+    vertical-align: top !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+}
+
+.seasonal-same-section .trend-card-subtitle{
+    flex: 0 0 auto;
+}
+
+@media (max-width: 767px){
+    .trending-same-section .trend-card-overlay > div,
+    .seasonal-same-section .trend-card-overlay > div,
+    .popular-same-section .trend-card-overlay > div{
+        height: 21px !important;
+        min-height: 21px !important;
+        max-height: 21px !important;
+    }
+
+    .trending-same-section .trend-card-title,
+    .seasonal-same-section .trend-card-title,
+    .popular-same-section .trend-card-title{
+        height: 21px !important;
+        min-height: 21px !important;
+        max-height: 21px !important;
+        line-height: 1.15 !important;
+    }
+}
 </style>
 
 <script>
@@ -4590,7 +4661,7 @@ function scrollPopular(direction){
 
 @foreach($seasonalSections as $section)
 
-<section class="location-section custom-right location-same-section">
+<section class="location-section custom-right location-same-section seasonal-same-section">
     <div class="container-fluid">
 
         <div class="border rounded-4 p-2 bg-white">
@@ -4629,7 +4700,7 @@ function scrollPopular(direction){
                                data-slug="{{ $category->slug }}">
 
                                 <img src="{{ asset('assets/images/category/'.$category->image) }}"
-                                  loading="lazy"  alt="{{ $category->name }} Near Me">
+                                  loading="lazy"  onerror="this.hidden=true;" alt="{{ $category->name }} Near Me">
 
                                 <div class="trend-card-overlay">
                                     <div>

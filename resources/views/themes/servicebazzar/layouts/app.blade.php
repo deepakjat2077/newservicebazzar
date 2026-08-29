@@ -3,10 +3,7 @@
 <head>
     @include('includes.seo')
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/all.min.css') }}">
-    {{-- Same FA7 kit the main site layout (layouts/site.blade.php) loads —
-         without it, any icon using the newer "fa-solid fa-*" classes (as
-         opposed to this theme's older "fas fa-*") renders blank on every
-         page that extends this layout, e.g. the user dashboard pages. --}}
+    
     <link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap2.min.css') }}">
@@ -30,14 +27,7 @@
 @endif
 </head>
 <body data-page-name="{{ $pageName ?? request()->path() }}">
-    <!-- preloader -->
-  {{-- <div class="preloader">
-    <svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 59">
-      <path d="M55.42 25.14C55.64 26.48 55.75 27.85 55.75 29.25C55.75 43.27 44.46 54.61 30.5 54.61C16.54 54.61 5.25 43.27 5.25 29.25C5.25 15.23 16.54 3.89 30.5 3.89 C34.8 3.89 38.84 4.97 42.38 6.86"/>
-      <path d="M44.28 33.78C44.04 32.45 43.9 31.08 43.88 29.68C43.64 15.66 54.73 4.13 68.69 3.9C82.65 3.66 94.13 14.8 94.37 28.82C94.61 42.84 83.52 54.36 69.56 54.6C65.26 54.68 61.19 53.67 57.62 51.84"/>
-    </svg>
-  </div> --}}
-  <!-- preloader -->
+  
     <header class="header-area">
       
         <div class="bottom-header">
@@ -112,12 +102,7 @@
     <script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}"></script>
     <script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
     <script src="{{ asset($themeAsset.'summernote/summernote-lite.min.js') }}"></script>
-    {{-- app.js's toggleFixedHeader() reads this global unconditionally.
-         layouts/site.blade.php defines it before loading app.js; this
-         layout never did, so every page built on it (dashboard, business
-         dashboard, leads, ...) hit "currentRoute is not defined" as soon as
-         app.js ran, which aborted its whole ready-handler — including the
-         header/nav setup that depends on the rest of that handler running. --}}
+    
     <script>
         var currentRoute = @json(request()->route() ? request()->route()->getName() : '');
     </script>
