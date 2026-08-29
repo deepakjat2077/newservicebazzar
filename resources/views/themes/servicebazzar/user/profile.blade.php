@@ -164,9 +164,10 @@
                                     <label>Mobile Number 2 :</label>
                                     <div class="sb-field-combo">
                                         <span class="sb-code-chip">+91</span>
-                                        <input type="text" name="mobile_2" class="sb-input" value="{{ $user->mobile_2 }}" placeholder="Add another number" maxlength="10" inputmode="numeric">
-                                        <button type="button" class="sb-verify-btn">{{ $user->mobile_2 ? 'Saved' : 'Verify' }}</button>
+                                        <input type="text" name="mobile_2" id="sbMobile2Input" class="sb-input" value="{{ $user->mobile_2 }}" placeholder="Add another number" maxlength="10" inputmode="numeric">
+                                        <button type="button" class="sb-verify-btn" id="sbMobile2VerifyBtn">{{ $user->mobile_2 && ($user->mobile_2_verified ?? false) ? 'Verified' : 'Verify' }}</button>
                                     </div>
+                                    <small class="sb-field-hint" id="sbMobile2Status"></small>
                                 </div>
                             </div>
                         </div>
@@ -313,6 +314,17 @@
         </div>
     </div>
 </section>
+
+<div class="sb-mobile2-otp-modal" id="sbMobile2OtpModal" hidden>
+    <div class="sb-mobile2-otp-box">
+        <button type="button" class="sb-mobile2-otp-close" id="sbMobile2OtpClose">&times;</button>
+        <h4>Verify Mobile Number 2</h4>
+        <p>Enter the OTP sent on WhatsApp to <strong id="sbMobile2OtpNumber"></strong>.</p>
+        <input type="text" class="sb-input" id="sbMobile2OtpInput" maxlength="6" inputmode="numeric" placeholder="Enter 6 digit OTP">
+        <small class="sb-field-hint" id="sbMobile2OtpStatus"></small>
+        <button type="button" class="sb-wizard-primary-btn" id="sbMobile2OtpSubmit">Verify OTP</button>
+    </div>
+</div>
 @endsection
 
 @push('css')
@@ -574,6 +586,8 @@
     .sb-favorite-card.is-selected i{ color:#1e90ff; }
 
     .sb-field-hint{ display:block; font-size:11px; color:#999; margin-top:4px; }
+    .sb-field-hint.is-error{ color:#d9364f; }
+    .sb-field-hint.is-success{ color:#22a45d; }
     .sb-verify-btn{
         border:1px solid #d5d9dd;
         background:#f7f8f9;
@@ -584,6 +598,64 @@
         color:#444;
         cursor:pointer;
         flex-shrink:0;
+    }
+    .sb-verify-btn.is-verified{
+        border-color:#22a45d;
+        color:#22a45d;
+        background:#eefaf3;
+    }
+    .sb-verify-btn:disabled{
+        opacity:.7;
+        cursor:not-allowed;
+    }
+
+    .sb-mobile2-otp-modal{
+        position:fixed;
+        inset:0;
+        z-index:999999;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:18px;
+        background:rgba(0,0,0,.5);
+    }
+    .sb-mobile2-otp-modal[hidden]{ display:none; }
+    .sb-mobile2-otp-box{
+        position:relative;
+        width:min(360px, 100%);
+        padding:24px;
+        border-radius:10px;
+        background:#fff;
+        box-shadow:0 18px 45px rgba(0,0,0,.22);
+    }
+    .sb-mobile2-otp-box h4{
+        margin:0 28px 8px 0;
+        font-size:18px;
+        font-weight:700;
+        color:#222;
+    }
+    .sb-mobile2-otp-box p{
+        margin:0 0 16px;
+        font-size:13px;
+        color:#666;
+        line-height:1.5;
+    }
+    .sb-mobile2-otp-box .sb-wizard-primary-btn{
+        width:100%;
+        margin-top:14px;
+    }
+    .sb-mobile2-otp-close{
+        position:absolute;
+        top:12px;
+        right:12px;
+        width:28px;
+        height:28px;
+        border:0;
+        background:transparent;
+        color:#111;
+        font-size:24px;
+        line-height:1;
+        cursor:pointer;
     }
 
     .sb-wizard-back-btn{
@@ -684,15 +756,176 @@
         });
     }
 
-    // Mobile Number 2 — no OTP flow yet, so "Verify" just confirms the
-    // number will be saved along with the rest of the form on submit.
-    var mobile2Btn = document.querySelector('.sb-verify-btn');
-    var mobile2Input = document.querySelector('input[name="mobile_2"]');
+    var mobile2Btn = document.getElementById('sbMobile2VerifyBtn');
+    var mobile2Input = document.getElementById('sbMobile2Input');
+    var mobile2Status = document.getElementById('sbMobile2Status');
+    var mobile2OtpModal = document.getElementById('sbMobile2OtpModal');
+    var mobile2OtpClose = document.getElementById('sbMobile2OtpClose');
+    var mobile2OtpNumber = document.getElementById('sbMobile2OtpNumber');
+    var mobile2OtpInput = document.getElementById('sbMobile2OtpInput');
+    var mobile2OtpSubmit = document.getElementById('sbMobile2OtpSubmit');
+    var mobile2OtpStatus = document.getElementById('sbMobile2OtpStatus');
+    var verifiedMobile2 = mobile2Btn && mobile2Btn.textContent.trim() === 'Verified'
+        ? mobile2Input.value.replace(/\D/g, '')
+        : '';
+
+    function setMobile2Message(el, text, type){
+        if (!el) return;
+        el.textContent = text || '';
+        el.classList.remove('is-error', 'is-success');
+        if (type) el.classList.add(type === 'success' ? 'is-success' : 'is-error');
+    }
+
+    function setMobile2Verified(number){
+        verifiedMobile2 = number;
+        mobile2Input.value = number;
+        mobile2Btn.textContent = 'Verified';
+        mobile2Btn.classList.add('is-verified');
+        setMobile2Message(mobile2Status, 'Mobile Number 2 verified successfully.', 'success');
+    }
+
+    function openMobile2OtpModal(number){
+        mobile2OtpNumber.textContent = '+91 ' + number;
+        mobile2OtpInput.value = '';
+        setMobile2Message(mobile2OtpStatus, '', null);
+        mobile2OtpModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        setTimeout(function(){ mobile2OtpInput.focus(); }, 50);
+    }
+
+    function closeMobile2OtpModal(){
+        mobile2OtpModal.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    function csrfToken(){
+        return document.querySelector('input[name="_token"]').value;
+    }
+
     if (mobile2Btn && mobile2Input) {
-        mobile2Btn.addEventListener('click', function(){
-            if (mobile2Input.value.trim().length >= 10) {
-                mobile2Btn.textContent = 'Saved';
+        if (verifiedMobile2) {
+            mobile2Btn.classList.add('is-verified');
+        }
+
+        mobile2Input.addEventListener('input', function(){
+            mobile2Input.value = mobile2Input.value.replace(/\D/g, '').slice(0, 10);
+            if (mobile2Input.value !== verifiedMobile2) {
+                mobile2Btn.textContent = 'Verify';
+                mobile2Btn.classList.remove('is-verified');
+                setMobile2Message(mobile2Status, '', null);
+            } else if (verifiedMobile2) {
+                mobile2Btn.textContent = 'Verified';
+                mobile2Btn.classList.add('is-verified');
             }
+        });
+
+        mobile2Btn.addEventListener('click', function(){
+            var number = mobile2Input.value.replace(/\D/g, '');
+
+            if (!/^\d{10}$/.test(number)) {
+                setMobile2Message(mobile2Status, 'Please enter a valid 10 digit mobile number.', 'error');
+                return;
+            }
+
+            if (number === verifiedMobile2) {
+                setMobile2Message(mobile2Status, 'This number is already verified.', 'success');
+                return;
+            }
+
+            mobile2Btn.disabled = true;
+            mobile2Btn.textContent = 'Sending...';
+            setMobile2Message(mobile2Status, '', null);
+
+            fetch("{{ route('user.profile.mobile2.send') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ mobile_2: number })
+            })
+            .then(function(response){
+                return response.json().then(function(data){
+                    if (!response.ok || data.status === false) throw data;
+                    return data;
+                });
+            })
+            .then(function(data){
+                mobile2Btn.textContent = 'Verify';
+                setMobile2Message(mobile2Status, data.message || 'OTP sent on WhatsApp.', 'success');
+                openMobile2OtpModal(number);
+            })
+            .catch(function(error){
+                mobile2Btn.textContent = 'Verify';
+                setMobile2Message(mobile2Status, error.message || 'Could not send OTP. Please try again.', 'error');
+            })
+            .finally(function(){
+                mobile2Btn.disabled = false;
+            });
+        });
+    }
+
+    if (mobile2OtpClose) {
+        mobile2OtpClose.addEventListener('click', closeMobile2OtpModal);
+    }
+
+    if (mobile2OtpModal) {
+        mobile2OtpModal.addEventListener('click', function(e){
+            if (e.target === mobile2OtpModal) {
+                closeMobile2OtpModal();
+            }
+        });
+    }
+
+    if (mobile2OtpInput) {
+        mobile2OtpInput.addEventListener('input', function(){
+            mobile2OtpInput.value = mobile2OtpInput.value.replace(/\D/g, '').slice(0, 6);
+        });
+    }
+
+    if (mobile2OtpSubmit) {
+        mobile2OtpSubmit.addEventListener('click', function(){
+            var number = mobile2Input.value.replace(/\D/g, '');
+            var otp = mobile2OtpInput.value.replace(/\D/g, '');
+
+            if (!/^\d{6}$/.test(otp)) {
+                setMobile2Message(mobile2OtpStatus, 'Please enter the 6 digit OTP.', 'error');
+                return;
+            }
+
+            mobile2OtpSubmit.disabled = true;
+            mobile2OtpSubmit.textContent = 'Verifying...';
+            setMobile2Message(mobile2OtpStatus, '', null);
+
+            fetch("{{ route('user.profile.mobile2.verify') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ mobile_2: number, otp: otp })
+            })
+            .then(function(response){
+                return response.json().then(function(data){
+                    if (!response.ok || data.status === false) throw data;
+                    return data;
+                });
+            })
+            .then(function(data){
+                setMobile2Verified(data.mobile || number);
+                closeMobile2OtpModal();
+            })
+            .catch(function(error){
+                setMobile2Message(mobile2OtpStatus, error.message || 'Invalid OTP. Please try again.', 'error');
+            })
+            .finally(function(){
+                mobile2OtpSubmit.disabled = false;
+                mobile2OtpSubmit.textContent = 'Verify OTP';
+            });
         });
     }
 

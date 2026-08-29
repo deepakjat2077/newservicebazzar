@@ -14,7 +14,12 @@ use App\Models\UserSchedule;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use App\Support\HttpRetry;
+use App\Support\MobileNumber;
 
 class UserController extends Controller
 {
@@ -245,8 +250,16 @@ class UserController extends Controller
         $user->area = $request->area;
         $user->pincode = $request->pincode;
         $user->occupation = $request->occupation;
-        if ($request->filled('mobile_2')) {
-            $user->mobile_2 = $request->mobile_2;
+        $mobile2 = MobileNumber::national($request->mobile_2);
+        if ($mobile2 !== '') {
+            if ($mobile2 !== (string) $user->mobile_2) {
+                return back()->withAlert(['danger', 'Please verify Mobile Number 2 before saving your profile.']);
+            }
+        } elseif (!empty($user->mobile_2)) {
+            $user->mobile_2 = null;
+            if (Schema::hasColumn('users', 'mobile_2_verified')) {
+                $user->mobile_2_verified = 0;
+            }
         }
         if ($canEditEmail && $request->filled('email')) {
             $email = trim($request->email);
@@ -264,6 +277,228 @@ class UserController extends Controller
 
         $alert = ['success','Profile updated successfully'];
         return back()->withAlert($alert);
+    }
+
+    public function sendMobile2Otp(Request $request)
+    {
+        $request->validate([
+            'mobile_2' => ['required', 'digits:10'],
+        ]);
+
+        $user = auth()->user();
+        $mobile = MobileNumber::national($request->mobile_2);
+
+        if ($mobile === MobileNumber::national($user->mobile)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Mobile Number 2 must be different from Mobile Number 1.',
+            ], 422);
+        }
+
+        if ($this->mobile2OwnerExists($mobile, $user->id)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'This number is already used by another user.',
+            ], 422);
+        }
+
+        $apiKey = trim((string) config('services.gupshup.api_key'));
+        $appName = trim((string) config('services.gupshup.app_name'));
+        $source = preg_replace('/\D/', '', (string) config('services.gupshup.source'));
+        $templateId = trim((string) config('services.gupshup.otp_template_id'));
+
+        if ($apiKey === '' || $appName === '' || $source === '' || $templateId === '') {
+            Log::error('Gupshup Mobile Number 2 OTP configuration is incomplete.', [
+                'api_key_exists' => $apiKey !== '',
+                'app_name_exists' => $appName !== '',
+                'source_exists' => $source !== '',
+                'template_exists' => $templateId !== '',
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'WhatsApp configuration is incomplete.',
+            ], 500);
+        }
+
+        $otp = (string) random_int(100000, 999999);
+        $destination = MobileNumber::destination($mobile);
+
+        try {
+            $attempt = HttpRetry::send(function () use ($apiKey, $source, $destination, $appName, $templateId, $otp) {
+                return Http::asForm()
+                    ->connectTimeout(10)
+                    ->timeout(30)
+                    ->withHeaders([
+                        'apikey' => $apiKey,
+                        'Accept' => 'application/json',
+                    ])
+                    ->post('https://api.gupshup.io/wa/api/v1/template/msg', [
+                        'channel' => 'whatsapp',
+                        'source' => $source,
+                        'destination' => $destination,
+                        'src.name' => $appName,
+                        'template' => json_encode([
+                            'id' => $templateId,
+                            'params' => [$otp],
+                        ], JSON_UNESCAPED_SLASHES),
+                    ]);
+            }, 3, 1500, 'gupshup.mobile2.otp', 20);
+
+            $response = $attempt['response'];
+
+            if ($response === null) {
+                Log::error('Gupshup Mobile Number 2 OTP unreachable', [
+                    'destination' => $destination,
+                    'attempts' => $attempt['attempts'],
+                    'error' => optional($attempt['exception'])->getMessage(),
+                ]);
+
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Could not send the OTP right now. Please try again in a moment.',
+                ], 502);
+            }
+
+            $responseData = $response->json();
+
+            Log::info('Gupshup Mobile Number 2 OTP response', [
+                'http_status' => $response->status(),
+                'attempts' => $attempt['attempts'],
+                'response' => $responseData ?: $response->body(),
+                'destination' => $destination,
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => HttpRetry::retryable($response)
+                        ? 'Could not send the OTP right now. Please try again in a moment.'
+                        : ($responseData['message'] ?? 'Gupshup rejected the WhatsApp OTP request.'),
+                ], HttpRetry::clientStatus($response->status()));
+            }
+
+            $status = strtolower((string) ($responseData['status'] ?? ''));
+
+            if (!in_array($status, ['success', 'submitted'], true)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => $responseData['message'] ?? 'Failed to send WhatsApp OTP.',
+                ], 500);
+            }
+
+            session([
+                'profile_mobile2_number' => $mobile,
+                'profile_mobile2_otp' => $otp,
+                'profile_mobile2_otp_expires_at' => now()->addMinutes(10)->timestamp,
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'OTP has been sent successfully via WhatsApp.',
+                'mobile' => $mobile,
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('Gupshup Mobile Number 2 OTP exception', [
+                'exception_class' => get_class($exception),
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'destination' => $destination,
+            ]);
+
+            return response()->json([
+                'status' => false,
+                'message' => config('app.debug')
+                    ? $exception->getMessage()
+                    : 'Unable to connect to the WhatsApp service.',
+            ], 500);
+        }
+    }
+
+    public function verifyMobile2Otp(Request $request)
+    {
+        $request->validate([
+            'mobile_2' => ['required', 'digits:10'],
+            'otp' => ['required', 'digits:6'],
+        ]);
+
+        $user = auth()->user();
+        $mobile = MobileNumber::national($request->mobile_2);
+
+        if (!session()->has('profile_mobile2_number') || !session()->has('profile_mobile2_otp')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Session expired. Please request OTP again.',
+            ], 422);
+        }
+
+        if ($mobile !== session('profile_mobile2_number')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Please verify the same number the OTP was sent to.',
+            ], 422);
+        }
+
+        if (now()->timestamp > session('profile_mobile2_otp_expires_at')) {
+            session()->forget(['profile_mobile2_number', 'profile_mobile2_otp', 'profile_mobile2_otp_expires_at']);
+
+            return response()->json([
+                'status' => false,
+                'message' => 'OTP expired. Please request again.',
+            ], 422);
+        }
+
+        if (!hash_equals((string) session('profile_mobile2_otp'), (string) $request->otp)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid OTP.',
+            ], 422);
+        }
+
+        if ($this->mobile2OwnerExists($mobile, $user->id)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'This number is already used by another user.',
+            ], 422);
+        }
+
+        $user->mobile_2 = $mobile;
+        if (Schema::hasColumn('users', 'mobile_2_verified')) {
+            $user->mobile_2_verified = 1;
+        }
+        $user->save();
+
+        session()->forget(['profile_mobile2_number', 'profile_mobile2_otp', 'profile_mobile2_otp_expires_at']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Mobile Number 2 verified successfully.',
+            'mobile' => $mobile,
+        ]);
+    }
+
+    protected function mobile2OwnerExists(string $mobile, int $ignoreUserId): bool
+    {
+        $variants = MobileNumber::variants($mobile);
+
+        if (empty($variants)) {
+            return false;
+        }
+
+        $stripMobile = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+', ''), '(', ''), ')', '')";
+        $stripMobile2 = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(mobile_2, ' ', ''), '-', ''), '+', ''), '(', ''), ')', '')";
+
+        return User::where('id', '!=', $ignoreUserId)
+            ->where(function ($query) use ($variants, $stripMobile, $stripMobile2) {
+                foreach ($variants as $variant) {
+                    $query->orWhere('mobile', $variant)
+                        ->orWhere('mobile_2', $variant)
+                        ->orWhereRaw("$stripMobile = ?", [$variant])
+                        ->orWhereRaw("$stripMobile2 = ?", [$variant]);
+                }
+            })
+            ->exists();
     }
 
     public function addressStore(Request $request)

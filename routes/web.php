@@ -641,6 +641,8 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
 
                 Route::get('profile', 'UserController@profile')->name('profile');
                 Route::post('profile', 'UserController@profileUpdate');
+                Route::post('profile/mobile-2/send-otp', 'UserController@sendMobile2Otp')->middleware('throttle:5,1')->name('profile.mobile2.send');
+                Route::post('profile/mobile-2/verify-otp', 'UserController@verifyMobile2Otp')->middleware('throttle:10,1')->name('profile.mobile2.verify');
 
                 Route::post('profile/address', 'UserController@addressStore')->name('profile.address.store');
                 Route::delete('profile/address/{address}', 'UserController@addressDestroy')->name('profile.address.destroy');
