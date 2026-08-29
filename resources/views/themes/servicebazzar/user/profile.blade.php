@@ -353,27 +353,6 @@
                 </div>
 
             </div>
-
-            {{-- Right Sidebar: Quick Links --}}
-            <aside class="sb-wizard-side-right">
-                <div class="sb-sidebar-section">
-                    <h6 style="margin-top: 0; color: #666; font-size: 12px; text-transform: uppercase; font-weight: 600;">Looking for work?</h6>
-                    <ul style="list-style: none; padding: 0; margin: 0;">
-                        <li><a href="#full-time" style="display: block; padding: 8px 0; color: #333; text-decoration: none; font-size: 14px;">Full-Time Jobs</a></li>
-                        <li><a href="#part-time" style="display: block; padding: 8px 0; color: #333; text-decoration: none; font-size: 14px;">Part-Time Jobs</a></li>
-                        <li><a href="#freelance" style="display: block; padding: 8px 0; color: #333; text-decoration: none; font-size: 14px;">Freelance Jobs</a></li>
-                    </ul>
-                    <a href="#more-jobs" style="display: block; padding: 12px 0; color: var(--primary-color, #2563eb); text-decoration: none; font-size: 13px; font-weight: 600;">KNOW MORE →</a>
-                </div>
-
-                <div class="sb-sidebar-section" style="border-top: 1px solid #eee; padding-top: 16px; margin-top: 16px;">
-                    <ul style="list-style: none; padding: 0; margin: 0;">
-                        <li><a href="#saved" style="display: flex; align-items: center; gap: 10px; padding: 8px 0; color: #333; text-decoration: none; font-size: 14px;"><i class="las la-bookmark" style="font-size: 18px;"></i>Saved</a></li>
-                        <li><a href="#favorites" style="display: flex; align-items: center; gap: 10px; padding: 8px 0; color: #333; text-decoration: none; font-size: 14px;"><i class="las la-heart" style="font-size: 18px;"></i>Favorites</a></li>
-                        <li><a href="#transactions" style="display: flex; align-items: center; gap: 10px; padding: 8px 0; color: #333; text-decoration: none; font-size: 14px;"><i class="las la-exchange-alt" style="font-size: 18px;"></i>My Transactions</a></li>
-                    </ul>
-                </div>
-            </aside>
         </div>
     </div>
 </section>
@@ -394,7 +373,7 @@
 <style>
     .sb-wizard-shell{
         display:grid;
-        grid-template-columns: 280px 1fr 280px;
+        grid-template-columns: 280px 1fr;
         gap: 24px;
         align-items: start;
     }
