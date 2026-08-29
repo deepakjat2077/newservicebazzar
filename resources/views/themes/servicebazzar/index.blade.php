@@ -3814,7 +3814,7 @@ label.popup-overlay {
 
                                 <div class="trend-card-overlay">
                                     <div>
-                                        <h5 class="trend-card-title">
+                                        <h5 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                             {{ $category->name }}
                                         </h5>
                                     </div>
@@ -4320,7 +4320,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             <div class="trend-card-overlay">
                                 <div>
-                                    <h5 class="trend-card-title">
+                                    <h5 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                         {{ $category->name }}
                                     </h5>
                                 </div>
@@ -4595,9 +4595,9 @@ function scrollPopular(direction){
 .seasonal-same-section .trend-card-overlay > div,
 .popular-same-section .trend-card-overlay > div{
     width: 100% !important;
-    height: 18px !important;
-    min-height: 18px !important;
-    max-height: 18px !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
     display: block !important;
     position: relative !important;
     align-self: flex-end !important;
@@ -4610,20 +4610,36 @@ function scrollPopular(direction){
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    height: 18px !important;
-    min-height: 18px !important;
-    max-height: 18px !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
     margin: 0 !important;
     padding: 0 !important;
     line-height: 1.25 !important;
     display: block !important;
     vertical-align: top !important;
     overflow: hidden !important;
+    text-align: left !important;
+    word-break: normal !important;
+}
+
+.trending-same-section .trend-card-title--words,
+.seasonal-same-section .trend-card-title--words,
+.popular-same-section .trend-card-title--words{
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow-wrap: normal !important;
+}
+
+.trending-same-section .trend-card-title--single,
+.seasonal-same-section .trend-card-title--single,
+.popular-same-section .trend-card-title--single{
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
-    text-align: left !important;
     overflow-wrap: normal !important;
-    word-break: normal !important;
 }
 
 .seasonal-same-section .trend-card-subtitle{
@@ -4634,18 +4650,26 @@ function scrollPopular(direction){
     .trending-same-section .trend-card-overlay > div,
     .seasonal-same-section .trend-card-overlay > div,
     .popular-same-section .trend-card-overlay > div{
-        height: 11px !important;
-        min-height: 11px !important;
-        max-height: 11px !important;
+        height: 21px !important;
+        min-height: 21px !important;
+        max-height: 21px !important;
     }
 
     .trending-same-section .trend-card-title,
     .seasonal-same-section .trend-card-title,
     .popular-same-section .trend-card-title{
+        height: 21px !important;
+        min-height: 21px !important;
+        max-height: 21px !important;
+        line-height: 1.15 !important;
+    }
+
+    .trending-same-section .trend-card-title--single,
+    .seasonal-same-section .trend-card-title--single,
+    .popular-same-section .trend-card-title--single{
         height: 11px !important;
         min-height: 11px !important;
         max-height: 11px !important;
-        line-height: 1.15 !important;
     }
 }
 </style>
@@ -4708,7 +4732,7 @@ function scrollPopular(direction){
                                 <div class="trend-card-overlay">
                                     <div>
 
-                                        <h5 class="trend-card-title">
+                                        <h5 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                             {{ $category->name }}
                                         </h5>
 
