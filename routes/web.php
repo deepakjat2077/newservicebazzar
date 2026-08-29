@@ -5,6 +5,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/health', fn () => response('ok', 200))->name('health');
 
 /*
+ * AI-engine-readable site map (llmstxt.org). Registered up here, ahead of the
+ * catch-all /{slug} route at the bottom of this file, so "llms.txt" is served
+ * as this plain-text map instead of being treated as a page slug.
+ */
+Route::get('/llms.txt', [\App\Http\Controllers\LlmsController::class, 'index'])->name('llms.txt');
+Route::get('/llms-full.txt', [\App\Http\Controllers\LlmsController::class, 'full'])->name('llms.full.txt');
+
+/*
  * One URL to hit after every deploy on hosting where PHP-FPM can't be
  * restarted by hand: `php artisan view:clear` only clears Laravel's own
  * file-based caches, but with opcache.validate_timestamps off (common on

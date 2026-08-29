@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 <head>
 	@include('includes.seo')
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/all.min.css') }}">
@@ -14,7 +14,7 @@
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/starrr.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}">
-    <link rel="preload" as="image" href="{{ asset('assets/servicebazzar.png?v=1') }}">
+    <link rel="preload" as="image" href="{{ asset('assets/servicebazzar.png?v=1') }}" fetchpriority="high">
 	@stack('css')
 
 <link rel="preconnect" href="https://fonts.googleapis.com">

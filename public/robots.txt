@@ -7,6 +7,13 @@ Disallow: /register
 Disallow: /admin
 Disallow: /user
 Disallow: /profile
+Disallow: /dev
+Disallow: /tmp
+
+# Search-result pages are query-driven and hold no unique content of their
+# own — every result already lives on a canonical city/category page.
+Disallow: /listings/search
+Disallow: /search
 
 # Internal AJAX/utility endpoints — JSON responses, not content pages, and
 # some can't carry a noindex meta tag since they never render HTML.

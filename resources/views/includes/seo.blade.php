@@ -39,6 +39,12 @@
 <meta name="keywords" content="{{ $seoKeywords }}">
 <meta name="robots" content="{{ $seoRobots }}">
 <link rel="canonical" href="{{ $seoUrl }}">
+
+{{-- The whole catalogue is India-facing, English content. Both point at the
+     same URL: hreflang tells Google this page targets English speakers in
+     India, and x-default keeps it the fallback for every other locale. --}}
+<link rel="alternate" hreflang="en-in" href="{{ $seoUrl }}">
+<link rel="alternate" hreflang="x-default" href="{{ $seoUrl }}">
 <meta name="google-site-verification" content="B178KugYDqjU7Y2Y6oIbKdwZa2vWRc_aJj5vmyjxmRE" />
 <link rel="shortcut icon" 
       href="{{ asset('assets/images/logo/favicon_new.png') }}" 
@@ -139,3 +145,7 @@
 <script type="application/ld+json">
 {!! str_ireplace('</script', '<\/script', json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) !!}
 </script>
+
+{{-- Page-specific JSON-LD (Breadcrumb, Service, FAQPage, ItemList of
+     LocalBusiness). Only emits blocks whose data a controller has shared. --}}
+@include('includes.schema')

@@ -1573,6 +1573,32 @@ a {
 @endphp
 
 @if(!empty($headingName))
+    @php
+        // Lander context used by the TL;DR answer block and the nearby-cities
+        // module below. A city×service page has $locationText; the nationwide
+        // /[service] hub does not.
+        $landerHasCity  = !empty($locationText);
+        $landerCityName = $landerHasCity ? $dynamicLocation : null;
+        $landerCatSlug  = $selectedCategory?->slug ?? $selectedSubcategory?->slug ?? null;
+        $landerProviders = isset($listings)
+            ? (method_exists($listings, 'total') ? $listings->total() : $listings->count())
+            : 0;
+        $landerServiceName = $selectedSubcategory?->name ?? $selectedCategory?->name ?? $headingName;
+
+        // Popular cities to cross-link this service into (skip the current one).
+        $landerNearbyCities = collect();
+        if ($landerCatSlug && function_exists('activeLocations')) {
+            $landerNearbyCities = activeLocations()
+                ->where('is_popular', 1)
+                ->when($landerCityName, fn ($c) => $c->reject(
+                    fn ($loc) => strtolower($loc->name) === strtolower($landerCityName)
+                ))
+                ->sortBy('name')
+                ->take(10)
+                ->values();
+        }
+    @endphp
+
     <div class="deeke custom-right">
 
         <div class="category-content-header">
@@ -1589,9 +1615,43 @@ a {
             </div>
         </div>
 
+        {{-- Direct-answer TL;DR. AI Overviews and featured snippets preferentially
+             cite a short, self-contained answer at the top of the page. --}}
+        <p class="lander-answer-tldr">
+            @if($landerHasCity)
+                {{ $seoSiteName }} lists
+                @if($landerProviders > 0) {{ $landerProviders }} verified @else verified @endif
+                {{ $landerServiceName }} in {{ $landerCityName }}. Compare providers by rating, price
+                and location, read genuine customer reviews, and contact them directly — {{ $seoSiteName }}
+                is free to use and you pay only the professional at their listed rate.
+            @else
+                {{ $seoSiteName }} lists verified {{ $landerServiceName }} across India. Compare providers
+                by rating, price and location, read genuine customer reviews, and contact them directly —
+                {{ $seoSiteName }} is free to use and you pay only the professional at their listed rate.
+            @endif
+        </p>
+
         @if(!empty(trim(strip_tags($cleanDescription))))
             <div class="category-content-body rich-content">
                 {!! $cleanDescription !!}
+            </div>
+        @endif
+
+        {{-- Nearby-cities internal-link module: same service in other cities.
+             Builds the siloed Service → City internal linking the SEO audit
+             asked for, and gives crawlers a path into every city variant. --}}
+        @if($landerCatSlug && $landerNearbyCities->isNotEmpty())
+            <div class="lander-nearby-cities">
+                <h2>{{ $landerServiceName }} in @if($landerHasCity)nearby @endif cities</h2>
+                <ul class="lander-nearby-cities-list">
+                    @foreach($landerNearbyCities as $nearbyCity)
+                        <li>
+                            <a href="{{ url('/' . $nearbyCity->slug . '/' . $landerCatSlug) }}">
+                                {{ $landerServiceName }} in {{ $nearbyCity->name }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
@@ -1610,6 +1670,50 @@ a {
 .listing-main-title h2 {
     margin: 0;
     display: inline;
+}
+
+.lander-answer-tldr {
+    background: #f6f8fb;
+    border-left: 4px solid var(--primary-color, #2563eb);
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 10px 0 16px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #1a1a1a;
+}
+
+.lander-nearby-cities {
+    margin: 20px 0 8px;
+}
+
+.lander-nearby-cities h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.lander-nearby-cities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+}
+
+.lander-nearby-cities-list li a {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #334155;
+    text-decoration: none;
+    transition: background .15s ease;
+}
+
+.lander-nearby-cities-list li a:hover {
+    background: #e2e8f0;
 }
 </style>
 

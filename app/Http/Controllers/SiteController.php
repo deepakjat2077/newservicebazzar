@@ -1313,8 +1313,18 @@ public function listingsCategory(Request $request, $slug)
         $data['seoRobots'] = 'noindex, follow';
     }
 
+    \App\Support\LanderSchema::attach(
+        $data,
+        $category,
+        $locationName !== '' ? $locationName : null,
+        $data['listings'],
+        $data['listings']->total(),
+        $this->setting->site_name ?? config('app.name')
+    );
+
     return view($this->theme . 'listings.all', $data);
 }
+
 public function listingsSubcategory(Request $request, $slug)
 {
     $subcategory = Subcategory::where('status', 1)
@@ -2936,7 +2946,7 @@ public function serviceKeywordDetails($category, $keyword)
     ));
 }
 
-public function handleSingleSlug($slug)
+public function handleSingleSlug(Request $request, $slug)
 {
     $location = Location::where('status', 1)
         ->where('slug', $slug)
@@ -2944,6 +2954,21 @@ public function handleSingleSlug($slug)
 
     if ($location) {
         return $this->index($slug);
+    }
+
+    /*
+     * Nationwide service hub. A bare category slug (e.g. /packers-and-movers)
+     * used to fall through to linkDetails() and 404; now it lists that service
+     * across every city — the top-level /[service] hub the SEO audit asked for.
+     * Reuses the city/category lander with no location in context, so it also
+     * gets the Service / FAQPage / ItemList JSON-LD for free.
+     */
+    $category = Category::where('status', 1)
+        ->where('slug', $slug)
+        ->first();
+
+    if ($category) {
+        return $this->listingsCategory($request, $slug);
     }
 
     return $this->linkDetails($slug);

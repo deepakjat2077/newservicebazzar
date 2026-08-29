@@ -2777,8 +2777,16 @@ $data['listing'] = $listings->first() ?? (object) [
     'distance' => null,
 ];
 
-
-    
+    // Service / FAQPage / ItemList JSON-LD + city-keyed title & description,
+    // all derived from what this page already renders. See LanderSchema.
+    \App\Support\LanderSchema::attach(
+        $data,
+        $selectedItem,
+        $locationData->name,
+        $listings,
+        $listings->count(),
+        $this->setting->site_name ?? config('app.name')
+    );
 
     return view($this->theme . 'listings.all', $data);
 }

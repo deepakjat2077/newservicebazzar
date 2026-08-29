@@ -3139,7 +3139,22 @@ label.popup-overlay {
 
     
    @php
-    $currentCity = $locationText ?? session('detected_city') ?? 'jaipur';
+    /*
+     * Fallback city for a visitor whose location we don't know yet. Hardcoding
+     * "jaipur" here made the homepage telegraph a Jaipur-first signal to Google
+     * (every no-location category link resolved to Jaipur). Instead rotate the
+     * default across the popular cities by day-of-year — deterministic, so the
+     * 30-minute page cache stays stable, but no single city is the permanent
+     * default. A visitor with a real detected/selected location is unaffected.
+     */
+    $rotationCities = function_exists('activeLocations')
+        ? activeLocations()->where('is_popular', 1)->pluck('name')->values()
+        : collect();
+    $fallbackCity = $rotationCities->isNotEmpty()
+        ? $rotationCities[(int) date('z') % $rotationCities->count()]
+        : 'Jaipur';
+
+    $currentCity = $locationText ?? session('detected_city') ?? $fallbackCity;
 
     if (str_contains($currentCity, ',')) {
         $parts = explode(',', $currentCity);

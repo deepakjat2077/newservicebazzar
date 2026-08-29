@@ -181,8 +181,68 @@
                     {!! \App\Support\ContentHtml::cleanCached($link->content->content ?? '') !!}
                 </div>
 
+                {{-- Cities We Cover: only on About, giving crawlers (and readers)
+                     a direct path into every city hub and reinforcing the
+                     multi-city footprint instead of a Jaipur-only signal. --}}
+                @if(optional($link->content)->slug === 'about-us')
+                    @php
+                        $coveredCities = \App\Models\Location::where('status', 1)
+                            ->orderBy('name')
+                            ->select(['name', 'slug'])
+                            ->get();
+                    @endphp
+                    @if($coveredCities->isNotEmpty())
+                        <div class="cities-we-cover">
+                            <h2>Cities We Cover</h2>
+                            <p>ServiceBazzar connects you with verified local professionals across
+                               {{ $coveredCities->count() }} Indian cities:</p>
+                            <ul class="cities-we-cover-list">
+                                @foreach($coveredCities as $coveredCity)
+                                    <li>
+                                        <a href="{{ url('/' . $coveredCity->slug) }}">{{ $coveredCity->name }}</a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                @endif
+
             </div>
         </div>
     </div>
 </section>
+
+<style>
+    .cities-we-cover {
+        margin-top: 32px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .cities-we-cover h2 {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+    .cities-we-cover-list {
+        list-style: none;
+        padding: 0;
+        margin: 14px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+    }
+    .cities-we-cover-list li a {
+        display: inline-block;
+        padding: 6px 14px;
+        background: #f1f5f9;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #334155;
+        text-decoration: none;
+        transition: background .15s ease;
+    }
+    .cities-we-cover-list li a:hover {
+        background: var(--primary-color, #2563eb);
+        color: #fff;
+    }
+</style>
 @endsection
