@@ -2974,4 +2974,19 @@ public function handleSingleSlug(Request $request, $slug)
     return $this->linkDetails($slug);
 }
 
+public function userProfile($username)
+{
+    $user = User::where('username', $username)->orWhere('first_name', 'LIKE', '%'.$username.'%')->first();
+
+    if (!$user) {
+        abort(404);
+    }
+
+    $data['user'] = $user;
+    $data['seoTitle'] = $user->first_name . ' ' . $user->last_name . ' | ' . ($this->setting->site_name ?? 'ServiceBazzar');
+    $data['seoDescription'] = 'View ' . $user->first_name . '\'s profile on ' . ($this->setting->site_name ?? 'ServiceBazzar');
+
+    return view($this->theme . 'user.profile-view', $data);
+}
+
 }

@@ -1000,3 +1000,11 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->where('pin', '[0-9]{4,10}')
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
+
+/*
+ * Public user profile view: /profile/deepak-choudhary
+ * Registered before catch-all /{slug} so username slugs don't collide with pages.
+ */
+Route::get('/profile/{username}', 'SiteController@userProfile')
+    ->name('user.profile.view')
+    ->where('username', '[a-z0-9_-]+');

@@ -403,11 +403,10 @@
         padding: 20px;
         border-radius: 8px;
         border: 1px solid #eee;
-        display: none; /* Hidden by default */
     }
-    /* Show sidebar only on completion panel (step 4) */
+    /* Hide sidebar on completion panel (step 4 - "You're all set") */
     .sb-wizard-panel[data-step-panel="4"] ~ .sb-wizard-side-right {
-        display: block;
+        display: none;
     }
     .sb-sidebar-section {
         margin-bottom: 16px;
