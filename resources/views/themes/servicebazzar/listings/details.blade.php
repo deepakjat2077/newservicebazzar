@@ -4801,7 +4801,7 @@
             <a href="#"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
-                <i class="las la-edit"></i>
+               <img src="{{ asset('editicon.svg') }}" alt="Edit">
             </a>
         @endif
 
