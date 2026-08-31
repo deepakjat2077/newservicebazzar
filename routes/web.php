@@ -986,6 +986,13 @@ Route::delete('rating/comment/{id}', 'RatingInteractionController@deleteComment'
     Route::post('ajax/popular-categories', 'SiteController@ajaxPopularCategories')
     ->name('ajax.popular.categories');
 Route::get('geocode-address', 'SiteController@geocodeAddress')->name('geocode.address');
+
+    // Pincode lookup for free listing form
+    // IMPORTANT: Must be before the catch-all /{slug} route
+    Route::get('/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
+        ->where('pin', '[0-9]{4,10}')
+        ->name('pincode.fetch');
+
     /*
     |--------------------------------------------------------------------------
     | Useful Links
@@ -1001,7 +1008,7 @@ Route::get('/{slug}', 'SiteController@handleSingleSlug')
 
 use Illuminate\Support\Facades\Http;
 
-// Areas for a pincode. The upstream postal API is missing plenty of real
+// Areas for a pincode in admin panel. The upstream postal API is missing plenty of real
 // pincodes, so this also offers the areas our own listings already use for it
 // — see Admin\PincodeController.
 // Registered outside the admin group, so it does not pick up that group's
@@ -1010,8 +1017,3 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->where('pin', '[0-9]{4,10}')
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
-
-Route::get('/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
-    ->where('pin', '[0-9]{4,10}')
-    ->middleware('web')
-    ->name('pincode.fetch');
