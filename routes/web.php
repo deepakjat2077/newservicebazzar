@@ -88,6 +88,15 @@ Route::match(['GET', 'POST'], '/gupshup/webhook', [
 ])
 ->withoutMiddleware([VerifyCsrfToken::class])
 ->name('gupshup.webhook');
+
+// Pincode lookup route - MUST be before the catch-all /{slug} route
+// Registered here outside the main group so it doesn't get caught by wildcard routes
+Route::middleware('web')->group(function () {
+    Route::get('/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
+        ->where('pin', '[0-9]{4,10}')
+        ->name('pincode.fetch');
+});
+
 Route::namespace('App\Http\Controllers')->middleware(['web'])->group(function () {
 Route::get('/jaipur/maintenance', function () {
     return redirect('/', 301);
@@ -986,6 +995,7 @@ Route::delete('rating/comment/{id}', 'RatingInteractionController@deleteComment'
     Route::post('ajax/popular-categories', 'SiteController@ajaxPopularCategories')
     ->name('ajax.popular.categories');
 Route::get('geocode-address', 'SiteController@geocodeAddress')->name('geocode.address');
+
     /*
     |--------------------------------------------------------------------------
     | Useful Links
@@ -1001,7 +1011,7 @@ Route::get('/{slug}', 'SiteController@handleSingleSlug')
 
 use Illuminate\Support\Facades\Http;
 
-// Areas for a pincode. The upstream postal API is missing plenty of real
+// Areas for a pincode in admin panel. The upstream postal API is missing plenty of real
 // pincodes, so this also offers the areas our own listings already use for it
 // — see Admin\PincodeController.
 // Registered outside the admin group, so it does not pick up that group's
@@ -1010,8 +1020,3 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->where('pin', '[0-9]{4,10}')
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
-
-Route::get('/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
-    ->where('pin', '[0-9]{4,10}')
-    ->middleware('web')
-    ->name('pincode.fetch');
