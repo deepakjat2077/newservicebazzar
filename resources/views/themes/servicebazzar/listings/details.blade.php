@@ -485,6 +485,19 @@
     .edit-listing-btn i{
         font-size:18px;
     }
+
+    .edit-icon-img{
+        width:20px;
+        height:20px;
+        object-fit:contain;
+    }
+
+    .mqa-edit-icon-img{
+        width:24px;
+        height:24px;
+        object-fit:contain;
+    }
+
     body.share-modal-open{
         overflow:hidden !important;
         height:100vh !important;
@@ -3677,7 +3690,22 @@
         <a href="{{ route('listing.edit', $listing->id) }}"
            class="listing-btn edit-listing-btn"
            title="Edit Listing">
-            <i class="las la-edit"></i>
+            @php
+                $editIconPath = 'assets/editicon';
+                $editIconExt = '';
+                // Check for uploaded edit icon with any extension
+                foreach(['png', 'svg', 'jpg', 'jpeg', 'gif'] as $ext) {
+                    if (file_exists(public_path($editIconPath . '.' . $ext))) {
+                        $editIconExt = $ext;
+                        break;
+                    }
+                }
+            @endphp
+            @if($editIconExt)
+                <img src="{{ asset($editIconPath . '.' . $editIconExt) }}" alt="Edit" class="edit-icon-img">
+            @else
+                <i class="las la-edit"></i>
+            @endif
         </a>
     @endif
     </div>
@@ -3782,10 +3810,27 @@
 
                                 {{-- Edit Button - Only visible to listing owner (mobile) --}}
                                 @if(auth()->check() && auth()->id() === $listing->user_id)
+                                    @php
+                                        $editIconPath = 'assets/editicon';
+                                        $editIconExt = '';
+                                        // Check for uploaded edit icon with any extension
+                                        foreach(['png', 'svg', 'jpg', 'jpeg', 'gif'] as $ext) {
+                                            if (file_exists(public_path($editIconPath . '.' . $ext))) {
+                                                $editIconExt = $ext;
+                                                break;
+                                            }
+                                        }
+                                    @endphp
                                     <a href="{{ route('listing.edit', $listing->id) }}"
                                        class="mqa-btn mqa-edit"
                                        title="Edit Listing">
-                                        <span class="mqa-icon"><i class="las la-edit"></i></span>
+                                        <span class="mqa-icon">
+                                            @if($editIconExt)
+                                                <img src="{{ asset($editIconPath . '.' . $editIconExt) }}" alt="Edit" class="mqa-edit-icon-img">
+                                            @else
+                                                <i class="las la-edit"></i>
+                                            @endif
+                                        </span>
                                         <span class="mqa-label">Edit</span>
                                     </a>
                                 @endif
