@@ -88,6 +88,15 @@ Route::match(['GET', 'POST'], '/gupshup/webhook', [
 ])
 ->withoutMiddleware([VerifyCsrfToken::class])
 ->name('gupshup.webhook');
+
+// Pincode lookup route - MUST be before the catch-all /{slug} route
+// Registered here outside the main group so it doesn't get caught by wildcard routes
+Route::middleware('web')->group(function () {
+    Route::get('/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
+        ->where('pin', '[0-9]{4,10}')
+        ->name('pincode.fetch');
+});
+
 Route::namespace('App\Http\Controllers')->middleware(['web'])->group(function () {
 Route::get('/jaipur/maintenance', function () {
     return redirect('/', 301);
@@ -986,12 +995,6 @@ Route::delete('rating/comment/{id}', 'RatingInteractionController@deleteComment'
     Route::post('ajax/popular-categories', 'SiteController@ajaxPopularCategories')
     ->name('ajax.popular.categories');
 Route::get('geocode-address', 'SiteController@geocodeAddress')->name('geocode.address');
-
-    // Pincode lookup for free listing form
-    // IMPORTANT: Must be before the catch-all /{slug} route
-    Route::get('/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
-        ->where('pin', '[0-9]{4,10}')
-        ->name('pincode.fetch');
 
     /*
     |--------------------------------------------------------------------------
