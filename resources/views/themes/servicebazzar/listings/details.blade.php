@@ -3651,7 +3651,7 @@
     {{-- Share button: moved before edit button for better layout --}}
     <div class="share-hover-wrap">
         <button type="button" class="listing-btn share-btn-icon" title="Share">
-            <i class="fas fa-share-alt"></i>
+            <i class="fas fa-share"></i>
         </button>
 
         <div class="share-hover-popup">
@@ -5577,9 +5577,9 @@
         <div class="review-stars">
             @for($i=1;$i<=5;$i++)
                 @if($i <= $rating->ratings)
-                    <i class="fas fa-star"></i>
+                    <i class="fas fa-gem"></i>
                 @else
-                    <i class="far fa-star"></i>
+                    <i class="far fa-gem"></i>
                 @endif
             @endfor
         </div>
