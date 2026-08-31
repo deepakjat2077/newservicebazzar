@@ -3626,23 +3626,10 @@
         Get Best Price
     </button>
 
-    {{-- Edit button: accessible only to listing owner. Opens editing interface
-         for all listing sections (photos, overview, etc.). --}}
-    @auth
-        @if(auth()->id() === $listing->user_id)
-            <a href="{{ route('user.listing.edit', $listing->id) }}"
-               class="listing-btn"
-               title="Edit Listing"
-               style="cursor: pointer;">
-                <img src="{{ asset('assets/editicon.svg') }}" alt="Edit listing" style="width: 20px; height: 20px;">
-            </a>
-        @endif
-    @endauth
-
+    {{-- Share button: moved before edit button for better layout --}}
     <div class="share-hover-wrap">
-
-        <button type="button" style="cursor: pointer;" class="listing-btn share-btn-icon">
-    <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing">
+        <button type="button" class="listing-btn share-btn-icon" title="Share">
+            <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing">
         </button>
 
         <div class="share-hover-popup">
@@ -3696,6 +3683,18 @@
         </a>
     @endif
     </div>
+
+    {{-- Edit button: accessible only to listing owner. Positioned after share. --}}
+    @auth
+        @if(auth()->id() === $listing->user_id)
+            <a href="{{ route('user.listing.edit', $listing->id) }}"
+               class="listing-btn"
+               title="Edit Listing"
+               style="padding: 8px 12px; display: flex; align-items: center; justify-content: center;">
+                <img src="{{ asset('assets/editicon.svg') }}" alt="Edit listing" style="width: 22px; height: 22px;">
+            </a>
+        @endif
+    @endauth
                             </div>
 
                             {{--
@@ -4812,19 +4811,19 @@
 
     
 
+        {{-- Share button - sticky bar --}}
         <button type="button"
-        style="cursor: pointer;"
-            class="listing-btn share-btn-icon"
+                class="listing-btn share-btn-icon"
                 id="listingShareBtn"
                 data-url="{{ url()->current() }}"
-                data-text="{{ $listing->name }}">
-
-        <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing" loading="lazy">
+                data-text="{{ $listing->name }}"
+                title="Share">
+            <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing" loading="lazy">
         </button>
 
         {{-- Edit Button - Only visible to listing owner --}}
         @if(auth()->check() && auth()->id() === $listing->user_id)
-            <a href="#"
+            <a href="{{ route('user.listing.edit', $listing->id) }}"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
             <img src="{{ asset('assets/editicon.svg') }}" alt="Edit" loading="lazy">
