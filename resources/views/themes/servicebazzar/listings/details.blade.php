@@ -3687,7 +3687,7 @@
 
     {{-- Edit Button - Only visible to listing owner --}}
     @if(auth()->check() && auth()->id() === $listing->user_id)
-        <a href="{{ route('listing.edit', $listing->id) }}"
+        <a href="{{ route('user.listing.edit', $listing->id) }}"
            class="listing-btn edit-listing-btn"
            title="Edit Listing">
             @php
@@ -3821,7 +3821,7 @@
                                             }
                                         }
                                     @endphp
-                                    <a href="{{ route('listing.edit', $listing->id) }}"
+                                    <a href="{{ route('user.listing.edit', $listing->id) }}"
                                        class="mqa-btn mqa-edit"
                                        title="Edit Listing">
                                         <span class="mqa-icon">
@@ -4843,10 +4843,25 @@
 
         {{-- Edit Button - Only visible to listing owner --}}
         @if(auth()->check() && auth()->id() === $listing->user_id)
-            <a href="{{ route('listing.edit', $listing->id) }}"
+            @php
+                $editIconPath = 'assets/editicon';
+                $editIconExt = '';
+                // Check for uploaded edit icon with any extension
+                foreach(['png', 'svg', 'jpg', 'jpeg', 'gif'] as $ext) {
+                    if (file_exists(public_path($editIconPath . '.' . $ext))) {
+                        $editIconExt = $ext;
+                        break;
+                    }
+                }
+            @endphp
+            <a href="{{ route('user.listing.edit', $listing->id) }}"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
-                <i class="las la-edit"></i>
+                @if($editIconExt)
+                    <img src="{{ asset($editIconPath . '.' . $editIconExt) }}" alt="Edit" class="edit-icon-img">
+                @else
+                    <i class="las la-edit"></i>
+                @endif
             </a>
         @endif
 
