@@ -2976,13 +2976,28 @@ public function handleSingleSlug(Request $request, $slug)
 
 public function userProfile($username)
 {
-    // Search by username (exact), first_name (case-insensitive), or slug variants
-    $user = User::where(function($q) use ($username) {
-        $q->where('username', $username)
-          ->orWhereRaw("LOWER(first_name) = LOWER(?)", [$username])
-          ->orWhereRaw("LOWER(CONCAT(LOWER(first_name), '-', LOWER(last_name))) = ?", [strtolower($username)])
-          ->orWhereRaw("LOWER(CONCAT(LOWER(first_name), '_', LOWER(last_name))) = ?", [strtolower($username)]);
-    })->first();
+    // Prefer the logged-in user when the requested handle resolves to their own
+    // profile. Names/slugs aren't unique, so the fuzzy lookup below can pick a
+    // *different* user who shares the same name — which would hide the owner's
+    // Edit button and show the wrong avatar. Matching the authenticated user
+    // first guarantees the owner always sees their own profile.
+    $authUser = auth()->user();
+    $handle = strtolower($username);
+    if ($authUser && (
+            strtolower((string) $authUser->username) === $handle
+            || \Illuminate\Support\Str::slug($authUser->first_name.' '.$authUser->last_name) === $handle
+            || strtolower(trim($authUser->first_name.'_'.$authUser->last_name)) === $handle
+        )) {
+        $user = $authUser;
+    } else {
+        // Search by username (exact), first_name (case-insensitive), or slug variants
+        $user = User::where(function($q) use ($username) {
+            $q->where('username', $username)
+              ->orWhereRaw("LOWER(first_name) = LOWER(?)", [$username])
+              ->orWhereRaw("LOWER(CONCAT(LOWER(first_name), '-', LOWER(last_name))) = ?", [strtolower($username)])
+              ->orWhereRaw("LOWER(CONCAT(LOWER(first_name), '_', LOWER(last_name))) = ?", [strtolower($username)]);
+        })->first();
+    }
 
     if (!$user) {
         abort(404);

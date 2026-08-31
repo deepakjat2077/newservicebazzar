@@ -30,7 +30,7 @@
     $bizLoc = function ($listing) {
         return trim(collect([optional($listing->location)->name ?: $listing->city, $listing->state])->filter()->implode(', '), ', ');
     };
-    $isOwner = auth()->check() && auth()->id() === $user->id;
+    $isOwner = auth()->check() && (int) auth()->id() === (int) $user->id;
 @endphp
 
 <div class="sbsocial-wrap">
