@@ -848,17 +848,5 @@
 </section>
 @endif
 
-{{-- Default FAQ section when no custom FAQs are set. Provides E-A-T signals
-     for thin service pages via generic questions relevant to the service. --}}
-@if(empty($faqs) && !empty($service))
-    @php
-        $faqServiceName = $service->title ?? null;
-        $faqServiceDesc = $service->description ?? null;
-    @endphp
-    @include($themeView.'partials.default-faq', [
-        'categoryName' => $faqServiceName,
-        'categoryDescription' => $faqServiceDesc,
-    ])
-@endif
 
 @endsection
