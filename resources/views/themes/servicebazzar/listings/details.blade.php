@@ -3625,6 +3625,20 @@
 
         Get Best Price
     </button>
+
+    {{-- Edit button: accessible only to listing owner. Opens editing interface
+         for all listing sections (photos, overview, etc.). --}}
+    @auth
+        @if(auth()->id() === $listing->user_id)
+            <a href="{{ route('user.listing.edit', $listing->id) }}"
+               class="listing-btn"
+               title="Edit Listing"
+               style="cursor: pointer;">
+                <img src="{{ asset('assets/editicon.svg') }}" alt="Edit listing" style="width: 20px; height: 20px;">
+            </a>
+        @endif
+    @endauth
+
     <div class="share-hover-wrap">
 
         <button type="button" style="cursor: pointer;" class="listing-btn share-btn-icon">
@@ -4978,14 +4992,9 @@
                 <div class="content-section mb-4" id="photosSection">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h4 class="media-title mb-0">Photos</h4>
-
-            @auth
-                @if(auth()->id() == $listing->user_id)
-                    <button type="button" class="edit-section-btn" onclick="toggleInlineSection('photos')">
-                        <i class="las la-edit"></i>
-                    </button>
-                @endif
-            @endauth
+            {{-- Editing all listing details (photos, overview, etc.) is now
+                 centralized via the main edit button at the top. Inline edit
+                 buttons removed to avoid UX confusion. --}}
         </div>
 
         {{-- VIEW MODE --}}
@@ -5040,14 +5049,7 @@
                 <div class="content-section mb-4" id="overviewSection">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h4 class="media-title mb-0">Overview</h4>
-
-                        @auth
-                            @if(auth()->id() == $listing->user_id)
-                                <button type="button" class="edit-section-btn" onclick="toggleInlineSection('overview')">
-                                    <i class="las la-edit"></i>
-                                </button>
-                            @endif
-                        @endauth
+                        {{-- Editing centralized via main edit button (see top of page). --}}
                     </div>
 
 
