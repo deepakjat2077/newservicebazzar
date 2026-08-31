@@ -1198,16 +1198,13 @@ locationInput.addEventListener("keydown", function(e){
                  an extra convenience, but is NOT the primary fallback — the plain text
                  input and form submission are. The dropdown submits the form directly
                  (no JS required) by selecting a category and clicking a submit button. --}}
-            <div style="margin-top: 8px; padding: 8px 0; border-top: 1px solid #eee;">
-                <label for="noScriptCategoryFallback" style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">
-                    Popular Categories (when JavaScript is disabled):
-                </label>
+            <div style="margin-top: 8px;">
                 <div style="display: flex; gap: 4px; align-items: center;">
                     {{-- Dropdown of top 20 active categories. When selected, this
                          form submits directly (standard HTML form behavior, no JS). --}}
                     <select name="categorysearch" id="noScriptCategoryFallback"
                             style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                        <option value="">-- Pick a category or type above --</option>
+                        <option value="">Select a popular category</option>
                         @foreach(\App\Models\Category::where('status', 1)->orderBy('name')->limit(20)->get() as $cat)
                             <option value="{{ $cat->name }}">{{ $cat->name }}</option>
                         @endforeach
