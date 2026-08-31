@@ -4823,14 +4823,7 @@
             <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing" loading="lazy">
         </button>
 
-        {{-- Edit Button - Only visible to listing owner --}}
-        @if(auth()->check() && auth()->id() === $listing->user_id)
-            <a href="{{ route('user.listing.edit', $listing->id) }}"
-               class="listing-btn edit-listing-btn"
-               title="Edit Listing">
-            <img src="{{ asset('assets/editicon.svg') }}" alt="Edit" loading="lazy">
-            </a>
-        @endif
+      
 
     </div>
 
