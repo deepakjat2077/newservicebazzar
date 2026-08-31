@@ -1151,6 +1151,12 @@ body.mobile-yt-search-open #ytMobileSearchInput{
     @if(!empty($searchCategoryId)) data-search-category-id="{{ $searchCategoryId }}" @endif
     @if(!empty($searchLocationId)) data-search-location-id="{{ $searchLocationId }}" @endif
 >
+@auth
+    @php
+        $sbHeaderBusiness = auth()->user()->listings()->latest()->first();
+        $sbHasBusinessListing = (bool) $sbHeaderBusiness;
+    @endphp
+@endauth
     <a href="#main-content" class="skip-link">
     Skip to main content
 </a>
@@ -1357,10 +1363,17 @@ window.addEventListener('pageshow', function () {
             @lang('Free Listing')
         </a>
     @else
-        <a href="{{ route('user.listing.index') }}" class="nav-link">
-            <i class="fa-solid fa-briefcase me-1"></i>
-            @lang('My Business')
-        </a>
+        @if($sbHasBusinessListing)
+            <a href="{{ route('user.listing.index') }}" class="nav-link">
+                <i class="fa-solid fa-briefcase me-1"></i>
+                @lang('My Business')
+            </a>
+        @else
+            <a href="{{ route('free.listing') }}" class="nav-link">
+                <i class="fa-solid fa-arrow-trend-up me-1"></i>
+                @lang('Free Listing')
+            </a>
+        @endif
     @endguest
 </li>
 							@guest
@@ -1438,9 +1451,15 @@ window.addEventListener('pageshow', function () {
 				Free Listing
 			</a>
 		@else
-			<a href="{{ route('user.listing.index') }}" class="mobile-action-btn">
-				My Business
-			</a>
+            @if($sbHasBusinessListing)
+                <a href="{{ route('user.listing.index') }}" class="mobile-action-btn">
+                    My Business
+                </a>
+            @else
+                <a href="{{ route('free.listing') }}" class="mobile-action-btn">
+                    Free Listing
+                </a>
+            @endif
 		@endguest
 	</div>
 
@@ -4339,7 +4358,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // already run — pulled straight from this user's own listings
         // rather than anything typed in on this page, so it's only ever as
         // current as the listing itself.
-        $sbMyBusiness = auth()->user()->listings()->latest()->first();
+        $sbMyBusiness = $sbHeaderBusiness;
     @endphp
 
     <div class="sb-profile-menu">
