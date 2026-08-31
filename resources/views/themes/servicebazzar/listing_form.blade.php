@@ -1511,6 +1511,10 @@ const pin = match[1];
                     "{{ route('pincode.fetch', ['pin' => '__PIN__']) }}".replace("__PIN__", pin)
                 );
 
+                if (!response.ok) {
+                    throw new Error('HTTP error, status: ' + response.status);
+                }
+
                 const data = await response.json();
 
                 const cityField =
@@ -1624,7 +1628,10 @@ const pin = match[1];
                         );
                     }
 
+                } else if (data) {
+                    console.warn("Area not found for pincode " + pin, data);
                 } else {
+                    console.warn("Invalid response for pincode " + pin);
                     alert("Area not found for this pincode. Please use Add manually.");
                 }
 
@@ -1633,6 +1640,7 @@ const pin = match[1];
                     "Error fetching pincode data:",
                     error
                 );
+                alert("Unable to fetch area data. Please use Add manually.");
             }
         });
     }
