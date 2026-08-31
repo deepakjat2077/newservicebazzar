@@ -628,6 +628,14 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
         });
 
 
+        // Public user profile view: /user/profile/deepak-choudhary
+        // Placed above the auth block so it stays publicly accessible. The
+        // {username} segment can't collide with the auth-only `profile`
+        // (GET /user/profile) route since that one has no third segment.
+        Route::get('profile/{username}', 'SiteController@userProfile')
+            ->name('profile.view')
+            ->where('username', '[a-z0-9_-]+');
+
         Route::middleware('auth')->group(function () {
 
             Route::get('verification', 'Auth\VerificationController@index')->name('verification');
@@ -1001,14 +1009,3 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
 
-/*
- * Public user profile view: /SbSocial/profile/deepak-choudhary
- * Registered outside the `App\Http\Controllers` namespace group (which closes
- * at line 990), so — like the pincode route above — it must use the
- * fully-qualified controller class, not the bare 'SiteController@...' string.
- */
-Route::prefix('SbSocial')->middleware('web')->group(function () {
-    Route::get('/profile/{username}', [\App\Http\Controllers\SiteController::class, 'userProfile'])
-        ->name('user.profile.view')
-        ->where('username', '[a-z0-9_-]+');
-});
