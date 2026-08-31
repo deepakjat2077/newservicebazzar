@@ -178,9 +178,9 @@
 
 /* profile card */
 .sbsocial-cover{height:110px;background:linear-gradient(135deg,#7c93f0 0%,#667eea 40%,#764ba2 100%);}
-.sbsocial-identity{padding:0 18px 4px;display:flex;align-items:flex-end;gap:12px;margin-top:-42px;}
+.sbsocial-identity{padding:0 18px 12px;display:flex;align-items:flex-end;gap:12px;margin-top:-42px;}
 .sbsocial-avatar{width:92px;height:92px;border-radius:50%;border:4px solid #fff;object-fit:cover;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.12);}
-.sbsocial-idtext{padding-bottom:6px;}
+.sbsocial-idtext{transform:translateY(14px);}
 .sbsocial-name{font-size:19px;font-weight:700;color:#111;margin:0;line-height:1.2;}
 .sbsocial-posts{font-size:13px;color:#6b7280;}
 .sbsocial-edit-btn{display:block;margin:14px 18px 18px;padding:9px;text-align:center;border:1px solid #d7dae0;
