@@ -44,12 +44,14 @@ class PackageController extends Controller
     protected function packageData($package,$request){
     	$package->name = $request->name;
     	$package->price = $request->price;
-    	$package->listing_allow = $request->listing_allow;
-    	$package->features_allow = $request->features_allow;
-    	$package->featured_allow = $request->featured_allow;
-    	$package->image_allow = $request->image_allow;
+    	// These per-account quota fields are legacy/optional now that a package
+    	// applies to a single listing — default them to 0 when left blank.
+    	$package->listing_allow = $request->listing_allow ?? 0;
+    	$package->features_allow = $request->features_allow ?? 0;
+    	$package->featured_allow = $request->featured_allow ?? 0;
+    	$package->image_allow = $request->image_allow ?? 0;
     	$package->validity = $request->validity;
-        $package->contact_allow = $request->contact_allow;
+        $package->contact_allow = $request->contact_allow ?? 0;
         // Marketing fields for the public "Advertise" plan card. `features` is a
         // free-text list (one feature per line) that renders as the green-tick
         // "Features Included" checklist.
@@ -64,12 +66,12 @@ class PackageController extends Controller
     $request->validate([
         'name'=>'required',
         'price'=>'required|numeric|gte:0',
-        'listing_allow'=>'required|integer|gte:0',
-        'features_allow'=>'required|integer|gte:0',
-        'featured_allow'=>'required|integer|gte:0',
-        'image_allow'=>'required|integer|gte:0',
         'validity'=>'required|integer|gte:0',
-        'contact_allow'=>'required|integer|gte:0',
+        'listing_allow'=>'nullable|integer|gte:0',
+        'features_allow'=>'nullable|integer|gte:0',
+        'featured_allow'=>'nullable|integer|gte:0',
+        'image_allow'=>'nullable|integer|gte:0',
+        'contact_allow'=>'nullable|integer|gte:0',
         'features'=>'nullable|string',
         'old_price'=>'nullable|numeric|gte:0',
         'tag'=>'nullable|string|max:40',

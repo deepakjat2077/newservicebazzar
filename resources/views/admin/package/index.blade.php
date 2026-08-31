@@ -126,36 +126,6 @@
 							</div>
 						</div>
 						<div class="form-group row">
-							<label class="col-sm-3">@lang('Listing Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="listing_allow" placeholder="@lang('How many listing allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Feature Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="features_allow" placeholder="@lang('How many feature allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Contact Info Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="contact_allow" placeholder="@lang('How many contact info allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Featured Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="featured_allow" placeholder="@lang('How many featured item allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Image Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="image_allow" placeholder="@lang('How many image allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
 							<label class="col-sm-3">@lang('Features Included')</label>
 							<div class="col-sm-9">
 								<textarea name="features" rows="6" class="form-control" placeholder="One feature per line, e.g.&#10;Guaranteed Leads&#10;Online Catalogue&#10;Verified Seal"></textarea>
@@ -226,36 +196,6 @@
 							</div>
 						</div>
 						<div class="form-group row">
-							<label class="col-sm-3">@lang('Listing Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="listing_allow" placeholder="@lang('How many listing allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Feature Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="features_allow" placeholder="@lang('How many feature allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Contact Info Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="contact_allow" placeholder="@lang('How many contact info allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Featured Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="featured_allow" placeholder="@lang('How many featured item allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
-							<label class="col-sm-3">@lang('Image Allow')</label>
-							<div class="col-sm-9">
-								<input type="number" name="image_allow" placeholder="@lang('How many image allow?')" class="form-control" required>
-							</div>
-						</div>
-						<div class="form-group row">
 							<label class="col-sm-3">@lang('Features Included')</label>
 							<div class="col-sm-9">
 								<textarea name="features" rows="6" class="form-control" placeholder="One feature per line"></textarea>
@@ -302,11 +242,6 @@
 			modal.find('input[name=price]').val($(this).data('price'));
 			modal.find('input[name=old_price]').val($(this).data('old_price'));
 			modal.find('input[name=validity]').val($(this).data('validity'));
-			modal.find('input[name=listing_allow]').val($(this).data('listing_allow'));
-			modal.find('input[name=features_allow]').val($(this).data('features_allow'));
-			modal.find('input[name=featured_allow]').val($(this).data('featured_allow'));
-			modal.find('input[name=image_allow]').val($(this).data('image_allow'));
-			modal.find('input[name=contact_allow]').val($(this).data('contact_allow'));
 			modal.find('textarea[name=features]').val($(this).data('features'));
 			modal.find('input[name=tag]').val($(this).data('tag'));
 			modal.find('input[name=is_popular]').prop('checked', $(this).data('is_popular') == 1);
