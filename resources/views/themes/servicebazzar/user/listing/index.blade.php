@@ -91,14 +91,17 @@
               <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbbiz-btn sbbiz-btn--primary">
                 <i class="las la-bullhorn"></i> Get Daily Leads
               </a>
-              <a href="{{ route('user.listing.dashboard', ['id' => $listing->id, 'profile' => 1]) }}" class="sbbiz-btn">
-                <i class="las la-user-edit"></i> Edit Business Profile
-              </a>
               @if($approved)
+                <a href="{{ route('user.listing.dashboard', ['id' => $listing->id, 'profile' => 1]) }}" class="sbbiz-btn">
+                  <i class="las la-user-edit"></i> Edit Business Profile
+                </a>
                 <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sbbiz-btn">
                   <i class="las la-images"></i> Edit Catalogue
                 </a>
               @else
+                <span class="sbbiz-btn is-disabled" title="{{ $lockTitle }}">
+                  <i class="las la-user-edit"></i> Edit Business Profile
+                </span>
                 <span class="sbbiz-btn is-disabled" title="{{ $lockTitle }}">
                   <i class="las la-images"></i> Edit Catalogue
                 </span>
