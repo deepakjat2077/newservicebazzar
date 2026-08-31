@@ -51,16 +51,30 @@
         $scoreClass = $score >= 70 ? 'is-good' : ($score >= 40 ? 'is-avg' : 'is-poor');
         $scoreLabel = $score >= 70 ? 'Good' : ($score >= 40 ? 'Average' : 'Poor');
         $loc = $bizLoc($listing);
+        // A listing is only manageable once approved. While it's pending or
+        // rejected, the management shortcuts stay locked.
+        $approved = (int) $listing->status === 1;
+        $lockTitle = 'Available once your business is approved';
       @endphp
 
       <div class="sbbiz-card">
-        <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sbbiz-thumb">
-          <img src="{{ $bizImage($listing) }}" alt="{{ $listing->name }}" loading="lazy">
-        </a>
+        @if($approved)
+          <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sbbiz-thumb">
+            <img src="{{ $bizImage($listing) }}" alt="{{ $listing->name }}" loading="lazy">
+          </a>
+        @else
+          <span class="sbbiz-thumb">
+            <img src="{{ $bizImage($listing) }}" alt="{{ $listing->name }}" loading="lazy">
+          </span>
+        @endif
 
         <div class="sbbiz-body">
           <div class="sbbiz-main">
-            <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sbbiz-name">{{ $listing->name }}</a>
+            @if($approved)
+              <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sbbiz-name">{{ $listing->name }}</a>
+            @else
+              <span class="sbbiz-name">{{ $listing->name }}</span>
+            @endif
             @if($loc)
               <p class="sbbiz-loc"><i class="las la-map-marker"></i> {{ $loc }}</p>
             @endif
@@ -77,12 +91,18 @@
               <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbbiz-btn sbbiz-btn--primary">
                 <i class="las la-bullhorn"></i> Get Daily Leads
               </a>
-              <a href="{{ route('user.listing.edit', $listing->id) }}" class="sbbiz-btn">
+              <a href="{{ route('user.listing.dashboard', ['id' => $listing->id, 'profile' => 1]) }}" class="sbbiz-btn">
                 <i class="las la-user-edit"></i> Edit Business Profile
               </a>
-              <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sbbiz-btn">
-                <i class="las la-images"></i> Edit Catalogue
-              </a>
+              @if($approved)
+                <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sbbiz-btn">
+                  <i class="las la-images"></i> Edit Catalogue
+                </a>
+              @else
+                <span class="sbbiz-btn is-disabled" title="{{ $lockTitle }}">
+                  <i class="las la-images"></i> Edit Catalogue
+                </span>
+              @endif
             </div>
           </div>
 
@@ -91,7 +111,11 @@
               <span class="sbbiz-ring-val">{{ $score }}%</span>
               <span class="sbbiz-ring-lbl">{{ $scoreLabel }}</span>
             </div>
-            <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sbbiz-score-link">Increase Profile Score</a>
+            @if($approved)
+              <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sbbiz-score-link">Increase Profile Score</a>
+            @else
+              <span class="sbbiz-score-link is-disabled" title="{{ $lockTitle }}">Increase Profile Score</span>
+            @endif
           </div>
         </div>
       </div>
@@ -146,6 +170,8 @@
 .sbbiz-btn i{font-size:16px;}
 .sbbiz-btn--primary{background:#1a73e8;color:#fff;border-color:#1a73e8;}
 .sbbiz-btn--primary:hover{background:#1662c4;color:#fff;border-color:#1662c4;}
+.sbbiz-btn.is-disabled{color:#9ca3af;background:#f8fafc;border-color:#e5e7eb;cursor:default;}
+.sbbiz-btn.is-disabled:hover{color:#9ca3af;background:#f8fafc;border-color:#e5e7eb;}
 
 .sbbiz-score{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;}
 .sbbiz-ring{--val:0;width:96px;height:96px;border-radius:50%;display:flex;flex-direction:column;
@@ -162,6 +188,8 @@
 .sbbiz-ring.is-poor .sbbiz-ring-lbl{color:#e23744;}
 .sbbiz-score-link{font-size:12px;font-weight:600;color:#1a73e8;text-decoration:none;}
 .sbbiz-score-link:hover{text-decoration:underline;}
+.sbbiz-score-link.is-disabled{color:#9ca3af;cursor:default;}
+.sbbiz-score-link.is-disabled:hover{text-decoration:none;}
 
 .sbbiz-empty{background:#fff;border:1px solid #e7e9ee;border-radius:14px;padding:56px 20px;text-align:center;color:#6b7280;}
 .sbbiz-empty i{font-size:52px;display:block;margin-bottom:12px;color:#c3c8d1;}

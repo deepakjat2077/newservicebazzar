@@ -863,6 +863,10 @@ public function updatesection(Request $request, $id)
     public function businessDashboard($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+        $ownerListings = Listing::where('user_id', auth()->id())
+            ->with('location')
+            ->orderBy('id', 'desc')
+            ->get();
 
         // type='enquiry' only — quotation requests (see requestQuoteStore())
         // are a different thing with their own count below, not folded into
@@ -888,7 +892,7 @@ public function updatesection(Request $request, $id)
         return view($this->theme.'user.listing.dashboard', compact(
             'listing', 'todayCount', 'totalCount', 'missedCount',
             'respondedCount', 'respondedPercent', 'hotCount', 'recentEnquiries',
-            'quotationCount'
+            'quotationCount', 'ownerListings'
         ));
     }
 

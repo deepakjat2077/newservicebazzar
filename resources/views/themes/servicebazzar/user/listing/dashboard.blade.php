@@ -7,7 +7,17 @@
         <div class="sb-biz-header">
             <a href="{{ route('user.listing.index') }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
-                <h4>{{ $listing->name }}</h4>
+                @if(isset($ownerListings) && $ownerListings->count() > 1)
+                    <select class="sb-biz-switcher" id="sbBusinessSwitcher" aria-label="Select business profile">
+                        @foreach($ownerListings as $ownerListing)
+                            <option value="{{ route('user.listing.dashboard', $ownerListing->id) }}" @selected($ownerListing->id === $listing->id)>
+                                {{ $ownerListing->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                @else
+                    <h4>{{ $listing->name }}</h4>
+                @endif
                 <span>{{ optional($listing->location)->name ?? $listing->area }}</span>
             </div>
         </div>
@@ -415,6 +425,13 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+    var businessSwitcher = document.getElementById('sbBusinessSwitcher');
+    if (businessSwitcher) {
+        businessSwitcher.addEventListener('change', function(){
+            if (this.value) window.location.href = this.value;
+        });
+    }
+
     var openBtn = document.getElementById('sbBizViewMoreBtn');
     var overlay = document.getElementById('sbBizModalOverlay');
     var closeBtn = document.getElementById('sbBizModalClose');
@@ -438,6 +455,10 @@ document.addEventListener('DOMContentLoaded', function(){
         profileCloseBtn.addEventListener('click', function(){ profileOverlay.classList.remove('show'); });
     }
     profileOverlay.addEventListener('click', function(e){ if (e.target === profileOverlay) profileOverlay.classList.remove('show'); });
+
+    @if(request()->boolean('profile'))
+        profileOverlay.classList.add('show');
+    @endif
 });
 </script>
 @endpush
