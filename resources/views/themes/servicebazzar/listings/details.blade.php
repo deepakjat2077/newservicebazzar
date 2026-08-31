@@ -4801,7 +4801,7 @@
             <a href="#"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
-              <img src="{{ asset('editicon.svg') }}" alt="Edit">
+            <img src="{{ asset('assets/editicon.svg') }}" alt="Edit">
             </a>
         @endif
 
