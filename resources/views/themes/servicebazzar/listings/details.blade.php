@@ -3782,7 +3782,7 @@
 
                                 {{-- Edit Button - Only visible to listing owner (mobile) --}}
                                 @if(auth()->check() && auth()->id() === $listing->user_id)
-                                    <a href="{{ route('listing.edit', $listing->id) }}"
+                                    <a href="#"
                                        class="mqa-btn mqa-edit"
                                        title="Edit Listing">
                                         <span class="mqa-icon"><i class="las la-edit"></i></span>
@@ -4798,7 +4798,7 @@
 
         {{-- Edit Button - Only visible to listing owner --}}
         @if(auth()->check() && auth()->id() === $listing->user_id)
-            <a href="{{ route('listing.edit', $listing->id) }}"
+            <a href="#"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
                 <i class="las la-edit"></i>
