@@ -90,14 +90,31 @@ class SettingController extends Controller
     		}
     	}
 
-    	// Edit icon: used on listing details pages for owner-only edit button
-    	// SVG files bypass image validation (getimagesize fails on SVG)
+    	// Edit icon: used on listing details pages for owner-only edit button.
+    	// Saved into public/assets/images (which is gitignored, same as the
+    	// logo) so admin uploads survive `git pull` / `git clean` on the live
+    	// server — the assets root is NOT ignored, so a file placed there was
+    	// being wiped on every deploy.
+    	// SVG files bypass image validation (getimagesize fails on SVG).
     	if ($request->hasFile('edit_icon')) {
     		try {
     			$file = $request->file('edit_icon');
+    			$dir  = public_path('assets/images');
+    			if (!is_dir($dir)) {
+    				mkdir($dir, 0755, true);
+    			}
+    			// Remove any previously uploaded edit icon of a different
+    			// extension so switching format (e.g. png -> svg) doesn't
+    			// leave a stale file the view might pick up first.
+    			foreach (['png','svg','jpg','jpeg','gif'] as $ext) {
+    				$old = $dir . '/editicon.' . $ext;
+    				if (file_exists($old)) {
+    					@unlink($old);
+    				}
+    			}
     			$filename = 'editicon.' . $file->getClientOriginalExtension();
     			// Direct move without image processing for SVG/icon files
-    			$file->move(public_path('assets'), $filename);
+    			$file->move($dir, $filename);
     		} catch (Exception $e) {
     			$alert = ['danger','Something wrong'];
     			return back()->withAlert($alert);

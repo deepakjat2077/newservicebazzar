@@ -3697,7 +3697,7 @@
            class="listing-btn edit-listing-btn"
            title="Edit Listing">
             @php
-                $editIconPath = 'assets/editicon';
+                $editIconPath = 'assets/images/editicon';
                 $editIconExt = '';
                 // Check for uploaded edit icon with any extension
                 foreach(['png', 'svg', 'jpg', 'jpeg', 'gif'] as $ext) {
@@ -3817,7 +3817,7 @@
                                 {{-- Edit Button - Only visible to listing owner (mobile) --}}
                                 @if(auth()->check() && auth()->id() === $listing->user_id)
                                     @php
-                                        $editIconPath = 'assets/editicon';
+                                        $editIconPath = 'assets/images/editicon';
                                         $editIconExt = '';
                                         // Check for uploaded edit icon with any extension
                                         foreach(['png', 'svg', 'jpg', 'jpeg', 'gif'] as $ext) {
@@ -4850,7 +4850,7 @@
         {{-- Edit Button - Only visible to listing owner --}}
         @if(auth()->check() && auth()->id() === $listing->user_id)
             @php
-                $editIconPath = 'assets/editicon';
+                $editIconPath = 'assets/images/editicon';
                 $editIconExt = '';
                 // Check for uploaded edit icon with any extension
                 foreach(['png', 'svg', 'jpg', 'jpeg', 'gif'] as $ext) {
@@ -5032,14 +5032,6 @@
                 <div class="content-section mb-4" id="photosSection">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h4 class="media-title mb-0">Photos</h4>
-
-            @auth
-                @if(auth()->id() == $listing->user_id)
-                    <button type="button" class="edit-section-btn" onclick="toggleInlineSection('photos')">
-                        <i class="las la-edit"></i>
-                    </button>
-                @endif
-            @endauth
         </div>
 
         {{-- VIEW MODE --}}
@@ -5094,14 +5086,6 @@
                 <div class="content-section mb-4" id="overviewSection">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h4 class="media-title mb-0">Overview</h4>
-
-                        @auth
-                            @if(auth()->id() == $listing->user_id)
-                                <button type="button" class="edit-section-btn" onclick="toggleInlineSection('overview')">
-                                    <i class="las la-edit"></i>
-                                </button>
-                            @endif
-                        @endauth
                     </div>
 
 
@@ -5292,17 +5276,6 @@
 
         <div class="widget-title d-flex justify-content-between align-items-center">
             <h4 class="media-title mb-0">  <i class="las la-concierge-bell"></i> @lang('Services')</h4>
-        
-
-            @auth
-                @if(auth()->id() == $listing->user_id)
-                    <button type="button"
-                            class="edit-section-btn"
-                            onclick="toggleInlineSection('services')">
-                        <i class="las la-edit"></i>
-                    </button>
-                @endif
-            @endauth
         </div>
 
         <div class="widget-body">
