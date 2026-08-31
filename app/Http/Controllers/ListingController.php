@@ -864,6 +864,7 @@ public function updatesection(Request $request, $id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
         $ownerListings = Listing::where('user_id', auth()->id())
+            ->where('status', 1)
             ->with('location')
             ->orderBy('id', 'desc')
             ->get();

@@ -8,13 +8,16 @@
             <a href="{{ route('user.listing.index') }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 @if(isset($ownerListings) && $ownerListings->count() > 1)
-                    <select class="sb-biz-switcher" id="sbBusinessSwitcher" aria-label="Select business profile">
-                        @foreach($ownerListings as $ownerListing)
-                            <option value="{{ route('user.listing.dashboard', $ownerListing->id) }}" @selected($ownerListing->id === $listing->id)>
-                                {{ $ownerListing->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="sb-biz-switcher-wrap">
+                        <select class="sb-biz-switcher" id="sbBusinessSwitcher" aria-label="Select business profile">
+                            @foreach($ownerListings as $ownerListing)
+                                <option value="{{ route('user.listing.dashboard', $ownerListing->id) }}" @selected($ownerListing->id === $listing->id)>
+                                    {{ $ownerListing->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
                 @else
                     <h4>{{ $listing->name }}</h4>
                 @endif
