@@ -458,31 +458,37 @@
         border-bottom:8px solid #fff;
     }
 
-    /* Edit Button Styles */
-    .edit-listing-btn{
-        width:42px;
-        height:42px;
-        min-width:42px;
-        padding:0;
-        background:#fff;
-        border:1px solid #e5e5e5;
-        border-radius:6px;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
+    /* Edit Button Styles
+       Scoped to .listing-action-buttons and flagged !important to override
+       the .listing-action-buttons .listing-btn base rule (min-width:140px,
+       border:none) — same technique the share button uses — so the edit
+       button stays a compact 42px icon-square that sits inline next to the
+       share button instead of stretching to 140px and wrapping to a new row. */
+    .listing-action-buttons .edit-listing-btn{
+        width:42px !important;
+        height:42px !important;
+        min-width:42px !important;
+        padding:0 !important;
+        background:#fff !important;
+        border:1px solid #e5e5e5 !important;
+        border-radius:6px !important;
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
         color:#0d6efd;
         cursor:pointer;
         transition:all 0.2s ease;
         text-decoration:none;
+        flex:0 0 auto !important;
     }
 
-    .edit-listing-btn:hover{
-        background:#0d6efd;
+    .listing-action-buttons .edit-listing-btn:hover{
+        background:#0d6efd !important;
         color:#fff;
-        border-color:#0d6efd;
+        border-color:#0d6efd !important;
     }
 
-    .edit-listing-btn i{
+    .listing-action-buttons .edit-listing-btn i{
         font-size:18px;
     }
 
