@@ -3651,7 +3651,7 @@
     {{-- Share button: moved before edit button for better layout --}}
     <div class="share-hover-wrap">
         <button type="button" class="listing-btn share-btn-icon" title="Share">
-            <i class="fas fa-share"></i>
+            <i class="fas fa-share"></i> Share
         </button>
 
         <div class="share-hover-popup">
@@ -4825,7 +4825,7 @@
                 data-url="{{ url()->current() }}"
                 data-text="{{ $listing->name }}"
                 title="Share">
-            <i class="fas fa-share-alt"></i>
+            <i class="fas fa-share"></i> Share
         </button>
 
         {{-- Edit Button - Only visible to listing owner (sticky bar) --}}
