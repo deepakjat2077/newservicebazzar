@@ -1357,9 +1357,9 @@ window.addEventListener('pageshow', function () {
             @lang('Free Listing')
         </a>
     @else
-        <a href="{{ route('free.listing') }}" class="nav-link">
-            <i class="fa-solid fa-arrow-trend-up me-1"></i>
-            @lang('Free Listing')
+        <a href="{{ route('user.listing.index') }}" class="nav-link">
+            <i class="fa-solid fa-briefcase me-1"></i>
+            @lang('My Business')
         </a>
     @endguest
 </li>
@@ -1438,8 +1438,8 @@ window.addEventListener('pageshow', function () {
 				Free Listing
 			</a>
 		@else
-			<a href="{{ route('user.listing.create') }}" class="mobile-action-btn">
-				Free Listing
+			<a href="{{ route('user.listing.index') }}" class="mobile-action-btn">
+				My Business
 			</a>
 		@endguest
 	</div>
