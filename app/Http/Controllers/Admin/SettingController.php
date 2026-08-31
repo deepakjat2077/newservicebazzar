@@ -90,7 +90,7 @@ class SettingController extends Controller
     		}
     	}
 
-    	{{-- Edit icon: used on listing details pages for owner-only edit button --}}
+    	// Edit icon: used on listing details pages for owner-only edit button
     	if ($request->hasFile('edit_icon')) {
     		try {
     			$data = [
