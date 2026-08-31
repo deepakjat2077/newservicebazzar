@@ -377,13 +377,19 @@
     }
 
     .share-btn-icon{
-        width:38px !important;
-        height:38px !important;
-        min-width:38px !important;
+        width:42px !important;
+        height:42px !important;
+        min-width:42px !important;
         padding:0 !important;
         display:flex !important;
         align-items:center;
         justify-content:center;
+    }
+
+    .share-btn-icon img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
     }
 
     .share-hover-popup{
@@ -480,6 +486,12 @@
         background:#0d6efd;
         color:#fff;
         border-color:#0d6efd;
+    }
+
+    .edit-listing-btn img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
     }
 
     .edit-listing-btn i{
@@ -1179,8 +1191,7 @@
             padding: 10px 12px;
         }
 
-        #stickyListingBar .listing-action-buttons .btn-landline-main,
-        #stickyListingBar .listing-action-buttons .share-btn-icon {
+        #stickyListingBar .listing-action-buttons .btn-landline-main {
             display: none !important;
         }
 
@@ -1237,6 +1248,15 @@
             background: #0d6efd !important;
             color: #fff !important;
             border: none !important;
+        }
+
+        /* Share and Edit buttons in sticky bar */
+        #stickyListingBar .listing-action-buttons .share-btn-icon {
+            order: 4;
+        }
+
+        #stickyListingBar .listing-action-buttons .edit-listing-btn {
+            order: 5;
         }
     }
 
