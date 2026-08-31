@@ -457,6 +457,34 @@
         border-right:8px solid transparent;
         border-bottom:8px solid #fff;
     }
+
+    /* Edit Button Styles */
+    .edit-listing-btn{
+        width:42px;
+        height:42px;
+        min-width:42px;
+        padding:0;
+        background:#fff;
+        border:1px solid #e5e5e5;
+        border-radius:6px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        color:#0d6efd;
+        cursor:pointer;
+        transition:all 0.2s ease;
+        text-decoration:none;
+    }
+
+    .edit-listing-btn:hover{
+        background:#0d6efd;
+        color:#fff;
+        border-color:#0d6efd;
+    }
+
+    .edit-listing-btn i{
+        font-size:18px;
+    }
     body.share-modal-open{
         overflow:hidden !important;
         height:100vh !important;
@@ -3643,6 +3671,15 @@
         </div>
 
     </div>
+
+    {{-- Edit Button - Only visible to listing owner --}}
+    @if(auth()->check() && auth()->id() === $listing->user_id)
+        <a href="{{ route('listing.edit', $listing->id) }}"
+           class="listing-btn edit-listing-btn"
+           title="Edit Listing">
+            <i class="las la-edit"></i>
+        </a>
+    @endif
     </div>
                             </div>
 
@@ -3742,6 +3779,16 @@
 
                                     </div>
                                 </div>
+
+                                {{-- Edit Button - Only visible to listing owner (mobile) --}}
+                                @if(auth()->check() && auth()->id() === $listing->user_id)
+                                    <a href="{{ route('listing.edit', $listing->id) }}"
+                                       class="mqa-btn mqa-edit"
+                                       title="Edit Listing">
+                                        <span class="mqa-icon"><i class="las la-edit"></i></span>
+                                        <span class="mqa-label">Edit</span>
+                                    </a>
+                                @endif
 
                             </div>
 
@@ -4001,6 +4048,10 @@
                 color: #555;
                 border: 1.5px solid #d9d9d9;
                 box-sizing: border-box;
+            }
+
+            #listingTopCard .mqa-edit .mqa-icon {
+                background: #0d6efd;
             }
 
             /* .mqa-share-trigger is a real <button>, which browsers give a
@@ -4736,15 +4787,23 @@
     
 
         <button type="button"
-        style="cursor: pointer;" 
+        style="cursor: pointer;"
             class="listing-btn share-btn-icon"
                 id="listingShareBtn"
                 data-url="{{ url()->current() }}"
                 data-text="{{ $listing->name }}">
-            
+
         <img src="{{ asset('assets/images/download.svg') }}" alt="">
         </button>
 
+        {{-- Edit Button - Only visible to listing owner --}}
+        @if(auth()->check() && auth()->id() === $listing->user_id)
+            <a href="{{ route('listing.edit', $listing->id) }}"
+               class="listing-btn edit-listing-btn"
+               title="Edit Listing">
+                <i class="las la-edit"></i>
+            </a>
+        @endif
 
     </div>
 
