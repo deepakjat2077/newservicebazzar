@@ -3031,7 +3031,8 @@ public function userProfile($username)
 
     $data['user'] = $user;
     $data['reviews'] = $reviews;
-    $data['postCount'] = $reviews->count();
+    // "Posts" reflects the businesses this user has listed on the directory.
+    $data['postCount'] = Listing::where('user_id', $user->id)->count();
     $data['recentBusinesses'] = $recentBusinesses;
     $data['seoTitle'] = $user->first_name . ' ' . $user->last_name . ' | ' . ($this->setting->site_name ?? 'ServiceBazzar');
     $data['seoDescription'] = 'View ' . $user->first_name . '\'s profile on ' . ($this->setting->site_name ?? 'ServiceBazzar');
