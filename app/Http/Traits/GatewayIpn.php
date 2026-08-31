@@ -524,9 +524,24 @@ trait GatewayIpn{
 
 			$user = $locked->user;
 			if ($user && $locked->package) {
-				$user->package_id = $locked->package->id;
-				$user->package_exp = now()->addDays($locked->package->validity);
-				$user->save();
+				$expiry = now()->addDays($locked->package->validity);
+
+				// A package bought for a specific business activates on that
+				// listing (the level the owner advertises at). A plain account
+				// purchase — no listing attached — keeps the legacy user-level
+				// activation so existing pricing-page flows are unaffected.
+				if ($locked->listing_id) {
+					\App\Models\Listing::where('id', $locked->listing_id)
+						->where('user_id', $user->id)
+						->update([
+							'package_id'  => $locked->package->id,
+							'package_exp' => $expiry,
+						]);
+				} else {
+					$user->package_id = $locked->package->id;
+					$user->package_exp = $expiry;
+					$user->save();
+				}
 			}
 
 			$setting = Setting::first();

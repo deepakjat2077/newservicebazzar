@@ -50,6 +50,13 @@ class PackageController extends Controller
     	$package->image_allow = $request->image_allow;
     	$package->validity = $request->validity;
         $package->contact_allow = $request->contact_allow;
+        // Marketing fields for the public "Advertise" plan card. `features` is a
+        // free-text list (one feature per line) that renders as the green-tick
+        // "Features Included" checklist.
+        $package->features = $request->features;
+        $package->old_price = $request->old_price ?: null;
+        $package->tag = $request->tag;
+        $package->is_popular = $request->boolean('is_popular');
     	$package->save();
     }
 
@@ -63,6 +70,9 @@ class PackageController extends Controller
         'image_allow'=>'required|integer|gte:0',
         'validity'=>'required|integer|gte:0',
         'contact_allow'=>'required|integer|gte:0',
+        'features'=>'nullable|string',
+        'old_price'=>'nullable|numeric|gte:0',
+        'tag'=>'nullable|string|max:40',
     ]);
 }
 

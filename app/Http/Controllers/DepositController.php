@@ -37,9 +37,20 @@ class DepositController extends Controller
     	$request->validate([
     		'method'=>'required',
     		'package_id'=>'required|integer',
+    		'listing_id'=>'nullable|integer',
     	]);
         $package = Package::where('status',1)->where('id',$request->package_id)->firstOrFail();
     	$method = MethodCurrency::where('enable_status',1)->where('id',$request->method)->firstOrFail();
+
+    	// When the purchase is for a specific business (bought from the listing's
+    	// Advertise page), the package activates on that listing — but only if it
+    	// really belongs to the buyer, so nobody can pay a plan onto someone
+    	// else's listing.
+    	$listingId = null;
+    	if ($request->filled('listing_id')) {
+    		$listingId = \App\Models\Listing::where('id',$request->listing_id)
+    			->where('user_id',auth()->id())->value('id');
+    	}
     	$amount = $package->price;
     	if ($amount < $method->minimum || $amount > $method->maximum) {
     		$alert = ['danger','Please follow the minimum and maximum limit'];
@@ -54,6 +65,7 @@ class DepositController extends Controller
     	$payment = Payment::create([
     		'user_id'=>auth()->user()->id,
             'package_id'=>$package->id,
+            'listing_id'=>$listingId,
     		'method_currency_id'=>$method->id,
     		'trx_number'=>$trx_number,
     		'amount'=>$amount,

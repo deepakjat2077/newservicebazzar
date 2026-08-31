@@ -74,7 +74,7 @@
             @endif
 
             <div class="sbbiz-actions">
-              <a href="{{ route('user.listing.leads', $listing->id) }}" class="sbbiz-btn sbbiz-btn--primary">
+              <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbbiz-btn sbbiz-btn--primary">
                 <i class="las la-bullhorn"></i> Get Daily Leads
               </a>
               <a href="{{ route('user.listing.edit', $listing->id) }}" class="sbbiz-btn">

@@ -893,6 +893,25 @@ public function updatesection(Request $request, $id)
     }
 
     /**
+     * Public "Advertise / Boost your business" plans page for one listing.
+     *
+     * Shows every active admin package as a JustDial-style plan card. Buying a
+     * plan runs through the existing deposit/payment flow (enabled payment
+     * methods only), carrying this listing's id so the package activates on the
+     * business rather than the buyer's account.
+     */
+    public function advertise($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $packages = \App\Models\Package::where('status', 1)->orderBy('price')->get();
+        $methods = \App\Models\MethodCurrency::where('enable_status', 1)
+            ->with('paymentMethod')->orderBy('currency_name')->get();
+
+        return view($this->theme.'user.listing.advertise', compact('listing', 'packages', 'methods'));
+    }
+
+    /**
      * Analytics — every number here comes from either the enquiries table
      * or listing_daily_stats (both already tracked for other reasons: leads
      * and the admin analytics dashboard). There is no call telephony, no

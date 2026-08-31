@@ -15,7 +15,7 @@ class Payment extends Model
     // assignment in verified server-side code (deposit approval, IPN
     // handlers), never from request input.
     protected $fillable = [
-        'user_id', 'package_id', 'method_currency_id', 'trx_number',
+        'user_id', 'package_id', 'listing_id', 'method_currency_id', 'trx_number',
         'amount', 'charge', 'after_charge', 'rate', 'after_convert',
     ];
     protected $casts = ['details'=>'object'];
