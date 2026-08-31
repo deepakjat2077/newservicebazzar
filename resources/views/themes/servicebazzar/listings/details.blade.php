@@ -392,6 +392,11 @@
         object-fit: contain;
     }
 
+    .share-btn-icon i {
+        font-size: 18px;
+        color: #0d6efd;
+    }
+
     .share-hover-popup{
         position:absolute;
         top:48px;
@@ -3646,7 +3651,7 @@
     {{-- Share button: moved before edit button for better layout --}}
     <div class="share-hover-wrap">
         <button type="button" class="listing-btn share-btn-icon" title="Share">
-            <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing">
+            <i class="fas fa-share-alt"></i>
         </button>
 
         <div class="share-hover-popup">
@@ -4820,10 +4825,17 @@
                 data-url="{{ url()->current() }}"
                 data-text="{{ $listing->name }}"
                 title="Share">
-            <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing" loading="lazy">
+            <i class="fas fa-share-alt"></i>
         </button>
 
-      
+        {{-- Edit Button - Only visible to listing owner (sticky bar) --}}
+        @if(auth()->check() && auth()->id() === $listing->user_id)
+            <a href="{{ route('user.listing.edit', $listing->id) }}"
+               class="listing-btn edit-listing-btn"
+               title="Edit Listing">
+                <img src="{{ asset('assets/editicon.svg') }}" alt="Edit" loading="lazy">
+            </a>
+        @endif
 
     </div>
 
