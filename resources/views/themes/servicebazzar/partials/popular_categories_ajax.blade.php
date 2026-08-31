@@ -99,7 +99,11 @@
                             @if(!empty($subcat->slug))
 
                                 <a href="{{ $subcatUrl }}"
-                                   class="spn popular-subcategory-link">
+                                   class="spn popular-subcategory-link"
+                                   {{-- Different anchor text per category helps search
+                                        engines interpret link context. Same link text
+                                        repeated 100s of times dilutes meaning. --}}
+                                   title="{{ $category->name }} &raquo; {{ $subcat->name }}">
 
                                     {{ $subcat->name }}
 
@@ -109,7 +113,8 @@
 
                             @else
 
-                                <span class="spn popular-subcategory-link">
+                                <span class="spn popular-subcategory-link"
+                                      title="{{ $category->name }} &raquo; {{ $subcat->name }}">
                                     {{ $subcat->name }}
                                 </span>
 

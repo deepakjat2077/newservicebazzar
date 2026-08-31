@@ -8,7 +8,7 @@
                 <div class="col-lg-7">
                     <div class="account-form-area">
                         <div class="account-head-area">
-                            <img src="{{ asset('assets/images/logo/logo.png') }}">
+                            <img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar logo">
                             <p>@lang('Do you forget your password? Please provide your email to the below box and submit the form. We will send a verification code to your mail. You can reset your password using that verification code')</p>
                         </div>
                         <form method="POST" action="">

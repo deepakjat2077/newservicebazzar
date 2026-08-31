@@ -1298,11 +1298,11 @@ window.addEventListener('pageshow', function () {
 <button class="navbar-toggler"
         type="button"
         onclick="openSbAuthPopup()">
-    <img src="{{ asset('assets/images/149071.png') }}" class="profile-icon">
+    <img src="{{ asset('assets/images/149071.png') }}" alt="User profile" class="profile-icon">
 </button>
 @else
 <a href="{{ route('user.dashboard') }}" class="navbar-toggler profile-dashboard-link">
-    <img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" class="profile-icon">
+    <img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->name ?? 'User profile' }}" class="profile-icon">
 </a>
 @endguest
 
@@ -3495,7 +3495,7 @@ if (searchValue.length === 0 && ytAllowBlankSuggestion === false) {
    data-url="${item.url || ''}">
 
                             <img src="/assets/images/ffffjndjs.svg"
-                                 alt=""
+                                 alt="Trending indicator"
                                  class="yt-category-icon">
 
                             <span>${item.name}</span>
@@ -3593,7 +3593,7 @@ if (!showRecentTrending && data && data.length > 0) {
    data-url="${item.url || ''}">
 
                             <img src="/assets/images/ffffjndjs.svg"
-                                 alt=""
+                                 alt="Trending indicator"
                                  class="yt-category-icon">
 
                             <span>${item.name}</span>

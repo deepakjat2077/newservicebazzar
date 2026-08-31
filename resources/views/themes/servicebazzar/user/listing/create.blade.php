@@ -674,24 +674,24 @@
                                                 <div style="font-size:28px;line-height:1;">📷</div>
                                                 <div>Add Photo</div>
                                             </div>
-                                            <img src="" alt="preview" class="preview-image d-none">
+                                            <img src="" alt="Business listing photo preview" class="preview-image d-none">
                                         </label>
 
                                         <div class="photo-sample">
                                             <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=800&auto=format&fit=crop"
-                                                alt="sample">
+                                                alt="Example business photo 1">
                                             <span class="photo-badge">Example</span>
                                         </div>
 
                                         <div class="photo-sample">
                                             <img src="https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=800&auto=format&fit=crop"
-                                                alt="sample">
+                                                alt="Example business photo 2">
                                             <span class="photo-badge">Example</span>
                                         </div>
 
                                         <div class="photo-sample">
                                             <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=800&auto=format&fit=crop"
-                                                alt="sample">
+                                                alt="Example business photo 3">
                                             <span class="photo-badge">Example</span>
                                         </div>
                                     </div>

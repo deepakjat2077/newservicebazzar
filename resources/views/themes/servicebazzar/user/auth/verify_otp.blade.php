@@ -13,7 +13,7 @@ background-color: #0e0f38;
                 <div class="col-lg-6 p-0 px-3 px-lg-0">
                     <div class="account-form-area">
                         <div class="account-head-area text-center">
-                            <img src="{{ asset('assets/images/logo/logo.png') }}">
+                            <img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar logo">
                             <p>Enter the OTP sent to {{ $email }}</p>
                         </div>
 

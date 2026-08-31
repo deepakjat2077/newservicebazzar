@@ -257,11 +257,15 @@
                         @endif
 
                         @if(($listing->trust ?? 0) == 1)
-                            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trust">
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Trusted Business: Verified identity plus additional certifications or high customer ratings">
+                                <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
+                            </a>
                         @endif
 
                         @if(($listing->verified ?? 0) == 1)
-                            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified">
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by ServiceBazzar">
+                                <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
+                            </a>
                         @endif
                     </div>
 
@@ -437,7 +441,8 @@
     
     <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
          class="img-fluid rounded listing-img active"
-         alt="{{ $listing->name }}">
+         alt="{{ $listing->name }}"
+         loading="lazy">
 
     @if(!empty($listing->images))
         @php
@@ -450,7 +455,8 @@
             @foreach($extraImages as $img)
                 <img src="{{ loadImage('assets/images/listing/' . $img) }}"
                      class="img-fluid rounded listing-img"
-                     alt="{{ $listing->name }}">
+                     alt="{{ $listing->name }}"
+                     loading="lazy">
             @endforeach
         @endif
     @endif
@@ -523,11 +529,15 @@
                         @endif
 
                         @if(($listing->trust ?? 0) == 1)
-                            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trust">
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Trusted Business: Verified identity plus additional certifications or high customer ratings">
+                                <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
+                            </a>
                         @endif
 
                         @if(($listing->verified ?? 0) == 1)
-                            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified">
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by ServiceBazzar">
+                                <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
+                            </a>
                         @endif
                     </div>
 
@@ -776,7 +786,8 @@
   
     <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
          class="img-fluid rounded listing-img active"
-         alt="{{ $listing->name }}">
+         alt="{{ $listing->name }}"
+         loading="lazy">
 
    
     @if(!empty($listing->photos))
@@ -872,11 +883,11 @@
                                         @endif
 
                                         @if(($listing->trust ?? 0) == 1)
-                                            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img">
+                                            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
                                         @endif
 
                                         @if(($listing->verified ?? 0) == 1)
-                                            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img">
+                                            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
                                         @endif
                                     @else
                                         <span style="visibility:hidden;">dummy</span>

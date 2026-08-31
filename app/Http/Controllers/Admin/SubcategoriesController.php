@@ -9,6 +9,7 @@ use App\Models\Subcategory;
 use App\Models\Category;
 use App\Models\Listing;
 use App\Models\Location;
+use App\Rules\MeaningfulTaxonomyName;
 use App\Services\AiContentGenerator;
 use Illuminate\Support\Str;
 use Intervention\Image\Laravel\Facades\Image;
@@ -79,7 +80,7 @@ class SubcategoriesController extends Controller
     {
         $request->validate([
             'category_id'       => 'required|exists:categories,id',
-            'name'              => 'required|string|max:255|unique:subcategories,name',
+            'name'              => ['required', 'string', 'max:255', 'unique:subcategories,name', new MeaningfulTaxonomyName()],
             'image'             => 'nullable',
             'seo_title'         => 'nullable|string|max:255',
             'seo_keywords'      => 'nullable|string|max:500',
@@ -141,7 +142,7 @@ class SubcategoriesController extends Controller
     {
         $request->validate([
             'category_id'       => 'required|exists:categories,id',
-            'name'              => 'required|string|max:255|unique:subcategories,name,' . $id,
+            'name'              => ['required', 'string', 'max:255', 'unique:subcategories,name,' . $id, new MeaningfulTaxonomyName()],
             'image'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'seo_title'         => 'nullable|string|max:255',
             'seo_keywords'      => 'nullable|string|max:500',
@@ -220,8 +221,14 @@ class SubcategoriesController extends Controller
 
 public function quickStore(Request $request)
 {
+    /*
+     * Same name rule as the admin create/edit forms. Quick-add is reached from
+     * the listing form, where a subcategory gets typed in a hurry mid-listing —
+     * so it is if anything the likelier source of placeholder names, and it was
+     * the one path with no check at all.
+     */
     $request->validate([
-        'name' => 'required|string|max:255',
+        'name' => ['required', 'string', 'max:255', new MeaningfulTaxonomyName()],
         'category_id' => 'required|exists:categories,id',
     ]);
 

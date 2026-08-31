@@ -227,16 +227,21 @@
     aria-controls="homeLocationSuggestions">
 
          
-<noscript>
-    <small class="text-danger">
-        Please enable JavaScript to use location search.
-    </small>
-</noscript>
         <input type="hidden" name="latitude" id="homeSearchLatitude" value="{{ request()->latitude }}">
         <input type="hidden" name="longitude" id="homeSearchLongitude" value="{{ request()->longitude }}">
         <input type="hidden" name="location_id" id="homeSearchLocationId" value="">
 
+        {{-- JavaScript populates autocomplete suggestions here via AJAX. If JS fails,
+             the plain text input field above still works for GET submission, and the
+             server's /listings/search route will match it against location names. --}}
+
         <div id="homeLocationSuggestions" class="suggestion-box"></div>
+
+        <noscript>
+            <small style="display: block; margin-top: 6px; color: #666;">
+                ✓ Location search works without JavaScript — just type and submit the form.
+            </small>
+        </noscript>
     </div>
 </div>
 <style>
@@ -1183,10 +1188,35 @@ locationInput.addEventListener("keydown", function(e){
 
 </div>
 
+        {{-- If JavaScript is disabled, the input field and submit button remain
+             functional: the user types text and submits. The suggestions dropdown
+             is gone, but form submission still works. Explicit fallback via noscript
+             is shown below. --}}
         <noscript>
-            <small class="text-danger">
-                Please enable JavaScript to use category search.
-            </small>
+            {{-- When JavaScript is disabled, the text input above is fully functional
+                 and form submission works. A server-side category dropdown is shown as
+                 an extra convenience, but is NOT the primary fallback — the plain text
+                 input and form submission are. The dropdown submits the form directly
+                 (no JS required) by selecting a category and clicking a submit button. --}}
+            <div style="margin-top: 8px; padding: 8px 0; border-top: 1px solid #eee;">
+                <label for="noScriptCategoryFallback" style="display: block; margin-bottom: 4px; font-size: 12px; color: #666;">
+                    Popular Categories (when JavaScript is disabled):
+                </label>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    {{-- Dropdown of top 20 active categories. When selected, this
+                         form submits directly (standard HTML form behavior, no JS). --}}
+                    <select name="categorysearch" id="noScriptCategoryFallback"
+                            style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">-- Pick a category or type above --</option>
+                        @foreach(\App\Models\Category::where('status', 1)->orderBy('name')->limit(20)->get() as $cat)
+                            <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" style="padding: 6px 14px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer;">
+                        Search
+                    </button>
+                </div>
+            </div>
         </noscript>
 
         <ul id="homeCategorySuggestions" class="shadow" role="listbox"></ul>
@@ -1578,7 +1608,7 @@ document.addEventListener("DOMContentLoaded", function () {
         a.dataset.type = "category";
 
         const iconHtml = iconType === "trending"
-            ? `<span class="category-trending-icon"><img src="{{ asset('assets/images/ffffjndjs.svg') }}" alt=""></span>`
+            ? `<span class="category-trending-icon"><img src="{{ asset('assets/images/ffffjndjs.svg') }}" alt="Trending indicator"></span>`
             : `<span class="category-search-icon"><i class="fas fa-search"></i></span>`;
 
         a.innerHTML = `
@@ -1636,7 +1666,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     a.innerHTML = `
         <span class="listing-suggestion-img">
-            <img src="${image}" alt="">
+            <img src="${image}" alt="${item.name}">
         </span>
 
         <span class="category-suggestion-content">
@@ -2252,7 +2282,7 @@ closeCategoryDropdown();
                                                 loading="{{ $loop->first ? 'eager' : 'lazy' }}"
                                                 fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
                                                 decoding="async"
-                                                alt="{{ $banner->content->title }} Near Me"
+                                                alt="Best {{ $banner->content->title }} Near Me"
                                                 class="mobile-banner-img">
                                         @else
                                             <img
@@ -2260,7 +2290,7 @@ closeCategoryDropdown();
                                                 loading="{{ $loop->first ? 'eager' : 'lazy' }}"
                                                 fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
                                                 decoding="async"
-                                                alt="{{ $banner->content->title }} Near Me"
+                                                alt="Find {{ $banner->content->title }} Near Me"
                                                 class="mobile-banner-img">
                                         @endif
 
@@ -2850,7 +2880,7 @@ closeCategoryDropdown();
                                 <img
                                     src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                                     loading="lazy"
-                                    alt="{{ $categoryItem->name }} Near Me"
+                                    alt="Top {{ $categoryItem->name }} Near Me"
                                     class="category-icon-img"
                                 >
                             @else
@@ -3179,7 +3209,7 @@ label.popup-overlay {
 
                 <img src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                      loading="lazy"
-                     alt="{{ $categoryItem->name }} Near Me"
+                     alt="Browse {{ $categoryItem->name }} Near Me"
                      class="popup-category-icon">
 
             @else
@@ -3498,7 +3528,7 @@ label.popup-overlay {
 
    
                                             <img src="{{ asset('assets/images/category/' . $category->image) }}"
-                                              loading="lazy"   alt="{{ $category->name }} Near Me">
+                                              loading="lazy"   alt="{{ $category->name }} Services">
 
                                          
                                               
@@ -4331,7 +4361,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <img src="{{ asset('assets/images/category/'.$category->image) }}"
                                  loading="lazy"
                                  onerror="this.hidden=true;"
-                                 alt="{{ $category->name }} Near Me">
+                                 alt="Best {{ $category->name }} Near Me">
 
                             <div class="trend-card-overlay">
                                 <div>
@@ -4742,7 +4772,7 @@ function scrollPopular(direction){
                                data-slug="{{ $category->slug }}">
 
                                 <img src="{{ asset('assets/images/category/'.$category->image) }}"
-                                  loading="lazy"  onerror="this.hidden=true;" alt="{{ $category->name }} Near Me">
+                                  loading="lazy"  onerror="this.hidden=true;" alt="Find {{ $category->name }} Near Me">
 
                                 <div class="trend-card-overlay">
                                     <div>
@@ -4833,7 +4863,7 @@ function scrollPopular(direction){
 
                     <div class="thumb">
                         <img src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
-                         loading="lazy"    class="listing-thumb">
+                         loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
                     </div>
 
                     <div class="listing-content">
@@ -5243,7 +5273,7 @@ role="tabpanel">
 <div class="listing-area">
 
 <div class="thumb">
-<img src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" class="listing-thumb">
+<img src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb">
 </div>
 
 <div class="listing-content">
@@ -5251,7 +5281,7 @@ role="tabpanel">
 <div class="listing-author">
 <div class="author-thumb">
 <a href="{{ route('listings.author',$catListing->user->id) }}">
-<img src="{{ loadImage('assets/images/user/'.$catListing->user->image) }}">
+<img src="{{ loadImage('assets/images/user/'.$catListing->user->image) }}" alt="{{ $catListing->user->name ?? 'Business owner' }}">
 </a>
 </div>
 </div>

@@ -8,7 +8,7 @@
                 <div class="col-lg-7">
                     <div class="account-form-area">
                         <div class="account-head-area">
-                            <img src="{{ asset('assets/images/logo/logo.png') }}">
+                            <img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar logo">
                             <p>@lang('You have sent a verification code to your mail. Please provide the code to reset your password')</p>
                         </div>
                         <form method="POST" action="{{ route('user.password.verify.code') }}">

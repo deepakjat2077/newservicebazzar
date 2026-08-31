@@ -298,6 +298,20 @@ public function elementSave(Request $request, $id = null)
         $content['slug'] = \Illuminate\Support\Str::slug($content['title']);
     }
 
+    /*
+     * dateModified ke liye apna timestamp.
+     *
+     * Theme ka `updated_at` is kaam ka nahi hai: blogDetails() har page
+     * view par view-counter badha kar save() karta hai, jisse updated_at
+     * har visitor hit par aaj ki date ho jata hai. Us par "Last Updated"
+     * dikhate to har blog roz "aaj update hua" dikhta — freshness ka
+     * jhoota signal. Ye field sirf yahan set hoti hai, yaani sirf jab
+     * admin ne content actually save kiya ho.
+     */
+    if ($key === 'blog') {
+        $content['content_updated_at'] = now()->toDateTimeString();
+    }
+
     $element->name = $key;
     $element->content = $content;
     $element->is_multiple = self::isMultiple($request->type);
@@ -722,7 +736,24 @@ public function elementSave(Request $request, $id = null)
         'type'=>'textarea',
         'required'=>false,
     ],
-    
+
+    /*
+     * Author byline ke fields. Blog posts par koi author naam ya
+     * credentials nahi the, jo E-E-A-T ka gap tha — Google ke liye
+     * "kisne likha aur kis authority se" ka koi signal hi nahi tha.
+     * Dono optional hain: khaali chhodne par blog_details.blade.php
+     * publisher (site) ko hi author dikha deta hai, isliye purane
+     * blogs bina edit kiye waise ke waise chalte rehte hain.
+     */
+    'author_name'=>[
+        'type'=>'text',
+        'required'=>false,
+    ],
+    'author_designation'=>[
+        'type'=>'text',
+        'required'=>false,
+    ],
+
 					'is_modal'=>false
 				],
 			],

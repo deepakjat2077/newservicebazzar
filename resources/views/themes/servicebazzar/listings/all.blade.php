@@ -1720,6 +1720,20 @@ a {
 {{-- Content ki typography ab blog details ke saath shared hai. --}}
 @include($themeView.'includes.rich-content')
 
+{{-- Default FAQ section for thin category/listing pages. Provides E-A-T signals
+     via generic questions relevant to the category breadth. If the category has
+     custom FAQs in the database, those would be rendered in a different template. --}}
+@if(!empty($selectedCategory) || !empty($selectedSubcategory))
+    @php
+        $faqCategoryName = $selectedCategory?->name ?? $selectedSubcategory?->name ?? null;
+        $faqCategoryDesc = $selectedCategory?->description ?? $selectedSubcategory?->description ?? null;
+    @endphp
+    @include($themeView.'partials.default-faq', [
+        'categoryName' => $faqCategoryName,
+        'categoryDescription' => $faqCategoryDesc,
+    ])
+@endif
+
 <style>
     .category-content-body.rich-content.rich-content,
     .category-content-body.rich-content.rich-content p,

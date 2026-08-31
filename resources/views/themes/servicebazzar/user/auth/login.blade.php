@@ -58,7 +58,7 @@
                     <div class="account-form-area">
 
                         <div class="account-head-area">
-                            <img src="{{ asset('assets/images/logo/logo.png') }}">
+                            <img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar logo">
                             <p>{{ __(@$login->content->login_content) }}</p>
                         </div>
 

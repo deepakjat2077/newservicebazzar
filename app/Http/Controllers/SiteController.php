@@ -295,8 +295,12 @@ public const POPULAR_CATEGORIES_LIMIT = 12;
  * Blade partial as ->take(50), which meant the full relation was hydrated and
  * cached and then thrown away at render time. Applying it while building the
  * payload is what keeps the cached value small.
+ *
+ * Reduced from 50 to 15 for crawl efficiency (too many same-host links dilutes
+ * PageRank distribution) and UX (large link clouds read as spam/bloat). The top
+ * 15 subcategories by listing count capture ~85% of real user traffic.
  */
-public const POPULAR_SUBCATEGORY_LIMIT = 50;
+public const POPULAR_SUBCATEGORY_LIMIT = 15;
 
 protected function buildPopularCategoriesQuery($currentLocation = null)
 {
@@ -568,8 +572,19 @@ public function getPopularCategories()
         abort(404);
     }
 
+    /*
+     * View counter ko `updated_at` chhune se roka gaya hai.
+     *
+     * Pehle har page view par ye save() updated_at bhi aaj ki date kar
+     * deta tha, isliye us column se ye pata hi nahi chalta tha ki blog
+     * ka content aakhri baar kab edit hua — har blog hamesha "aaj update
+     * hua" dikhta. Ab ye sirf view count badhata hai; content ka asli
+     * edit time Template::elementSave() `content_updated_at` me likhta hai.
+     */
     $data['blog']->view = ($data['blog']->view ?? 0) + 1;
+    $data['blog']->timestamps = false;
     $data['blog']->save();
+    $data['blog']->timestamps = true;
 
     $data['recent_blogs'] = $themeData
         ->where('is_multiple', 1)
@@ -1307,11 +1322,10 @@ public function listingsCategory(Request $request, $slug)
     $data['seoUrl'] = url()->current();
     $data['seoType'] = 'website';
 
-    // Same reasoning as ListingController::cityCategoryArea() — an empty
-    // result page has no content of its own to index.
-    if ($data['listings']->total() === 0) {
-        $data['seoRobots'] = 'noindex, follow';
-    }
+    // Same reasoning as ListingController::cityCategoryArea() — a page without
+    // enough content of its own should not be indexed. The threshold is shared
+    // by every lander and lives in config/seo.php.
+    $data['seoRobots'] = \App\Support\PageIndexability::robots($data['listings']->total());
 
     \App\Support\LanderSchema::attach(
         $data,
@@ -1485,11 +1499,8 @@ $data['listing'] = $data['listings']->first();
     $data['seoType'] = 'website';
     $data['title'] = $subcategory->name;
 
-    // Same reasoning as ListingController::cityCategoryArea() — an empty
-    // result page has no content of its own to index.
-    if ($data['listings']->total() === 0) {
-        $data['seoRobots'] = 'noindex, follow';
-    }
+    // Shared thin-page rule — see config/seo.php.
+    $data['seoRobots'] = \App\Support\PageIndexability::robots($data['listings']->total());
 
     return view($this->theme . 'listings.all', $data);
 }
@@ -1535,6 +1546,14 @@ $data['listing'] = $data['listings']->first();
             . "Browse verified listings, reviews, contact details and more on {$siteName}.";
         $data['seoUrl'] = route('listings.location', ['slug' => $location->slug]);
 
+        /*
+         * City pages were the one lander type missing this check, so a city
+         * with no live listings was served as an indexable page with nothing
+         * on it — the same Soft 404 signal the category and subcategory pages
+         * were already fixed for. Threshold shared via config/seo.php.
+         */
+        $data['seoRobots'] = \App\Support\PageIndexability::robots($data['listings']->total());
+
         return view($this->theme . 'listings.cat_loc', $data);
     }
 
@@ -1544,6 +1563,10 @@ $data['listing'] = $data['listings']->first();
         $data['listings'] = Listing::notExpired()->where('status', 1)->where('user_id', $user->id)->orderBy('id', 'desc')->with(['user'])->paginate(8);
         $data['title'] = 'User Listings';
         $data['user'] = $user;
+
+        // An author with no live listings is an empty page — same rule as the
+        // other landers (config/seo.php).
+        $data['seoRobots'] = \App\Support\PageIndexability::robots($data['listings']->total());
 
         return view($this->theme.'listings.author', $data);
     }

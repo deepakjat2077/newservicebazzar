@@ -39,4 +39,6 @@ Disallow: /*?location_id=
 
 Allow: /
 
-Sitemap: https://servicebazzar.com/sitemap.xml
+# www is the canonical host (see the redirect in the root .htaccess) — the
+# non-www URL that used to be declared here 301-redirected on every fetch.
+Sitemap: https://www.servicebazzar.com/sitemap.xml

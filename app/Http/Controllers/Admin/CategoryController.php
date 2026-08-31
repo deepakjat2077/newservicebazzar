@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Traits\FileHandler;
 use App\Models\CategoryFilter;
+use App\Rules\MeaningfulTaxonomyName;
 use App\Support\HttpRetry;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
@@ -32,7 +33,7 @@ public function createPage()
 public function create(Request $request)
 {
     $request->validate([
-        'name'                  => 'required|string|max:255|unique:categories,name',
+        'name'                  => ['required', 'string', 'max:255', 'unique:categories,name', new MeaningfulTaxonomyName()],
         'image'                 => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
 
         'desktop_banner'        => 'nullable|array',
@@ -163,7 +164,7 @@ public function update($id)
 public function edit(Request $request, $id)
 {
     $request->validate([
-        'name' => 'required',
+        'name' => ['required', 'string', 'max:255', new MeaningfulTaxonomyName()],
         'icon' => 'nullable|string|max:255',
         'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         'filters.*' => 'nullable|string|max:255',

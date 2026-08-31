@@ -1,9 +1,32 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # non-www to www with HTTPS
+    # Canonical scheme + host, in a single redirect.
+    #
+    # The old rule only matched the bare `servicebazzar.com` host and only
+    # rewrote the host — nothing here forced HTTPS, so a request to
+    # http://www.servicebazzar.com/... matched no rule at all and was served
+    # over plain HTTP. There is no HSTS header and no URL::forceScheme() in
+    # the app either, so this file was the only place it could have happened.
+    #
+    # Detecting HTTPS needs both conditions. %{HTTPS} is what Apache sets when
+    # it terminates TLS itself; X-Forwarded-Proto is what a CDN or load
+    # balancer sends when it terminated TLS upstream and forwarded the request
+    # onward over plain HTTP. Testing only %{HTTPS} behind such a proxy makes
+    # every request look insecure, and the redirect then points at a URL that
+    # arrives looking insecure again — an infinite loop.
+    #
+    # Deliberately scoped to the live domain: an unscoped rule would send
+    # http://localhost and any staging host to production.
+    RewriteCond %{HTTP_HOST} ^(www\.)?servicebazzar\.com$ [NC]
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteRule ^ https://www.servicebazzar.com%{REQUEST_URI} [R=301,L]
+
+    # Right scheme, wrong host — handled separately so the case above stays a
+    # single hop rather than redirecting twice.
     RewriteCond %{HTTP_HOST} ^servicebazzar\.com$ [NC]
-    RewriteRule ^(.*)$ https://www.servicebazzar.com/$1 [R=301,L]
+    RewriteRule ^ https://www.servicebazzar.com%{REQUEST_URI} [R=301,L]
 
     # Remove /public from URL
     RewriteCond %{THE_REQUEST} \s/+public(?:/([^\s?]*))? [NC]

@@ -66,10 +66,14 @@ class LocationController extends Controller
 
     if ($request->hasFile('image')) {
         try {
+            // Standardized on 350x240 (matching the create() method) for consistent
+            // rendering in the homepage location cards (145x215px, object-fit: cover).
+            // The extra 50px of height ensures better pixel coverage when cropped to
+            // the narrow card's aspect ratio.
             $imageData = [
                 'file' => $request->image,
                 'path' => 'assets/images/location/',
-                'size' => '350x190',
+                'size' => '350x240',
                 'prevFile' => $location->image,
             ];
             $image = $this->uploadFile('image', $imageData);

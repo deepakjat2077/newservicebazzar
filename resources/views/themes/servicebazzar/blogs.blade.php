@@ -69,6 +69,26 @@
                                 </a>
                             </h2>
 
+                            {{-- Card par author + date: detail page ke byline ka
+                                 chhota version, taaki listing par bhi freshness
+                                 aur authorship dikhe. --}}
+                            @if($blog->created_at || !empty($blog->content->author_name))
+                                <p class="blog-card-meta">
+                                    @if(!empty($blog->content->author_name))
+                                        <span class="blog-card-author">{{ $blog->content->author_name }}</span>
+                                        @if($blog->created_at)
+                                            <span class="blog-card-sep">|</span>
+                                        @endif
+                                    @endif
+
+                                    @if($blog->created_at)
+                                        <time datetime="{{ $blog->created_at->toDateString() }}">
+                                            {{ $blog->created_at->format('d M Y') }}
+                                        </time>
+                                    @endif
+                                </p>
+                            @endif
+
                             <p class="blog-description">
                                 {{ __($blog->content->sub_title) }}
                             </p>
@@ -185,6 +205,25 @@ h2 {
     color: #000;
     text-decoration: none;
     background-color: transparent;
+}
+
+    .blog-card-meta{
+    font-size: 12px;
+    color: #777;
+    margin: 0 0 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.blog-card-meta .blog-card-author{
+    color: #333;
+    font-weight: 600;
+}
+
+.blog-card-meta .blog-card-sep{
+    color: #c4c4c4;
 }
 
     .blog-area .thumb {

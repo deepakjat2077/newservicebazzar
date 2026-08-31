@@ -1020,3 +1020,9 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->where('pin', '[0-9]{4,10}')
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
+
+// Public page: Badge guide (Verified/Trusted badge explanation)
+Route::get('/about/badges', function () {
+    $setting = \App\Models\Setting::first();
+    return view('themes.servicebazzar.badge-guide', ['setting' => $setting]);
+})->name('badges.guide');

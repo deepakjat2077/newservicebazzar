@@ -14,7 +14,7 @@ background-color: #0e0f38;
                 <div class="col-lg-7">
                     <div class="account-form-area">
                         <div class="account-head-area">
-                            <img src="{{ asset('assets/images/logo/logo.png') }}">
+                            <img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar logo">
                             <p>@lang('We have got the verification code. You can change your password now. Please provide a strong password for the best security. This is our recommendation but not required.')</p>
                         </div>
                         <form method="POST" action="{{ route('user.password.change') }}">

@@ -2798,7 +2798,7 @@ $data['relatedSubcategories'] = $relatedSubcategories;
 $data['categoryLocalities'] = $categoryLocalities;
 
 /*
- * A city x category/subcategory combination with zero listings is a real
+ * A city x category/subcategory combination with too few listings is a real
  * page (it can still list other cities/categories to try) but it has no
  * actual content of its own — with ~60 cities x thousands of categories
  * most combinations are empty. Left indexable, Google renders it, finds
@@ -2808,10 +2808,10 @@ $data['categoryLocalities'] = $categoryLocalities;
  * index this one", instead of Google reaching that conclusion itself after
  * spending crawl budget on every empty combination. `follow` is kept so
  * the related-categories/cities links on the page still get crawled.
+ *
+ * The threshold is shared with every other lander via config/seo.php.
  */
-if ($listings->isEmpty()) {
-    $data['seoRobots'] = 'noindex, follow';
-}
+$data['seoRobots'] = \App\Support\PageIndexability::robots($listings->count());
 
 
 $data['listing'] = $listings->first() ?? (object) [

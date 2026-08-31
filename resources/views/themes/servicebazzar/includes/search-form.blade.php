@@ -1135,7 +1135,7 @@ if (categoryDropdown) {
             a.dataset.type = "category";
 
             const iconHtml = iconType === "trending"
-                ? `<span class="header-category-trending-icon"><img src="{{ asset('assets/images/ffffjndjs.svg') }}" alt=""></span>`
+                ? `<span class="header-category-trending-icon"><img src="{{ asset('assets/images/ffffjndjs.svg') }}" alt="Trending indicator"></span>`
                 : `<span class="header-category-search-icon"><i class="fas fa-search"></i></span>`;
 
             a.innerHTML = `
@@ -1188,7 +1188,7 @@ if (categoryDropdown) {
 
             a.innerHTML = `
                 <span class="header-listing-suggestion-img">
-                    <img src="${image}" alt="">
+                    <img src="${image}" alt="${item.name}">
                 </span>
                 <span class="header-category-suggestion-content">
                     <span class="header-category-suggestion-name">${item.name}</span>

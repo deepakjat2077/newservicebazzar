@@ -3223,7 +3223,8 @@
         <div class="jd-rating-line1">
             @if($rating > 0)
                 <a href="#reviewsSection" class="jd-rating-badge rating-scroll-link">
-                    {{ number_format($rating, 1) }} ★
+                    {{ number_format($rating, 1) }} �
+
                 </a>
             @endif
             @if($ratingCount > 0)
@@ -3627,7 +3628,7 @@
     <div class="share-hover-wrap">
 
         <button type="button" style="cursor: pointer;" class="listing-btn share-btn-icon">
-    <img src="{{ asset('assets/images/download.svg') }}" alt="">
+    <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing">
         </button>
 
         <div class="share-hover-popup">
@@ -3839,15 +3840,20 @@
 
                 <div class="jd-rate-stars" id="quickRatingStars">
 
-                    <span class="jd-star star-btn {{ $userRating >= 1 ? 'active' : '' }}" data-value="1">★</span>
+                    <span class="jd-star star-btn {{ $userRating >= 1 ? 'active' : '' }}" data-value="1">�
+</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 2 ? 'active' : '' }}" data-value="2">★</span>
+                    <span class="jd-star star-btn {{ $userRating >= 2 ? 'active' : '' }}" data-value="2">�
+</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 3 ? 'active' : '' }}" data-value="3">★</span>
+                    <span class="jd-star star-btn {{ $userRating >= 3 ? 'active' : '' }}" data-value="3">�
+</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 4 ? 'active' : '' }}" data-value="4">★</span>
+                    <span class="jd-star star-btn {{ $userRating >= 4 ? 'active' : '' }}" data-value="4">�
+</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 5 ? 'active' : '' }}" data-value="5">★</span>
+                    <span class="jd-star star-btn {{ $userRating >= 5 ? 'active' : '' }}" data-value="5">�
+</span>
 
                 </div>
 
@@ -4694,7 +4700,12 @@
 
             <div class="sticky-left">
                 <div class="sticky-logo">
-                    <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}" alt="{{ $listing->name }} Logo">
+                    {{-- The sticky bar sits off-screen (translateY(120%)) until
+                         the visitor scrolls, so nothing in it is ever part of
+                         the initial paint — every image here can be deferred.
+                         The same images in #listingTopCard above are left eager
+                         because that card IS the first paint. --}}
+                    <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}" alt="{{ $listing->name }} Logo" loading="lazy">
                 </div>
 
                 <div class="sticky-info">
@@ -4708,7 +4719,8 @@
                 <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
         @if($rating > 0)
             <span class="jd-rating-badge">
-                {{ number_format($rating, 1) }} ★
+                {{ number_format($rating, 1) }} �
+
             </span>
         @endif
 
@@ -4719,11 +4731,11 @@
         @endif
 
         @if($listing->trust == 1)
-            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business">
+            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business" loading="lazy">
         @endif
 
         @if($listing->verified == 1)
-            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business">
+            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business" loading="lazy">
         @endif
     </div>
                 </div>
@@ -4740,7 +4752,7 @@
     data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
     data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
     data-number="{{ $listing->mobile_numbers[0] }}">
-        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call" loading="lazy">
 
         {{ $listing->mobile_country_code[0] ?? '+91' }}{{ $listing->mobile_numbers[0] }}
     </a>
@@ -4768,7 +4780,7 @@
         data-type="whatsapp"
         data-listing-id="{{ $listing->id }}"
         data-number="{{ $listing->whatsapp_numbers[0] ?? '' }}">
-        <img src="{{ asset('assets/wtseappp.svg') }}" class="whatsapp-icon" alt="WhatsApp">
+        <img src="{{ asset('assets/wtseappp.svg') }}" class="whatsapp-icon" alt="WhatsApp" loading="lazy">
 
             WhatsApp
         </a>
@@ -4793,7 +4805,7 @@
                 data-url="{{ url()->current() }}"
                 data-text="{{ $listing->name }}">
 
-        <img src="{{ asset('assets/images/download.svg') }}" alt="">
+        <img src="{{ asset('assets/images/download.svg') }}" alt="Share this listing" loading="lazy">
         </button>
 
         {{-- Edit Button - Only visible to listing owner --}}
@@ -4801,7 +4813,7 @@
             <a href="#"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
-            <img src="{{ asset('assets/editicon.svg') }}" alt="Edit">
+            <img src="{{ asset('assets/editicon.svg') }}" alt="Edit" loading="lazy">
             </a>
         @endif
 
@@ -5650,7 +5662,8 @@
                 ? asset('assets/images/user/profile/'.auth()->user()->image)
                 : asset('assets/images/user82.avif') }}"
                 alt="{{ auth()->check() ? (auth()->user()->fullname ?? auth()->user()->name ?? 'User') : 'Guest' }}"
-                class="comment-user-img">
+                class="comment-user-img"
+                loading="lazy">
 
             <div class="comment-input-flex">
                 <input type="text"
@@ -6472,7 +6485,7 @@
         <span class="nav-arrow left" id="prevImage">&#10094;</span>
 
         <!-- Image -->
-        <img class="image-preview-content" id="previewImage">
+        <img class="image-preview-content" id="previewImage" alt="Listing image preview">
 
         <!-- Right Arrow -->
         <span class="nav-arrow right" id="nextImage">&#10095;</span>
@@ -7816,7 +7829,7 @@
                     if (list) {
                         list.insertAdjacentHTML("afterbegin", `
                             <div class="single-comment" id="comment_${data.id}">
-                                <img src="${data.image}" class="comment-user-img">
+                                <img src="${data.image}" alt="${data.name}" class="comment-user-img">
                                 <div class="comment-body">
                                     <div class="comment-head">
                                         <b>${data.name}</b>
