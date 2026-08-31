@@ -377,24 +377,13 @@
     }
 
     .share-btn-icon{
-        width:42px !important;
-        height:42px !important;
-        min-width:42px !important;
+        width:38px !important;
+        height:38px !important;
+        min-width:38px !important;
         padding:0 !important;
         display:flex !important;
         align-items:center;
         justify-content:center;
-    }
-
-    .share-btn-icon img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-    }
-
-    .share-btn-icon i {
-        font-size: 18px;
-        color: #0d6efd;
     }
 
     .share-hover-popup{
@@ -491,12 +480,6 @@
         background:#0d6efd;
         color:#fff;
         border-color:#0d6efd;
-    }
-
-    .edit-listing-btn img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
     }
 
     .edit-listing-btn i{
@@ -1254,11 +1237,6 @@
             background: #0d6efd !important;
             color: #fff !important;
             border: none !important;
-        }
-
-        /* Edit button in sticky bar */
-        #stickyListingBar .listing-action-buttons .edit-listing-btn {
-            order: 4;
         }
     }
 
@@ -3245,8 +3223,7 @@
         <div class="jd-rating-line1">
             @if($rating > 0)
                 <a href="#reviewsSection" class="jd-rating-badge rating-scroll-link">
-                    {{ number_format($rating, 1) }} �
-
+                    {{ number_format($rating, 1) }} ★
                 </a>
             @endif
             @if($ratingCount > 0)
@@ -3647,11 +3624,10 @@
 
         Get Best Price
     </button>
-
-    {{-- Share button: moved before edit button for better layout --}}
     <div class="share-hover-wrap">
-        <button type="button" class="listing-btn share-btn-icon" title="Share">
-            <i class="fas fa-share"></i> Share
+
+        <button type="button" style="cursor: pointer;" class="listing-btn share-btn-icon">
+    <img src="{{ asset('assets/images/download.svg') }}" alt="">
         </button>
 
         <div class="share-hover-popup">
@@ -3696,20 +3672,15 @@
 
     </div>
 
-   
+    {{-- Edit Button - Only visible to listing owner --}}
+    @if(auth()->check() && auth()->id() === $listing->user_id)
+        <a href="{{ route('listing.edit', $listing->id) }}"
+           class="listing-btn edit-listing-btn"
+           title="Edit Listing">
+            <i class="las la-edit"></i>
+        </a>
+    @endif
     </div>
-
-    {{-- Edit button: accessible only to listing owner. Positioned after share. --}}
-    @auth
-        @if(auth()->id() === $listing->user_id)
-            <a href="{{ route('user.listing.edit', $listing->id) }}"
-               class="listing-btn"
-               title="Edit Listing"
-               style="padding: 8px 12px; display: flex; align-items: center; justify-content: center;">
-                <img src="{{ asset('assets/editicon.svg') }}" alt="Edit listing" style="width: 22px; height: 22px;">
-            </a>
-        @endif
-    @endauth
                             </div>
 
                             {{--
@@ -3809,7 +3780,15 @@
                                     </div>
                                 </div>
 
-                               
+                                {{-- Edit Button - Only visible to listing owner (mobile) --}}
+                                @if(auth()->check() && auth()->id() === $listing->user_id)
+                                    <a href="{{ route('listing.edit', $listing->id) }}"
+                                       class="mqa-btn mqa-edit"
+                                       title="Edit Listing">
+                                        <span class="mqa-icon"><i class="las la-edit"></i></span>
+                                        <span class="mqa-label">Edit</span>
+                                    </a>
+                                @endif
 
                             </div>
 
@@ -3860,20 +3839,15 @@
 
                 <div class="jd-rate-stars" id="quickRatingStars">
 
-                    <span class="jd-star star-btn {{ $userRating >= 1 ? 'active' : '' }}" data-value="1">�
-</span>
+                    <span class="jd-star star-btn {{ $userRating >= 1 ? 'active' : '' }}" data-value="1">★</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 2 ? 'active' : '' }}" data-value="2">�
-</span>
+                    <span class="jd-star star-btn {{ $userRating >= 2 ? 'active' : '' }}" data-value="2">★</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 3 ? 'active' : '' }}" data-value="3">�
-</span>
+                    <span class="jd-star star-btn {{ $userRating >= 3 ? 'active' : '' }}" data-value="3">★</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 4 ? 'active' : '' }}" data-value="4">�
-</span>
+                    <span class="jd-star star-btn {{ $userRating >= 4 ? 'active' : '' }}" data-value="4">★</span>
 
-                    <span class="jd-star star-btn {{ $userRating >= 5 ? 'active' : '' }}" data-value="5">�
-</span>
+                    <span class="jd-star star-btn {{ $userRating >= 5 ? 'active' : '' }}" data-value="5">★</span>
 
                 </div>
 
@@ -4720,12 +4694,7 @@
 
             <div class="sticky-left">
                 <div class="sticky-logo">
-                    {{-- The sticky bar sits off-screen (translateY(120%)) until
-                         the visitor scrolls, so nothing in it is ever part of
-                         the initial paint — every image here can be deferred.
-                         The same images in #listingTopCard above are left eager
-                         because that card IS the first paint. --}}
-                    <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}" alt="{{ $listing->name }} Logo" loading="lazy">
+                    <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}" alt="{{ $listing->name }} Logo">
                 </div>
 
                 <div class="sticky-info">
@@ -4739,8 +4708,7 @@
                 <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
         @if($rating > 0)
             <span class="jd-rating-badge">
-                {{ number_format($rating, 1) }} �
-
+                {{ number_format($rating, 1) }} ★
             </span>
         @endif
 
@@ -4751,11 +4719,11 @@
         @endif
 
         @if($listing->trust == 1)
-            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business" loading="lazy">
+            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business">
         @endif
 
         @if($listing->verified == 1)
-            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business" loading="lazy">
+            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business">
         @endif
     </div>
                 </div>
@@ -4772,7 +4740,7 @@
     data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
     data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
     data-number="{{ $listing->mobile_numbers[0] }}">
-        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call" loading="lazy">
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
 
         {{ $listing->mobile_country_code[0] ?? '+91' }}{{ $listing->mobile_numbers[0] }}
     </a>
@@ -4800,7 +4768,7 @@
         data-type="whatsapp"
         data-listing-id="{{ $listing->id }}"
         data-number="{{ $listing->whatsapp_numbers[0] ?? '' }}">
-        <img src="{{ asset('assets/wtseappp.svg') }}" class="whatsapp-icon" alt="WhatsApp" loading="lazy">
+        <img src="{{ asset('assets/wtseappp.svg') }}" class="whatsapp-icon" alt="WhatsApp">
 
             WhatsApp
         </a>
@@ -4818,22 +4786,22 @@
 
     
 
-        {{-- Share button - sticky bar --}}
         <button type="button"
-                class="listing-btn share-btn-icon"
+        style="cursor: pointer;"
+            class="listing-btn share-btn-icon"
                 id="listingShareBtn"
                 data-url="{{ url()->current() }}"
-                data-text="{{ $listing->name }}"
-                title="Share">
-            <i class="fas fa-share"></i> Share
+                data-text="{{ $listing->name }}">
+
+        <img src="{{ asset('assets/images/download.svg') }}" alt="">
         </button>
 
-        {{-- Edit Button - Only visible to listing owner (sticky bar) --}}
+        {{-- Edit Button - Only visible to listing owner --}}
         @if(auth()->check() && auth()->id() === $listing->user_id)
-            <a href="{{ route('user.listing.edit', $listing->id) }}"
+            <a href="{{ route('listing.edit', $listing->id) }}"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
-                <img src="{{ asset('assets/editicon.svg') }}" alt="Edit" loading="lazy">
+                <i class="las la-edit"></i>
             </a>
         @endif
 
@@ -4998,9 +4966,14 @@
                 <div class="content-section mb-4" id="photosSection">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h4 class="media-title mb-0">Photos</h4>
-            {{-- Editing all listing details (photos, overview, etc.) is now
-                 centralized via the main edit button at the top. Inline edit
-                 buttons removed to avoid UX confusion. --}}
+
+            @auth
+                @if(auth()->id() == $listing->user_id)
+                    <button type="button" class="edit-section-btn" onclick="toggleInlineSection('photos')">
+                        <i class="las la-edit"></i>
+                    </button>
+                @endif
+            @endauth
         </div>
 
         {{-- VIEW MODE --}}
@@ -5055,7 +5028,14 @@
                 <div class="content-section mb-4" id="overviewSection">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h4 class="media-title mb-0">Overview</h4>
-                        {{-- Editing centralized via main edit button (see top of page). --}}
+
+                        @auth
+                            @if(auth()->id() == $listing->user_id)
+                                <button type="button" class="edit-section-btn" onclick="toggleInlineSection('overview')">
+                                    <i class="las la-edit"></i>
+                                </button>
+                            @endif
+                        @endauth
                     </div>
 
 
@@ -5248,7 +5228,15 @@
             <h4 class="media-title mb-0">  <i class="las la-concierge-bell"></i> @lang('Services')</h4>
         
 
-          
+            @auth
+                @if(auth()->id() == $listing->user_id)
+                    <button type="button"
+                            class="edit-section-btn"
+                            onclick="toggleInlineSection('services')">
+                        <i class="las la-edit"></i>
+                    </button>
+                @endif
+            @endauth
         </div>
 
         <div class="widget-body">
@@ -5577,9 +5565,9 @@
         <div class="review-stars">
             @for($i=1;$i<=5;$i++)
                 @if($i <= $rating->ratings)
-                    <i class="fas fa-gem"></i>
+                    <i class="fas fa-star"></i>
                 @else
-                    <i class="far fa-gem"></i>
+                    <i class="far fa-star"></i>
                 @endif
             @endfor
         </div>
@@ -5662,8 +5650,7 @@
                 ? asset('assets/images/user/profile/'.auth()->user()->image)
                 : asset('assets/images/user82.avif') }}"
                 alt="{{ auth()->check() ? (auth()->user()->fullname ?? auth()->user()->name ?? 'User') : 'Guest' }}"
-                class="comment-user-img"
-                loading="lazy">
+                class="comment-user-img">
 
             <div class="comment-input-flex">
                 <input type="text"
@@ -6485,7 +6472,7 @@
         <span class="nav-arrow left" id="prevImage">&#10094;</span>
 
         <!-- Image -->
-        <img class="image-preview-content" id="previewImage" alt="Listing image preview">
+        <img class="image-preview-content" id="previewImage">
 
         <!-- Right Arrow -->
         <span class="nav-arrow right" id="nextImage">&#10095;</span>
@@ -7829,7 +7816,7 @@
                     if (list) {
                         list.insertAdjacentHTML("afterbegin", `
                             <div class="single-comment" id="comment_${data.id}">
-                                <img src="${data.image}" alt="${data.name}" class="comment-user-img">
+                                <img src="${data.image}" class="comment-user-img">
                                 <div class="comment-body">
                                     <div class="comment-head">
                                         <b>${data.name}</b>
