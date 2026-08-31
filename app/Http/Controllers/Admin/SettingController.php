@@ -91,14 +91,13 @@ class SettingController extends Controller
     	}
 
     	// Edit icon: used on listing details pages for owner-only edit button
+    	// SVG files bypass image validation (getimagesize fails on SVG)
     	if ($request->hasFile('edit_icon')) {
     		try {
-    			$data = [
-    				'file'=>$request->edit_icon,
-    				'path'=>'assets',
-    			];
-    			$filename = 'editicon.svg';
-    			$this->uploadImage($data,$filename);
+    			$file = $request->file('edit_icon');
+    			$filename = 'editicon.' . $file->getClientOriginalExtension();
+    			// Direct move without image processing for SVG/icon files
+    			$file->move(public_path('assets'), $filename);
     		} catch (Exception $e) {
     			$alert = ['danger','Something wrong'];
     			return back()->withAlert($alert);
