@@ -1191,7 +1191,8 @@
             padding: 10px 12px;
         }
 
-        #stickyListingBar .listing-action-buttons .btn-landline-main {
+        #stickyListingBar .listing-action-buttons .btn-landline-main,
+        #stickyListingBar .listing-action-buttons .share-btn-icon {
             display: none !important;
         }
 
@@ -1250,13 +1251,9 @@
             border: none !important;
         }
 
-        /* Share and Edit buttons in sticky bar */
-        #stickyListingBar .listing-action-buttons .share-btn-icon {
-            order: 4;
-        }
-
+        /* Edit button in sticky bar */
         #stickyListingBar .listing-action-buttons .edit-listing-btn {
-            order: 5;
+            order: 4;
         }
     }
 
@@ -3694,14 +3691,7 @@
 
     </div>
 
-    {{-- Edit Button - Only visible to listing owner --}}
-    @if(auth()->check() && auth()->id() === $listing->user_id)
-        <a href="#"
-           class="listing-btn edit-listing-btn"
-           title="Edit Listing">
-            <i class="las la-edit"></i>
-        </a>
-    @endif
+   
     </div>
 
     {{-- Edit button: accessible only to listing owner. Positioned after share. --}}
@@ -3814,15 +3804,7 @@
                                     </div>
                                 </div>
 
-                                {{-- Edit Button - Only visible to listing owner (mobile) --}}
-                                @if(auth()->check() && auth()->id() === $listing->user_id)
-                                    <a href="#"
-                                       class="mqa-btn mqa-edit"
-                                       title="Edit Listing">
-                                        <span class="mqa-icon"><i class="las la-edit"></i></span>
-                                        <span class="mqa-label">Edit</span>
-                                    </a>
-                                @endif
+                               
 
                             </div>
 
@@ -5261,15 +5243,7 @@
             <h4 class="media-title mb-0">  <i class="las la-concierge-bell"></i> @lang('Services')</h4>
         
 
-            @auth
-                @if(auth()->id() == $listing->user_id)
-                    <button type="button"
-                            class="edit-section-btn"
-                            onclick="toggleInlineSection('services')">
-                        <i class="las la-edit"></i>
-                    </button>
-                @endif
-            @endauth
+          
         </div>
 
         <div class="widget-body">
