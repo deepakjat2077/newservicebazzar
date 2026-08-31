@@ -912,6 +912,29 @@ public function updatesection(Request $request, $id)
     }
 
     /**
+     * JustDial-style checkout page for one plan on one listing: payment methods
+     * on the left, a price-details summary (budget / discount / GST / total) on
+     * the right. Paying runs through the same deposit flow (enabled methods
+     * only) with this listing's id attached.
+     */
+    public function advertiseCheckout($id, $package)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $package = \App\Models\Package::where('status', 1)->where('id', $package)->firstOrFail();
+
+        // Free plans have no checkout — activate straight away.
+        if ($package->price <= 0) {
+            return redirect()->route('admin.package.free.activate', $package->id);
+        }
+
+        $methods = \App\Models\MethodCurrency::where('enable_status', 1)
+            ->with('paymentMethod')->orderBy('currency_name')->get();
+
+        return view($this->theme.'user.listing.advertise-checkout', compact('listing', 'package', 'methods'));
+    }
+
+    /**
      * Analytics — every number here comes from either the enquiries table
      * or listing_daily_stats (both already tracked for other reasons: leads
      * and the admin analytics dashboard). There is no call telephony, no

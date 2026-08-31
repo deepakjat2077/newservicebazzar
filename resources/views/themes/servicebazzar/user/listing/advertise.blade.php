@@ -72,13 +72,10 @@
 
           @if($isCurrent)
             <button type="button" class="sbadv-buy is-current" disabled>Active Plan</button>
+          @elseif($isFree)
+            <a href="{{ route('admin.package.free.activate', $package->id) }}" class="sbadv-buy">Activate Free <i class="las la-arrow-right"></i></a>
           @else
-            <button type="button" class="sbadv-buy buyBtn"
-                    data-price="{{ numberFormat($package->price) }}"
-                    data-package_id="{{ $package->id }}"
-                    data-free="{{ $isFree ? 1 : 0 }}">
-              Buy Now <i class="las la-arrow-right"></i>
-            </button>
+            <a href="{{ route('user.listing.advertise.checkout', ['id' => $listing->id, 'package' => $package->id]) }}" class="sbadv-buy">Buy Now <i class="las la-arrow-right"></i></a>
           @endif
         </div>
       @empty
@@ -135,62 +132,6 @@
       @endforeach
     </div>
 
-  </div>
-</div>
-
-{{-- ============ Payment modal (reuses the deposit flow) ============ --}}
-<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">@lang('Payment')</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      </div>
-      <form action="{{ route('user.deposit.submit') }}" method="post">
-        @csrf
-        <input type="hidden" name="package_id">
-        <input type="hidden" name="listing_id" value="{{ $listing->id }}">
-        <div class="modal-body">
-          @if($methods->isEmpty())
-            <div class="alert alert-warning mb-0">@lang('No payment method is currently available. Please contact support.')</div>
-          @else
-          <div class="row">
-            <div class="col-md-4">
-              <label>@lang('Select Payment Method')</label>
-              <select class="form-control" name="method">
-                @foreach($methods as $method)
-                  <option value="{{ $method->id }}"
-                    data-f_charge="{{ $method->f_charge }}"
-                    data-p_charge="{{ $method->p_charge }}"
-                    data-rate="{{ $method->cv_rate }}"
-                    data-currency="{{ $method->currency }}"
-                    data-image="{{ loadImage('assets/images/paymentMethod/'.$method->paymentMethod->image) }}"
-                    >{{ __($method->paymentMethod->name) }} ({{ __($method->currency) }})</option>
-                @endforeach
-              </select>
-              <div class="mt-3"><img src="" class="method-image" alt="Payment Method" style="max-width:100%;"></div>
-            </div>
-            <div class="col-md-8">
-              <ul class="list-group">
-                <li class="list-group-item"><span class="float-left">@lang('Amount'):</span><span class="float-right"><span class="amount"></span> {{ $setting->site_currency }}</span></li>
-                <li class="list-group-item"><span class="float-left">@lang('Charge'):</span><span class="float-right charge"></span></li>
-                <li class="list-group-item"><span class="float-left">@lang('Total Charge')</span><span class="float-right"><span class="totalCharge"></span> {{ $setting->site_currency }}</span></li>
-                <li class="list-group-item"><span class="float-left">@lang('Amount With Charge')</span><span class="float-right"><span class="amoWithCharge"></span> {{ $setting->site_currency }}</span></li>
-                <li class="list-group-item"><span class="float-left">@lang('Rate')</span><span class="float-right">1{{ $setting->site_currency }} = <span class="rate"></span> <span class="method_currency"></span></span></li>
-                <li class="list-group-item"><span class="float-left">@lang('Payable (after convert)')</span><span class="float-right"><span class="afterConvert"></span> <span class="method_currency"></span></span></li>
-              </ul>
-            </div>
-          </div>
-          @endif
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">@lang('Close')</button>
-          @if($methods->isNotEmpty())
-            <button type="submit" class="btn btn-primary">@lang('Pay Now')</button>
-          @endif
-        </div>
-      </form>
-    </div>
   </div>
 </div>
 
@@ -258,61 +199,3 @@
 </style>
 
 @endsection
-
-@push('js')
-<script>
-(function($){
-"use strict";
-
-$('.buyBtn').on('click', function(){
-    var amount    = parseFloat($(this).data('price')) || 0;
-    var packageId = $(this).data('package_id');
-    var isFree    = $(this).data('free') == 1;
-
-    // Free plan — activate straight away, no payment modal.
-    if(isFree){
-        var url = "{{ route('admin.package.free.activate', ':id') }}".replace(':id', packageId);
-        window.location.href = url;
-        return;
-    }
-
-    $('#paymentModal input[name=package_id]').val(packageId);
-
-    var el = $('#paymentModal select[name=method] option:selected');
-    if(el.length){
-        methodImg(el.data('image'));
-        calc(el, amount);
-        $('#paymentModal select[name=method]').off('change').on('change', function(){
-            var el = $('#paymentModal select[name=method] option:selected');
-            methodImg(el.data('image'));
-            calc(el, amount);
-        });
-    }
-    $('#paymentModal').modal('show');
-});
-
-function calc(el, amount){
-    var fixed   = parseFloat(el.data('f_charge')) || 0;
-    var percent = parseFloat(el.data('p_charge')) || 0;
-    var currency= el.data('currency');
-    var rate    = parseFloat(el.data('rate')) || 1;
-    amount      = parseFloat(amount) || 0;
-
-    var totalCharge   = parseFloat((fixed + (amount * percent) / 100).toFixed(2));
-    var amoWithCharge = parseFloat((amount + totalCharge).toFixed(2));
-    var afterConvert  = parseFloat((amoWithCharge * rate).toFixed(2));
-
-    $('.rate').text(rate.toFixed(2));
-    $('.method_currency').text(currency);
-    $('.charge').text(fixed.toFixed(2) + ' {{ $setting->site_currency }} + ' + percent.toFixed(2) + '%');
-    $('.amount').text(amount.toFixed(2));
-    $('.totalCharge').text(totalCharge.toFixed(2));
-    $('.amoWithCharge').text(amoWithCharge.toFixed(2));
-    $('.afterConvert').text(afterConvert.toFixed(2));
-}
-
-function methodImg(img){ $('.method-image').attr('src', img || ''); }
-
-})(jQuery);
-</script>
-@endpush
