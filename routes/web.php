@@ -1011,3 +1011,7 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
 
+Route::get('/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeController::class, 'show'])
+    ->where('pin', '[0-9]{4,10}')
+    ->middleware('web')
+    ->name('pincode.fetch');

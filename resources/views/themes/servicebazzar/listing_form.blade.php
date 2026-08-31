@@ -1508,7 +1508,7 @@ const pin = match[1];
 
             try {
                 const response = await fetch(
-                    "/admin/pincode/" + pin
+                    "{{ route('pincode.fetch', ['pin' => '__PIN__']) }}".replace("__PIN__", pin)
                 );
 
                 const data = await response.json();
@@ -1549,34 +1549,40 @@ const pin = match[1];
                     longitudeField.value = "";
                 }
 
-                if (
-                    data &&
-                    data[0] &&
-                    data[0].Status === "Success" &&
-                    data[0].PostOffice &&
-                    data[0].PostOffice.length > 0
-                ) {
-                    const postOffices = data[0].PostOffice;
+                if (data && data.status && Array.isArray(data.areas) && data.areas.length > 0) {
 
                     if (cityField) {
                         cityField.value =
-                            postOffices[0].District || "";
+                            data.city || "";
                     }
 
                     if (stateField) {
                         stateField.value =
-                            postOffices[0].State || "";
+                            data.state || "";
                     }
 
                     if (areaDropdown) {
-                        postOffices.forEach(function (office) {
+                        data.areas.forEach(function (areaName) {
                             const option =
                                 document.createElement("option");
 
-                            option.value = office.Name;
-                            option.textContent = office.Name;
+                            option.value = areaName;
+                            option.textContent = areaName;
 
                             areaDropdown.appendChild(option);
+                        });
+                    }
+
+                    const locationSelect = document.getElementById("location_id");
+                    if (locationSelect && data.city) {
+                        const city = data.city.toLowerCase().trim();
+                        Array.from(locationSelect.options).some(function (option) {
+                            if (option.textContent.toLowerCase().trim() === city) {
+                                locationSelect.value = option.value;
+                                return true;
+                            }
+
+                            return false;
                         });
                     }
 
@@ -1619,7 +1625,7 @@ const pin = match[1];
                     }
 
                 } else {
-                    alert("Invalid Pincode");
+                    alert("Area not found for this pincode. Please use Add manually.");
                 }
 
             } catch (error) {
