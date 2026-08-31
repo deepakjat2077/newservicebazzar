@@ -90,7 +90,22 @@ class SettingController extends Controller
     		}
     	}
 
-    	$alert = ['success','Logo & Favicon updated successfully'];
+    	{{-- Edit icon: used on listing details pages for owner-only edit button --}}
+    	if ($request->hasFile('edit_icon')) {
+    		try {
+    			$data = [
+    				'file'=>$request->edit_icon,
+    				'path'=>'assets',
+    			];
+    			$filename = 'editicon.svg';
+    			$this->uploadImage($data,$filename);
+    		} catch (Exception $e) {
+    			$alert = ['danger','Something wrong'];
+    			return back()->withAlert($alert);
+    		}
+    	}
+
+    	$alert = ['success','Logo, Favicon & Edit Icon updated successfully'];
     	return back()->withAlert($alert);
     }
 
