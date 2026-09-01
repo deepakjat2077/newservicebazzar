@@ -64,9 +64,6 @@
                           <a class="dropdown-item" href="{{ route('user.logout') }}">@lang('Logout')</a>
                         </div>
                       </li>
-                      <li class="nav-item">
-                        <a class="nav-link nav-btn" href="{{ route('user.logout') }}"><i class="las la-sign-out-alt"></i> @lang('Logout')</a>
-                      </li>
                     </ul>
                   </div>
                 </nav>
