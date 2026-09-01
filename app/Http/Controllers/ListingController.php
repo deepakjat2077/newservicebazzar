@@ -1812,27 +1812,48 @@ public function updatesection(Request $request, $id)
             return back()->withAlert(['danger', 'Photo not found.']);
         }
 
-        $source = public_path('assets/images/listing/photos/'.$request->filename);
-        $thumbDir = public_path('assets/images/listing/thumb');
+        $photoRel = 'assets/images/listing/photos/'.$request->filename;
+        $thumbRelDir = 'assets/images/listing/thumb';
+        $thumbRel = $thumbRelDir.'/'.$request->filename;
 
-        if (! is_dir($thumbDir)) {
-            @mkdir($thumbDir, 0755, true);
-        }
+        // Copy the photo into the thumb folder under the SAME filename. The
+        // base dir is resolved tolerantly: loadImage()/deleteFile() read files
+        // by a CWD-relative path (on the live server the working dir IS the
+        // public dir), while uploads move files via public_path(). Different
+        // shared-hosting layouts make one or the other the real location, so
+        // we copy inside whichever base actually holds the source file.
+        $bases = array_values(array_unique(array_filter([
+            rtrim(public_path(), '/\\').DIRECTORY_SEPARATOR,
+            rtrim(base_path('public'), '/\\').DIRECTORY_SEPARATOR,
+            rtrim(getcwd() ?: '', '/\\').DIRECTORY_SEPARATOR,
+            '', // CWD-relative, exactly like loadImage()
+        ])));
 
-        if (is_file($source)) {
-            @copy($source, $thumbDir.'/'.$request->filename);
+        $copied = false;
+        foreach ($bases as $base) {
+            if (! is_file($base.$photoRel)) {
+                continue;
+            }
+            if (! is_dir($base.$thumbRelDir)) {
+                @mkdir($base.$thumbRelDir, 0755, true);
+            }
+            @copy($base.$photoRel, $base.$thumbRel);
+            if (is_file($base.$thumbRel)) {
+                $copied = true;
+                break;
+            }
         }
 
         // Only point thumb at it once the file is actually in the thumb folder,
         // so we never set thumb to a name that renders as a broken image.
-        if (is_file($thumbDir.'/'.$request->filename)) {
+        if ($copied) {
             $listing->thumb = $request->filename;
             $listing->save();
 
             return back()->withAlert(['success', 'Cover photo updated.']);
         }
 
-        return back()->withAlert(['danger', 'Could not update the cover photo.']);
+        return back()->withAlert(['danger', 'Could not update the cover photo — the image file could not be found on the server.']);
     }
 
     public function uploadGalleryPhotos(Request $request, $id)
