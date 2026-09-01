@@ -11,7 +11,7 @@
     $hasSocial     = collect($listing->social_links ?? [])->flatten()->filter()->isNotEmpty();
     $subCount      = $listing->subcategory->count();
     $yearsInBiz    = $listing->established_year ? (date('Y') - (int) $listing->established_year) : null;
-    $openStatus    = $listing->open_24_hours
+    $openStatus    = $listing->isOpen24HoursDerived()
         ? 'Open 24 Hours'
         : (!empty($listing->business_days) ? 'Business hours set' : null);
     $fullAddress   = $listing->address ?: trim(collect([
@@ -19,6 +19,11 @@
         $listing->street_name ?? null, $listing->landmark ?? null,
         $listing->area ?? null, optional($listing->location)->name,
     ])->filter()->implode(', '), ', ');
+
+    // Every section link on this page carries from=manage, so those pages'
+    // back button returns HERE (where the user came from) instead of the
+    // compact dashboard.
+    $sec = fn ($name, $params = []) => route($name, array_merge(['id' => $listing->id, 'from' => 'manage'], $params));
 @endphp
 
 <section class="sb-mng pt-30 pb-80">
@@ -96,22 +101,22 @@
         {{-- ===== Tabs ===== --}}
         <div class="sb-mng-tabs">
             <a href="#sbQuickInfo" class="is-active">Overview</a>
-            <a href="{{ route('user.listing.business-catalogue', $listing->id) }}">Catalogue</a>
+            <a href="{{ $sec('user.listing.business-catalogue') }}">Catalogue</a>
             @if($publicUrl)<a href="{{ $publicUrl }}#reviewsSection" target="_blank">Reviews</a>@endif
-            <a href="{{ route('user.listing.business-photos', $listing->id) }}">Photos</a>
+            <a href="{{ $sec('user.listing.business-photos') }}">Photos</a>
         </div>
 
         {{-- ===== Promo cards ===== --}}
         <div class="sb-mng-promos">
-            <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sb-mng-promo">
+            <a href="{{ $sec('user.listing.business-catalogue') }}" class="sb-mng-promo">
                 <span class="sb-mng-promo-ico sb-mng-promo-ico--blue"><i class="fas fa-file-lines"></i></span>
                 <span class="sb-mng-promo-body"><strong>Upload Rate Card / Catalogue</strong><small>Display clear pricing for informed customers</small></span>
             </a>
-            <a href="{{ route('user.listing.business-contact', $listing->id) }}" class="sb-mng-promo">
+            <a href="{{ $sec('user.listing.business-contact') }}" class="sb-mng-promo">
                 <span class="sb-mng-promo-ico sb-mng-promo-ico--green"><i class="fas fa-address-book"></i></span>
                 <span class="sb-mng-promo-body"><strong>Add Contact Details</strong><small>Multiple contact details ensure easy customer access</small></span>
             </a>
-            <a href="{{ route('user.listing.business-photos', $listing->id) }}" class="sb-mng-promo">
+            <a href="{{ $sec('user.listing.business-photos') }}" class="sb-mng-promo">
                 <span class="sb-mng-promo-ico sb-mng-promo-ico--orange"><i class="fas fa-images"></i></span>
                 <span class="sb-mng-promo-body"><strong>Add Photos</strong><small>Attract more customers by adding more photos</small></span>
             </a>
@@ -119,9 +124,9 @@
 
         {{-- ===== For Your Business ===== --}}
         <div class="sb-mng-tiles">
-            <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-mng-tile sb-mng-tile--mint"><i class="fas fa-inbox"></i> Leads &amp; Enquiries</a>
-            <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-mng-tile sb-mng-tile--peach"><i class="fas fa-chart-line"></i> Analytics</a>
-            <a href="{{ route('user.listing.ratings-qr', $listing->id) }}" class="sb-mng-tile sb-mng-tile--sky"><i class="fas fa-qrcode"></i> Ratings QR</a>
+            <a href="{{ $sec('user.listing.leads') }}" class="sb-mng-tile sb-mng-tile--mint"><i class="fas fa-inbox"></i> Leads &amp; Enquiries</a>
+            <a href="{{ $sec('user.listing.analytics') }}" class="sb-mng-tile sb-mng-tile--peach"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a href="{{ $sec('user.listing.ratings-qr') }}" class="sb-mng-tile sb-mng-tile--sky"><i class="fas fa-qrcode"></i> Ratings QR</a>
         </div>
 
         {{-- ===== Quick Information ===== --}}
@@ -130,18 +135,18 @@
 
             @php
                 $rows = [
-                    ['icon' => 'fa-id-card',          'title' => 'Business Name',            'value' => $listing->name, 'route' => route('user.listing.business-name', $listing->id), 'pending' => $listing->name_approval_status === 'pending' ? 'Pending approval' : null],
-                    ['icon' => 'fa-address-card',     'title' => 'Contact Details',          'value' => $firstMobile ?: (collect($listing->extra_emails ?? [])->filter()->first() ?: null), 'route' => route('user.listing.business-contact', $listing->id)],
-                    ['icon' => 'fa-location-dot',     'title' => 'Business Address',         'value' => $fullAddress ?: null, 'route' => route('user.listing.business-address', $listing->id), 'pending' => $listing->address_approval_status === 'pending' ? 'Pending approval' : null],
-                    ['icon' => 'fa-clock',            'title' => 'Business Hours',           'value' => $openStatus, 'route' => route('user.listing.business-timings', $listing->id)],
-                    ['icon' => 'fa-tags',             'title' => 'Business Categories',      'value' => $subCount ? $subCount.' selected' : null, 'route' => route('user.listing.business-categories', $listing->id)],
-                    ['icon' => 'fa-map',              'title' => 'Map Location',             'value' => $listing->latitude ? 'Pinned on map' : null, 'route' => route('user.listing.map-location', $listing->id)],
-                    ['icon' => 'fa-map-location-dot', 'title' => 'Serviceable Area / Pincodes', 'value' => $listing->receive_leads_other_cities ? 'Also other cities' : (optional($listing->location)->name ? optional($listing->location)->name.' only' : null), 'route' => route('user.listing.serviceable-area', $listing->id)],
-                    ['icon' => 'fa-calendar-check',   'title' => 'Year of Establishment',    'value' => $listing->established_year ?: null, 'route' => route('user.listing.established', $listing->id)],
-                    ['icon' => 'fa-globe',            'title' => 'Website',                  'value' => $listing->website ?: null, 'route' => route('user.listing.business-website', $listing->id)],
-                    ['icon' => 'fa-share-nodes',      'title' => 'Social Media',             'value' => $hasSocial ? 'Added' : null, 'route' => route('user.listing.business-social', $listing->id)],
-                    ['icon' => 'fa-images',           'title' => 'Photos & Videos',          'value' => ($galleryCount ? $galleryCount.' photo'.($galleryCount == 1 ? '' : 's') : null).($listing->youtube_video_url ? ' + video' : ''), 'route' => route('user.listing.business-photos', $listing->id)],
-                    ['icon' => 'fa-clipboard-list',   'title' => 'Rate Card / Catalogue',    'value' => $catalogueCount ? $catalogueCount.' item'.($catalogueCount == 1 ? '' : 's') : null, 'route' => route('user.listing.business-catalogue', $listing->id)],
+                    ['icon' => 'fa-id-card',          'title' => 'Business Name',            'value' => $listing->name, 'route' => $sec('user.listing.business-name'), 'pending' => $listing->name_approval_status === 'pending' ? 'Pending approval' : null],
+                    ['icon' => 'fa-address-card',     'title' => 'Contact Details',          'value' => $firstMobile ?: (collect($listing->extra_emails ?? [])->filter()->first() ?: null), 'route' => $sec('user.listing.business-contact')],
+                    ['icon' => 'fa-location-dot',     'title' => 'Business Address',         'value' => $fullAddress ?: null, 'route' => $sec('user.listing.business-address'), 'pending' => $listing->address_approval_status === 'pending' ? 'Pending approval' : null],
+                    ['icon' => 'fa-clock',            'title' => 'Business Hours',           'value' => $openStatus, 'route' => $sec('user.listing.business-timings')],
+                    ['icon' => 'fa-tags',             'title' => 'Business Categories',      'value' => $subCount ? $subCount.' selected' : null, 'route' => $sec('user.listing.business-categories')],
+                    ['icon' => 'fa-map',              'title' => 'Map Location',             'value' => $listing->latitude ? 'Pinned on map' : null, 'route' => $sec('user.listing.map-location')],
+                    ['icon' => 'fa-map-location-dot', 'title' => 'Serviceable Area / Pincodes', 'value' => $listing->receive_leads_other_cities ? 'Also other cities' : (optional($listing->location)->name ? optional($listing->location)->name.' only' : null), 'route' => $sec('user.listing.serviceable-area')],
+                    ['icon' => 'fa-calendar-check',   'title' => 'Year of Establishment',    'value' => $listing->established_year ?: null, 'route' => $sec('user.listing.established')],
+                    ['icon' => 'fa-globe',            'title' => 'Website',                  'value' => $listing->website ?: null, 'route' => $sec('user.listing.business-website')],
+                    ['icon' => 'fa-share-nodes',      'title' => 'Social Media',             'value' => $hasSocial ? 'Added' : null, 'route' => $sec('user.listing.business-social')],
+                    ['icon' => 'fa-images',           'title' => 'Photos & Videos',          'value' => ($galleryCount ? $galleryCount.' photo'.($galleryCount == 1 ? '' : 's') : null).($listing->youtube_video_url ? ' + video' : ''), 'route' => $sec('user.listing.business-photos')],
+                    ['icon' => 'fa-clipboard-list',   'title' => 'Rate Card / Catalogue',    'value' => $catalogueCount ? $catalogueCount.' item'.($catalogueCount == 1 ? '' : 's') : null, 'route' => $sec('user.listing.business-catalogue')],
                 ];
             @endphp
 
@@ -171,13 +176,13 @@
         <div class="sb-mng-section">
             <h5 class="sb-mng-section-title">Business Tools</h5>
             <div class="sb-mng-tool-list">
-                <a href="{{ route('user.listing.ratings-qr', $listing->id) }}" class="sb-mng-tool"><i class="fas fa-qrcode"></i><span>Share Ratings QR Code</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
+                <a href="{{ $sec('user.listing.ratings-qr') }}" class="sb-mng-tool"><i class="fas fa-qrcode"></i><span>Share Ratings QR Code</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
                 @if($publicUrl)
                     <a href="{{ $publicUrl }}#reviewsSection" target="_blank" class="sb-mng-tool"><i class="fas fa-comments"></i><span>Reply to Reviews</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
                 @endif
-                <a href="{{ route('user.listing.import-leads', $listing->id) }}" class="sb-mng-tool"><i class="fas fa-file-import"></i><span>Import Leads</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
-                <a href="{{ route('user.listing.competitors', $listing->id) }}" class="sb-mng-tool"><i class="fas fa-users"></i><span>Compare Competitors</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
-                <a href="{{ route('user.listing.analytics', $listing->id) }}" class="sb-mng-tool"><i class="fas fa-chart-column"></i><span>Analytics</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
+                <a href="{{ $sec('user.listing.import-leads') }}" class="sb-mng-tool"><i class="fas fa-file-import"></i><span>Import Leads</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
+                <a href="{{ $sec('user.listing.competitors') }}" class="sb-mng-tool"><i class="fas fa-users"></i><span>Compare Competitors</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
+                <a href="{{ $sec('user.listing.analytics') }}" class="sb-mng-tool"><i class="fas fa-chart-column"></i><span>Analytics</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
             </div>
         </div>
 
@@ -185,7 +190,7 @@
         <div class="sb-mng-section">
             <h5 class="sb-mng-section-title">Support</h5>
             <div class="sb-mng-tool-list">
-                <a href="{{ route('user.listing.leads', $listing->id) }}" class="sb-mng-tool"><i class="fas fa-inbox"></i><span>Leads &amp; Enquiries</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
+                <a href="{{ $sec('user.listing.leads') }}" class="sb-mng-tool"><i class="fas fa-inbox"></i><span>Leads &amp; Enquiries</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
                 <a href="{{ route('contact') }}" class="sb-mng-tool"><i class="fas fa-headset"></i><span>Customer Support</span><i class="fas fa-chevron-right sb-mng-tool-chev"></i></a>
             </div>
         </div>

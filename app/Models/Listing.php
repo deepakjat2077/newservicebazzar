@@ -35,6 +35,41 @@ class Listing extends Model
         'photos'                 => 'array',
     ];
 
+    /**
+     * Whether this listing counts as "Open 24 Hours".
+     *
+     * The public detail page decides this NOT from the open_24_hours flag but
+     * by deriving it: a slot that runs 12:00 AM → 11:59 PM is shown as "Open
+     * 24 Hours" (see listings/details.blade.php). Listings created through the
+     * older main edit form store their 24-hour days exactly that way and leave
+     * the flag off, so anything that only reads the flag (the timings editor,
+     * the manage page) disagreed with what the public page shows. This mirrors
+     * the public rule so every screen agrees.
+     */
+    public function isOpen24HoursDerived(): bool
+    {
+        if ($this->open_24_hours) {
+            return true;
+        }
+
+        $opens = $this->open_time ?? [];
+        $closes = $this->close_time ?? [];
+
+        if (empty($opens)) {
+            return false;
+        }
+
+        foreach ($opens as $i => $open) {
+            $close = $closes[$i] ?? '';
+            if (strtoupper(trim((string) $open)) !== '12:00 AM'
+                || strtoupper(trim((string) $close)) !== '11:59 PM') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
   public function subcategory()
 {
     return $this->belongsTo(Subcategory::class, 'subcategory_id');

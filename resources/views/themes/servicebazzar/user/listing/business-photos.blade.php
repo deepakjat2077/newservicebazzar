@@ -5,7 +5,7 @@
 <section class="pt-30 pb-80">
     <div class="container" style="max-width:720px;">
         <div class="sb-biz-header">
-            <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
+            <a href="{{ request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 <h4>Photo Gallery</h4>
                 <span>{{ $listing->name }}</span>
@@ -61,10 +61,20 @@
                     <div class="sb-gallery-item">
                         <div class="sb-gallery-item-crop">
                             <img src="{{ loadImage('assets/images/listing/photos/'.$filename) }}" alt="{{ $listing->name }}">
+                            @if($loop->first)
+                                <span class="sb-gallery-cover-tag">Cover Photo</span>
+                            @endif
                         </div>
                         <button type="button" class="sb-gallery-dots" data-photo-menu="legacy-{{ $loop->index }}"><i class="fas fa-ellipsis-vertical"></i></button>
 
                         <div class="sb-gallery-menu" id="sbPhotoMenulegacy-{{ $loop->index }}" hidden>
+                            @unless($loop->first)
+                                <form action="{{ route('user.listing.business-photos.legacy-cover', $listing->id) }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="filename" value="{{ $filename }}">
+                                    <button type="submit" class="sb-gallery-menu-item">Set as Cover Photo</button>
+                                </form>
+                            @endunless
                             <form action="{{ route('user.listing.business-photos.legacy-remove', $listing->id) }}" method="post" onsubmit="return confirm('This photo will be removed from your gallery.');">
                                 @csrf
                                 <input type="hidden" name="filename" value="{{ $filename }}">
@@ -97,7 +107,7 @@
             </div>
         @endif
 
-        <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sb-wizard-primary-btn sb-biz-form-submit">
+        <a href="{{ request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id) }}" class="sb-wizard-primary-btn sb-biz-form-submit">
             Save and Proceed <i class="fas fa-arrow-right"></i>
         </a>
     </div>

@@ -15,7 +15,9 @@
         $$var = (array) $$var;
     }
 
-    $isOpen24Hours = (bool) ($listing->open_24_hours ?? false);
+    // Treat legacy 12:00 AM–11:59 PM data as Open 24 Hours, exactly as the
+    // public detail page does, so the checkbox matches what customers see.
+    $isOpen24Hours = $listing->isOpen24HoursDerived();
 
     if (empty($openTimes)) {
         $openTimes = [''];
@@ -25,7 +27,7 @@
 <section class="pt-30 pb-80">
     <div class="container" style="max-width:640px;">
         <div class="sb-biz-header">
-            <a href="{{ route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
+            <a href="{{ request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 <h4>Update Business Timings</h4>
                 <span>{{ $listing->name }}</span>

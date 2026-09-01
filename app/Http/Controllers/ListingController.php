@@ -1614,11 +1614,22 @@ public function updatesection(Request $request, $id)
         ]);
 
         $listing->business_days = $request->input('business_days', []);
-        $listing->open_24_hours = $request->boolean('open_24_hours');
 
-        if ($listing->open_24_hours) {
-            $listing->open_time = [];
-            $listing->close_time = [];
+        // `open_24_hours` isn't a real column on `listings` — the public page
+        // derives "Open 24 Hours" purely from the 12:00 AM–11:59 PM times (see
+        // Listing::isOpen24HoursDerived()). So branch on the request value, and
+        // only write the flag where the column actually exists, to stay safe.
+        $open24 = $request->boolean('open_24_hours');
+        if (\Schema::hasColumn('listings', 'open_24_hours')) {
+            $listing->open_24_hours = $open24;
+        }
+
+        if ($open24) {
+            // Store the same 12:00 AM–11:59 PM the public detail page reads as
+            // "Open 24 Hours", so the flag and the shown hours never diverge
+            // (clearing the times left the public page with no hours at all).
+            $listing->open_time = ['12:00 AM'];
+            $listing->close_time = ['11:59 PM'];
         } else {
             $openTimes = collect($request->input('open_time', []));
             $closeTimes = collect($request->input('close_time', []));
@@ -1768,12 +1779,65 @@ public function updatesection(Request $request, $id)
 
         $photos = collect($listing->photos ?? []);
         if ($photos->contains($request->filename)) {
-            $this->deleteFile('assets/images/listing/photos/'.$request->filename);
+            $file = public_path('assets/images/listing/photos/'.$request->filename);
+            if (is_file($file)) {
+                @unlink($file);
+            }
             $listing->photos = $photos->reject(fn ($p) => $p === $request->filename)->values()->all();
             $listing->save();
         }
 
         return back()->withAlert(['success', 'Photo removed.']);
+    }
+
+    /**
+     * "Set as Cover Photo" for a legacy photo (one on the listing's `photos`
+     * array column). Two things happen so the choice sticks everywhere:
+     *  - the photo is copied into the thumb folder and set as the listing's
+     *    `thumb`, so it becomes the image shown on listing cards and the
+     *    public detail header;
+     *  - it is moved to the front of the `photos` array, so the gallery marks
+     *    the first photo as the cover consistently.
+     */
+    public function setLegacyCoverPhoto(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate(['filename' => 'required|string']);
+
+        $photos = collect($listing->photos ?? []);
+        if (! $photos->contains($request->filename)) {
+            return back()->withAlert(['danger', 'Photo not found.']);
+        }
+
+        $source = public_path('assets/images/listing/photos/'.$request->filename);
+        if (is_file($source)) {
+            $ext = pathinfo($request->filename, PATHINFO_EXTENSION) ?: 'jpg';
+            $newThumb = time().'_'.uniqid().'.'.$ext;
+            $thumbDir = public_path('assets/images/listing/thumb');
+
+            if (! is_dir($thumbDir)) {
+                @mkdir($thumbDir, 0755, true);
+            }
+
+            if (@copy($source, $thumbDir.'/'.$newThumb)) {
+                // Drop the previous thumb file so old covers don't pile up
+                // (thumb is exclusive to this listing, so this is safe).
+                if ($listing->thumb && is_file($thumbDir.'/'.$listing->thumb)) {
+                    @unlink($thumbDir.'/'.$listing->thumb);
+                }
+                $listing->thumb = $newThumb;
+            }
+        }
+
+        // Front of the array = the cover the gallery tags.
+        $listing->photos = $photos->reject(fn ($p) => $p === $request->filename)
+            ->prepend($request->filename)
+            ->values()
+            ->all();
+        $listing->save();
+
+        return back()->withAlert(['success', 'Cover photo updated.']);
     }
 
     public function uploadGalleryPhotos(Request $request, $id)
