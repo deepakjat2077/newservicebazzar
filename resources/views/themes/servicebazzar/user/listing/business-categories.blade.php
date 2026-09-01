@@ -91,6 +91,8 @@
     }
     .sb-cat-suggestion:hover{ background:#f7f8f9; }
     .sb-cat-suggestion mark{ background:transparent; color:#111; font-weight:700; padding:0; }
+    .sb-cat-note{ color:#888; cursor:default; }
+    .sb-cat-note:hover{ background:transparent; }
     .sb-biz-form-submit{ display:block; width:100%; margin-top:10px; }
 </style>
 @endpush
@@ -103,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var suggestBox = document.getElementById('sbCatSuggestions');
     var searchUrl = '{{ route('user.listing.business-categories.search', $listing->id) }}';
     var timer = null;
+    var seq = 0; // guards against slow older responses clobbering newer ones
 
     function selectedIds(){
         return Array.from(chipsWrap.querySelectorAll('.sb-cat-chip')).map(function(c){ return c.getAttribute('data-id'); });
@@ -125,18 +128,32 @@ document.addEventListener('DOMContentLoaded', function(){
         bindRemove(chip);
     }
 
+    function showNote(text){
+        suggestBox.innerHTML = '<div class="sb-cat-suggestion sb-cat-note">' + text + '</div>';
+        suggestBox.hidden = false;
+    }
+
     searchInput.addEventListener('input', function(){
         var q = searchInput.value.trim();
         clearTimeout(timer);
 
-        if (q.length < 2) { suggestBox.hidden = true; suggestBox.innerHTML = ''; return; }
+        // Suggest from the very first character typed.
+        if (q.length < 1) { suggestBox.hidden = true; suggestBox.innerHTML = ''; return; }
 
+        var mySeq = ++seq;
         timer = setTimeout(function(){
-            fetch(searchUrl + '?q=' + encodeURIComponent(q))
-                .then(function(r){ return r.json(); })
+            fetch(searchUrl + '?q=' + encodeURIComponent(q), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            })
+                .then(function(r){
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
                 .then(function(rows){
+                    if (mySeq !== seq) return; // a newer keystroke already fired
                     suggestBox.innerHTML = '';
-                    if (!rows.length) { suggestBox.hidden = true; return; }
+                    if (!Array.isArray(rows) || !rows.length) { showNote('No matching category found.'); return; }
 
                     rows.forEach(function(sub){
                         var row = document.createElement('div');
@@ -151,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     });
                     suggestBox.hidden = false;
                 })
-                .catch(function(){});
+                .catch(function(){ if (mySeq === seq) showNote('Could not load suggestions. Please try again.'); });
         }, 250);
     });
 });
