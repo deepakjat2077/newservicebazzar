@@ -4847,29 +4847,8 @@
         <img src="{{ asset('assets/images/download.svg') }}" alt="">
         </button>
 
-        {{-- Edit Button - Only visible to listing owner --}}
-        @if(auth()->check() && auth()->id() === $listing->user_id)
-            @php
-                $editIconPath = 'assets/images/editicon';
-                $editIconExt = '';
-                // Check for uploaded edit icon with any extension
-                foreach(['png', 'svg', 'jpg', 'jpeg', 'gif'] as $ext) {
-                    if (file_exists(public_path($editIconPath . '.' . $ext))) {
-                        $editIconExt = $ext;
-                        break;
-                    }
-                }
-            @endphp
-            <a href="{{ route('user.listing.manage', $listing->id) }}"
-               class="listing-btn edit-listing-btn"
-               title="Edit Listing">
-                @if($editIconExt)
-                    <img src="{{ asset($editIconPath . '.' . $editIconExt) }}" alt="Edit" class="edit-icon-img">
-                @else
-                    <i class="las la-edit"></i>
-                @endif
-            </a>
-        @endif
+        {{-- Edit button intentionally omitted from the sticky/mobile bottom
+             bar — it stays only in the main header card above. --}}
 
     </div>
 

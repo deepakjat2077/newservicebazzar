@@ -221,6 +221,15 @@
         min-width:150px;
         overflow:hidden;
     }
+    /* On mobile the tiles are ~1/3 of the screen but the menu needs ~150px, so
+       anchored to the right it ran off the left edge for the left-hand tiles.
+       Left & middle columns open the menu to the right; the right column opens
+       it to the left — so it always stays inside the screen. */
+    @media (max-width:700px){
+        .sb-gallery-menu{ max-width:calc(100vw - 40px); }
+        .sb-gallery-grid .sb-gallery-item .sb-gallery-menu{ left:4px; right:auto; }
+        .sb-gallery-grid .sb-gallery-item:nth-child(3n) .sb-gallery-menu{ left:auto; right:4px; }
+    }
     .sb-gallery-menu-item{
         display:block;
         width:100%;
