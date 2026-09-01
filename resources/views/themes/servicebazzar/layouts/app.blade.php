@@ -41,7 +41,7 @@
                   <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ml-auto">
                       <li class="nav-item active">
-                        <a class="nav-link" href="{{ route('user.dashboard') }}">@lang('Dashboard')</a>
+                        <a class="nav-link" href="{{ route('user.profile.view', ['username' => Str::slug(auth()->user()->first_name . '-' . auth()->user()->last_name)]) }}">@lang('Dashboard')</a>
                       </li>
                       <li class="nav-item">
                         <a class="nav-link" href="{{ route('user.deposit') }}">@lang('Payment Log')</a>
@@ -50,7 +50,7 @@
                         <a class="nav-link" href="{{ route('pricing') }}">@lang('Pricing')</a>
                       </li> --}}
                       <li class="nav-item">
-                        <a class="nav-link" href="{{ route('user.listing.index') }}">@lang('My Listings')</a>
+                        <a class="nav-link" href="{{ route('user.listing.index') }}">@lang('My Business')</a>
                       </li>
                       {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ route('user.guest-chats.index') }}">@lang('Guest Chats')</a>
@@ -61,9 +61,7 @@
                         </a>
                         <div class="dropdown-menu">
                           <a class="dropdown-item" href="{{ route('user.profile') }}">@lang('Profile')</a>
-                          {{-- <a class="dropdown-item" href="{{ route('user.schedules') }}">@lang('Schedules')</a> --}}
-                          <a class="dropdown-item" href="{{ route('user.social') }}">@lang('Social')</a>
-                          <a class="dropdown-item" href="{{ route('user.password.edit') }}">@lang('Change Password')</a>
+                          <a class="dropdown-item" href="{{ route('user.logout') }}">@lang('Logout')</a>
                         </div>
                       </li>
                       <li class="nav-item">
