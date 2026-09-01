@@ -103,7 +103,12 @@ document.addEventListener('DOMContentLoaded', function(){
     var chipsWrap = document.getElementById('sbCatChips');
     var searchInput = document.getElementById('sbCatSearchInput');
     var suggestBox = document.getElementById('sbCatSuggestions');
-    var searchUrl = '{{ route('user.listing.business-categories.search', $listing->id) }}';
+    // Root-relative on purpose: an absolute route() URL can come out as http://
+    // behind a proxy while the page is https:// (or on a different host), and
+    // the browser then blocks the fetch as mixed/cross-origin content. Stripping
+    // the scheme+host makes the request go to the current origin over the same
+    // protocol, which is what we always want here.
+    var searchUrl = @json(route('user.listing.business-categories.search', $listing->id)).replace(/^https?:\/\/[^/]+/i, '');
     var timer = null;
     var seq = 0; // guards against slow older responses clobbering newer ones
 
@@ -147,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 credentials: 'same-origin'
             })
                 .then(function(r){
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    if (!r.ok) { var st = r.status; return r.text().then(function(){ throw new Error('HTTP ' + st); }); }
                     return r.json();
                 })
                 .then(function(rows){
@@ -168,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     });
                     suggestBox.hidden = false;
                 })
-                .catch(function(){ if (mySeq === seq) showNote('Could not load suggestions. Please try again.'); });
+                .catch(function(err){ if (mySeq === seq) showNote('Could not load suggestions (' + (err && err.message ? err.message : 'network error') + ').'); });
         }, 250);
     });
 });

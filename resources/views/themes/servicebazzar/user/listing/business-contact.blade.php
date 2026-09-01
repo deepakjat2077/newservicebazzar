@@ -153,8 +153,13 @@
     .sb-contact-code{ width:88px; flex-shrink:0; }
     .sb-contact-grow{ flex:1; min-width:0; }
     .sb-contact-title{ width:90px; flex-shrink:0; }
-    .sb-biz-panel-field label{ display:block; font-size:11px; color:#888; margin-bottom:6px; }
-    .sb-contact-remove{ border:0; background:transparent; color:#d9364f; padding:9px; flex-shrink:0; cursor:pointer; }
+    .sb-biz-panel-field label{ display:block; font-size:11px; color:#888; margin-bottom:6px; height:14px; line-height:14px; }
+    /* A native <select> and a text <input> render at slightly different
+       heights; with the row bottom-aligned that pushed the "Code" column (and
+       its label) below the number column. Lock every control to one height so
+       both labels sit on the same line and the boxes line up. */
+    .sb-contact-row .sb-input{ height:42px; box-sizing:border-box; }
+    .sb-contact-remove{ border:0; background:transparent; color:#d9364f; padding:9px; flex-shrink:0; cursor:pointer; height:42px; }
     .sb-contact-add-btn{
         border:0;
         background:transparent;
