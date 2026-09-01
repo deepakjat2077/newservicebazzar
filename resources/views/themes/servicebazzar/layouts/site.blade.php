@@ -2,7 +2,9 @@
 <html lang="en-IN">
 <head>
 	@include('includes.seo')
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/all.min.css') }}">
+	{{-- FontAwesome 5 (css/all.min.css) removed: FontAwesome 7 below already
+	     provides every fa/fas/fab/far icon, so loading both was ~60KB of CSS
+	     plus a duplicate webfont for nothing. --}}
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/select2.min.css') }}">

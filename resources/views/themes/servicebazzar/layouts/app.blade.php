@@ -2,8 +2,8 @@
 <html lang="en-IN">
 <head>
     @include('includes.seo')
-    <link rel="stylesheet" href="{{ asset($themeAsset.'css/all.min.css') }}">
-    
+    {{-- FontAwesome 5 (css/all.min.css) removed — FontAwesome 7 below covers
+         the same fa/fas/fab/far icons; loading both was pure duplicate weight. --}}
     <link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap2.min.css') }}">
