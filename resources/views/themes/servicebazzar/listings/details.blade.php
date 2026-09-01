@@ -3693,7 +3693,7 @@
 
     {{-- Edit Button - Only visible to listing owner --}}
     @if(auth()->check() && auth()->id() === $listing->user_id)
-        <a href="{{ route('user.listing.edit', $listing->id) }}"
+        <a href="{{ route('user.listing.manage', $listing->id) }}"
            class="listing-btn edit-listing-btn"
            title="Edit Listing">
             @php
@@ -3827,7 +3827,7 @@
                                             }
                                         }
                                     @endphp
-                                    <a href="{{ route('user.listing.edit', $listing->id) }}"
+                                    <a href="{{ route('user.listing.manage', $listing->id) }}"
                                        class="mqa-btn mqa-edit"
                                        title="Edit Listing">
                                         <span class="mqa-icon">
@@ -4860,7 +4860,7 @@
                     }
                 }
             @endphp
-            <a href="{{ route('user.listing.edit', $listing->id) }}"
+            <a href="{{ route('user.listing.manage', $listing->id) }}"
                class="listing-btn edit-listing-btn"
                title="Edit Listing">
                 @if($editIconExt)

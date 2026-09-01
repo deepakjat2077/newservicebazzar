@@ -898,6 +898,39 @@ public function updatesection(Request $request, $id)
     }
 
     /**
+     * Full-page JustDial-style "Manage Business" screen — the one the Edit
+     * pencil on the public listing opens. Everything on it is a real,
+     * already-saved field of this listing; each row's "Edit" button links to
+     * the existing per-section form (business-name, business-contact, ...).
+     * No invented data — value/"Info Missing" states are derived from the
+     * listing's own columns, same as the dashboard's Business Profile panel.
+     */
+    public function manage($id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $ownerListings = Listing::where('user_id', auth()->id())
+            ->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $galleryCount   = $listing->extraImages()->where('type', 'gallery')->count();
+        $catalogueCount = $listing->extraImages()->where('type', 'catalogue')->count();
+
+        $avgRating    = round($listing->ratings->avg('ratings') ?? 0, 1);
+        $totalRatings = $listing->ratings->count();
+
+        $publicUrl = $listing->category
+            ? route('listings.details', [$listing->category->slug, $listing->slug])
+            : null;
+
+        return view($this->theme.'user.listing.manage', compact(
+            'listing', 'ownerListings', 'galleryCount', 'catalogueCount',
+            'avgRating', 'totalRatings', 'publicUrl'
+        ));
+    }
+
+    /**
      * Public "Advertise / Boost your business" plans page for one listing.
      *
      * Shows every active admin package as a JustDial-style plan card. Buying a

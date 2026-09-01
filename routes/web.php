@@ -693,6 +693,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
 
                     Route::get('import-leads/sample', 'ListingController@importLeadsSample')->name('import-leads.sample');
                     Route::get('{id}/dashboard', 'ListingController@businessDashboard')->name('dashboard');
+                    Route::get('{id}/manage', 'ListingController@manage')->name('manage');
                     Route::get('{id}/advertise', 'ListingController@advertise')->name('advertise');
                     Route::get('{id}/advertise/checkout/{package}', 'ListingController@advertiseCheckout')->name('advertise.checkout');
                     Route::get('{id}/analytics', 'ListingController@analytics')->name('analytics');
