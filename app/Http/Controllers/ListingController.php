@@ -1506,6 +1506,33 @@ public function updatesection(Request $request, $id)
         $landlineNumbers = $stripEmpty($request->landline_numbers);
         $extraEmails = $stripEmpty($request->extra_emails);
 
+        // Every NEW mobile number and email must be OTP-verified before it can
+        // be saved. Numbers/emails already on the listing are grandfathered
+        // (they were fine before this rule existed); only values that weren't
+        // saved yet need a verification done this session. WhatsApp/landline
+        // are not gated.
+        $existingMobiles = collect($listing->mobile_numbers ?? [])
+            ->map(fn ($v) => \App\Support\MobileNumber::national($v))->filter()->all();
+        $existingEmails = collect($listing->extra_emails ?? [])
+            ->map(fn ($v) => strtolower(trim((string) $v)))->filter()->all();
+        $verifiedKeys = collect(session('contact_verified', []));
+
+        foreach ($mobileNumbers as $num) {
+            $norm = \App\Support\MobileNumber::national($num);
+            if (in_array($norm, $existingMobiles, true) || $verifiedKeys->contains('mobile:'.$norm)) {
+                continue;
+            }
+            return back()->withInput()->withAlert(['danger', "Please verify the mobile number {$num} with the OTP before saving."]);
+        }
+
+        foreach ($extraEmails as $mail) {
+            $norm = strtolower(trim($mail));
+            if (in_array($norm, $existingEmails, true) || $verifiedKeys->contains('email:'.$norm)) {
+                continue;
+            }
+            return back()->withInput()->withAlert(['danger', "Please verify the email {$mail} with the OTP before saving."]);
+        }
+
         $listing->contact_title = $request->contact_title;
         $listing->contact_person = $request->contact_person;
 
@@ -1523,6 +1550,154 @@ public function updatesection(Request $request, $id)
         $listing->save();
 
         return back()->withAlert(['success', 'Contact details updated successfully.']);
+    }
+
+    /** Session key for one contact value's OTP / verified state. */
+    private function contactOtpKey(string $channel, string $value): string
+    {
+        $norm = $channel === 'email'
+            ? strtolower(trim($value))
+            : \App\Support\MobileNumber::national($value);
+
+        return $channel.':'.$norm;
+    }
+
+    /**
+     * Send an OTP to a mobile number (WhatsApp, via Gupshup) or an email
+     * (mail) the owner is adding on the Contact Details page. The code is held
+     * in the session keyed by the normalised value; verifyContactOtp() checks
+     * it, and updateContactDetails() refuses to save an unverified new value.
+     */
+    public function sendContactOtp(Request $request, $id)
+    {
+        Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'channel' => 'required|in:mobile,email',
+            'value' => 'required|string|max:255',
+        ]);
+
+        $channel = $request->channel;
+        $value = trim($request->value);
+
+        if ($channel === 'mobile' && strlen(\App\Support\MobileNumber::national($value)) !== 10) {
+            return response()->json(['status' => false, 'message' => 'Enter a valid 10-digit mobile number first.'], 422);
+        }
+        if ($channel === 'email' && ! filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['status' => false, 'message' => 'Enter a valid email address first.'], 422);
+        }
+
+        $otp = (string) random_int(100000, 999999);
+
+        if ($channel === 'mobile') {
+            $sent = $this->sendWhatsappOtp(\App\Support\MobileNumber::national($value), $otp);
+            if ($sent !== true) {
+                return response()->json(['status' => false, 'message' => $sent], 502);
+            }
+        } else {
+            try {
+                app(\App\Http\Libs\SendMail::class)->sendMail([
+                    'name' => 'there',
+                    'email' => $value,
+                    'template' => 'verification_code',
+                    'value' => ['code' => $otp],
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Contact email OTP failed', ['error' => $e->getMessage()]);
+
+                return response()->json(['status' => false, 'message' => 'Could not send the OTP email right now. Please try again.'], 502);
+            }
+        }
+
+        session()->put('contact_otp.'.$this->contactOtpKey($channel, $value), [
+            'otp' => $otp,
+            'expires' => now()->addMinutes(10)->timestamp,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => $channel === 'mobile' ? 'OTP sent on WhatsApp.' : 'OTP sent to that email.',
+        ]);
+    }
+
+    public function verifyContactOtp(Request $request, $id)
+    {
+        Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate([
+            'channel' => 'required|in:mobile,email',
+            'value' => 'required|string|max:255',
+            'otp' => 'required|digits:6',
+        ]);
+
+        $key = $this->contactOtpKey($request->channel, trim($request->value));
+        $entry = session('contact_otp.'.$key);
+
+        if (! $entry) {
+            return response()->json(['status' => false, 'message' => 'Please request an OTP first.'], 422);
+        }
+        if (now()->timestamp > ($entry['expires'] ?? 0)) {
+            session()->forget('contact_otp.'.$key);
+
+            return response()->json(['status' => false, 'message' => 'OTP expired. Please request a new one.'], 422);
+        }
+        if (! hash_equals((string) $entry['otp'], (string) $request->otp)) {
+            return response()->json(['status' => false, 'message' => 'Incorrect OTP. Please try again.'], 422);
+        }
+
+        session()->forget('contact_otp.'.$key);
+        $verified = collect(session('contact_verified', []))->push($key)->unique()->values()->all();
+        session()->put('contact_verified', $verified);
+
+        return response()->json(['status' => true, 'message' => 'Verified.']);
+    }
+
+    /**
+     * Fire one WhatsApp OTP through Gupshup (same template the profile
+     * Mobile-2 OTP uses). Returns true on success, or a user-facing error
+     * string on failure.
+     *
+     * @return true|string
+     */
+    private function sendWhatsappOtp(string $national, string $otp)
+    {
+        $apiKey = trim((string) config('services.gupshup.api_key'));
+        $appName = trim((string) config('services.gupshup.app_name'));
+        $source = preg_replace('/\D/', '', (string) config('services.gupshup.source'));
+        $templateId = trim((string) config('services.gupshup.otp_template_id'));
+
+        if ($apiKey === '' || $appName === '' || $source === '' || $templateId === '') {
+            return 'WhatsApp OTP is not configured on the server.';
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::asForm()
+                ->connectTimeout(10)
+                ->timeout(30)
+                ->withHeaders(['apikey' => $apiKey, 'Accept' => 'application/json'])
+                ->post('https://api.gupshup.io/wa/api/v1/template/msg', [
+                    'channel' => 'whatsapp',
+                    'source' => $source,
+                    'destination' => \App\Support\MobileNumber::destination($national),
+                    'src.name' => $appName,
+                    'template' => json_encode(['id' => $templateId, 'params' => [$otp]], JSON_UNESCAPED_SLASHES),
+                ]);
+
+            if (! $response->successful()) {
+                return 'Could not send the WhatsApp OTP right now. Please try again in a moment.';
+            }
+
+            $status = strtolower((string) ($response->json()['status'] ?? ''));
+            if (! in_array($status, ['success', 'submitted'], true)) {
+                return $response->json()['message'] ?? 'Could not send the WhatsApp OTP right now.';
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Contact WhatsApp OTP failed', ['error' => $e->getMessage()]);
+
+            return 'Unable to connect to the WhatsApp service right now.';
+        }
     }
 
     /**
@@ -1812,41 +1987,9 @@ public function updatesection(Request $request, $id)
             return back()->withAlert(['danger', 'Photo not found.']);
         }
 
-        $photoRel = 'assets/images/listing/photos/'.$request->filename;
-        $thumbRelDir = 'assets/images/listing/thumb';
-        $thumbRel = $thumbRelDir.'/'.$request->filename;
-
-        // Copy the photo into the thumb folder under the SAME filename. The
-        // base dir is resolved tolerantly: loadImage()/deleteFile() read files
-        // by a CWD-relative path (on the live server the working dir IS the
-        // public dir), while uploads move files via public_path(). Different
-        // shared-hosting layouts make one or the other the real location, so
-        // we copy inside whichever base actually holds the source file.
-        $bases = array_values(array_unique(array_filter([
-            rtrim(public_path(), '/\\').DIRECTORY_SEPARATOR,
-            rtrim(base_path('public'), '/\\').DIRECTORY_SEPARATOR,
-            rtrim(getcwd() ?: '', '/\\').DIRECTORY_SEPARATOR,
-            '', // CWD-relative, exactly like loadImage()
-        ])));
-
-        $copied = false;
-        foreach ($bases as $base) {
-            if (! is_file($base.$photoRel)) {
-                continue;
-            }
-            if (! is_dir($base.$thumbRelDir)) {
-                @mkdir($base.$thumbRelDir, 0755, true);
-            }
-            @copy($base.$photoRel, $base.$thumbRel);
-            if (is_file($base.$thumbRel)) {
-                $copied = true;
-                break;
-            }
-        }
-
         // Only point thumb at it once the file is actually in the thumb folder,
         // so we never set thumb to a name that renders as a broken image.
-        if ($copied) {
+        if ($this->copyImageToThumb('assets/images/listing/photos', $request->filename)) {
             $listing->thumb = $request->filename;
             $listing->save();
 
@@ -1854,6 +1997,45 @@ public function updatesection(Request $request, $id)
         }
 
         return back()->withAlert(['danger', 'Could not update the cover photo — the image file could not be found on the server.']);
+    }
+
+    /**
+     * Copy an image from one of the listing image folders into the thumb
+     * folder under the same filename, and return whether it landed there.
+     *
+     * The base dir is resolved tolerantly: loadImage()/deleteFile() read files
+     * by a CWD-relative path (on the live server the working dir IS the public
+     * dir), while uploads move files via public_path(). Different shared-hosting
+     * layouts make one or the other the real location, so we copy inside
+     * whichever base actually holds the source file.
+     */
+    protected function copyImageToThumb(string $sourceRelDir, string $filename): bool
+    {
+        $sourceRel = rtrim($sourceRelDir, '/').'/'.$filename;
+        $thumbRelDir = 'assets/images/listing/thumb';
+        $thumbRel = $thumbRelDir.'/'.$filename;
+
+        $bases = array_values(array_unique(array_filter([
+            rtrim(public_path(), '/\\').DIRECTORY_SEPARATOR,
+            rtrim(base_path('public'), '/\\').DIRECTORY_SEPARATOR,
+            rtrim(getcwd() ?: '', '/\\').DIRECTORY_SEPARATOR,
+            '', // CWD-relative, exactly like loadImage()
+        ])));
+
+        foreach ($bases as $base) {
+            if (! is_file($base.$sourceRel)) {
+                continue;
+            }
+            if (! is_dir($base.$thumbRelDir)) {
+                @mkdir($base.$thumbRelDir, 0755, true);
+            }
+            @copy($base.$sourceRel, $base.$thumbRel);
+            if (is_file($base.$thumbRel)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function uploadGalleryPhotos(Request $request, $id)
@@ -1879,6 +2061,14 @@ public function updatesection(Request $request, $id)
         $listing->extraImages()->update(['is_cover' => false]);
         $image->is_cover = true;
         $image->save();
+
+        // Also make it the listing thumbnail (cards / public header / manage
+        // header all render `thumb`), so "Set as Cover Photo" means the same
+        // thing for gallery photos as it does for legacy ones.
+        if ($this->copyImageToThumb('assets/images/listing/extra', $image->image)) {
+            $listing->thumb = $image->image;
+            $listing->save();
+        }
 
         return back()->withAlert(['success', 'Cover photo updated.']);
     }

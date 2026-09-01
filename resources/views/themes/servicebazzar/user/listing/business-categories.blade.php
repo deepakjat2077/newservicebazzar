@@ -19,6 +19,15 @@
         <form action="{{ route('user.listing.business-categories.update', $listing->id) }}" method="post" id="sbCategoriesForm">
             @csrf
 
+            <p class="sb-contact-section-label">Add Categories</p>
+            <div id="sbCatSearchWrap">
+                <div class="sb-cat-search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="sbCatSearchInput" class="sb-input sb-cat-search-input" placeholder="Search category" autocomplete="off">
+                </div>
+                <div class="sb-cat-suggestions" id="sbCatSuggestions" hidden></div>
+            </div>
+
             <p class="sb-contact-section-label">Selected Categories</p>
             <div class="sb-cat-chips" id="sbCatChips">
                 @foreach($selected as $sub)
@@ -28,17 +37,6 @@
                         <input type="hidden" name="subcategory_ids[]" value="{{ $sub->id }}">
                     </span>
                 @endforeach
-            </div>
-
-            <button type="button" class="sb-contact-add-btn" id="sbAddCategoryBtn"><i class="fas fa-plus"></i> Add New Category</button>
-
-            <div id="sbCatSearchWrap" hidden>
-                <p class="sb-contact-section-label">Add Categories</p>
-                <div class="sb-cat-search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="sbCatSearchInput" class="sb-input sb-cat-search-input" placeholder="Search category" autocomplete="off">
-                </div>
-                <div class="sb-cat-suggestions" id="sbCatSuggestions" hidden></div>
             </div>
 
             <button type="submit" class="sb-wizard-primary-btn sb-biz-form-submit">
@@ -101,8 +99,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     var chipsWrap = document.getElementById('sbCatChips');
-    var addBtn = document.getElementById('sbAddCategoryBtn');
-    var searchWrap = document.getElementById('sbCatSearchWrap');
     var searchInput = document.getElementById('sbCatSearchInput');
     var suggestBox = document.getElementById('sbCatSuggestions');
     var searchUrl = '{{ route('user.listing.business-categories.search', $listing->id) }}';
@@ -128,11 +124,6 @@ document.addEventListener('DOMContentLoaded', function(){
         chipsWrap.appendChild(chip);
         bindRemove(chip);
     }
-
-    addBtn.addEventListener('click', function(){
-        searchWrap.hidden = !searchWrap.hidden;
-        if (!searchWrap.hidden) searchInput.focus();
-    });
 
     searchInput.addEventListener('input', function(){
         var q = searchInput.value.trim();

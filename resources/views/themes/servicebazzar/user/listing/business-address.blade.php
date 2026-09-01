@@ -2,6 +2,26 @@
 @section('content')
 @section('title', 'Business Address — '.$listing->name)
 
+@php
+    // Mirror the public detail page: some listings store a single `address`,
+    // others only have the separate component fields (plot_no, building_name,
+    // street_name, landmark, area, city, state, pincode). Prefill the box with
+    // whichever the listing actually has, so an existing address isn't shown
+    // as blank.
+    $composedAddress = collect([
+        $listing->plot_no ?? null,
+        $listing->building_name ?? null,
+        $listing->street_name ?? null,
+        $listing->landmark ?? null,
+        $listing->area ?? null,
+        $listing->city ?? null,
+        $listing->state ?? null,
+        $listing->pincode ?? null,
+    ])->filter()->implode(', ');
+
+    $prefillAddress = $listing->pending_address ?: ($listing->address ?: $composedAddress);
+@endphp
+
 <section class="pt-30 pb-80">
     <div class="container" style="max-width:560px;">
         <div class="sb-biz-header">
@@ -38,7 +58,7 @@
             @csrf
             <div class="sb-biz-panel-field">
                 <label>Enter Business Address</label>
-                <textarea name="address" class="sb-input sb-biz-panel-textarea" required>{{ $listing->pending_address ?: $listing->address }}</textarea>
+                <textarea name="address" class="sb-input sb-biz-panel-textarea" required>{{ $prefillAddress }}</textarea>
             </div>
 
             <button type="submit" class="sb-wizard-primary-btn sb-biz-form-submit">Save and Continue</button>

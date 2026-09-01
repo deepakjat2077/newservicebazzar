@@ -5035,15 +5035,37 @@
         </div>
 
         {{-- VIEW MODE --}}
+        @php
+            // Photos uploaded through the newer "Photo Gallery" page live in
+            // extra_images (type gallery), separate from the legacy `photos`
+            // array column — show both here or new uploads look missing.
+            $sbGalleryExtra = $listing->extraImages()
+                ->where(fn ($q) => $q->where('type', 'gallery')->orWhereNull('type')->orWhere('type', ''))
+                ->latest()
+                ->get();
+        @endphp
         <div id="photos_view">
             <div class="photo-category-slider">
-                @if(!empty($listing->photos))
-                    @foreach($listing->photos as $photo)
+                @if(!empty($listing->photos) || $sbGalleryExtra->isNotEmpty())
+                    @foreach($listing->photos ?? [] as $photo)
                         <div class="photo-card">
                         <div class="photo-thumb">
         <img src="{{ asset('assets/images/listing/photos/'.$photo) }}"
             class="listing-photo-click"
             data-src="{{ asset('assets/images/listing/photos/'.$photo) }}"
+    alt="{{ $listing->name }} Photo"
+                loading="lazy"
+                data-track="gallery_click"
+                data-listing-id="{{ $listing->id }}">
+    </div>
+                        </div>
+                    @endforeach
+                    @foreach($sbGalleryExtra as $extra)
+                        <div class="photo-card">
+                        <div class="photo-thumb">
+        <img src="{{ asset('assets/images/listing/extra/'.$extra->image) }}"
+            class="listing-photo-click"
+            data-src="{{ asset('assets/images/listing/extra/'.$extra->image) }}"
     alt="{{ $listing->name }} Photo"
                 loading="lazy"
                 data-track="gallery_click"
