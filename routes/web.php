@@ -705,8 +705,8 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::post('{id}/request-address-change', 'ListingController@requestAddressChange')->name('request-address-change');
                     Route::get('{id}/business-contact', 'ListingController@businessContactForm')->name('business-contact');
                     Route::post('{id}/business-contact', 'ListingController@updateContactDetails')->name('business-contact.update');
-                    Route::post('{id}/contact/send-otp', 'ListingController@sendContactOtp')->middleware('throttle:6,1')->name('contact.send-otp');
-                    Route::post('{id}/contact/verify-otp', 'ListingController@verifyContactOtp')->middleware('throttle:20,1')->name('contact.verify-otp');
+                    Route::post('{id}/contact/send-otp', 'ListingController@sendContactOtp')->middleware('throttle:30,1')->name('contact.send-otp');
+                    Route::post('{id}/contact/verify-otp', 'ListingController@verifyContactOtp')->middleware('throttle:60,1')->name('contact.verify-otp');
                     Route::get('{id}/serviceable-area', 'ListingController@businessServiceableAreaForm')->name('serviceable-area');
                     Route::post('{id}/serviceable-area', 'ListingController@updateServiceableArea')->name('serviceable-area.update');
                     Route::get('{id}/map-location', 'ListingController@businessMapLocationForm')->name('map-location');
