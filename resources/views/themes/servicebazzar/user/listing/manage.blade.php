@@ -167,22 +167,6 @@
             </div>
         </div>
 
-        {{-- ===== Additional details (overview, services, FAQ live on the
-             full listing form + the public page's inline editors) ===== --}}
-        <div class="sb-mng-section">
-            <h5 class="sb-mng-section-title">Additional Business Information</h5>
-            <div class="sb-mng-rows">
-                <div class="sb-mng-row">
-                    <span class="sb-mng-row-ico"><i class="fas fa-align-left"></i></span>
-                    <div class="sb-mng-row-body">
-                        <div class="sb-mng-row-title">Overview, Services &amp; FAQ</div>
-                        <div class="sb-mng-row-value">Business description, services offered and frequently asked questions</div>
-                    </div>
-                    <a href="{{ route('user.listing.edit', $listing->id) }}" class="sb-mng-edit"><i class="fas fa-pen"></i> Edit</a>
-                </div>
-            </div>
-        </div>
-
         {{-- ===== Business Tools ===== --}}
         <div class="sb-mng-section">
             <h5 class="sb-mng-section-title">Business Tools</h5>

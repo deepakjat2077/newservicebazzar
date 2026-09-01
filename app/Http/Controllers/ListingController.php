@@ -914,7 +914,8 @@ public function updatesection(Request $request, $id)
             ->orderBy('id', 'desc')
             ->get();
 
-        $galleryCount   = $listing->extraImages()->where('type', 'gallery')->count();
+        $galleryCount   = $listing->extraImages()->where('type', 'gallery')->count()
+            + collect($listing->photos ?? [])->filter()->count();
         $catalogueCount = $listing->extraImages()->where('type', 'catalogue')->count();
 
         $avgRating    = round($listing->ratings->avg('ratings') ?? 0, 1);
@@ -1746,7 +1747,33 @@ public function updatesection(Request $request, $id)
             ->latest()
             ->get();
 
-        return view($this->theme.'user.listing.business-photos', compact('listing', 'photos'));
+        // Photos added through the older main edit form live on the listing's
+        // own `photos` array column (files under listing/photos/), not in
+        // extra_images — without these the page looked empty for every
+        // business that ever uploaded through the classic form.
+        $legacyPhotos = collect($listing->photos ?? [])->filter()->values();
+
+        return view($this->theme.'user.listing.business-photos', compact('listing', 'photos', 'legacyPhotos'));
+    }
+
+    /**
+     * Delete one legacy photo (a filename on the listing's `photos` array
+     * column, shown alongside the extra_images gallery on the Photos page).
+     */
+    public function removeLegacyPhoto(Request $request, $id)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $request->validate(['filename' => 'required|string']);
+
+        $photos = collect($listing->photos ?? []);
+        if ($photos->contains($request->filename)) {
+            $this->deleteFile('assets/images/listing/photos/'.$request->filename);
+            $listing->photos = $photos->reject(fn ($p) => $p === $request->filename)->values()->all();
+            $listing->save();
+        }
+
+        return back()->withAlert(['success', 'Photo removed.']);
     }
 
     public function uploadGalleryPhotos(Request $request, $id)

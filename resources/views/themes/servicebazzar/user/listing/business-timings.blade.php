@@ -4,9 +4,17 @@
 
 @php
     $days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    $selectedDays = (array) ($listing->business_days ?? []);
-    $openTimes = (array) ($listing->open_time ?? []);
-    $closeTimes = (array) ($listing->close_time ?? []);
+    $selectedDays = $listing->business_days ?? [];
+    $openTimes = $listing->open_time ?? [];
+    $closeTimes = $listing->close_time ?? [];
+
+    // Guard against legacy rows where the JSON never got array-cast and comes
+    // back as a raw string — same defensive decode the main edit form does.
+    foreach (['selectedDays', 'openTimes', 'closeTimes'] as $var) {
+        if (is_string($$var)) { $$var = json_decode($$var, true) ?: []; }
+        $$var = (array) $$var;
+    }
+
     $isOpen24Hours = (bool) ($listing->open_24_hours ?? false);
 
     if (empty($openTimes)) {
@@ -128,7 +136,21 @@ document.addEventListener('DOMContentLoaded', function(){
     function initSelect(select){
         var selected = select.getAttribute('data-selected') || '';
         select.innerHTML = timeOptions();
-        if (selected) select.value = selected;
+        if (selected) {
+            // A saved time that isn't on the 30-minute grid (e.g. "11:59 PM",
+            // or an old 24-hour value) matches no <option>, so the select
+            // would silently fall back to blank and the owner's real hours
+            // would look unset. Inject the saved value as its own option so
+            // it shows and still round-trips on save.
+            var exists = Array.prototype.some.call(select.options, function(o){ return o.value === selected; });
+            if (!exists) {
+                var opt = document.createElement('option');
+                opt.value = selected;
+                opt.textContent = selected;
+                select.appendChild(opt);
+            }
+            select.value = selected;
+        }
     }
 
     document.querySelectorAll('.sb-time-select').forEach(initSelect);

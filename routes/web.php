@@ -719,6 +719,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::get('{id}/business-photos', 'ListingController@businessPhotosForm')->name('business-photos');
                     Route::post('{id}/business-photos', 'ListingController@uploadGalleryPhotos')->name('business-photos.upload');
                     Route::post('{id}/business-photos/{imageId}/cover', 'ListingController@setCoverPhoto')->name('business-photos.cover');
+                    Route::post('{id}/business-photos/legacy-remove', 'ListingController@removeLegacyPhoto')->name('business-photos.legacy-remove');
                     Route::post('{id}/business-photos/video', 'ListingController@updateVideoLink')->name('business-photos.video');
                     Route::get('{id}/business-catalogue', 'ListingController@businessCatalogueForm')->name('business-catalogue');
                     Route::post('{id}/business-catalogue', 'ListingController@uploadCatalogueImages')->name('business-catalogue.upload');

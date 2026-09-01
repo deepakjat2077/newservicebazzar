@@ -53,10 +53,26 @@
             </div>
         @endif
 
-        @if($photos->isEmpty())
+        @if($photos->isEmpty() && $legacyPhotos->isEmpty())
             <p class="sb-wizard-empty">No photos yet — upload your first one above.</p>
         @else
             <div class="sb-gallery-grid">
+                @foreach($legacyPhotos as $filename)
+                    <div class="sb-gallery-item">
+                        <div class="sb-gallery-item-crop">
+                            <img src="{{ loadImage('assets/images/listing/photos/'.$filename) }}" alt="{{ $listing->name }}">
+                        </div>
+                        <button type="button" class="sb-gallery-dots" data-photo-menu="legacy-{{ $loop->index }}"><i class="fas fa-ellipsis-vertical"></i></button>
+
+                        <div class="sb-gallery-menu" id="sbPhotoMenulegacy-{{ $loop->index }}" hidden>
+                            <form action="{{ route('user.listing.business-photos.legacy-remove', $listing->id) }}" method="post" onsubmit="return confirm('This photo will be removed from your gallery.');">
+                                @csrf
+                                <input type="hidden" name="filename" value="{{ $filename }}">
+                                <button type="submit" class="sb-gallery-menu-item sb-gallery-menu-item--danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
                 @foreach($photos as $photo)
                     <div class="sb-gallery-item">
                         <div class="sb-gallery-item-crop">
