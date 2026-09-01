@@ -9,6 +9,18 @@
  * from silently diverging from each other.
  */
 
+    /* Every owner page here carries its own in-page header (sb-biz-header /
+       sb-mng-topbar), so the layout's inner-banner only repeated the title and
+       left a tall empty band under the fixed navbar. Hide it; the layout's JS
+       then pads #main-content by the fixed header's real height (which varies
+       with viewport width) plus a small gap, so content clears the navbar
+       exactly instead of the old banner (73px) + section pt-30 (30px) stack. */
+    .inner-banner{ display:none !important; }
+    #main-content > section.pt-30{ padding-top:12px; }
+    @media (max-width:700px){
+        #main-content > section.pt-30{ padding-top:10px; }
+    }
+
     .sb-biz-header{
         display:flex;
         align-items:center;

@@ -87,6 +87,26 @@
     @yield('content')
 </main>
 
+<script>
+    // The header is position:fixed and its height changes with viewport width.
+    // On owner pages the inner-banner (its usual spacer) is hidden via CSS, so
+    // pad the content by the header's real height + a small gap — this clears
+    // the navbar exactly at every width instead of guessing a fixed value.
+    (function(){
+        var banner = document.querySelector('.inner-banner');
+        var main = document.getElementById('main-content');
+        var header = document.querySelector('header');
+        if (!main || !header) return;
+        function fit(){
+            var bannerHidden = !banner || getComputedStyle(banner).display === 'none';
+            main.style.paddingTop = bannerHidden ? (header.offsetHeight + 14) + 'px' : '';
+        }
+        fit();
+        window.addEventListener('resize', fit);
+        window.addEventListener('load', fit);
+    })();
+</script>
+
    
 
     <script src="{{ asset($themeAsset.'js/jquery-3.6.0.min.js') }}"></script>

@@ -79,9 +79,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
     var map = L.map('sbMapLocation').setView([lat, lng], 16);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19,
+    // Google Maps tiles inside Leaflet — gives the familiar Google look with
+    // no API key or billing, and the click / drag-to-pin logic below is all
+    // ours, so no Maps JS API is needed. lyrs=m is the standard road map
+    // (use 'y' for hybrid satellite, 's' for satellite).
+    L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps',
+        maxZoom: 20,
     }).addTo(map);
 
     var marker = L.marker([lat, lng], { draggable: true }).addTo(map);
