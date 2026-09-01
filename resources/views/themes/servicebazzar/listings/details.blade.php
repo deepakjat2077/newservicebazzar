@@ -3283,6 +3283,13 @@
                 $listing->pincode,
             ])->filter()->implode(', ');
         }
+
+        // "Get Directions" / Direction buttons: prefer the exact pin the owner
+        // saved on the map (latitude/longitude) so it points at their real
+        // spot; fall back to an address text search only when no pin exists.
+        $sbDirectionsUrl = ($listing->latitude && $listing->longitude)
+            ? 'https://www.google.com/maps/dir/?api=1&destination='.$listing->latitude.','.$listing->longitude
+            : 'https://www.google.com/maps/search/?api=1&query='.urlencode($fullAddress);
     @endphp
         <div class="address-tooltip">
         {{ $fullAddress ?: 'Address not available.' }}
@@ -3758,7 +3765,7 @@
                                     </a>
                                 @endif
 
-                                <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($fullAddress) }}"
+                                <a href="{{ $sbDirectionsUrl }}"
                                    target="_blank"
                                    class="mqa-btn mqa-direction track-click"
                                    data-track="direction_click"
@@ -6120,7 +6127,7 @@
         {{ $fullAddress ?: 'Address not available.' }}
     </p>
                     <div class="address-actions mb-3">
-                        <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($fullAddress) }}"
+                        <a href="{{ $sbDirectionsUrl }}"
                         target="_blank"
                         class="address-btn"
                         data-track="direction_click"
