@@ -716,7 +716,11 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::get('{id}/established', 'ListingController@businessEstablishedForm')->name('established');
                     Route::post('{id}/established', 'ListingController@updateEstablished')->name('established.update');
                     Route::get('{id}/business-categories', 'ListingController@businessCategoriesForm')->name('business-categories');
-                    Route::get('{id}/business-categories/search', 'ListingController@searchSubcategories')->name('business-categories.search');
+                    // POST (not GET) and named "lookup", not "search": the
+                    // hosting firewall in front of prod blocks the GET
+                    // "?q=..." query on a /search path with a 403, while a
+                    // small POST body sails through (same as the OTP POST).
+                    Route::post('{id}/business-categories/lookup', 'ListingController@searchSubcategories')->name('business-categories.lookup');
                     Route::post('{id}/business-categories', 'ListingController@updateCategories')->name('business-categories.update');
                     Route::get('{id}/business-photos', 'ListingController@businessPhotosForm')->name('business-photos');
                     Route::post('{id}/business-photos', 'ListingController@uploadGalleryPhotos')->name('business-photos.upload');

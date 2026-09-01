@@ -1883,7 +1883,9 @@ public function updatesection(Request $request, $id)
         // aren't confined to one category).
         Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
-        $term = trim((string) $request->query('q'));
+        // input() so it works whether the term arrives as a POST body field
+        // (the firewall-friendly path the page now uses) or a GET query.
+        $term = trim((string) $request->input('q'));
 
         if ($term === '') {
             return response()->json([]);

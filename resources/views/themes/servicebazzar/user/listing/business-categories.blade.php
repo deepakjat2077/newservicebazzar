@@ -108,7 +108,8 @@ document.addEventListener('DOMContentLoaded', function(){
     // the browser then blocks the fetch as mixed/cross-origin content. Stripping
     // the scheme+host makes the request go to the current origin over the same
     // protocol, which is what we always want here.
-    var searchUrl = @json(route('user.listing.business-categories.search', $listing->id)).replace(/^https?:\/\/[^/]+/i, '');
+    var lookupUrl = @json(route('user.listing.business-categories.lookup', $listing->id)).replace(/^https?:\/\/[^/]+/i, '');
+    var csrfToken = document.querySelector('#sbCategoriesForm input[name=_token]').value;
     var timer = null;
     var seq = 0; // guards against slow older responses clobbering newer ones
 
@@ -147,9 +148,16 @@ document.addEventListener('DOMContentLoaded', function(){
 
         var mySeq = ++seq;
         timer = setTimeout(function(){
-            fetch(searchUrl + '?q=' + encodeURIComponent(q), {
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-                credentials: 'same-origin'
+            fetch(lookupUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: new URLSearchParams({ q: q }).toString()
             })
                 .then(function(r){
                     if (!r.ok) { var st = r.status; return r.text().then(function(){ throw new Error('HTTP ' + st); }); }
