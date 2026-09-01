@@ -1792,12 +1792,14 @@ public function updatesection(Request $request, $id)
 
     /**
      * "Set as Cover Photo" for a legacy photo (one on the listing's `photos`
-     * array column). Two things happen so the choice sticks everywhere:
-     *  - the photo is copied into the thumb folder and set as the listing's
-     *    `thumb`, so it becomes the image shown on listing cards and the
-     *    public detail header;
-     *  - it is moved to the front of the `photos` array, so the gallery marks
-     *    the first photo as the cover consistently.
+     * array column) — makes it the listing's thumbnail (`thumb`), which is the
+     * image shown on listing cards, the public detail header and the manage
+     * page header.
+     *
+     * The photo is copied into the thumb folder under the SAME filename and
+     * `thumb` is set to that filename, so a legacy photo can be recognised as
+     * the current cover simply by `listing->thumb === filename` — that single
+     * check drives the "Cover Photo" tag on the gallery and every thumbnail.
      */
     public function setLegacyCoverPhoto(Request $request, $id)
     {
@@ -1811,33 +1813,26 @@ public function updatesection(Request $request, $id)
         }
 
         $source = public_path('assets/images/listing/photos/'.$request->filename);
-        if (is_file($source)) {
-            $ext = pathinfo($request->filename, PATHINFO_EXTENSION) ?: 'jpg';
-            $newThumb = time().'_'.uniqid().'.'.$ext;
-            $thumbDir = public_path('assets/images/listing/thumb');
+        $thumbDir = public_path('assets/images/listing/thumb');
 
-            if (! is_dir($thumbDir)) {
-                @mkdir($thumbDir, 0755, true);
-            }
-
-            if (@copy($source, $thumbDir.'/'.$newThumb)) {
-                // Drop the previous thumb file so old covers don't pile up
-                // (thumb is exclusive to this listing, so this is safe).
-                if ($listing->thumb && is_file($thumbDir.'/'.$listing->thumb)) {
-                    @unlink($thumbDir.'/'.$listing->thumb);
-                }
-                $listing->thumb = $newThumb;
-            }
+        if (! is_dir($thumbDir)) {
+            @mkdir($thumbDir, 0755, true);
         }
 
-        // Front of the array = the cover the gallery tags.
-        $listing->photos = $photos->reject(fn ($p) => $p === $request->filename)
-            ->prepend($request->filename)
-            ->values()
-            ->all();
-        $listing->save();
+        if (is_file($source)) {
+            @copy($source, $thumbDir.'/'.$request->filename);
+        }
 
-        return back()->withAlert(['success', 'Cover photo updated.']);
+        // Only point thumb at it once the file is actually in the thumb folder,
+        // so we never set thumb to a name that renders as a broken image.
+        if (is_file($thumbDir.'/'.$request->filename)) {
+            $listing->thumb = $request->filename;
+            $listing->save();
+
+            return back()->withAlert(['success', 'Cover photo updated.']);
+        }
+
+        return back()->withAlert(['danger', 'Could not update the cover photo.']);
     }
 
     public function uploadGalleryPhotos(Request $request, $id)

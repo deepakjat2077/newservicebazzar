@@ -58,17 +58,18 @@
         @else
             <div class="sb-gallery-grid">
                 @foreach($legacyPhotos as $filename)
+                    @php $isCover = ($listing->thumb === $filename); @endphp
                     <div class="sb-gallery-item">
                         <div class="sb-gallery-item-crop">
                             <img src="{{ loadImage('assets/images/listing/photos/'.$filename) }}" alt="{{ $listing->name }}">
-                            @if($loop->first)
+                            @if($isCover)
                                 <span class="sb-gallery-cover-tag">Cover Photo</span>
                             @endif
                         </div>
                         <button type="button" class="sb-gallery-dots" data-photo-menu="legacy-{{ $loop->index }}"><i class="fas fa-ellipsis-vertical"></i></button>
 
                         <div class="sb-gallery-menu" id="sbPhotoMenulegacy-{{ $loop->index }}" hidden>
-                            @unless($loop->first)
+                            @unless($isCover)
                                 <form action="{{ route('user.listing.business-photos.legacy-cover', $listing->id) }}" method="post">
                                     @csrf
                                     <input type="hidden" name="filename" value="{{ $filename }}">
