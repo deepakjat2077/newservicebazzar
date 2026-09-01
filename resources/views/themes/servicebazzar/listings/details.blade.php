@@ -4981,6 +4981,19 @@
         </button>
     </li>
 
+    @php
+        // Rate Card / Catalogue images live in extra_images (type=catalogue),
+        // uploaded from the owner's "Upload Rate Card / Catalogue" page.
+        $sbCatalogueImages = $listing->extraImages()->where('type', 'catalogue')->latest()->get();
+    @endphp
+    @if($sbCatalogueImages->isNotEmpty())
+    <li class="nav-item">
+        <button class="nav-link tab-scroll-btn" data-target="#catalogueSection" type="button">
+            Rate Card
+        </button>
+    </li>
+    @endif
+
     <li class="nav-item">
         <button class="nav-link tab-scroll-btn" data-target="#overviewSection" type="button">
             Overview
@@ -5103,6 +5116,28 @@
             @endif
         @endauth
     </div>
+
+                {{-- RATE CARD / CATALOGUE --}}
+                @if($sbCatalogueImages->isNotEmpty())
+                <div class="content-section mb-4" id="catalogueSection">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="media-title mb-0">Rate Card / Catalogue</h4>
+                    </div>
+                    <div class="photo-category-slider">
+                        @foreach($sbCatalogueImages as $cat)
+                            <div class="photo-card">
+                                <div class="photo-thumb">
+                                    <img src="{{ asset('assets/images/listing/extra/'.$cat->image) }}"
+                                        class="listing-photo-click"
+                                        data-src="{{ asset('assets/images/listing/extra/'.$cat->image) }}"
+                                        alt="{{ $listing->name }} Rate Card"
+                                        loading="lazy">
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 {{-- OVERVIEW --}}
                 <div class="content-section mb-4" id="overviewSection">
