@@ -83,10 +83,13 @@ Route::middleware('user.api')->group(function () {
     Route::get('home',       [BrowseController::class, 'home']);
     Route::get('categories', [BrowseController::class, 'categories']);
     Route::get('categories/search', [BrowseController::class, 'searchCategories']);
+    Route::get('categories/search/{term}', [BrowseController::class, 'searchCategories']);
     Route::get('categories/{slug}/subcategories', [BrowseController::class, 'subcategories']);
     Route::get('locations/search',  [BrowseController::class, 'searchLocations']);
+    Route::get('locations/search/{term}', [BrowseController::class, 'searchLocations']);
 
     Route::get('search', [BrowseController::class, 'search']);
+    Route::get('search/{term}', [BrowseController::class, 'search']);
 
     Route::get('listings/{slug}', [BrowseController::class, 'detail']);
     Route::post('listings/{id}/review',  [BrowseController::class, 'submitReview'])->whereNumber('id');

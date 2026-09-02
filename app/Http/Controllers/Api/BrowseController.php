@@ -87,9 +87,10 @@ class BrowseController extends Controller
         ]);
     }
 
-    public function searchCategories(Request $request)
+    public function searchCategories(Request $request, $term = null)
     {
-        $q = trim((string) $request->query('q'));
+        // Support both /api/categories/search?q=term and /api/categories/search/term
+        $q = $term ?? trim((string) $request->query('q'));
 
         return response()->json([
             'success' => true,
@@ -99,9 +100,10 @@ class BrowseController extends Controller
         ]);
     }
 
-    public function searchLocations(Request $request)
+    public function searchLocations(Request $request, $term = null)
     {
-        $q = trim((string) $request->query('q'));
+        // Support both /api/locations/search?q=term and /api/locations/search/term
+        $q = $term ?? trim((string) $request->query('q'));
 
         return response()->json([
             'success' => true,
@@ -115,9 +117,10 @@ class BrowseController extends Controller
      | Search
      | -------------------------------------------------------------------*/
 
-    public function search(Request $request)
+    public function search(Request $request, $term = null)
     {
-        $term     = trim((string) $request->query('q', ''));
+        // Support both /api/search?q=term and /api/search/term
+        $term     = $term ?? trim((string) $request->query('q', ''));
         $location = trim((string) $request->query('location', ''));
         $lat      = $request->filled('latitude') ? (float) $request->latitude : null;
         $lng      = $request->filled('longitude') ? (float) $request->longitude : null;
