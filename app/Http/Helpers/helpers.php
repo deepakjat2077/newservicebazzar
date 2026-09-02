@@ -31,6 +31,21 @@ function loadImage($image,$isAvatar = false){
     return file_exists($image) && is_file($image) ? asset($image) : ($isAvatar ? asset('assets/images/avatar.jpg') : asset('assets/images/default.jpg'));
 }
 
+/**
+ * Return the WebP version of an image path if it exists on disk.
+ * Strips the original extension and appends .webp.
+ * Falls back to the original path if no WebP is found.
+ */
+function loadImageWebp($image, $isAvatar = false) {
+    if ($image) {
+        $webpPath = preg_replace('/\.(png|jpe?g|gif)$/i', '.webp', $image);
+        if ($webpPath !== $image && file_exists($webpPath) && is_file($webpPath)) {
+            return asset($webpPath);
+        }
+    }
+    return loadImage($image, $isAvatar);
+}
+
 function numberFormat($number,$precision = null){
     if ($precision) {
         $number = round($number,$precision);
