@@ -204,15 +204,15 @@
                                 @endif
 		                    	@if($itemValue['type'] == 'file' && $itemValue['is_image'] == true)
 									@php
-										$images[$itemKey] = loadImage('assets/'.$setting->theme.'/images/'.$elementName.'/'.$data->content->$itemKey);
+										$images[$itemKey] = loadImage('assets/'.$setting->theme.'/images/'.$elementName.'/'.($data->content->$itemKey ?? ''));
 									@endphp
 								@else
 									@php
-										$themeItems[$itemKey] = $data->content->$itemKey;
+										$themeItems[$itemKey] = $data->content->$itemKey ?? null;
 									@endphp
 		                    	@endif
 		                      @if($itemValue['type'] != 'textarea' && $itemValue['type'] != 'checkbox' && $itemValue['type'] != 'file' && $itemKey != 'is_modal')
-		                      	<td>{{ @__($data->content->$itemKey) }}</td>
+		                      	<td>{{ @__($data->content->$itemKey ?? '') }}</td>
 		                      @endif
 		                    @endforeach
 		                    <td>

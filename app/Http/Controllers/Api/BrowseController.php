@@ -189,10 +189,20 @@ class BrowseController extends Controller
             $listings->where('review', '>=', $request->rating);
         }
 
+        // Clone query for filter attempt
+        $filteredListings = clone $listings;
+
         switch ($request->query('filter')) {
-            case 'verified':  $listings->where('verified', 1); break;
-            case 'trust':     $listings->where('trust', 1); break;
-            case 'top_rated': $listings->where('review', '>=', 4); break;
+            case 'verified':  $filteredListings->where('verified', 1); break;
+            case 'trust':     $filteredListings->where('trust', 1); break;
+            case 'top_rated': $filteredListings->where('review', '>=', 4); break;
+        }
+
+        // Use filtered results if they exist, otherwise use unfiltered
+        if ($request->filled('filter') && $filteredListings->count() > 0) {
+            $listings = $filteredListings;
+        } elseif (!$request->filled('filter')) {
+            $listings = $filteredListings;
         }
 
         switch ($request->query('sort')) {
