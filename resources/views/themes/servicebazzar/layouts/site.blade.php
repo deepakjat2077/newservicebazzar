@@ -1286,7 +1286,7 @@ window.addEventListener('pageshow', function () {
 					<a class="navbar-brand" href="{{ route('home') }}">
 						<picture>
 							<source srcset="{{ asset('assets/images/logo/logo.webp') }}" type="image/webp">
-							<img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar" width="120" height="40">
+							<img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar" >
 						</picture>
 					</a>
                   <div id="scrollSearchHolder">
