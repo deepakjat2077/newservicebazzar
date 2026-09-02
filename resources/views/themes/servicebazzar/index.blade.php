@@ -2251,12 +2251,14 @@ closeCategoryDropdown();
                             }
 
                             {{-- Preload the first (LCP) banner image in <head> --}}
+                            @php
                             $firstBannerSrc    = !empty($bannerImages[0]['image'])
                                 ? 'assets/servicebazzar/images/banner/'.$bannerImages[0]['image']
                                 : null;
                             $firstMobileSrc    = !empty($mobileBannerImages[0]['image'])
                                 ? 'assets/servicebazzar/images/banner/'.$mobileBannerImages[0]['image']
                                 : $firstBannerSrc;
+                            @endphp
                         @endphp
 
                         {{-- Inject LCP preload links into <head> via stack --}}
