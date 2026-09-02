@@ -2249,6 +2249,7 @@ closeCategoryDropdown();
                                     }
                                 }
                             }
+                        @endphp
 
                             {{-- Preload the first (LCP) banner image in <head> --}}
                             @php
