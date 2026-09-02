@@ -86,9 +86,10 @@ class BusinessController extends Controller
     }
 
     /** Live search for the "Add Business Category" step. */
-    public function searchSubcategories(Request $request)
+    public function searchSubcategories(Request $request, $term = null)
     {
-        $term = trim((string) $request->query('q'));
+        // Support both /api/business/subcategories/search?q=term and /api/business/subcategories/search/term
+        $term = str_replace('-', ' ', $term ?? trim((string) $request->query('q')));
 
         if ($term === '') {
             return response()->json(['success' => true, 'results' => []]);
