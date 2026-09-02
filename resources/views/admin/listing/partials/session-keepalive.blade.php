@@ -13,19 +13,19 @@
     logged out elsewhere) — say so instead of letting them hit Save and lose
     the lot.
 
-    $keepAliveForm = selector of the form whose _token should stay fresh.
+    The request itself, and writing the refreshed token back into the form,
+    both belong to refreshListingToken in the csrf-live partial — which every
+    page including this one also includes, against the same form.
 --}}
 @push('js')
 <script>
 (function ($) {
     "use strict";
 
-    var url      = "{{ route('admin.session.ping') }}";
-    var $form    = $("{{ $keepAliveForm ?? '#listingCreateForm' }}");
     // Comfortably inside the window, and short enough to survive one or two
     // failed pings on a flaky connection.
-    var everyMs  = {{ max(60, (int) (config('session.lifetime') * 60 / 4)) }} * 1000;
-    var warned   = false;
+    var everyMs = {{ max(60, (int) (config('session.lifetime') * 60 / 4)) }} * 1000;
+    var warned  = false;
 
     function sessionLost() {
         if (warned) {
@@ -44,30 +44,28 @@
         });
     }
 
+    /*
+     * refreshListingToken (csrf-live) does the request and reports whether the
+     * session is actually gone or the ping was merely refused. This used to
+     * call sessionLost() on a status of 0 or 200 as well, which meant a
+     * dropped connection or the CDN's own challenge page raised "Your login
+     * has expired" over a session that was still perfectly good — and, on the
+     * add form, cancelled the save with it.
+     */
     function ping() {
-        $.ajax({ url: url, method: 'GET', dataType: 'json' })
-            .done(function (res) {
-                if (!res || !res.ok) {
-                    sessionLost();
-                    return;
-                }
+        window.refreshListingToken().then(function (state) {
+            if (state === 'expired') {
+                sessionLost();
 
+                return;
+            }
+
+            // 'blocked' proves nothing, so it must not clear the warning
+            // either — only a ping that really came back does that.
+            if (state === 'fresh') {
                 warned = false;
-
-                // The token can rotate (session regenerate); keep the form's
-                // hidden field in step so Save always posts a current one.
-                if (res.token && $form.length) {
-                    $form.find('input[name="_token"]').val(res.token);
-                }
-            })
-            .fail(function (xhr) {
-                // 302 to the login page comes back as a parse error or a 0
-                // status; either way the session is no longer usable.
-                if (xhr.status === 401 || xhr.status === 419 || xhr.status === 0 ||
-                    xhr.status === 200) {
-                    sessionLost();
-                }
-            });
+            }
+        });
     }
 
     setInterval(ping, everyMs);

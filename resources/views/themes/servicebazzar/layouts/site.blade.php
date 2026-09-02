@@ -1284,10 +1284,7 @@ window.addEventListener('pageshow', function () {
 </button>
 @endif
 					<a class="navbar-brand" href="{{ route('home') }}">
-						<picture>
-							<source srcset="{{ asset('assets/images/logo/logo.webp') }}" type="image/webp">
-							<img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar" >
-						</picture>
+						<img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar">
 					</a>
                   <div id="scrollSearchHolder">
     @include($themeView.'includes.search-form')

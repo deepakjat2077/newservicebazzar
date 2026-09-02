@@ -3049,7 +3049,39 @@ $('#pincode').on('keyup change', function () {
         // submit is cancelled and the shield re-submits the form when it is
         // done. See the firewall-shield partial.
         e.preventDefault();
-        shieldAndSubmit(this);
+
+        /*
+         * Refresh the token before submitting. This form posts natively, so a
+         * stale token is not a message on this page — it is the framework's
+         * bare "419 Page Expired" screen, with every edit made here gone with
+         * it. The token rendered when the page opened goes stale on its own
+         * (the session rotates it, and re-logging in anywhere rotates it too),
+         * and the background keep-alive only runs on its own timer, so the
+         * only reliable moment to check is this one.
+         *
+         * Same rule as the add form: only a server that positively says the
+         * session is gone stops the submit. A ping the CDN refused proves
+         * nothing, so the save goes ahead on the token already in the form.
+         */
+        const form = this;
+
+        refreshListingToken().then(function (tokenState) {
+            if (tokenState === 'expired') {
+                Swal.fire({
+                    title: 'Your login has expired',
+                    html: 'Your changes are still on this screen — nothing is ' +
+                          'lost. Open <b>/admin</b> in a <b>new tab</b>, log ' +
+                          'in, then come back here and press Save again.',
+                    icon: 'warning',
+                    confirmButtonText: 'Got it'
+                });
+
+                return;
+            }
+
+            shieldAndSubmit(form);
+        });
+
         return false;
     });
 

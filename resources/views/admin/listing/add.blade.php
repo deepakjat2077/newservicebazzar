@@ -3128,25 +3128,21 @@ $(document).on('blur paste', '.seo-source, .seo-field', function () {
          * — posting with a stale token means a "Page Expired" screen and the
          * whole form gone. One cheap call decides between saving and losing
          * it, so it is worth blocking the submit for.
+         *
+         * A refused ping is not a reason to refuse the save. This used to
+         * abort on any failed ping, so a 403 from the CDN — which challenges
+         * requests it does not recognise and has nothing to do with the
+         * session — put "Your login has expired" over a perfectly good login
+         * and sent the agent off to log in again, repeatedly, while the real
+         * token in the form was still valid the whole time. Only a server
+         * that positively says the session is gone stops the save now; a
+         * blocked ping falls through and lets the POST itself report what
+         * actually happens.
          */
         const form = this;
+        const tokenState = await refreshListingToken();
 
-        try {
-            const ping = await fetch("{{ route('admin.session.ping') }}", {
-                credentials: 'same-origin',
-                headers: { 'Accept': 'application/json' }
-            });
-
-            if (!ping.ok) {
-                throw new Error('session gone');
-            }
-
-            const fresh = await ping.json();
-
-            if (fresh && fresh.token) {
-                $(form).find('input[name="_token"]').val(fresh.token);
-            }
-        } catch (error) {
+        if (tokenState === 'expired') {
             releaseSaveButton();
 
             Swal.fire({

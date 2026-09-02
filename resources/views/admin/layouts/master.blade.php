@@ -109,6 +109,9 @@
       try { localStorage.removeItem(@json(session('clear_form_draft'))); } catch (e) {}
     @endif
   </script>
+  {{-- Keeps this page's CSRF token in step with the session it belongs to.
+       Before @stack('js'), so a page's own scripts are already covered. --}}
+  @include('admin.includes.csrf-guard')
   @stack('js')
 </body>
 </html>
