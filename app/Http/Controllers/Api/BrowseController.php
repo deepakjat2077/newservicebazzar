@@ -122,7 +122,7 @@ class BrowseController extends Controller
         // Support multiple formats:
         // 1. /api/find?q=plumber&location=delhi (old query params)
         // 2. /api/find/plumber (path term only)
-        // 3. /api/find/delhi/plumber (path location/term)
+        // 3. /api/find/delhi/plumber (path location/term - slug or search term)
 
         // Handle the case where location is actually the term (when called as /api/find/{term})
         if ($term === null && $location !== null) {
@@ -130,31 +130,41 @@ class BrowseController extends Controller
             $location = null;
         }
 
-        $term     = $term ?? trim((string) $request->query('q', ''));
-        $location = $location ?? trim((string) $request->query('location', ''));
+        // Convert hyphens to spaces for better search
+        $term     = str_replace('-', ' ', $term ?? trim((string) $request->query('q', '')));
+        $location = str_replace('-', ' ', $location ?? trim((string) $request->query('location', '')));
         $lat      = $request->filled('latitude') ? (float) $request->latitude : null;
         $lng      = $request->filled('longitude') ? (float) $request->longitude : null;
 
         $listings = Listing::notExpired()->where('status', 1)
             ->with('category', 'location')->withCount('ratings');
 
-        // Match by category / subcategory / listing name — same net the
-        // website casts.
+        // Match by category slug first (for URL-friendly search like /api/find/delhi/packers-and-movers)
         if ($term !== '') {
-            $catIds = Category::where('status', 1)->where('name', 'like', "%{$term}%")->pluck('id')->toArray();
-            $subIds = Subcategory::where('status', 1)->where('name', 'like', "%{$term}%")->pluck('id')->toArray();
-            $subCatIds = Subcategory::where('status', 1)->where('name', 'like', "%{$term}%")->pluck('category_id')->toArray();
+            // First try to match by category slug (convert back to check slug)
+            $termSlug = str_replace(' ', '-', strtolower($term));
+            $categoryBySlug = Category::where('status', 1)->where('slug', $termSlug)->first();
 
-            $listings->where(function ($q) use ($term, $catIds, $subIds, $subCatIds) {
-                if ($catIds)    $q->orWhereIn('category_id', $catIds);
-                if ($subCatIds) $q->orWhereIn('category_id', $subCatIds);
-                if ($subIds) {
-                    $q->orWhere(function ($sq) use ($subIds) {
-                        foreach ($subIds as $id) $sq->orWhereJsonContains('subcategory_ids', (int) $id);
-                    });
-                }
-                $q->orWhere('name', 'like', "%{$term}%");
-            });
+            if ($categoryBySlug) {
+                // If term matches a category slug, return listings from that category
+                $listings->where('category_id', $categoryBySlug->id);
+            } else {
+                // Otherwise, do text search (name/category/subcategory match)
+                $catIds = Category::where('status', 1)->where('name', 'like', "%{$term}%")->pluck('id')->toArray();
+                $subIds = Subcategory::where('status', 1)->where('name', 'like', "%{$term}%")->pluck('id')->toArray();
+                $subCatIds = Subcategory::where('status', 1)->where('name', 'like', "%{$term}%")->pluck('category_id')->toArray();
+
+                $listings->where(function ($q) use ($term, $catIds, $subIds, $subCatIds) {
+                    if ($catIds)    $q->orWhereIn('category_id', $catIds);
+                    if ($subCatIds) $q->orWhereIn('category_id', $subCatIds);
+                    if ($subIds) {
+                        $q->orWhere(function ($sq) use ($subIds) {
+                            foreach ($subIds as $id) $sq->orWhereJsonContains('subcategory_ids', (int) $id);
+                        });
+                    }
+                    $q->orWhere('name', 'like', "%{$term}%");
+                });
+            }
         }
 
         // Distance (needs coords) or plain location-text match.
