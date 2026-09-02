@@ -117,11 +117,21 @@ class BrowseController extends Controller
      | Search
      | -------------------------------------------------------------------*/
 
-    public function search(Request $request, $term = null)
+    public function search(Request $request, $location = null, $term = null)
     {
-        // Support both /api/search?q=term and /api/search/term
+        // Support multiple formats:
+        // 1. /api/find?q=plumber&location=delhi (old query params)
+        // 2. /api/find/plumber (path term only)
+        // 3. /api/find/delhi/plumber (path location/term)
+
+        // Handle the case where location is actually the term (when called as /api/find/{term})
+        if ($term === null && $location !== null) {
+            $term = $location;
+            $location = null;
+        }
+
         $term     = $term ?? trim((string) $request->query('q', ''));
-        $location = trim((string) $request->query('location', ''));
+        $location = $location ?? trim((string) $request->query('location', ''));
         $lat      = $request->filled('latitude') ? (float) $request->latitude : null;
         $lng      = $request->filled('longitude') ? (float) $request->longitude : null;
 

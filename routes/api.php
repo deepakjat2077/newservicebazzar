@@ -95,6 +95,7 @@ Route::middleware('user.api')->group(function () {
     // New routes - not blocked by WAF
     Route::get('find', [BrowseController::class, 'search']);
     Route::get('find/{term}', [BrowseController::class, 'search']);
+    Route::get('find/{location}/{term}', [BrowseController::class, 'search']);
 
     Route::get('listings/{slug}', [BrowseController::class, 'detail']);
     Route::post('listings/{id}/review',  [BrowseController::class, 'submitReview'])->whereNumber('id');
