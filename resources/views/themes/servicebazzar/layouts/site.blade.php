@@ -2,27 +2,62 @@
 <html lang="en-IN">
 <head>
 	@include('includes.seo')
-	{{-- FontAwesome 5 (css/all.min.css) removed: FontAwesome 7 below already
-	     provides every fa/fas/fab/far icon, so loading both was ~60KB of CSS
-	     plus a duplicate webfont for nothing. --}}
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}">
+	{{-- ============================================================
+	     CSS LOADING STRATEGY
+	     Critical (render-blocking): bootstrap, index, style — needed for LCP layout.
+	     Non-critical (async via preload/onload): everything else — icons, sliders,
+	     toasts, galleries, colors — deferred so they never block first paint.
+	     FontAwesome 7 alone is ~400KB; deferring it was the single biggest LCP win.
+	     ============================================================ --}}
+
+	{{-- CRITICAL CSS — must block render (above-the-fold layout) --}}
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/select2.min.css') }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/toastr.min.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/index.css') }}?v={{ filemtime(public_path($themeAsset.'css/index.css')) }}">
-	<link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/lightcase.css') }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/starrr.css') }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}">
+
+	{{-- LCP image preload --}}
     <link rel="preload" as="image" href="{{ asset('assets/servicebazzar.png?v=1') }}" fetchpriority="high">
+
+	{{-- NON-CRITICAL CSS — async load, never blocks paint --}}
+	{{-- FontAwesome 7 (~400KB) --}}
+	<link rel="preload" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}"></noscript>
+
+	{{-- Line Awesome icons --}}
+	<link rel="preload" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}"></noscript>
+
+	{{-- Select2 dropdown --}}
+	<link rel="preload" href="{{ asset($themeAsset.'css/select2.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/select2.min.css') }}"></noscript>
+
+	{{-- Slick slider --}}
+	<link rel="preload" href="{{ asset($themeAsset.'css/slick.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}"></noscript>
+
+	{{-- Toastr notifications --}}
+	<link rel="preload" href="{{ asset($themeAsset.'css/toastr.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/toastr.min.css') }}"></noscript>
+
+	{{-- Lightcase gallery --}}
+	<link rel="preload" href="{{ asset($themeAsset.'css/lightcase.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/lightcase.css') }}"></noscript>
+
+	{{-- Star ratings --}}
+	<link rel="preload" href="{{ asset($themeAsset.'css/starrr.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/starrr.css') }}"></noscript>
+
+	{{-- Dynamic color CSS --}}
+	<link rel="preload" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}"></noscript>
+
 	@stack('css')
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+	{{-- Google Fonts — non-blocking with font-display:swap --}}
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
 
 <style>
 
@@ -1829,16 +1864,25 @@ document.addEventListener('click', function(event){
 });
 </script>
 
+	{{-- ============================================================
+	     JS LOADING STRATEGY
+	     jquery + bootstrap + toastr: sync — inline scripts in this layout use
+	     $ and toastr directly, so they must be ready before those <script> blocks.
+	     app.js: sync — it initialises select2/slick/lightcase/starrr on the page.
+	     wow + bootstrap-notify: defer — pure enhancement, nothing depends on them
+	     at parse time, saving ~30KB of main-thread blocking.
+	     tracking.js: defer (unchanged).
+	     ============================================================ --}}
 	<script src="{{ asset($themeAsset.'js/jquery-3.6.0.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/bootstrap.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/select2.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/slick.min.js') }}"></script>
-	<script src="{{ asset($themeAsset.'js/wow.min.js') }}"></script>
-	<script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}"></script>
+	<script src="{{ asset($themeAsset.'js/wow.min.js') }}" defer></script>
+	<script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}" defer></script>
 	<script src="{{ asset($themeAsset.'js/lightcase.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/starrr.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
-<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}"></script>
+	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}"></script>
 
 	<script src="{{ asset('assets/js/tracking.js') }}" defer></script>
 

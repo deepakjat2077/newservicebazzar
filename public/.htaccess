@@ -44,5 +44,16 @@ ErrorDocument 503 /errors/503.html
 </IfModule>
 
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml application/xml text/xml font/ttf font/otf application/font-woff application/font-woff2
+    # Remove browser bugs for old browsers
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+    Header append Vary Accept-Encoding
 </IfModule>
+
+# Remove ETags (avoid double validation with Cache-Control)
+<IfModule mod_headers.c>
+    Header unset ETag
+</IfModule>
+FileETag None

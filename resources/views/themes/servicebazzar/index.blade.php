@@ -5270,7 +5270,7 @@ role="tabpanel">
 <div class="listing-area">
 
 <div class="thumb">
-<img src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb">
+<img src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb" loading="lazy">
 </div>
 
 <div class="listing-content">
@@ -5278,7 +5278,7 @@ role="tabpanel">
 <div class="listing-author">
 <div class="author-thumb">
 <a href="{{ route('listings.author',$catListing->user->id) }}">
-<img src="{{ loadImage('assets/images/user/'.$catListing->user->image) }}" alt="{{ $catListing->user->name ?? 'Business owner' }}">
+<img src="{{ loadImage('assets/images/user/'.$catListing->user->image) }}" alt="{{ $catListing->user->name ?? 'Business owner' }}" loading="lazy">
 </a>
 </div>
 </div>

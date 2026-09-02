@@ -324,6 +324,7 @@
                     <a href="{{ $banner->link ?? '#' }}" target="_blank">
                         <img src="{{ asset('assets/images/category/banner/' . $banner->desktop_banner) }}"
                              class="d-block w-100"
+                             loading="{{ $key == 0 ? 'eager' : 'lazy' }}"
                              alt="{{ $banner->title ?? 'Banner' }}">
                     </a>
                 </div>
@@ -639,7 +640,7 @@
             <div class="related-search-item">
                 <div class="related-search-img">
                     <img src="{{ asset('assets/images/category/' . $category->image) }}"
-                         alt="{{ $category->name }}">
+                         alt="{{ $category->name }}" loading="lazy">
                 </div>
 
                 <div class="related-search-content">

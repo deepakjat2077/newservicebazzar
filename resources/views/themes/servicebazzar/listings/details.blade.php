@@ -4752,7 +4752,7 @@
 
             <div class="sticky-left">
                 <div class="sticky-logo">
-                    <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}" alt="{{ $listing->name }} Logo">
+                    <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}" alt="{{ $listing->name }} Logo" loading="lazy">
                 </div>
 
                 <div class="sticky-info">
