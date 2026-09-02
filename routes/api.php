@@ -156,6 +156,7 @@ Route::prefix('business')->middleware('user.api')->group(function () {
     Route::get('pincode/{pin}',        [BusinessController::class, 'pincode'])->whereNumber('pin');
     Route::get('subcategories/search', [BusinessController::class, 'searchSubcategories']);
     Route::get('subcategories/search/{term}', [BusinessController::class, 'searchSubcategories']);
+    Route::get('sub-categories/{term}', [BusinessController::class, 'searchSubcategories']);
     Route::post('/',                   [BusinessController::class, 'store']);
 
     // Lead actions — keyed by enquiry id (ownership checked in the controller).
