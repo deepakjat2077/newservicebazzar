@@ -15,8 +15,7 @@
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/index.css') }}?v={{ filemtime(public_path($themeAsset.'css/index.css')) }}">
 	<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}">
 
-	{{-- LCP image preload --}}
-    <link rel="preload" as="image" href="{{ asset('assets/servicebazzar.png?v=1') }}" fetchpriority="high">
+	{{-- LCP preload is set dynamically per-page (see index.blade.php @push('css')) --}}
 
 	{{-- NON-CRITICAL CSS — async load, never blocks paint --}}
 	{{-- FontAwesome 7 (~400KB) --}}
@@ -1285,7 +1284,10 @@ window.addEventListener('pageshow', function () {
 </button>
 @endif
 					<a class="navbar-brand" href="{{ route('home') }}">
-						<img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar">
+						<picture>
+							<source srcset="{{ asset('assets/images/logo/logo.webp') }}" type="image/webp">
+							<img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar" width="120" height="40">
+						</picture>
 					</a>
                   <div id="scrollSearchHolder">
     @include($themeView.'includes.search-form')
@@ -1873,16 +1875,21 @@ document.addEventListener('click', function(event){
 	     at parse time, saving ~30KB of main-thread blocking.
 	     tracking.js: defer (unchanged).
 	     ============================================================ --}}
+	{{-- SYNC (inline scripts below need these immediately): jQuery 88KB + Bootstrap 48KB + Toastr 5.5KB --}}
 	<script src="{{ asset($themeAsset.'js/jquery-3.6.0.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/bootstrap.min.js') }}"></script>
-	<script src="{{ asset($themeAsset.'js/select2.min.js') }}"></script>
-	<script src="{{ asset($themeAsset.'js/slick.min.js') }}"></script>
+	<script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
+
+	{{-- DEFERRED (saves ~143 KB of render-blocking): select2 72KB + slick 42KB + lightcase 26KB + starrr 3KB + app.js --}}
+	<script src="{{ asset($themeAsset.'js/select2.min.js') }}" defer></script>
+	<script src="{{ asset($themeAsset.'js/slick.min.js') }}" defer></script>
+	<script src="{{ asset($themeAsset.'js/lightcase.min.js') }}" defer></script>
+	<script src="{{ asset($themeAsset.'js/starrr.js') }}" defer></script>
+	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}" defer></script>
+
+	{{-- Already deferred --}}
 	<script src="{{ asset($themeAsset.'js/wow.min.js') }}" defer></script>
 	<script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}" defer></script>
-	<script src="{{ asset($themeAsset.'js/lightcase.min.js') }}"></script>
-	<script src="{{ asset($themeAsset.'js/starrr.js') }}"></script>
-	<script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
-	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}"></script>
 
 	<script src="{{ asset('assets/js/tracking.js') }}" defer></script>
 

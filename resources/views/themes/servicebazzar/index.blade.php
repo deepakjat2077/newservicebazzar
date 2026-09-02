@@ -2249,47 +2249,76 @@ closeCategoryDropdown();
                                     }
                                 }
                             }
+
+                            {{-- Preload the first (LCP) banner image in <head> --}}
+                            $firstBannerSrc    = !empty($bannerImages[0]['image'])
+                                ? 'assets/servicebazzar/images/banner/'.$bannerImages[0]['image']
+                                : null;
+                            $firstMobileSrc    = !empty($mobileBannerImages[0]['image'])
+                                ? 'assets/servicebazzar/images/banner/'.$mobileBannerImages[0]['image']
+                                : $firstBannerSrc;
                         @endphp
+
+                        {{-- Inject LCP preload links into <head> via stack --}}
+                        @if($firstBannerSrc)
+                            @push('css')
+                                {{-- Mobile LCP preload (WebP preferred) --}}
+                                <link rel="preload" as="image"
+                                    href="{{ loadImageWebp($firstMobileSrc) }}"
+                                    imagesrcset="{{ loadImageWebp($firstMobileSrc) }}"
+                                    media="(max-width: 767px)"
+                                    fetchpriority="high">
+                                {{-- Desktop LCP preload (WebP preferred) --}}
+                                <link rel="preload" as="image"
+                                    href="{{ loadImageWebp($firstBannerSrc) }}"
+                                    imagesrcset="{{ loadImageWebp($firstBannerSrc) }}"
+                                    media="(min-width: 768px)"
+                                    fetchpriority="high">
+                            @endpush
+                        @endif
 
                         @foreach($bannerImages as $imgData)
                             @php
                                 $mobileImgData = $mobileBannerImages[$loop->index] ?? null;
+                                $isFirst        = $loop->first;
+                                $loadPriority   = $isFirst ? 'eager' : 'lazy';
+                                $fetchPriority  = $isFirst ? 'high'  : 'low';
+                                $desktopSrc     = 'assets/servicebazzar/images/banner/'.$imgData['image'];
+                                $mobileSrc      = !empty($mobileImgData['image'])
+                                                    ? 'assets/servicebazzar/images/banner/'.$mobileImgData['image']
+                                                    : $desktopSrc;
                             @endphp
 
-                            <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+                            <div class="carousel-item {{ $isFirst ? 'active' : '' }}">
                                 <div class="main-banner-box">
 
                                     @if(!empty($imgData['link']))
                                         <a href="{{ $imgData['link'] }}">
                                     @endif
 
-                                        {{-- Desktop banner --}}
-                                        <img
-                                            src="{{ loadImage('assets/servicebazzar/images/banner/'.$imgData['image']) }}"
-                                            loading="{{ $loop->first ? 'eager' : 'lazy' }}"
-                                            fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
-                                            decoding="async"
-                                            alt="{{ $banner->content->title }} Near Me"
-                                            class="desktop-banner-img">
+                                        {{-- Desktop banner — WebP with fallback --}}
+                                        <picture class="desktop-banner-img">
+                                            <source srcset="{{ loadImageWebp($desktopSrc) }}" type="image/webp">
+                                            <img
+                                                src="{{ loadImage($desktopSrc) }}"
+                                                loading="{{ $loadPriority }}"
+                                                fetchpriority="{{ $fetchPriority }}"
+                                                decoding="async"
+                                                alt="{{ $banner->content->title }} Near Me"
+                                                class="desktop-banner-img">
+                                        </picture>
 
-                                        {{-- Mobile banner --}}
-                                        @if(!empty($mobileImgData['image']))
+                                        {{-- Mobile banner — WebP with fallback --}}
+                                        <picture class="mobile-banner-img">
+                                            <source srcset="{{ loadImageWebp($mobileSrc) }}" type="image/webp">
                                             <img
-                                                src="{{ loadImage('assets/servicebazzar/images/banner/'.$mobileImgData['image']) }}"
-                                                loading="{{ $loop->first ? 'eager' : 'lazy' }}"
-                                                fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
+                                                src="{{ loadImage($mobileSrc) }}"
+                                                loading="{{ $loadPriority }}"
+                                                fetchpriority="{{ $fetchPriority }}"
                                                 decoding="async"
-                                                alt="Best {{ $banner->content->title }} Near Me"
+                                                alt="{{ $isFirst ? 'Best' : 'Find' }} {{ $banner->content->title }} Near Me"
                                                 class="mobile-banner-img">
-                                        @else
-                                            <img
-                                                src="{{ loadImage('assets/servicebazzar/images/banner/'.$imgData['image']) }}"
-                                                loading="{{ $loop->first ? 'eager' : 'lazy' }}"
-                                                fetchpriority="{{ $loop->first ? 'high' : 'low' }}"
-                                                decoding="async"
-                                                alt="Find {{ $banner->content->title }} Near Me"
-                                                class="mobile-banner-img">
-                                        @endif
+                                        </picture>
 
                                     @if(!empty($imgData['link']))
                                         </a>
@@ -6816,8 +6845,14 @@ if (initialLocation && initialLocation.value.trim()) {
 </script>   
 
 <script>
-const buyerPopupImage = new Image();
-buyerPopupImage.src = "{{ asset('assets/servicebazzar.png') }}";
+// Preload popup background — use WebP if supported, PNG fallback
+(function(){
+    var src = (typeof self !== 'undefined' && self.createImageBitmap !== undefined)
+        ? "{{ asset('assets/servicebazzar.webp') }}"
+        : "{{ asset('assets/servicebazzar.png') }}";
+    var img = new Image();
+    img.src = src;
+})();
 </script>
 <!-- Popup -->
 <div id="buyerPopup" class="buyer-popup">
@@ -6861,8 +6896,7 @@ buyerPopupImage.src = "{{ asset('assets/servicebazzar.png') }}";
     padding: 28px;
     border-radius: 12px;
     overflow: hidden;
-    background: url("{{ asset('assets/servicebazzar.png?v=1') }}") no-repeat center center;
-background-size: cover;
+    background: url("{{ asset('assets/servicebazzar.webp') }}") no-repeat center center;
     background-size: cover;
     color: #fff;
     z-index: 999999;
