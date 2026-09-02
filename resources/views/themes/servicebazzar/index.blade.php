@@ -2952,13 +2952,13 @@ closeCategoryDropdown();
 }
 
 .category-box .category-icon-img {
-    width: 38px;
-    height: 38px;
+    width: 56px;
+    height: 56px;
     object-fit: contain;
 }
 
 .category-box i {
-    font-size: 32px;
+    font-size: 34px;
 }
 
 .more {
@@ -3387,13 +3387,13 @@ label.popup-overlay {
     }
 
      .category-box .category-icon-img{
-        width: 34px;
-        height: 34px;
+        width: 46px;
+        height: 46px;
         object-fit: contain;
     }
 
     .category-box i{
-        font-size: 20px !important;
+        font-size: 26px !important;
         line-height: 1 !important;
     }
 
