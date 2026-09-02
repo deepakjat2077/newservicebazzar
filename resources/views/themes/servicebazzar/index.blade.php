@@ -2259,7 +2259,6 @@ closeCategoryDropdown();
                                 ? 'assets/servicebazzar/images/banner/'.$mobileBannerImages[0]['image']
                                 : $firstBannerSrc;
                             @endphp
-                        @endphp
 
                         {{-- Inject LCP preload links into <head> via stack --}}
                         @if($firstBannerSrc)
