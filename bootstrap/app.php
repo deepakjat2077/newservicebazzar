@@ -399,6 +399,52 @@ return Application::configure(basePath: dirname(__DIR__))
                     'files'           => array_keys($request->allFiles()),
                     'token_length'    => strlen((string) $request->input('_token')),
                 ] : null,
+
+                /*
+                 * TEMPORARY (added while chasing the listing/edit 419s).
+                 *
+                 * "CSRF token mismatch" does not say *which* half is wrong,
+                 * and the two possibilities need opposite fixes: either the
+                 * browser posted a stale token against a session that is
+                 * still the right one, or the session cookie never arrived
+                 * and the request was handed a brand-new session whose token
+                 * nothing could have matched. Only the two tokens side by
+                 * side, plus whether the cookie came in at all, tell them
+                 * apart. Prefixes only — a whole CSRF token in a log file is
+                 * a usable credential.
+                 *
+                 * Remove once the cause is settled.
+                 */
+                'csrf'     => $status === 419 ? [
+                    'posted_token'   => substr((string) $request->input('_token'), 0, 8),
+                    'session_token'  => substr((string) $request->session()->token(), 0, 8),
+                    'session_id'     => substr((string) $request->session()->getId(), 0, 8),
+                    'cookie_sent'    => $request->cookies->has(config('session.cookie')),
+                    'cookie_session' => substr((string) $request->cookies->get(config('session.cookie')), 0, 8),
+                    'remember_sent'  => (bool) collect($request->cookies->keys())
+                        ->first(fn ($k) => str_starts_with($k, 'remember_admin')),
+                    'host'           => $request->getHost(),
+
+                    /*
+                     * Laravel only adopts the id from the cookie when it is
+                     * exactly 40 alphanumeric characters; anything else and
+                     * it silently starts a fresh session, which is
+                     * indistinguishable from an expired one at the CSRF
+                     * check. And a browser holding two cookies of the same
+                     * name — one host-only for www, one domain-wide from an
+                     * earlier SESSION_DOMAIN — sends both, with only one of
+                     * them the session that rendered the page.
+                     */
+                    'cookie_len'     => strlen((string) $request->cookies->get(config('session.cookie'))),
+                    'cookie_valid'   => ctype_alnum((string) $request->cookies->get(config('session.cookie')))
+                                        && strlen((string) $request->cookies->get(config('session.cookie'))) === 40,
+                    'id_matches'     => $request->cookies->get(config('session.cookie')) === $request->session()->getId(),
+                    'dupe_cookies'   => substr_count(
+                        (string) $request->headers->get('cookie'),
+                        config('session.cookie') . '='
+                    ),
+                    'session_exists' => $request->session()->has('_token'),
+                ] : null,
             ]);
 
             return null;

@@ -3007,7 +3007,21 @@ $('#pincode').on('keyup change', function () {
         let hasError = false;
         let errorMessage = '';
 
-        $('.').each(function () {
+        /*
+         * The selector here was `$('.')`, which is not a selector at all —
+         * jQuery answers it by throwing "Syntax error, unrecognized
+         * expression: .". That threw on the first line of this handler, so
+         * e.preventDefault() below was never reached and the browser fell
+         * through to submitting the form itself: every field raw, the shield
+         * never applied, and the token still the one rendered when the page
+         * was opened. Once that token went stale the save landed on the bare
+         * "419 Page Expired" screen and the whole edit was gone — which is
+         * every listing/edit 419 in storage/logs/admin-errors-*, all of them
+         * carrying the raw field list and no `_shielded`.
+         *
+         * Same set of text fields the add form validates.
+         */
+        $('.seo-source, .seo-field, .faq-question, .faq-answer').each(function () {
             sanitizeFieldValue($(this));
             let val = $(this).val();
             let error = validateTextContent(val);
