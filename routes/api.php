@@ -106,6 +106,9 @@ Route::middleware('user.api')->group(function () {
     Route::post('reviews/{id}/comment', [BrowseController::class, 'commentReview'])->whereNumber('id');
     Route::delete('reviews/comments/{id}', [BrowseController::class, 'deleteComment'])->whereNumber('id');
 
+    // Homepage banner carousel, the same rows the admin's Banner Section edits.
+    Route::get('banners',       [ContentController::class, 'banners']);
+
     // News feed (= blog posts) and premium plans.
     Route::get('news',          [ContentController::class, 'news']);
     Route::get('news/{slug}',   [ContentController::class, 'newsDetail']);

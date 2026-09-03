@@ -73,7 +73,7 @@
         <div class="sb-biz-actions">
             <button type="button" class="sb-biz-action-card" id="sbOpenBusinessProfile">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--peach"><i class="fas fa-id-card"></i></span>
-                <span>Edit Profile</span>
+                <span>Edit Profile <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </button>
             <div class="sb-biz-action-card is-disabled">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--purple"><i class="fas fa-bullhorn"></i></span>
@@ -82,15 +82,18 @@
             </div>
             <a href="{{ $sbReviewsUrl ?? '#' }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
-                <span>Reviews</span>
+                <span>Reviews <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
             <a href="{{ route('user.listing.serviceable-area', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--yellow"><i class="fas fa-location-dot"></i></span>
-                <span>Serviceable Area / Pincodes</span>
+                <span>Serviceable Area / Pincodes <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
-            <a href="{{ route('user.listing.edit', $listing->id) }}#images" class="sb-biz-action-card">
+            {{-- This pointed at the old all-in-one edit form's #images anchor. The
+                 gallery screen (business-photos) is where photos are actually
+                 managed — the same screen Add Video already opened. --}}
+            <a href="{{ route('user.listing.business-photos', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
-                <span>Add Photos</span>
+                <span>Add Photos <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
             <div class="sb-biz-action-card is-disabled">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--teal"><i class="fas fa-address-book"></i></span>
@@ -99,24 +102,24 @@
             </div>
             <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
-                <span>Upload Catalogue</span>
+                <span>Upload Catalogue <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
             <div class="sb-biz-action-card is-disabled">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--gold"><i class="fas fa-gear"></i></span>
                 <span>Add Offer</span>
                 <small>Coming soon</small>
             </div>
-            <a href="{{ route('user.listing.business-photos', $listing->id) }}" class="sb-biz-action-card">
+            <a href="{{ route('user.listing.business-photos', $listing->id) }}#video" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--pink"><i class="fas fa-video"></i></span>
-                <span>Add Video</span>
+                <span>Add Video <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
             <a href="{{ route('user.listing.business-social', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--mint"><i class="fas fa-share-nodes"></i></span>
-                <span>Add Social Links</span>
+                <span>Add Social Links <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
             <a href="{{ route('user.listing.ratings-qr', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--indigo"><i class="fas fa-qrcode"></i></span>
-                <span>Ratings QR</span>
+                <span>Ratings QR <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
         </div>
 

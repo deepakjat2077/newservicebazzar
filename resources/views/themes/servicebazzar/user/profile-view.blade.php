@@ -1,4 +1,11 @@
-@extends($themeView.'layouts.site')
+{{-- This page is public: anyone can open /user/profile/<name>. Signed-in
+     people get the account panel's header (Dashboard / Payment Log / My
+     Business / Account), the same one the business dashboard uses; guests keep
+     the site header, because that panel's nav calls auth()->user() unguarded
+     and holds nothing a signed-out visitor could use anyway. --}}
+@extends(auth()->check() ? $themeView.'layouts.app' : $themeView.'layouts.site')
+
+@section('title', trim($user->first_name.' '.$user->last_name))
 
 @section('content')
 
@@ -57,9 +64,18 @@
           @endif
         </div>
 
-        @if($recentBusinesses->count())
+        @if($recentBusinesses->count() || $recentSearches->count())
         <div class="sbsocial-card sbsocial-recent">
           <h2 class="sbsocial-card-title">Recent Search</h2>
+
+          {{-- What this person typed into the search box, most recent first. --}}
+          @if($recentSearches->count())
+          <div class="sbsocial-recent-terms">
+            @foreach($recentSearches as $term)
+              <a href="{{ route('listings.search', ['categorysearch' => $term]) }}" class="sbsocial-term">{{ $term }}</a>
+            @endforeach
+          </div>
+          @endif
 
           @foreach($recentBusinesses as $biz)
           <div class="sbsocial-recent-item">
@@ -189,6 +205,9 @@
 
 /* recent rail */
 .sbsocial-recent{padding:18px;}
+.sbsocial-recent-terms{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.sbsocial-term{display:inline-block;font-size:12px;color:#374151;background:#f1f3f5;border-radius:14px;padding:4px 10px;text-decoration:none;}
+.sbsocial-term:hover{background:#e5e7eb;color:#e23744;}
 .sbsocial-card-title{font-size:15px;font-weight:700;color:#111;margin:0 0 12px;}
 .sbsocial-recent-item{padding:12px 0;border-bottom:1px solid #eef0f3;}
 .sbsocial-recent-item:last-child{border-bottom:0;padding-bottom:0;}

@@ -318,6 +318,16 @@
     .sb-biz-action-card.is-disabled .sb-biz-modal-icon{ background:#e4e6e9; color:#bbb; }
     .sb-biz-action-card.is-disabled small{ color:#c3c7cc; font-weight:400; display:block; }
 
+    /* A small pencil after the label of every tile that actually opens
+       something, so the owner can see at a glance which of these are
+       editable. The three "Coming soon" tiles deliberately do not get one. */
+    .sb-biz-edit-badge{
+        font-size:9px;
+        margin-left:5px;
+        color:#9aa0a6;
+        vertical-align:1px;
+    }
+
     .sb-biz-panel-overlay{
         display:none;
         position:fixed;

@@ -665,7 +665,7 @@ document.addEventListener("DOMContentLoaded", function () {
         a.dataset.type = "category";
 
         const iconHtml = iconType === "trending"
-            ? `<span class="category-trending-icon"><img src=SB.img.trending alt="Trending indicator"></span>`
+            ? `<span class="category-trending-icon"><img src="${SB.img.trending}" alt="Trending indicator"></span>`
             : `<span class="category-search-icon"><i class="fas fa-search"></i></span>`;
 
         a.innerHTML = `

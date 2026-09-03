@@ -51,12 +51,16 @@
 
         {{-- ===== Header card ===== --}}
         <div class="sb-mng-head-card">
-            <div class="sb-mng-head-media">
+            {{-- The photo is the obvious thing to tap when you want to change it,
+                 so it links to the photos screen and says so on hover/focus. --}}
+            <a href="{{ $sec('user.listing.business-photos') }}" class="sb-mng-head-media" aria-label="Change photos">
                 <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}" alt="{{ $listing->name }}">
-            </div>
+                <span class="sb-mng-photo-edit"><i class="fas fa-pen" aria-hidden="true"></i> Edit</span>
+            </a>
             <div class="sb-mng-head-info">
                 <div class="sb-mng-head-titlerow">
                     <h1 class="sb-mng-name">{{ $listing->name }}</h1>
+                    <a href="{{ $sec('user.listing.business-name') }}" class="sb-mng-edit-link" aria-label="Edit business name"><i class="fas fa-pen" aria-hidden="true"></i></a>
                     @if(optional($listing->category)->name)
                         <span class="sb-mng-cat-tag">{{ $listing->category->name }}</span>
                     @endif
@@ -74,14 +78,18 @@
                 <div class="sb-mng-sub">
                     <i class="fas fa-location-dot"></i>
                     {{ $listing->area ? $listing->area.', ' : '' }}{{ optional($listing->location)->name }}
+                    <a href="{{ $sec('user.listing.business-address') }}" class="sb-mng-edit-link" aria-label="Edit address"><i class="fas fa-pen" aria-hidden="true"></i></a>
                     @if($yearsInBiz !== null)
                         <span class="sb-mng-dot">•</span>
                         <i class="fas fa-briefcase"></i> {{ $yearsInBiz }} Year{{ $yearsInBiz == 1 ? '' : 's' }} in Business
+                        <a href="{{ $sec('user.listing.established') }}" class="sb-mng-edit-link" aria-label="Edit year established"><i class="fas fa-pen" aria-hidden="true"></i></a>
                     @endif
                 </div>
 
                 @if($openStatus)
-                    <div class="sb-mng-open">{{ $openStatus }}</div>
+                    <div class="sb-mng-open">{{ $openStatus }}
+                        <a href="{{ $sec('user.listing.business-timings') }}" class="sb-mng-edit-link" aria-label="Edit timings"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                    </div>
                 @endif
 
                 <div class="sb-mng-actions">
@@ -110,15 +118,15 @@
         <div class="sb-mng-promos">
             <a href="{{ $sec('user.listing.business-catalogue') }}" class="sb-mng-promo">
                 <span class="sb-mng-promo-ico sb-mng-promo-ico--blue"><i class="fas fa-file-lines"></i></span>
-                <span class="sb-mng-promo-body"><strong>Upload Rate Card / Catalogue</strong><small>Display clear pricing for informed customers</small></span>
+                <span class="sb-mng-promo-body"><strong>Upload Rate Card / Catalogue <i class="fas fa-pen sb-mng-edit-badge" aria-hidden="true"></i></strong><small>Display clear pricing for informed customers</small></span>
             </a>
             <a href="{{ $sec('user.listing.business-contact') }}" class="sb-mng-promo">
                 <span class="sb-mng-promo-ico sb-mng-promo-ico--green"><i class="fas fa-address-book"></i></span>
-                <span class="sb-mng-promo-body"><strong>Add Contact Details</strong><small>Multiple contact details ensure easy customer access</small></span>
+                <span class="sb-mng-promo-body"><strong>Add Contact Details <i class="fas fa-pen sb-mng-edit-badge" aria-hidden="true"></i></strong><small>Multiple contact details ensure easy customer access</small></span>
             </a>
             <a href="{{ $sec('user.listing.business-photos') }}" class="sb-mng-promo">
                 <span class="sb-mng-promo-ico sb-mng-promo-ico--orange"><i class="fas fa-images"></i></span>
-                <span class="sb-mng-promo-body"><strong>Add Photos</strong><small>Attract more customers by adding more photos</small></span>
+                <span class="sb-mng-promo-body"><strong>Add Photos <i class="fas fa-pen sb-mng-edit-badge" aria-hidden="true"></i></strong><small>Attract more customers by adding more photos</small></span>
             </a>
         </div>
 
@@ -211,8 +219,57 @@
 
     /* Header card */
     .sb-mng-head-card{ display:flex; gap:20px; border:1px solid #e6e8eb; border-radius:12px; padding:20px; margin-bottom:22px; background:#fff; }
-    .sb-mng-head-media{ width:190px; flex-shrink:0; }
-    .sb-mng-head-media img{ width:190px; height:150px; object-fit:cover; border-radius:10px; }
+    /* The photo is a link now, so it needs to sit as a block and carry the
+       little "Edit" chip in its corner. */
+    .sb-mng-head-media{ width:190px; flex-shrink:0; position:relative; display:block; }
+    .sb-mng-head-media img{ width:190px; height:150px; object-fit:cover; border-radius:10px; display:block; }
+    /* A soft wash over the photo so the label reads on a light or a dark
+       picture, with the pill centred on top of it. */
+    .sb-mng-head-media::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        border-radius:10px;
+        background:rgba(0,0,0,.18);
+        transition:background .15s ease;
+    }
+    .sb-mng-head-media:hover::after{ background:rgba(0,0,0,.32); }
+    .sb-mng-photo-edit{
+        position:absolute;
+        left:50%;
+        top:50%;
+        transform:translate(-50%,-50%);
+        z-index:1;
+        background:#fff;
+        color:#222;
+        font-size:12px;
+        font-weight:700;
+        padding:7px 14px;
+        border-radius:20px;
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        box-shadow:0 2px 8px rgba(0,0,0,.25);
+        white-space:nowrap;
+    }
+    .sb-mng-photo-edit i{ font-size:11px; color:#555; }
+    /* Pencil next to the business name, and on each promo card's title. */
+    .sb-mng-edit-link{
+        color:#9aa0a6;
+        font-size:13px;
+        margin-left:2px;
+        text-decoration:none;
+    }
+    .sb-mng-edit-link:hover{ color:#007bff; }
+    /* .sb-mng-sub i paints every icon in that row blue; the pencils are not
+       part of the information, so they stay grey until hovered. */
+    .sb-mng-sub .sb-mng-edit-link i,
+    .sb-mng-open .sb-mng-edit-link i,
+    .sb-mng-head-titlerow .sb-mng-edit-link i{ color:#9aa0a6; font-size:12px; }
+    .sb-mng-sub .sb-mng-edit-link:hover i,
+    .sb-mng-open .sb-mng-edit-link:hover i,
+    .sb-mng-head-titlerow .sb-mng-edit-link:hover i{ color:#007bff; }
+    .sb-mng-edit-badge{ font-size:10px; color:#9aa0a6; margin-left:5px; vertical-align:1px; }
     .sb-mng-head-info{ flex:1; min-width:0; }
     .sb-mng-head-titlerow{ display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap; }
     .sb-mng-name{ font-size:26px; font-weight:800; color:#1a1a1a; margin:0; line-height:1.2; }

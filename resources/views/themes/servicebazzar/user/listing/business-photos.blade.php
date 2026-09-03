@@ -315,6 +315,12 @@ document.addEventListener('DOMContentLoaded', function(){
     videoBtn.addEventListener('click', function(){ videoOverlay.classList.add('show'); });
     videoClose.addEventListener('click', function(){ videoOverlay.classList.remove('show'); });
     videoOverlay.addEventListener('click', function(e){ if (e.target === videoOverlay) videoOverlay.classList.remove('show'); });
+
+    // The dashboard's "Add Video" tile links here with #video, since the video
+    // link is edited in this screen's modal rather than on a page of its own.
+    if (window.location.hash === '#video') {
+        videoOverlay.classList.add('show');
+    }
 });
 </script>
 @endpush

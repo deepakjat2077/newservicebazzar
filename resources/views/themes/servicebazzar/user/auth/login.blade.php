@@ -2,14 +2,40 @@
 @section('content')
 @section('title', 'Login')
 
+{{-- Signing in is the site's popup now (Continue with Google, or name +
+     mobile). It lives in the site layout, so this page only has to open it and
+     leave the area behind it empty. The old username-and-password form below
+     stays reachable at /user/login?password=1 for anyone who has no other way
+     in — without it, a password-only account would be locked out. --}}
+@if(!request()->boolean('password'))
+
+    <div class="sb-login-blank"></div>
+
+    @push('css')
+    <style>
+        /* Just enough height that the header and footer do not collide while
+           the popup sits over the page. */
+        .sb-login-blank{ min-height:60vh; }
+    </style>
+    @endpush
+
+    @push('js')
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof openSbAuthPopup === 'function') {
+            openSbAuthPopup();
+        }
+    });
+    </script>
+    @endpush
+
+@else
+
 <style>
 .account-section .account-area .account-content-area {
     background-color: #0e0f38;
 }
 
-.mobile-register-box{
-    display: none;
-}
 
 @media (max-width: 767px) {
 
@@ -17,16 +43,6 @@
         display: none !important;
     }
 
-    .mobile-register-box{
-        display: block;
-        text-align: center;
-        font-size: 14px;
-        margin-bottom: 12px;
-    }
-
-    .mobile-register-box a{
-        font-weight: 600;
-    }
     a {
         color: #000;
     }
@@ -47,9 +63,6 @@
                             <p>{{ __(@$login->content->sub_title) }}</p>
                         </div>
 
-                        <a href="{{ route('user.register') }}" class="btn btn__base">
-                            @lang('Register')
-                        </a>
 
                     </div>
                 </div>
@@ -101,12 +114,6 @@
                             </button>
                         </form>
 
-                        <div class="mobile-register-box">
-                            Don’t have an account?
-                            <a href="{{ route('user.register') }}">
-                                Register now
-                            </a>
-                        </div>
 
                         <small class="mt-4">
                             @lang('Forgot your password?')
@@ -123,4 +130,7 @@
     </div>
 </section>
 
+@endif
+
 @endsection
+

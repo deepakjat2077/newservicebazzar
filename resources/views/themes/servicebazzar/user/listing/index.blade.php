@@ -40,7 +40,7 @@
 
     <div class="sbbiz-head">
       <h1 class="sbbiz-title">My Business</h1>
-      <a href="{{ route('user.listing.create') }}" class="sbbiz-add">
+      <a href="{{ route('free.listing') }}" class="sbbiz-add">
         <i class="las la-plus-circle"></i> Add New Business
       </a>
     </div>
@@ -127,7 +127,9 @@
       <div class="sbbiz-empty">
         <i class="las la-store-alt"></i>
         <p>You haven't listed any business yet.</p>
-        <a href="{{ route('user.listing.create') }}" class="sbbiz-btn sbbiz-btn--primary">
+        {{-- Same action as "Add New Business" above, and the header menu already
+             sends people to the free-listing form, so all three now agree. --}}
+        <a href="{{ route('free.listing') }}" class="sbbiz-btn sbbiz-btn--primary">
           <i class="las la-plus-circle"></i> Add Your First Business
         </a>
       </div>

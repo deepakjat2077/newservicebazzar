@@ -26,7 +26,14 @@ class LoginController extends Controller
         $this->theme = 'themes.'.$this->setting->theme.'.';
     }
 
-    public function showLoginForm()
+    /**
+     * Signing in happens through the site's own popup (Continue with Google,
+     * or a name and mobile number) — the same one every other entry point on
+     * the site opens. The view renders that popup and nothing else; the older
+     * username-and-password form is still there behind /user/login?password=1
+     * so nobody who only has a password is locked out.
+     */
+    public function showLoginForm(Request $request)
     {
         $setting = $this->setting;
         $data['login'] = Theme::where('name','login')->where('is_multiple',0)->first();

@@ -1919,10 +1919,22 @@ $data['nearbyAreas'] = Listing::where('status', 1)
     ->orderBy('area')
     ->pluck('area');
 
+    // The profile page's "Recent Search" rail is built from this.
+    \App\Models\UserRecentActivity::remember(
+        \App\Models\UserRecentActivity::TYPE_LISTING,
+        $listing->id ?? null
+    );
+
     return view($this->theme . 'listings.details', $data);
 }
 public function search(Request $request)
 {
+    // Same rail, the other half: what was typed into the search box.
+    \App\Models\UserRecentActivity::remember(
+        \App\Models\UserRecentActivity::TYPE_SEARCH,
+        null,
+        $request->input('categorysearch')
+    );
 
 if ($request->filled('location_id') && $request->filled('categorysearch')) {
 
@@ -3040,23 +3052,38 @@ public function userProfile($username)
         ->filter(fn ($r) => $r->listing !== null)
         ->values();
 
-    // Businesses shown in the "Recent Search" rail — the ones this user has
-    // most recently engaged with (reviewed), falling back to newest listings
-    // so the rail is never empty on a brand-new account.
-    $recentBusinesses = $reviews->pluck('listing')->unique('id')->take(4)->values();
-    if ($recentBusinesses->count() === 0) {
-        $recentBusinesses = Listing::where('status', 1)
-            ->with('category')
-            ->latest('id')
-            ->take(4)
-            ->get();
-    }
+    // The "Recent Search" rail: this person's own trail, recorded in
+    // user_recent_activity as they open businesses and run searches.
+    //
+    // There used to be a fallback here to the four newest listings "so the
+    // rail is never empty". That made every account with no reviews show the
+    // same four businesses, as if two different people had searched for the
+    // same things. Nothing is invented now — an empty rail is hidden.
+    $recentBusinesses = \App\Models\UserRecentActivity::where('user_id', $user->id)
+        ->where('type', \App\Models\UserRecentActivity::TYPE_LISTING)
+        ->with(['listing' => fn ($q) => $q->with('category', 'location')])
+        ->latest('updated_at')
+        ->take(4)
+        ->get()
+        ->pluck('listing')
+        ->filter()
+        ->unique('id')
+        ->values();
+
+    $recentSearches = \App\Models\UserRecentActivity::where('user_id', $user->id)
+        ->where('type', \App\Models\UserRecentActivity::TYPE_SEARCH)
+        ->latest('updated_at')
+        ->take(8)
+        ->pluck('term')
+        ->filter()
+        ->values();
 
     $data['user'] = $user;
     $data['reviews'] = $reviews;
     // "Posts" reflects the businesses this user has listed on the directory.
     $data['postCount'] = Listing::where('user_id', $user->id)->count();
     $data['recentBusinesses'] = $recentBusinesses;
+    $data['recentSearches'] = $recentSearches;
     $data['seoTitle'] = $user->first_name . ' ' . $user->last_name . ' | ' . ($this->setting->site_name ?? 'ServiceBazzar');
     $data['seoDescription'] = 'View ' . $user->first_name . '\'s profile on ' . ($this->setting->site_name ?? 'ServiceBazzar');
 

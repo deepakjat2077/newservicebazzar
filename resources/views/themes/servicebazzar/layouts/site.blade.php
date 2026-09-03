@@ -4862,6 +4862,11 @@ function openSbAuthPopup() {
     document.getElementById('sbAuthPopup').classList.add('show');
     document.body.style.overflow = 'hidden';
 }
+
+// /user/login redirects here with ?login=1 — this is the sign-in screen now.
+@if(request()->boolean('login'))
+document.addEventListener('DOMContentLoaded', function () { openSbAuthPopup(); });
+@endif
 </script>
 
 <script>

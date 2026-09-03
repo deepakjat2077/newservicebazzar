@@ -81,6 +81,70 @@ class ContentController extends Controller
         ]);
     }
 
+    /**
+     * The homepage banner carousel, exactly as the admin's Banner Section
+     * builds it (Theme row name = 'banner', is_multiple = 0).
+     *
+     * The images are stored as a JSON array under content->image for desktop
+     * and content->mobile_banner for phones. Each entry is either
+     * {"image": "...", "link": "..."} or, in older rows, a bare filename with
+     * no link — both shapes are normalised here so the app only ever sees the
+     * first one. Absolute URLs are returned, WebP where a twin exists.
+     */
+    public function banners()
+    {
+        $banner = Theme::where('theme_name', $this->themeName())
+            ->where('name', 'banner')
+            ->where('is_multiple', 0)
+            ->first();
+
+        $content = optional($banner)->content;
+
+        return response()->json([
+            'success' => true,
+            'banner'  => [
+                'title'     => optional($content)->title,
+                'sub_title' => optional($content)->sub_title,
+                'desktop'   => $this->bannerSlides(optional($content)->image),
+                'mobile'    => $this->bannerSlides(optional($content)->mobile_banner),
+            ],
+        ]);
+    }
+
+    /** Normalises one of the two JSON banner columns into {image, link} rows. */
+    protected function bannerSlides($raw): array
+    {
+        if (empty($raw)) {
+            return [];
+        }
+
+        $rows = json_decode($raw, true);
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $slides = [];
+
+        foreach ($rows as $row) {
+            $file = is_array($row) ? ($row['image'] ?? '') : $row;
+            $link = is_array($row) ? ($row['link'] ?? '') : '';
+
+            if ($file === '' || $file === null) {
+                continue;
+            }
+
+            $path = 'assets/servicebazzar/images/banner/'.$file;
+
+            $slides[] = [
+                'image' => loadImageWebp($path),
+                'link'  => $link ?: null,
+            ];
+        }
+
+        return $slides;
+    }
+
     protected function blogCard(Theme $b): array
     {
         $c = $b->content;
