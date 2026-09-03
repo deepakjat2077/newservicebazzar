@@ -17,10 +17,23 @@
 	     FontAwesome 7 alone is ~400KB; deferring it was the single biggest LCP win.
 	     ============================================================ --}}
 
-	{{-- CRITICAL CSS — must block render (above-the-fold layout) --}}
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/index.css') }}?v={{ filemtime(public_path($themeAsset.'css/index.css')) }}">
-	<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}">
+	{{-- Those three stylesheets are 254 KB and they blocked the first paint —
+	     measured at 590-1090 ms, and half of the LCP's "render delay" on top.
+	     What the first screen actually needs out of them is 31 KB, extracted
+	     with penthouse against both the phone and the desktop viewport, so
+	     neither paints unstyled. That goes inline (no request at all), and the
+	     full files then load the same asynchronous way every other stylesheet
+	     here already does — they arrive in time for anything below the fold. --}}
+	<style>{!! file_get_contents(public_path($themeAsset.'css/critical.css')) !!}</style>
+
+	<link rel="preload" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<link rel="preload" href="{{ asset($themeAsset.'css/index.css') }}?v={{ filemtime(public_path($themeAsset.'css/index.css')) }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<link rel="preload" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+	<noscript>
+		<link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}">
+		<link rel="stylesheet" href="{{ asset($themeAsset.'css/index.css') }}">
+		<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}">
+	</noscript>
 
 	{{-- LCP preload is set dynamically per-page (see index.blade.php @push('css')) --}}
 
