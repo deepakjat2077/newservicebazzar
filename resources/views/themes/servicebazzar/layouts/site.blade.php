@@ -52,14 +52,6 @@
 
 	@stack('css')
 
-	{{-- The two icon fonts the pages actually draw with (fas/las — the brands
-	     faces are used by a handful of icons and are not worth an early
-	     request). Their stylesheets load asynchronously, so without this the
-	     browser only discovers the font files after the CSS has arrived and
-	     been parsed, and every icon on the page waits for that whole chain. --}}
-	<link rel="preload" href="{{ asset('assets/fontawesome-free-7.2.0-web/webfonts/fa-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
-	<link rel="preload" href="{{ asset($themeAsset.'fonts/la-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
-
 	{{-- Google Fonts — non-blocking with font-display:swap --}}
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
