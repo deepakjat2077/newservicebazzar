@@ -1125,9 +1125,7 @@
     padding: 5px;
 }
 
-.desktop-banner-img{
-    display: block;
-}
+
 
 .mobile-banner-img{
     display: none;
@@ -1378,8 +1376,8 @@
 }
 
 .category-box .category-icon-img {
-    width: 56px;
-    height: 56px;
+    width: 38px;
+    height: 38px;
     object-fit: contain;
 }
 
