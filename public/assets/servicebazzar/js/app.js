@@ -1,7 +1,12 @@
 (function ($) {
 	"use strict";
 	$(document).ready(function() {
-		$('.select2').select2();
+		// select2 is no longer loaded site-wide (nothing in the theme carries
+		// class="select2"). Calling it unguarded threw a TypeError that killed
+		// the rest of this file — including the slider set-up below.
+		if ($.fn.select2) {
+			$('.select2').select2();
+		}
 	});
 
 	// featured-listing-slider

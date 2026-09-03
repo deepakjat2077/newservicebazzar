@@ -34,8 +34,6 @@
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}"></noscript>
 
 	{{-- Select2 dropdown --}}
-	<link rel="preload" href="{{ asset($themeAsset.'css/select2.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/select2.min.css') }}"></noscript>
 
 	{{-- Slick slider --}}
 	<link rel="preload" href="{{ asset($themeAsset.'css/slick.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -46,12 +44,8 @@
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/toastr.min.css') }}"></noscript>
 
 	{{-- Lightcase gallery --}}
-	<link rel="preload" href="{{ asset($themeAsset.'css/lightcase.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/lightcase.css') }}"></noscript>
 
 	{{-- Star ratings --}}
-	<link rel="preload" href="{{ asset($themeAsset.'css/starrr.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/starrr.css') }}"></noscript>
 
 	{{-- Dynamic color CSS --}}
 	<link rel="preload" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1874,8 +1868,7 @@ document.addEventListener('click', function(event){
 	     JS LOADING STRATEGY
 	     jquery + bootstrap + toastr: sync — inline scripts in this layout use
 	     $ and toastr directly, so they must be ready before those <script> blocks.
-	     app.js: sync — it initialises select2/slick/lightcase/starrr on the page.
-	     wow + bootstrap-notify: defer — pure enhancement, nothing depends on them
+	     app.js: deferred — it initialises the slick slider once the DOM is up.
 	     at parse time, saving ~30KB of main-thread blocking.
 	     tracking.js: defer (unchanged).
 	     ============================================================ --}}
@@ -1884,16 +1877,17 @@ document.addEventListener('click', function(event){
 	<script src="{{ asset($themeAsset.'js/bootstrap.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
 
-	{{-- DEFERRED (saves ~143 KB of render-blocking): select2 72KB + slick 42KB + lightcase 26KB + starrr 3KB + app.js --}}
-	<script src="{{ asset($themeAsset.'js/select2.min.js') }}" defer></script>
-	<script src="{{ asset($themeAsset.'js/slick.min.js') }}" defer></script>
-	<script src="{{ asset($themeAsset.'js/lightcase.min.js') }}" defer></script>
-	<script src="{{ asset($themeAsset.'js/starrr.js') }}" defer></script>
-	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}" defer></script>
+	{{-- Every page used to carry select2 (72 KB), wow (8 KB) and
+	     bootstrap-notify (8 KB). Nothing in the theme calls any of them:
+	     no element carries class="select2" (app.js's `$('.select2').select2()`
+	     matched nothing), `new WOW` appears nowhere, and neither does
+	     `.notify(`. They were downloaded, parsed and evaluated on every visit
+	     for no effect, which is main-thread time the LCP image was waiting on.
 
-	{{-- Already deferred --}}
-	<script src="{{ asset($themeAsset.'js/wow.min.js') }}" defer></script>
-	<script src="{{ asset($themeAsset.'js/bootstrap-notify.min.js') }}" defer></script>
+	     lightcase and starrr are real, but only on the listing detail page —
+	     they are pushed from there now instead of loading site-wide. --}}
+	<script src="{{ asset($themeAsset.'js/slick.min.js') }}" defer></script>
+	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}" defer></script>
 
 	<script src="{{ asset('assets/js/tracking.js') }}" defer></script>
 

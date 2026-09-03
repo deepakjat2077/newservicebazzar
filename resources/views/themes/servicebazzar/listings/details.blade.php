@@ -7313,6 +7313,12 @@
     </style>
     @endpush
     @push('js')
+    {{-- These two used to load on every page in the site layout, where nothing
+         else called them. This is the only page that does, so they load here. --}}
+    <link rel="stylesheet" href="{{ asset($themeAsset.'css/lightcase.css') }}">
+    <link rel="stylesheet" href="{{ asset($themeAsset.'css/starrr.css') }}">
+    <script src="{{ asset($themeAsset.'js/lightcase.min.js') }}"></script>
+    <script src="{{ asset($themeAsset.'js/starrr.js') }}"></script>
     <script>
         (function($){
             "use strict"
