@@ -479,11 +479,16 @@ if ($isOpen24Hours) {
             ->toArray();
     }
 
-    $listing->user_id              = $request->has('user_id') ? $request->user_id : $listing->user_id;
-    $listing->category_id          = $request->has('category_id') ? $request->category_id : $listing->category_id;
-    $listing->location_id          = $request->has('location_id') ? $request->location_id : $listing->location_id;
+    // filled(), not has(): the form posts every field on every save, so a
+    // blank one is still "present" and has() hands the column an empty
+    // string. MySQL rejects '' for a numeric column outright — an untouched
+    // latitude was enough to 500 the whole save. Blank means "leave it
+    // alone", which is what the else branch here already says.
+    $listing->user_id              = $request->filled('user_id') ? $request->user_id : $listing->user_id;
+    $listing->category_id          = $request->filled('category_id') ? $request->category_id : $listing->category_id;
+    $listing->location_id          = $request->filled('location_id') ? $request->location_id : $listing->location_id;
     $listing->name                 = $name;
-    $listing->established_year     = $request->has('established_year') ? $request->established_year : $listing->established_year;
+    $listing->established_year     = $request->filled('established_year') ? $request->established_year : $listing->established_year;
     $listing->details              = $details;
 
     if ($request->has('address')) {
@@ -574,11 +579,11 @@ $listing->business_categories = $businessCategories;
     }
 
     if (\Illuminate\Support\Facades\Schema::hasColumn('listings', 'latitude')) {
-        $listing->latitude = $request->has('latitude') ? $request->latitude : $listing->latitude;
+        $listing->latitude = $request->filled('latitude') ? $request->latitude : $listing->latitude;
     }
 
     if (\Illuminate\Support\Facades\Schema::hasColumn('listings', 'longitude')) {
-        $listing->longitude = $request->has('longitude') ? $request->longitude : $listing->longitude;
+        $listing->longitude = $request->filled('longitude') ? $request->longitude : $listing->longitude;
     }
 
     if (\Illuminate\Support\Facades\Schema::hasColumn('listings', 'mobile')) {

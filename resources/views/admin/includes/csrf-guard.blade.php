@@ -51,8 +51,13 @@
     var pingUrl = "{{ route('admin.session.ping') }}";
 
     // A quarter of the session window, so a page survives losing a ping or
-    // two, and never less than a minute.
-    var everyMs = {{ max(60, (int) (config('session.lifetime') * 60 / 4)) }} * 1000;
+    // two — but capped at five minutes and never under one. The quarter alone
+    // is tied to session.lifetime, so raising that to a day pushed the ping
+    // out to six hours and left an open page holding a token nothing had
+    // refreshed since it rendered. The cap keeps the ping frequent no matter
+    // how long the session window is; the lifetime only decides how much
+    // slower than the cap it may never get.
+    var everyMs = {{ min(300, max(60, (int) (config('session.lifetime') * 60 / 4))) }} * 1000;
 
     function currentToken() {
         return $('meta[name="csrf-token"]').attr('content') || '';
@@ -124,6 +129,68 @@
                 '$1_token=' + encodeURIComponent(token)
             );
         }
+    });
+
+    /*
+     * The last moment before a native form post is the only one that can
+     * prove the token is current, and it is the moment that matters: an
+     * ordinary admin form submits the page itself, so a token that went
+     * stale since the last ping does not surface as a message on this
+     * screen — it replaces the whole thing with the bare "419 Page Expired"
+     * page and everything typed into the form goes with it.
+     *
+     * So every admin form that posts a `_token` gets one refresh on its way
+     * out. Delegated on the document, which runs after any handler bound to
+     * the form itself: the listing forms already do this and cancel the
+     * event to submit on their own terms, and `isDefaultPrevented` is how
+     * this stays out of their way.
+     *
+     * Re-submitting through the DOM node rather than jQuery is deliberate —
+     * form.submit() does not fire submit handlers, so this cannot re-enter
+     * itself.
+     */
+    var refreshing = false;
+
+    $(document).on('submit', 'form', function (e) {
+        var form = this;
+
+        if (e.isDefaultPrevented() || refreshing) {
+            return;
+        }
+
+        if (!/^post$/i.test(form.method || '')) {
+            return;
+        }
+
+        var field = $(form).find('input[name="_token"]');
+
+        if (!field.length) {
+            return;
+        }
+
+        e.preventDefault();
+        refreshing = true;
+
+        /*
+         * A refused ping proves nothing about the session — the CDN answers
+         * its own 403 to requests it does not recognise, and a dropped
+         * connection answers with nothing. Neither is a reason to hold the
+         * save back, so the form goes either way and posts the token it
+         * already had.
+         */
+        $.ajax({
+            url: pingUrl,
+            method: 'GET',
+            dataType: 'json',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).done(function (res) {
+            if (res && res.ok && res.token) {
+                applyToken(res.token);
+            }
+        }).always(function () {
+            refreshing = false;
+            form.submit();
+        });
     });
 
     setInterval(ping, everyMs);
