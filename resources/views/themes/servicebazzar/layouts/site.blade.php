@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en-IN">
 <head>
+	{{-- The LCP image's preload has to be the first thing the parser sees.
+	     Pushed onto the css stack it landed after the analytics tag and the
+	     three blocking stylesheets, and the measured cost was 1.36s of "load
+	     delay" — the browser simply had not been told about the image yet
+	     while it fetched everything else. --}}
+	@stack('lcp')
+
 	@include('includes.seo')
 	{{-- ============================================================
 	     CSS LOADING STRATEGY
