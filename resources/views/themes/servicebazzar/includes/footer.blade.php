@@ -146,6 +146,13 @@
     color: #1e90ff;
     text-decoration: none;
 }
+
+/* The site name in the copyright line sat at 1.31:1 against the text around
+   it, so colour alone did not mark it as a link. An underline does, and it
+   only affects this one link in the footer. */
+.footer-bottom p a.sh {
+    text-decoration: underline;
+}
 </style>
 
 
@@ -155,7 +162,9 @@
             <div class="row mb__30 justify-content-between">
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
-                        <a href="{{ route('home') }}"><img src="{{ asset('assets/images/logo/logo.png') }}" class="site-logo" alt="logo"></a>
+                        {{-- The logo image is hidden by CSS on small screens, which leaves this link
+                             in the tab order with no name at all. --}}
+                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" class="site-logo" alt="logo"></a>
                         <p>{{ __($footer->content->description) }}</p>
                      
                     </div>

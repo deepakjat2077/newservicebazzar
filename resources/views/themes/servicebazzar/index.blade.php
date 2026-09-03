@@ -3415,10 +3415,10 @@ window.SB = {
                     </div>
 
                     @if(count($bannerImages) > 1)
-                        <a class="carousel-control-prev" href="#mainBannerCarousel" role="button" data-slide="prev">
+                        <a class="carousel-control-prev" href="#mainBannerCarousel" role="button" data-slide="prev" aria-label="Previous banner">
                             <span class="carousel-control-prev-icon"></span>
                         </a>
-                        <a class="carousel-control-next" href="#mainBannerCarousel" role="button" data-slide="next">
+                        <a class="carousel-control-next" href="#mainBannerCarousel" role="button" data-slide="next" aria-label="Next banner">
                             <span class="carousel-control-next-icon"></span>
                         </a>
                     @endif
@@ -3578,10 +3578,11 @@ window.SB = {
             @endforeach
 
             <div class="category-item text-center more-category-item">
+                {{-- role="button" is not allowed on a <label>; the label already
+                     activates its checkbox, so the role only broke the audit. --}}
                 <label
                     for="categoryPopupToggle"
                     class="more-btn"
-                    role="button"
                     tabindex="0"
                 >
                     <div class="category-box d-flex align-items-center justify-content-center">
@@ -3605,7 +3606,7 @@ window.SB = {
 <div class="category-popup" id="categoryPopup">
     <div class="popup-top">
         <div class="d-flex align-items-center gap-3">
-            <label for="categoryPopupToggle" class="close-btn" role="button" tabindex="0">✕</label>
+            <label for="categoryPopupToggle" class="close-btn" tabindex="0">✕</label>
             <h5 class="mb-0">Popular Categories</h5>
         </div>
 
@@ -3765,7 +3766,8 @@ window.SB = {
         <div class="border rounded-4 p-2 bg-white">
 
             <div class="d-flex align-items-center mb-2">
-                <h4 class="fw-bold mb-0">Trending Searches Near You</h4>
+                {{-- aria-level, not a different tag: the CSS styles h4 and the visual has to stay put. --}}
+                <h4 class="fw-bold mb-0" aria-level="2">Trending Searches Near You</h4>
                 <span class="badge bg-danger text-white ms-2">NEW</span>
             </div>
 
@@ -3773,7 +3775,7 @@ window.SB = {
 
             <div class="trending-wrapper position-relative">
 
-                <button class="trend-nav prev-btn" type="button" onclick="scrollTrending(-1)">
+                <button class="trend-nav prev-btn" type="button" onclick="scrollTrending(-1)" aria-label="Scroll left">
                     <i class="las la-angle-left"></i>
                 </button>
 
@@ -3799,7 +3801,7 @@ window.SB = {
 
                                 <div class="trend-card-overlay">
                                     <div>
-                                        <h5 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
+                                        <h5 aria-level="3" class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                             {{ $category->name }}
                                         </h5>
                                     </div>
@@ -3811,7 +3813,7 @@ window.SB = {
 
                 </div>
 
-                <button class="trend-nav next-btn" type="button" onclick="scrollTrending(1)">
+                <button class="trend-nav next-btn" type="button" onclick="scrollTrending(1)" aria-label="Scroll right">
                     <i class="las la-angle-right"></i>
                 </button>
 
@@ -3835,7 +3837,7 @@ window.SB = {
             <p class="text-muted ">Discover popular locations around you.</p>
 
             <div class="trending-wrapper position-relative">
-  <button class="trend-nav prev-btn" type="button">
+  <button class="trend-nav prev-btn" type="button" aria-label="Scroll left">
                         <i class="las la-angle-left"></i>
                     </button>
               
@@ -3854,7 +3856,7 @@ window.SB = {
 
                                 <div class="trend-card-overlay">
                                     <div>
-                                        <h5 class="trend-card-title">{{ $location->name }}</h5>
+                                        <h5 aria-level="3" class="trend-card-title">{{ $location->name }}</h5>
                                         <div class="trend-card-subtitle">Explore Now</div>
                                     </div>
 
@@ -3889,7 +3891,7 @@ window.SB = {
 
             <button class="trend-nav prev-btn"
                     type="button"
-                    onclick="scrollPopular(-1)">
+                    onclick="scrollPopular(-1)" aria-label="Scroll left">
                 <i class="las la-angle-left"></i>
             </button>
 
@@ -3911,7 +3913,7 @@ window.SB = {
 
                             <div class="trend-card-overlay">
                                 <div>
-                                    <h5 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
+                                    <h5 aria-level="3" class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                         {{ $category->name }}
                                     </h5>
                                 </div>
@@ -3927,7 +3929,7 @@ window.SB = {
 
             <button class="trend-nav next-btn"
                     type="button"
-                    onclick="scrollPopular(1)">
+                    onclick="scrollPopular(1)" aria-label="Scroll right">
                 <i class="las la-angle-right"></i>
             </button>
 
@@ -3984,7 +3986,7 @@ window.SB = {
                                 <div class="trend-card-overlay">
                                     <div>
 
-                                        <h5 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
+                                        <h5 aria-level="3" class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                             {{ $category->name }}
                                         </h5>
 
@@ -4392,7 +4394,7 @@ WhatsApp
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <div class="section-title">
-                        <h4>{{ __($blog_section->content->title) }}</h4>
+                        <h4 aria-level="2">{{ __($blog_section->content->title) }}</h4>
                         <p class="bgl">{{ __($blog_section->content->sub_title) }}</p>
                     </div>
                 </div>
@@ -4408,7 +4410,7 @@ WhatsApp
                         </div>
                        
                        <div class="content-area">
-    <h5>
+    <h5 aria-level="3">
         <a href="{{ route('blog.details', $blog->content->slug) }}">
             {{ __($blog->content->title) }}
         </a>

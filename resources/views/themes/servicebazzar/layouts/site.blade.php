@@ -341,7 +341,10 @@ body.header-fixed {
 			}
 			.mobile-action-btn{
 				text-decoration: none;
-				background: #007bff;
+				/* #007bff put white text at 3.98:1 against it, just under the 4.5:1
+				   an accessibility check wants. Seven percent darker clears it and
+				   is not a difference the eye picks up. */
+				background: #0072ed;
 				color: #fff;
 				padding: 10px 14px;
 				border-radius: 8px;
@@ -1304,7 +1307,7 @@ window.addEventListener('pageshow', function () {
     @include($themeView.'includes.search-form')
 </div>
 
-<button type="button" id="mobileHeaderSearchBtn" class="mobile-header-search-btn">
+<button type="button" id="mobileHeaderSearchBtn" class="mobile-header-search-btn" aria-label="Search">
     <i class="fas fa-search"></i>
 </button>
 
@@ -1480,7 +1483,11 @@ window.addEventListener('pageshow', function () {
 		</div>
 	</header>
 
+    {{-- The skip link at the top points here. Without an element carrying this
+	     id it had nothing to jump to, which is why it never took focus. --}}
+    <main id="main-content">
     @yield('content')
+    </main>
 
 
 	@include($themeView.'includes.footer')
