@@ -8,6 +8,7 @@
 @section('content')
 <section class="jaipur-partner-section">
     <div class="container">
+        <h1 class="sr-only">Home Services Directory</h1>
         <div class="top-line">Your Trusted Local Business Discovery Platform</div>
 
         <h2 class="main-heading">

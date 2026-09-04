@@ -338,7 +338,8 @@
     style="background: url('{{ asset('assets/images/calling.png') }}') center center/cover no-repeat;">
     <div class="overlay">
         <div class=" sks container">
-            <h2>Contact Us</h2>
+            <h1>Contact Us</h1>
+            <h2>Get in Touch with ServiceBazzar</h2>
         </div>
     </div>
 </section>
