@@ -40,6 +40,8 @@
 )
 <meta name="robots" content="noindex, nofollow">
 @endif
+	<!-- Ahrefs Analytics -->
+	<script src="https://analytics.ahrefs.com/analytics.js" data-key="vJseB0KKYMX6iS8DzNKsmg" async></script>
 </head>
 <body data-page-name="{{ $pageName ?? request()->path() }}">
   

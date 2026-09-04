@@ -1193,6 +1193,8 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 	<script>
 		var currentRoute = @json(request()->route() ? request()->route()->getName() : '');
 	</script>
+	<!-- Ahrefs Analytics -->
+	<script src="https://analytics.ahrefs.com/analytics.js" data-key="vJseB0KKYMX6iS8DzNKsmg" async></script>
 </head>
 <body class="{{ request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug') ? 'home-page' : '' }}"
     data-page-name="{{ $pageName ?? request()->path() }}"
