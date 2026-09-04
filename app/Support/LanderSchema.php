@@ -87,9 +87,30 @@ class LanderSchema
         // duplicate-title problem the SEO audit flagged, so a city lander always
         // gets a city-keyed title instead.
         if ($cityName) {
-            $countLabel = $providerCount > 0 ? "{$providerCount} verified" : '';
-            $label = trim("{$countLabel} " . lcfirst($item->name));
-            $data['seoTitle'] = "{$label} in {$cityName} | {$siteName}";
+            $name = lcfirst($item->name);
+
+            // Some category names already end with the city ("affordable taxi
+            // service Jaipur") — don't append " in Jaipur" again.
+            $inCity = Str::endsWith(mb_strtolower($name), mb_strtolower($cityName))
+                ? $name
+                : $name . ' in ' . $cityName;
+
+            $countLabel = $providerCount > 0 ? "{$providerCount} verified " : '';
+
+            // Build the title, then shorten progressively so long category
+            // names don't blow past Google's ~60-char limit: drop the brand,
+            // then the "N verified" prefix, then truncate as a last resort.
+            $full = trim($countLabel . $inCity) . ' | ' . $siteName;
+            if (mb_strlen($full) > 60) {
+                $full = trim($countLabel . $inCity);
+            }
+            if (mb_strlen($full) > 60) {
+                $full = ucfirst($inCity);
+            }
+            if (mb_strlen($full) > 60) {
+                $full = rtrim(mb_substr($full, 0, 59)) . '…';
+            }
+            $data['seoTitle'] = $full;
 
             $countPhrase = $providerCount > 0 ? "{$providerCount} verified" : 'verified';
             $data['seoDescription'] = "Find {$countPhrase} {$item->name} in {$cityName}. "
