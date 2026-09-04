@@ -709,7 +709,7 @@
         <div class="row align-items-center g-4">
             <div class="col-lg-6">
                 @if(!empty($service->partner_image))
-                    <img src="{{ asset($service.partner_image) }}" loading="lazy" alt="{{ $service->partner_title }} Near Me" width="500" height="300" class="service-img">
+                    <img src="{{ asset($service->partner_image) }}" loading="lazy" alt="{{ $service->partner_title }} Near Me" width="500" height="300" class="service-img">
                 @endif
             </div>
 
@@ -839,7 +839,7 @@
 
                 <div class="col-lg-4">
                     @if(!empty($service->cta_image))
-                        <img src="{{ asset($service.cta_image) }}" loading="lazy" alt="{{ $service->cta_title }}  Services" width="500" height="300">
+                        <img src="{{ asset($service->cta_image) }}" loading="lazy" alt="{{ $service->cta_title }}  Services" width="500" height="300">
                     @endif
                 </div>
             </div>
