@@ -1014,6 +1014,14 @@ public function requestQuoteStore(Request $request)
             ->paginate(12)
             ->appends($request->query());
 
+        // The plain /listings page has no category in context, so the view
+        // fell back to a bare "Listings | ServiceBazzar" (too short). Give it
+        // a full, descriptive title + meta description.
+        $siteName = $this->setting->site_name ?? config('app.name');
+        $data['seoTitle'] = 'Verified Local Business Listings in India | ' . $siteName;
+        $data['seoDescription'] = 'Browse verified local businesses across India on ' . $siteName
+            . ' — services, healthcare, repairs, restaurants and professionals. Compare ratings, prices and contact them directly, free.';
+
         return view($this->theme.'listings.all', $data);
     }
 
