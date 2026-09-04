@@ -235,7 +235,7 @@
             <div class="col-lg-8">
                 @if(!empty($service->intro_image))
                     <div class="mb-4">
-                        <img src="{{ asset($service->intro_image) }}" alt="{{ $service->title }} Services Near Me" loading="lazy" class="service-img">
+                        <img src="{{ asset($service->intro_image) }}" alt="{{ $service->title }} Services Near Me" width="800" height="450" loading="lazy" class="service-img">
                     </div>
                 @endif
 
@@ -443,7 +443,7 @@
 
             <div class="col-lg-6 order-1 order-lg-2">
                 @if(!empty($service->seo_image))
-                    <img src="{{ asset($service->seo_image) }}" loading="lazy" alt="{{ $service->seo_title }} Near Me" class="service-img">
+                    <img src="{{ asset($service.seo_image) }}" loading="lazy" alt="{{ $service->seo_title }} Near Me" width="500" height="300" class="service-img">
                 @endif
             </div>
         </div>
@@ -709,7 +709,7 @@
         <div class="row align-items-center g-4">
             <div class="col-lg-6">
                 @if(!empty($service->partner_image))
-                    <img src="{{ asset($service->partner_image) }}" loading="lazy" alt="{{ $service->partner_title }} Near Me" class="service-img">
+                    <img src="{{ asset($service.partner_image) }}" loading="lazy" alt="{{ $service->partner_title }} Near Me" width="500" height="300" class="service-img">
                 @endif
             </div>
 
@@ -839,7 +839,7 @@
 
                 <div class="col-lg-4">
                     @if(!empty($service->cta_image))
-                        <img src="{{ asset($service->cta_image) }}" loading="lazy" alt="{{ $service->cta_title }}  Services">
+                        <img src="{{ asset($service.cta_image) }}" loading="lazy" alt="{{ $service->cta_title }}  Services" width="500" height="300">
                     @endif
                 </div>
             </div>

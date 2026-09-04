@@ -10,3 +10,43 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Prevent layout shift (CLS) while images load */
+img {
+    aspect-ratio: auto;
+    max-width: 100%;
+    height: auto;
+}
+
+img[src*="listing/thumb"],
+img[src*="listing/photos"],
+img[src*="category"] {
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+/* Service detail images */
+.service-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+/* Blog images */
+.blog-image,
+.blog-card img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+/* Card images */
+.card img,
+.partner-card img,
+.badge-guide img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+}

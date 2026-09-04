@@ -19,7 +19,7 @@
         <div class="partner-cards">
             <div class="partner-card">
                 <div class="card-image">
-                    <img src="{{asset('assets/images/service1.png')}}" alt="Smart Business Listings Near You"   loading="lazy">
+                    <img src="{{asset('assets/images/service1.png')}}" alt="Smart Business Listings Near You" width="100" height="100" loading="lazy">
                 </div>
                <h3>Smart Business<br>Listings</h3>
                 <p>
