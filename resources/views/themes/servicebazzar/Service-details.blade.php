@@ -443,7 +443,7 @@
 
             <div class="col-lg-6 order-1 order-lg-2">
                 @if(!empty($service->seo_image))
-                    <img src="{{ asset($service.seo_image) }}" loading="lazy" alt="{{ $service->seo_title }} Near Me" width="500" height="300" class="service-img">
+                    <img src="{{ asset($service->seo_image) }}" loading="lazy" alt="{{ $service->seo_title }} Near Me" width="500" height="300" class="service-img">
                 @endif
             </div>
         </div>
