@@ -48,7 +48,7 @@
 
             <div class="d-flex align-items-center social-icons">
                 @foreach($socialSites as $social)
-                    <a href="{{ $social->link }}" target="_blank" class="social-icon">
+                    <a href="{{ $social->link }}" target="_blank" rel="noopener noreferrer" class="social-icon">
                         <img src="{{ asset($social->image) }}" alt="social">
                     </a>
                 @endforeach
@@ -164,14 +164,14 @@
                     <div class="footer-widget">
                         {{-- The logo image is hidden by CSS on small screens, which leaves this link
                              in the tab order with no name at all. --}}
-                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" class="site-logo" alt="logo"></a>
+                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" width="150" height="45" class="site-logo" alt="logo"></a>
                         <p>{{ __($footer->content->description) }}</p>
                      
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <div class="footer-widget">
-                        <div class="widget-title" role="button" aria-expanded="false">
+                        <div class="widget-title" aria-expanded="false">
                             <h5>@lang('Site Link')</h5>
                             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
                         </div>
@@ -191,7 +191,7 @@
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <div class="footer-widget">
-                        <div class="widget-title" role="button" aria-expanded="false">
+                        <div class="widget-title" aria-expanded="false">
                             <h5>@lang('Useful Links')</h5>
                             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
                         </div>
@@ -207,7 +207,7 @@
                 
                 <div class="col-lg-2 col-md-6">
     <div class="footer-widget">
-        <div class="widget-title" role="button" aria-expanded="false">
+        <div class="widget-title" aria-expanded="false">
             <h5>@lang('Services')</h5>
             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
         </div>
@@ -235,7 +235,7 @@
              <div class="col-lg-3 col-md-6">
     <div class="footer-widget">
 
-        <div class="widget-title" role="button" aria-expanded="false">
+        <div class="widget-title" aria-expanded="false">
             <h5>@lang('Contact Info')</h5>
             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
         </div>

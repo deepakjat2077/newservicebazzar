@@ -460,7 +460,7 @@
                 <div class="col-lg-6">
                     @if(!empty($service->why_choose_image))
                         <div class="why-choose-image-wrap">
-                            <img src="{{ asset($service->why_choose_image) }}"
+                            <img src="{{ asset($service->why_choose_image) }}" width="500" height="350"
                               alt="{{ $service->why_choose_title }} Services"
                                loading="lazy"   class="why-choose-image">
                         </div>

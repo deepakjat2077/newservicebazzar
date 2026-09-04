@@ -34,7 +34,7 @@
 
             <div class="partner-card">
                 <div class="card-image">
-                      <img src="{{asset('assets/images/service2.webp')}}" loading="lazy" alt="Easy Business Search Near You">
+                      <img src="{{asset('assets/images/service2.webp')}}" width="400" height="300" loading="lazy" alt="Easy Business Search Near You">
                   
                 </div>
                 <h3>Easy Search<br>& Discovery</h3>
@@ -50,7 +50,7 @@
 
             <div class="partner-card">
                 <div class="card-image">
-                    <img src="{{asset('assets/images/service3.webp')}}" loading="lazy" alt="Grow Your Local Presence with ServiceBazzar">
+                    <img src="{{asset('assets/images/service3.webp')}}" width="400" height="300" loading="lazy" alt="Grow Your Local Presence with ServiceBazzar">
                 </div>
                 <h3>Grow Your<br>Local Presence</h3>
                 <p>

@@ -382,7 +382,7 @@
 
                         <div class="form-group">
                             <label>@lang('Message')</label>
-                            <textarea class="form-control" name="message" rows="5" placeholder="Message"></textarea>
+                            <textarea class="form-control" name="message" rows="5" placeholder="Message" aria-label="Message"></textarea>
                         </div>
 
                         @if(@$setting->recaptcha->status == 1)
@@ -434,6 +434,7 @@
 @if(!empty($mapQuery))
     <div class="git-map-wrap git-map-outer">
         <iframe
+            title="ServiceBazzar location on Google Maps"
             src="https://www.google.com/maps?q={{ urlencode($mapQuery) }}&output=embed"
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
