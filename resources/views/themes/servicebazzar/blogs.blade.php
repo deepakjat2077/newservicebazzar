@@ -1,6 +1,10 @@
 @extends($themeView.'layouts.site')
 
-@section('title', 'Blogs')
+@php
+    $seoTitle = 'Business Blog | Tips & Guides | ServiceBazzar';
+    $seoDescription = 'Read blog posts about business growth, marketing tips, and entrepreneurship advice on ServiceBazzar.';
+@endphp
+@section('title', $seoTitle)
 
 @section('content')
 

@@ -893,7 +893,11 @@ public function store(Request $request)
 
         'location_id'              => 'nullable|exists:locations,id',
         'user_id'                  => 'nullable|exists:users,id',
-        'category_id'              => 'nullable|exists:categories,id',
+        // listings.category_id is NOT NULL and every one of the 10,515 rows
+        // has a real category, so 'nullable' only meant an empty pick reached
+        // MySQL as '' and failed the save with a 500 instead of telling the
+        // admin which field was missing.
+        'category_id'              => 'required|exists:categories,id',
         'subcategory_ids'          => 'nullable|array',
         'subcategory_ids.*'        => 'nullable|exists:subcategories,id',
 
@@ -975,7 +979,12 @@ if (!cache()->add($lockKey, true, 15)) {
     | Clean fields
     |--------------------------------------------------------------------------
     */
-  $name = Str::title(strtolower($cleanText($request->name)));
+  // Whatever the admin typed is the business's name. Lower-casing it and
+  // title-casing it back turned "NBF Public School" into "Nbf Public School",
+  // and would do the same to every acronym a business puts in its name — CA,
+  // IT, KFC. No rule can tell an acronym from an ordinary word, and update()
+  // has always stored the name as entered, so add() now does the same.
+  $name = $cleanText($request->name);
     // See the equivalent note in update() — HTMLPurifier is the
     // authoritative HTML-safety pass since $listing->details is rendered
     // unescaped on the public listing page.
@@ -1114,16 +1123,22 @@ if ($isOpen24Hours) {
     $listing->user_id              = $request->user_id ?: 0;
     $listing->created_by_admin_id = auth()->guard('admin')->id();
     $listing->category_id          = $request->category_id;
-    $listing->location_id          = $request->location_id;
+    // Same trap the edit form hit: the form posts these whether or not they
+    // were filled in, so an untouched field arrives as '' — and MySQL rejects
+    // '' for an integer column, failing the whole save with a 500. Both are
+    // nullable in the schema, so an empty one is stored as NULL.
+    $listing->location_id          = $request->filled('location_id') ? $request->location_id : null;
     $listing->name                 = $name;
-    $listing->established_year     = $request->established_year;
+    $listing->established_year     = $request->filled('established_year') ? $request->established_year : null;
     $listing->slug                 = Str::slug($name ?: 'listing') . '-' . time();
     $listing->details              = $details;
   
     $listing->features             = $features;
    
     $listing->thumb                = $thumb;
-    $listing->is_featured          = $request->featured ?? 0;
+    // is_featured is NOT NULL; ?? only catches a missing value, not an empty
+    // string, so filled() is what actually guards the column here.
+    $listing->is_featured          = $request->filled('featured') ? $request->featured : 0;
     // Listings created from the admin panel are trusted content (the
     // admin themselves entered it) and should go live immediately
     // instead of sitting in the same pending-approval queue used for

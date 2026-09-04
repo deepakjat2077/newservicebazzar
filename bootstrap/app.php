@@ -5,10 +5,12 @@ use App\Http\Middleware\AdminPermission;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\AuthenticateAdminApi;
 use App\Http\Middleware\AuthenticateUserApi;
+use App\Http\Middleware\AuthenticateUserApiOptional;
 use App\Http\Middleware\CachePublicPages;
 use App\Http\Middleware\DecodeShieldedPayload;
 use App\Http\Middleware\EnsureVisitorId;
 use App\Http\Middleware\LogSlowRequests;
+use App\Http\Middleware\NoSessionForCrawlers;
 use App\Http\Middleware\NoStoreAdminPages;
 use App\Http\Middleware\RedirectIfAdmin;
 use App\Http\Middleware\RedirectIfAuthenticated;
@@ -80,6 +82,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // Bearer-token auth for the mobile app (Service Bazzar Android/iOS).
             // Sets the `web` guard user from the token, answering 401 in JSON.
             'user.api' => AuthenticateUserApi::class,
+
+            // Same, but for the screens the app shows before sign-in: a token
+            // is used when sent and ignored when absent, never a 401.
+            'user.api.optional' => AuthenticateUserApiOptional::class,
         ]);
 
         // CORS is not registered here on purpose: Laravel already runs
@@ -137,6 +143,18 @@ return Application::configure(basePath: dirname(__DIR__))
         // fast. Writes only past its threshold, so a healthy request costs
         // one microtime() call and nothing else.
         $middleware->prependToGroup('web', LogSlowRequests::class);
+
+        // Crawlers must not reach the session store. ~158k requests a day,
+        // mostly bots, each minting a 24-hour session key: Redis filled to its
+        // 2 GB cap and allkeys-lru evicted 146,867 keys in a day, taking real
+        // admin sessions with them and signing people out mid-form. This has
+        // to run before StartSession, hence the priority-list insert as well
+        // as the group prepend.
+        $middleware->prependToGroup('web', NoSessionForCrawlers::class);
+        $middleware->prependToPriorityList(
+            \Illuminate\Session\Middleware\StartSession::class,
+            NoSessionForCrawlers::class
+        );
 
         // Must stay plain text: the client-side tracking script reads this
         // cookie directly via document.cookie to attach the visitor_id to

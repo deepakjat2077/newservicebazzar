@@ -1,5 +1,9 @@
 @extends($themeView.'layouts.site')
-@section('title', 'Services')
+@php
+    $seoTitle = 'Home Services Directory | ServiceBazzar';
+    $seoDescription = 'Browse home and professional services on ServiceBazzar. Find verified service providers in your area.';
+@endphp
+@section('title', $seoTitle)
 
 @section('content')
 <section class="jaipur-partner-section">

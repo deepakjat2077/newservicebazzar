@@ -78,7 +78,13 @@ Route::prefix('profile')->middleware('user.api')->group(function () {
     Route::get('ratings', [ProfileController::class, 'ratings']);
 });
 
-Route::middleware('user.api')->group(function () {
+/*
+ | Public screens. The app draws the home page, categories, search and a
+ | business's detail page before anyone signs in, so these must answer without
+ | a bearer token. A token is still honoured when sent — that is what fills in
+ | is_favorited / liked_by_me — but its absence is not an error.
+ */
+Route::middleware('user.api.optional')->group(function () {
 
     Route::get('home',       [BrowseController::class, 'home']);
     Route::get('categories', [BrowseController::class, 'categories']);
@@ -98,13 +104,9 @@ Route::middleware('user.api')->group(function () {
     Route::get('find/{location}/{term}', [BrowseController::class, 'search']);
 
     Route::get('listings/{slug}', [BrowseController::class, 'detail']);
-    Route::post('listings/{id}/review',  [BrowseController::class, 'submitReview'])->whereNumber('id');
-    Route::post('listings/{id}/enquiry', [BrowseController::class, 'enquiry'])->whereNumber('id');
-    Route::post('listings/{id}/click',   [BrowseController::class, 'trackClick'])->whereNumber('id');
 
-    Route::post('reviews/{id}/like',    [BrowseController::class, 'likeReview'])->whereNumber('id');
-    Route::post('reviews/{id}/comment', [BrowseController::class, 'commentReview'])->whereNumber('id');
-    Route::delete('reviews/comments/{id}', [BrowseController::class, 'deleteComment'])->whereNumber('id');
+    // Analytics only — records a Call/WhatsApp/Direction tap, reads no user.
+    Route::post('listings/{id}/click', [BrowseController::class, 'trackClick'])->whereNumber('id');
 
     // Homepage banner carousel, the same rows the admin's Banner Section edits.
     Route::get('banners',       [ContentController::class, 'banners']);
@@ -113,6 +115,21 @@ Route::middleware('user.api')->group(function () {
     Route::get('news',          [ContentController::class, 'news']);
     Route::get('news/{slug}',   [ContentController::class, 'newsDetail']);
     Route::get('plans',         [ContentController::class, 'plans']);
+});
+
+
+/*
+ | Everything that writes something owned by a user, or spends money. These
+ | keep the hard 401.
+ */
+Route::middleware('user.api')->group(function () {
+
+    Route::post('listings/{id}/review',  [BrowseController::class, 'submitReview'])->whereNumber('id');
+    Route::post('listings/{id}/enquiry', [BrowseController::class, 'enquiry'])->whereNumber('id');
+
+    Route::post('reviews/{id}/like',    [BrowseController::class, 'likeReview'])->whereNumber('id');
+    Route::post('reviews/{id}/comment', [BrowseController::class, 'commentReview'])->whereNumber('id');
+    Route::delete('reviews/comments/{id}', [BrowseController::class, 'deleteComment'])->whereNumber('id');
 
     // Buying a plan through the admin-enabled gateways.
     Route::get('payment-methods',       [PaymentController::class, 'methods']);

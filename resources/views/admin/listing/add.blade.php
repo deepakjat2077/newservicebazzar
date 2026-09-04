@@ -3182,6 +3182,29 @@ $(document).on('blur paste', '.seo-source, .seo-field', function () {
         |
         */
         let response;
+        let payload;
+
+        // Building the envelope used to happen inside the try below, so a
+        // failure while sealing the photos reported "the connection dropped"
+        // even though nothing had been sent yet — and nothing reached the
+        // server to contradict it. Two steps, two messages.
+        try {
+            payload = await shieldedFormData(form);
+        } catch (error) {
+            releaseSaveButton();
+
+            Swal.fire({
+                title: 'Photos could not be prepared',
+                html: 'The listing was not sent — the photos could not be ' +
+                      'packed for upload. <b>Nothing on this screen is lost</b>. ' +
+                      'Check your connection and press Save again; if it keeps ' +
+                      'happening, remove the last photo you added and try once more.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+
+            return false;
+        }
 
         try {
             response = await fetch(form.action, {
@@ -3189,7 +3212,7 @@ $(document).on('blur paste', '.seo-source, .seo-field', function () {
                 // Fields and photos sealed into opaque values so the hosting
                 // firewall has no upload to inspect. See the firewall-shield
                 // partial.
-                body: await shieldedFormData(form),
+                body: payload,
                 credentials: 'same-origin',
                 redirect: 'manual',
                 headers: {

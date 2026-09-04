@@ -1,6 +1,10 @@
 @extends($themeView.'layouts.site')
 @section('content')
-@section('title','Contacts')
+@php
+    $seoTitle = 'Contact Us | ServiceBazzar Customer Support';
+    $seoDescription = 'Get in touch with ServiceBazzar. Contact our customer support team for help with listings and inquiries.';
+@endphp
+@section('title', $seoTitle)
 
 @php
     // Same $contacts rows the old page listed (Address / Email / Phone,

@@ -72,7 +72,28 @@ class DecodeShieldedPayload
         $fields = [];
         parse_str($decoded, $fields);
 
-        $request->merge($fields);
+        // Laravel's ConvertEmptyStringsToNull is global middleware and has
+        // already run by the time this route middleware decodes the envelope,
+        // so anything merged here would keep parse_str()'s empty strings. An
+        // untouched number field then reached MySQL as '' and failed the whole
+        // save with "Incorrect integer value: ''" — twice today, on two
+        // different columns. Converting here means a field in these forms
+        // behaves like a field in any other form on the site.
+        $request->merge($this->emptyStringsToNull($fields));
+    }
+
+    /** '' -> null, through nested arrays, the way Laravel does it. */
+    protected function emptyStringsToNull(array $fields): array
+    {
+        foreach ($fields as $key => $value) {
+            if (is_array($value)) {
+                $fields[$key] = $this->emptyStringsToNull($value);
+            } elseif ($value === '') {
+                $fields[$key] = null;
+            }
+        }
+
+        return $fields;
     }
 
     /**

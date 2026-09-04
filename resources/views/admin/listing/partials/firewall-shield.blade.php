@@ -127,18 +127,46 @@
                 body.append('final', '1');
             }
 
-            var response = await fetch(UPLOAD_URL, {
-                method: 'POST',
-                body: body,
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': token
-                }
-            });
+            // A refused chunk was always handled — `return null` drops to the
+            // inline fallback below. A *dropped* one was not: fetch rejects
+            // rather than answering, and that rejection travelled all the way
+            // out of sealFields/shieldedFormData into the caller's catch,
+            // which reports "Save could not be sent". The listing was never
+            // sent at all, and nothing reached the server to explain why —
+            // which is exactly what an agent on a mobile connection saw while
+            // the same save worked from a wired one.
+            //
+            // Retry the chunk a couple of times, since one blip on a phone
+            // network should not push a whole photo into the form body; and
+            // if it still will not go, fail the same way a refusal does.
+            var response = null;
 
-            if (!response.ok) {
+            for (var attempt = 0; attempt < 3; attempt++) {
+                try {
+                    response = await fetch(UPLOAD_URL, {
+                        method: 'POST',
+                        body: body,
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': token
+                        }
+                    });
+
+                    break;
+                } catch (networkError) {
+                    response = null;
+
+                    if (attempt < 2) {
+                        await new Promise(function (done) {
+                            setTimeout(done, 400 * (attempt + 1));
+                        });
+                    }
+                }
+            }
+
+            if (!response || !response.ok) {
                 return null;
             }
         }

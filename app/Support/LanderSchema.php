@@ -87,8 +87,9 @@ class LanderSchema
         // duplicate-title problem the SEO audit flagged, so a city lander always
         // gets a city-keyed title instead.
         if ($cityName) {
-            $countLabel = $providerCount > 0 ? "Verified {$providerCount} Providers " : '';
-            $data['seoTitle'] = "Best {$item->name} in {$cityName} — {$countLabel}2026 | {$siteName}";
+            $countLabel = $providerCount > 0 ? "{$providerCount} verified" : '';
+            $label = trim("{$countLabel} " . lcfirst($item->name));
+            $data['seoTitle'] = "{$label} in {$cityName} | {$siteName}";
 
             $countPhrase = $providerCount > 0 ? "{$providerCount} verified" : 'verified';
             $data['seoDescription'] = "Find {$countPhrase} {$item->name} in {$cityName}. "

@@ -246,7 +246,7 @@ class BrowseController extends Controller
         $listing->increment('view');
 
         $favIds = $this->favoriteIds($request);
-        $myId   = $request->user()->id;
+        $myId   = optional($request->user())->id;
 
         return response()->json([
             'success' => true,
@@ -475,16 +475,16 @@ class BrowseController extends Controller
             'review'         => $r->review,
             'likes_count'    => (int) $r->likes_count,
             'comments_count' => (int) $r->comments_count,
-            'liked_by_me'    => $r->relationLoaded('likes')
+            'liked_by_me'    => $myId && ($r->relationLoaded('likes')
                 ? $r->likes->contains('user_id', $myId)
-                : RatingLike::where('rating_id', $r->id)->where('user_id', $myId)->exists(),
+                : RatingLike::where('rating_id', $r->id)->where('user_id', $myId)->exists()),
             'created_at'     => optional($r->created_at)->toIso8601String(),
             'comments'       => $r->relationLoaded('comments')
                 ? $r->comments->map(fn ($c) => [
                     'id'         => $c->id,
                     'name'       => optional($c->user)->first_name ? trim($c->user->first_name . ' ' . $c->user->last_name) : 'User',
                     'comment'    => $c->comment,
-                    'can_delete' => (int) $c->user_id === (int) $myId,
+                    'can_delete' => $myId && (int) $c->user_id === (int) $myId,
                 ])->values()
                 : [],
         ];
@@ -501,6 +501,12 @@ class BrowseController extends Controller
     /** Listing ids the current user has favourited, for is_favorited flags. */
     protected function favoriteIds(Request $request): array
     {
+        // Public screens are reachable without a token; a guest has favourited
+        // nothing, so every card comes back with is_favorited false.
+        if (!$request->user()) {
+            return [];
+        }
+
         return $request->user()->favoriteListings()->pluck('listing_id')->toArray();
     }
 }
