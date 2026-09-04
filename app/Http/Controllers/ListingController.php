@@ -2941,6 +2941,15 @@ public function cityCategoryArea($city, $categoryArea)
     if (str_contains($categoryArea, '-in-')) {
         [$serviceSlug, $areaSlug] = explode('-in-', $categoryArea, 2);
         $area = trim(str_replace('-', ' ', $areaSlug));
+
+        // "/jaipur/courier-services-in-jaipur" is the same page as
+        // "/jaipur/courier-services" — the area just repeats the city. That
+        // produced two self-canonical URLs with identical content/meta
+        // (a duplicate-description flag). Send the redundant one to the
+        // clean city/category URL with a 301 so it consolidates.
+        if (\Str::slug($areaSlug) === \Str::slug($city)) {
+            return redirect('/' . $city . '/' . $serviceSlug, 301);
+        }
     } else {
         $serviceSlug = $categoryArea;
     }
