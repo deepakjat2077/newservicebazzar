@@ -4462,14 +4462,14 @@
              *     corners). This alone would already break sticky.
              *   .col-lg-9, .row, .container-fluid, #listingMediaRow — all
              *     overflow:visible, position:static, no transform/filter.
-             *   <body> — overflow-x:hidden is set elsewhere on this page
+             *   the body element — overflow-x:hidden is set elsewhere on this page
              *     (unrelated FOUC fix), which per the same CSS spec rule
              *     forces its overflow-y to compute as 'auto' too.
-             *   <html> — independently also computes overflow:hidden auto.
+             *   the html element — independently also computes overflow:hidden auto.
              *
              * So there isn't one single blocker — .media-main-box AND
-             * <body> AND <html> all have non-'visible' overflow. Even after
-             * neutralizing .media-main-box, <body>/<html> still remain:
+             * body AND html elements all have non-'visible' overflow. Even after
+             * neutralizing .media-main-box, body/html still remain:
              * both size themselves exactly to their content (height:auto,
              * so neither ever actually shows its own internal scrollbar —
              * the real page scrolling happens through the visual

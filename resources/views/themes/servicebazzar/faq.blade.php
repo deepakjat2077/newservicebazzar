@@ -5,6 +5,7 @@
 <!-- Faq Section -->
     <section class="faq pt-80 pb-80">
         <div class="container">
+            <h1 class="sr-only">{{ $faq_section?->content?->title ?? 'Frequently Asked Questions' }}</h1>
             <div class="row justify-content-center">
                 <div class="col-xl-8 col-lg-8 text-center">
                     <div class="section-title">
