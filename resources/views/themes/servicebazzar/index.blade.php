@@ -4261,7 +4261,7 @@ role="tabpanel">
 <div class="listing-area">
 
 <div class="thumb">
-<img src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb" loading="lazy">
+<img src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb" width="300" height="225" loading="lazy">
 </div>
 
 <div class="listing-content">
