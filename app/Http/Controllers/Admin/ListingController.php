@@ -489,6 +489,12 @@ if ($isOpen24Hours) {
     $listing->location_id          = $request->filled('location_id') ? $request->location_id : $listing->location_id;
     $listing->name                 = $name;
     $listing->established_year     = $request->filled('established_year') ? $request->established_year : $listing->established_year;
+    // YMYL credential (registration/license) — optional. Guarded so a save
+    // can't fail if the migration adding these columns hasn't run yet.
+    if (\Schema::hasColumn('listings', 'registration_label')) {
+        $listing->registration_label  = $request->has('registration_label') ? $request->input('registration_label') : $listing->registration_label;
+        $listing->registration_number = $request->has('registration_number') ? $request->input('registration_number') : $listing->registration_number;
+    }
     $listing->details              = $details;
 
     if ($request->has('address')) {

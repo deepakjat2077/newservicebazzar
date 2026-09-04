@@ -214,6 +214,30 @@
                                                value="{{ old('established_year', $listing->established_year ?? '') }}">
                                     </div>
                                 </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Registration / License Type <small class="text-muted">(for doctors, lawyers, CAs)</small></label>
+                                        <input type="text"
+                                               name="registration_label"
+                                               class="form-control"
+                                               maxlength="100"
+                                               placeholder="e.g. Bar Council ID, MCI Reg. No., ICAI M. No."
+                                               value="{{ old('registration_label', $listing->registration_label ?? '') }}">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Registration / License Number</label>
+                                        <input type="text"
+                                               name="registration_number"
+                                               class="form-control"
+                                               maxlength="100"
+                                               placeholder="e.g. D/1234/2015"
+                                               value="{{ old('registration_number', $listing->registration_number ?? '') }}">
+                                    </div>
+                                </div>
                             </div>
 @php
     $hasOldAddress = !empty(trim($listing->address ?? ''));

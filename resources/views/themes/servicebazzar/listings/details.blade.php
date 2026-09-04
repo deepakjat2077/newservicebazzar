@@ -3261,6 +3261,14 @@
                 <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business">
             @endif
         </div>
+
+        @if(!empty($listing->registration_number))
+            {{-- Public credential for professional/YMYL listings (doctors, lawyers, CAs) --}}
+            <div class="jd-credential" style="margin-top:8px;font-size:13px;color:#1a7f4b;display:flex;align-items:center;gap:6px;">
+                <i class="las la-certificate" aria-hidden="true"></i>
+                <span><strong>{{ $listing->registration_label ?: 'Registration No.' }}:</strong> {{ $listing->registration_number }}</span>
+            </div>
+        @endif
     </div>
 
                                 <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
