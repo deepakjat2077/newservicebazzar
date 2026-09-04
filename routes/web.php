@@ -834,6 +834,9 @@ Route::post('/set-location-session', function (Illuminate\Http\Request $request)
     Route::redirect('/my-profile', '/', 301);
     Route::redirect('/hotels', '/listings', 301);
     Route::redirect('/38', '/privacy-policy', 301);
+    // The page lives at /terms-and-conditions; old/typo links to the shorter
+    // slug used to 404. Send them to the real page instead.
+    Route::redirect('/terms-conditions', '/terms-and-conditions', 301);
 Route::get('/jaipur/maintenance', function () {
     return redirect()->route('home');
 });
