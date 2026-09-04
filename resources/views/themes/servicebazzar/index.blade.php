@@ -4069,7 +4069,7 @@ window.SB = {
                      style="cursor:pointer;">
 
                     <div class="thumb">
-                        <img src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
+                        <img src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}" width="300" height="225"
                          loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
                     </div>
 
