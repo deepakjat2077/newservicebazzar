@@ -3381,24 +3381,14 @@ window.SB = {
                                         {{-- Desktop banner — WebP with fallback --}}
                                         <picture class="desktop-banner-img">
                                             <source srcset="{{ loadImageWebp($desktopSrc) }}" type="image/webp">
-                                            <img
-                                                src="{{ loadImage($desktopSrc) }}"
-                                                loading="{{ $loadPriority }}"
-                                                fetchpriority="{{ $fetchPriority }}"
-                                                decoding="async"
-                                                alt="{{ $banner->content->title }} Near Me"
+                                            <img  width="300" height="225" />content->title }} Near Me"
                                                 class="desktop-banner-img">
                                         </picture>
 
                                         {{-- Mobile banner — WebP with fallback --}}
                                         <picture class="mobile-banner-img">
                                             <source srcset="{{ loadImageWebp($mobileSrc) }}" type="image/webp">
-                                            <img
-                                                src="{{ loadImage($mobileSrc) }}"
-                                                loading="{{ $loadPriority }}"
-                                                fetchpriority="{{ $fetchPriority }}"
-                                                decoding="async"
-                                                alt="{{ $isFirst ? 'Best' : 'Find' }} {{ $banner->content->title }} Near Me"
+                                            <img  width="300" height="225" />content->title }} Near Me"
                                                 class="mobile-banner-img">
                                         </picture>
 
@@ -3467,7 +3457,7 @@ window.SB = {
                    data-slug="{{ $categoryItem->slug }}"
                    style="background-color: {{ $bgColor }}; display:block; height:100%;">
 
-                    <img src="{{ loadImage('assets/images/category/'.$categoryItem->image) }}"
+                    <img  width="300" height="225" />image) }}"
                          loading="lazy"
                          alt="{{ $categoryItem->name }} Near Me">
 
@@ -3555,8 +3545,7 @@ window.SB = {
                                     ['.png', '.jpg', '.jpeg', '.svg', '.webp']
                                 )
                             )
-                                <img
-                                    src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
+                                <img  width="300" height="225" />icon) }}"
                                     loading="lazy"
                                     alt="Top {{ $categoryItem->name }} Near Me"
                                     class="category-icon-img"
@@ -3686,7 +3675,7 @@ window.SB = {
 
             @if($categoryItem->icon && Str::endsWith($categoryItem->icon, ['.png', '.jpg', '.jpeg', '.svg']))
 
-                <img src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
+                <img  width="300" height="225" />icon) }}"
                      loading="lazy"
                      alt="Browse {{ $categoryItem->name }} Near Me"
                      class="popup-category-icon">
@@ -3705,7 +3694,7 @@ window.SB = {
 </div>
     <!-- NO RESULT -->
     <div class="no-result text-center" id="noResult">
-        <img src="{{ asset('assets/images/search_notfound.svg') }}" loading="lazy" alt="No Search Found">
+        <img  width="300" height="225" />
         <p class="mt-3">No Search Found</p>
     </div>
 
@@ -3736,7 +3725,7 @@ window.SB = {
    data-slug="{{ $category->slug }}">
 
    
-                                            <img src="{{ asset('assets/images/category/' . $category->image) }}"
+                                            <img  width="300" height="225" />image) }}"
                                               loading="lazy"   alt="{{ $category->name }} Services">
 
                                          
@@ -3792,7 +3781,7 @@ window.SB = {
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
-                                <img src="{{ asset('assets/images/category/' . $category->image) }}"
+                                <img  width="300" height="225" />image) }}"
                                      loading="lazy"
                                      onerror="this.hidden=true;"
                                     alt="{{ $category->name }} Near Me">
@@ -3848,7 +3837,7 @@ window.SB = {
    data-location-name="{{ $location->name }}"
    data-location-slug="{{ $location->slug }}">
                                 
-     <img src="{{ loadImage('assets/images/location/'.$location->image) }}"
+     <img  width="300" height="225" />image) }}"
                                   loading="lazy"   alt="{{ $location->name }}">
 
 
@@ -3904,7 +3893,7 @@ window.SB = {
                            class="trend-card-link dynamic-category-link"
                            data-slug="{{ $category->slug }}">
 
-                            <img src="{{ asset('assets/images/category/'.$category->image) }}"
+                            <img  width="300" height="225" />image) }}"
                                  loading="lazy"
                                  onerror="this.hidden=true;"
                                  alt="Best {{ $category->name }} Near Me">
@@ -3978,7 +3967,7 @@ window.SB = {
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
-                                <img src="{{ asset('assets/images/category/'.$category->image) }}"
+                                <img  width="300" height="225" />image) }}"
                                   loading="lazy"  onerror="this.hidden=true;" alt="Find {{ $category->name }} Near Me">
 
                                 <div class="trend-card-overlay">
@@ -4069,7 +4058,7 @@ window.SB = {
                      style="cursor:pointer;">
 
                     <div class="thumb">
-                        <img src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}" width="300" height="225"
+                        <img  width="300" height="225" />thumb) }}" width="300" height="225"
                          loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
                     </div>
 
@@ -4106,19 +4095,11 @@ window.SB = {
                             @endif
 
                             @if(($featured->trust ?? 0) == 1)
-                                <img src="{{ asset('assets/images/trust_2x.gif') }}"
-                                     class="jd-badge-img"
-                                     loading="lazy"
-                                     decoding="async"
-                                     alt="Trust">
+                                <img  width="300" height="225" />
                             @endif
 
                             @if(($featured->verified ?? 0) == 1)
-                                <img src="{{ asset('assets/images/verified_2x.gif') }}"
-                                     class="jd-badge-img"
-                                     loading="lazy"
-                                     decoding="async"
-                                     alt="Verified">
+                                <img  width="300" height="225" />
                             @endif
 
                         </div>
@@ -4261,7 +4242,7 @@ role="tabpanel">
 <div class="listing-area">
 
 <div class="thumb">
-<img src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb" width="300" height="225" loading="lazy">
+<img  width="300" height="225" />thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb" width="300" height="225" loading="lazy">
 </div>
 
 <div class="listing-content">
@@ -4269,7 +4250,7 @@ role="tabpanel">
 <div class="listing-author">
 <div class="author-thumb">
 <a href="{{ route('listings.author',$catListing->user->id) }}">
-<img src="{{ loadImage('assets/images/user/'.$catListing->user->image) }}" alt="{{ $catListing->user->name ?? 'Business owner' }}" loading="lazy">
+<img  width="300" height="225" />user->image) }}" alt="{{ $catListing->user->name ?? 'Business owner' }}" loading="lazy">
 </a>
 </div>
 </div>
@@ -4365,7 +4346,7 @@ WhatsApp
                                         srcset="{{ asset('assets/images/category/hbb/' . $hbb->mobile_banner) }}">
                             @endif
 
-                            <img src="{{ asset('assets/images/category/hbb/' . $hbb->desktop_banner) }}"
+                            <img  width="300" height="225" />desktop_banner) }}"
                                  class="d-block w-100 category-banner-img"
                              loading="lazy"    alt="{{ $hbb->title ?? 'Banner' }}">
                         </picture>
@@ -4404,7 +4385,7 @@ WhatsApp
      data-url="{{ route('blog.details', $blog->content->slug) }}"
      style="cursor:pointer;">
                         <div class="thumb">
-                            <img src="{{ loadImage('assets/servicebazzar/images/blog/'.$blog->content->image) }}" loading="lazy" alt="blog">
+                            <img  width="300" height="225" />content->image) }}" loading="lazy" alt="blog">
                         </div>
                        
                        <div class="content-area">
@@ -4479,7 +4460,7 @@ WhatsApp
 
                 <span class="category-content-icon">
                     @if(!empty($categoryItem->icon) && Str::endsWith(strtolower($categoryItem->icon), ['.png', '.jpg', '.jpeg', '.svg', '.webp']))
-                        <img src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
+                        <img  width="300" height="225" />icon) }}"
                              loading="lazy"
                              alt="{{ $categoryItem->name }} Near Me">
                     @elseif(!empty($categoryItem->icon) && Str::startsWith($categoryItem->icon, ['fa', 'fas', 'far', 'fab', 'las', 'la']))
