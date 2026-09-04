@@ -3705,7 +3705,7 @@ window.SB = {
 </div>
     <!-- NO RESULT -->
     <div class="no-result text-center" id="noResult">
-        <img width="300" height="225" src="{{ asset('assets/images/search_notfound.svg') }}" loading="lazy" alt="No Search Found">
+        <img width="300" height="225" src="{{ asset('assets/images/no-results-found.svg') }}" loading="lazy" alt="No Search Found">
         <p class="mt-3">No Search Found</p>
     </div>
 

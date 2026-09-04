@@ -2257,7 +2257,18 @@ public function linkDetails($slug)
 
     $title = $link->content->title;
 
-    return view($this->theme . 'linkDetails', compact('link', 'title'));
+    // These pages set no SEO meta of their own, so every one of them inherited
+    // the site's default description — Semrush flagged home / payment-policy /
+    // privacy-policy as duplicates. Derive a unique title + description from
+    // each page's own content instead.
+    $siteName = $this->setting->site_name ?? config('app.name');
+    $seoTitle = $title . ' | ' . $siteName;
+    $bodyText = trim(preg_replace('/\s+/', ' ', strip_tags($link->content->content ?? '')));
+    $seoDescription = $bodyText !== ''
+        ? \Illuminate\Support\Str::limit($bodyText, 155)
+        : $title . ' — ' . $siteName . '.';
+
+    return view($this->theme . 'linkDetails', compact('link', 'title', 'seoTitle', 'seoDescription'));
 }
     public function subscribe(Request $request)
     {
