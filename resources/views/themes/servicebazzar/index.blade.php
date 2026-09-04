@@ -3744,9 +3744,9 @@ window.SB = {
 
                                           
                                         </a>
-                                        <figcaption class="color111 font14 pt-10">
+                                        <div class="color111 font14 pt-10">
     {{ $category->name }}
-</figcaption>
+</div>
                                     </div>
                                 @endforeach
                             </div>
