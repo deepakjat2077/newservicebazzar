@@ -97,6 +97,15 @@ Route::middleware('web')->group(function () {
         ->name('pincode.fetch');
 });
 
+// Badge guide (Verified/Trusted explanation) — registered before the
+// {location}/{slug} & {slug} catch-alls so /about/badges isn't swallowed.
+Route::middleware('web')->group(function () {
+    Route::get('/about/badges', function () {
+        $setting = \App\Models\Setting::first();
+        return view('themes.servicebazzar.badge-guide', ['setting' => $setting]);
+    })->name('badges.guide');
+});
+
 Route::namespace('App\Http\Controllers')->middleware(['web'])->group(function () {
 Route::get('/jaipur/maintenance', function () {
     return redirect('/', 301);
@@ -902,9 +911,7 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
     Route::get('listings/search', 'SiteController@search')->name('listings.search');
     Route::get('category/search', 'SiteController@categorySearch')->name('category.search');
 
- Route::get('listings/subcategory/{slug}', function () {
-    return redirect('/', 301);
-})->name('listings.subcategory');
+ Route::get('listings/subcategory/{slug}', 'SiteController@listingsSubcategory')->name('listings.subcategory');
     Route::get('listings/location/{slug}', 'SiteController@listingsLocation')->name('listings.location');
     Route::get('listings/author/{id}', 'SiteController@listingsAuthor')->name('listings.author');
     // Same reasoning as the city/category catch-all below: an uncached detail
@@ -1033,8 +1040,3 @@ Route::get('/admin/pincode/{pin}', [\App\Http\Controllers\Admin\PincodeControlle
     ->middleware(['web', 'admin'])
     ->name('admin.pincode.fetch');
 
-// Public page: Badge guide (Verified/Trusted badge explanation)
-Route::get('/about/badges', function () {
-    $setting = \App\Models\Setting::first();
-    return view('themes.servicebazzar.badge-guide', ['setting' => $setting]);
-})->name('badges.guide');
