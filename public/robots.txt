@@ -42,3 +42,33 @@ Allow: /
 # www is the canonical host (see the redirect in the root .htaccess) — the
 # non-www URL that used to be declared here 301-redirected on every fetch.
 Sitemap: https://www.servicebazzar.com/sitemap.xml
+# Block AI/LLM crawlers - protect content from unauthorized AI training
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Omgili
+Disallow: /
+
+User-agent: FacebookExternalHit
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: MojeekBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
