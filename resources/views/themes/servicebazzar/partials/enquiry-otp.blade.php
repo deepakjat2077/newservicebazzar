@@ -48,7 +48,7 @@
         <div id="sbEnqOtpMsg"></div>
 
         <div class="sb-otp-text">
-            Enter the code sent on WhatsApp to <strong id="sbEnqOtpNumber"></strong>
+            Enter the code sent on WhatsApp to <span id="sbEnqOtpNumber" style="font-weight:600"></span>
         </div>
 
         <form id="sbEnqOtpForm">

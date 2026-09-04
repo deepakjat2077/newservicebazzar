@@ -4376,7 +4376,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
             <div class="sb-otp-text">
-                Enter the code sent to <strong id="sbOtpSentText"></strong>
+                Enter the code sent to <span id="sbOtpSentText" style="font-weight:600"></span>
             </div>
             <form id="sbOtpForm">
                 @csrf
