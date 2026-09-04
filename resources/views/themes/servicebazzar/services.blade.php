@@ -74,7 +74,7 @@
                         <div class="thumb">
                             <img 
                                 src="{{ $service->hero_image ? asset($service->hero_image) : asset('assets/frontend/images/default.jpg') }}" 
-                             loading="lazy"  alt="{{ $service->title }} Services Near Me"
+                             loading="lazy"  alt="{{ $service->title }} Services"
                             >
                         </div>
 

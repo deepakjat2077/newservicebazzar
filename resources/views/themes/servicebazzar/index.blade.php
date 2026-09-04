@@ -1,4 +1,10 @@
 @extends($themeView.'layouts.site')
+@php
+    // Distinct social-share text so the homepage card isn't the generic site
+    // meta description (SEO include falls back to $seoDescription otherwise).
+    $ogTitle = 'ServiceBazzar — Find Trusted Local Businesses Near You';
+    $ogDescription = 'Discover and connect with verified local businesses across India — services, healthcare, repairs, restaurants and professionals. Compare ratings and prices, then contact them directly. Free to use.';
+@endphp
 @section('content')
 @section('title','Find Businesses Near You')
 @include($themeView.'includes.rich-content')
@@ -3386,7 +3392,7 @@ window.SB = {
                                                 loading="{{ $loadPriority }}"
                                                 fetchpriority="{{ $fetchPriority }}"
                                                 decoding="async"
-                                                alt="{{ $banner->content->title }} Near Me"
+                                                alt="{{ $banner->content->title }}"
                                                 class="desktop-banner-img">
                                         </picture>
 
@@ -3398,7 +3404,7 @@ window.SB = {
                                                 loading="{{ $loadPriority }}"
                                                 fetchpriority="{{ $fetchPriority }}"
                                                 decoding="async"
-                                                alt="{{ $isFirst ? 'Best' : 'Find' }} {{ $banner->content->title }} Near Me"
+                                                alt="{{ $isFirst ? 'Best' : 'Find' }} {{ $banner->content->title }}"
                                                 class="mobile-banner-img">
                                         </picture>
 
@@ -3469,7 +3475,7 @@ window.SB = {
 
                     <img width="300" height="200" src="{{ loadImage('assets/images/category/'.$categoryItem->image) }}"
                          loading="lazy"
-                         alt="{{ $categoryItem->name }} Near Me">
+                         alt="{{ $categoryItem->name }}">
 
                     <div class="mini-card-title">
                         {{ $categoryItem->name }}
@@ -3558,7 +3564,7 @@ window.SB = {
                                 <img width="60" height="60"
                                     src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                                     loading="lazy"
-                                    alt="Top {{ $categoryItem->name }} Near Me"
+                                    alt="Top {{ $categoryItem->name }}"
                                     class="category-icon-img"
                                 >
                             @else
@@ -3688,7 +3694,7 @@ window.SB = {
 
                 <img width="60" height="60" src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                      loading="lazy"
-                     alt="Browse {{ $categoryItem->name }} Near Me"
+                     alt="Browse {{ $categoryItem->name }}"
                      class="popup-category-icon">
 
             @else
@@ -3795,7 +3801,7 @@ window.SB = {
                                 <img width="300" height="200" src="{{ asset('assets/images/category/' . $category->image) }}"
                                      loading="lazy"
                                      onerror="this.hidden=true;"
-                                    alt="{{ $category->name }} Near Me">
+                                    alt="{{ $category->name }}">
 
                                 <div class="trend-card-overlay">
                                     <div>
@@ -3907,7 +3913,7 @@ window.SB = {
                             <img width="300" height="200" src="{{ asset('assets/images/category/'.$category->image) }}"
                                  loading="lazy"
                                  onerror="this.hidden=true;"
-                                 alt="Best {{ $category->name }} Near Me">
+                                 alt="Best {{ $category->name }}">
 
                             <div class="trend-card-overlay">
                                 <div>
@@ -3979,7 +3985,7 @@ window.SB = {
                                data-slug="{{ $category->slug }}">
 
                                 <img width="300" height="200" src="{{ asset('assets/images/category/'.$category->image) }}"
-                                  loading="lazy"  onerror="this.hidden=true;" alt="Find {{ $category->name }} Near Me">
+                                  loading="lazy"  onerror="this.hidden=true;" alt="Find {{ $category->name }}">
 
                                 <div class="trend-card-overlay">
                                     <div>
@@ -4481,7 +4487,7 @@ WhatsApp
                     @if(!empty($categoryItem->icon) && Str::endsWith(strtolower($categoryItem->icon), ['.png', '.jpg', '.jpeg', '.svg', '.webp']))
                         <img width="60" height="60" src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                              loading="lazy"
-                             alt="{{ $categoryItem->name }} Near Me">
+                             alt="{{ $categoryItem->name }}">
                     @elseif(!empty($categoryItem->icon) && Str::startsWith($categoryItem->icon, ['fa', 'fas', 'far', 'fab', 'las', 'la']))
                         <i class="{{ $categoryItem->icon }}"></i>
                     @else

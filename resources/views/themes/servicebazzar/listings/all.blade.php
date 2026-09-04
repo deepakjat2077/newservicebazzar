@@ -398,7 +398,7 @@ a {
                                     @endif
 
                                     <img src="{{ asset('assets/images/category/banner/' . $banner->desktop_banner) }}"
-                                        class="d-block w-100 category-banner-img" alt="{{ $banner->title ?? 'Banner' }} Near Me">
+                                        class="d-block w-100 category-banner-img" alt="{{ $banner->title ?? 'Banner' }}">
                                 </picture>
                             </a>
                         </div>
@@ -1094,7 +1094,7 @@ a {
                                                 <div class="related-search-item">
                                                     <div class="related-search-img">
                                                         <img src="{{ asset('assets/images/category/' . $category->image) }}"
-                                                            alt="{{ $category->name }} Near Me" loading="lazy">
+                                                            alt="{{ $category->name }}" loading="lazy">
                                                     </div>
 
                                                     <div class="related-search-content">

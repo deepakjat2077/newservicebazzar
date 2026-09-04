@@ -65,7 +65,7 @@
             <div class="category-box d-flex align-items-center justify-content-center size">
                 @if($categoryItem->icon && Str::endsWith(strtolower($categoryItem->icon), ['.png', '.jpg', '.jpeg', '.svg', '.webp']))
                     <img src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
-                       loading="lazy"  alt="{{ $categoryItem->name }} Near Me"
+                       loading="lazy"  alt="{{ $categoryItem->name }}"
                          class="category-icon-img">
                 @else
                     <i class="{{ $categoryItem->icon }}"></i>
