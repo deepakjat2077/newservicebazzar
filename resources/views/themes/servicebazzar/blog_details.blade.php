@@ -241,16 +241,23 @@
                 </h3>
 
                 <div class="related-links">
-                    {{-- Blog author can optionally link to relevant service categories.
-                         For now, this shows a generic placeholder encouraging
-                         readers to explore services mentioned in the blog. --}}
-                    <p class="text-muted">
-                        Looking for professional services? Explore our directory to find verified
-                        {{ $setting->site_name ?? 'service providers' }} in your area.
+                    <p class="text-muted mb-3">
+                        Looking for professional services? Explore verified providers on
+                        {{ $setting->site_name ?? 'ServiceBazzar' }}:
                     </p>
-                    <a href="{{ route('listings.search') }}" class="btn btn-sm btn-outline-primary">
-                        Browse Services
-                    </a>
+                    @php
+                        // Real contextual internal links from the blog into the money
+                        // pages (category hubs). Clean /{slug} URLs resolve 200 with no
+                        // redirect hop. Top categories by popularity.
+                        $blogRelatedCats = \App\Models\Category::where('status', 1)
+                            ->orderByDesc('search_count')->orderBy('name')
+                            ->limit(10)->get(['name', 'slug']);
+                    @endphp
+                    @foreach($blogRelatedCats as $cat)
+                        <a href="{{ url('/' . $cat->slug) }}" class="btn btn-sm btn-outline-primary mb-2 me-1">
+                            {{ $cat->name }}
+                        </a>
+                    @endforeach
                 </div>
             </div>
         </div>
