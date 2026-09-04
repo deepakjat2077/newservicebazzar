@@ -23,6 +23,21 @@ class SecurityHeaders
             $response->headers->set('X-Content-Type-Options', 'nosniff');
             $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
             $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+            // Tell browsers to stick to HTTPS for a year. The site already
+            // 301s HTTP->HTTPS and sits behind Cloudflare TLS, so this only
+            // enforces what already happens. No includeSubDomains — we don't
+            // vouch for every possible subdomain.
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000');
+
+            // Allow only the powerful features the site actually uses (own
+            // origin): geolocation for city detection, microphone for voice
+            // search, camera for photo upload, payment for deposits. Opt out
+            // of ad-tracking APIs. Anything omitted keeps its browser default.
+            $response->headers->set(
+                'Permissions-Policy',
+                'geolocation=(self), microphone=(self), camera=(self), payment=(self), fullscreen=(self), browsing-topics=()'
+            );
         }
 
         return $response;
