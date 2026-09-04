@@ -1296,7 +1296,7 @@ window.addEventListener('pageshow', function () {
 			<div class="container-fuldie custom-right .head-right ">
 				<nav class="navbar navbar-expand-lg navbar-light">
                 @if(!request()->routeIs('home') && !request()->routeIs('home.city') && !request()->routeIs('single.slug'))
-<button type="button" class="mobile-back-btn" onclick="goBackPage()">
+<button type="button" class="mobile-back-btn" aria-label="Go back" onclick="goBackPage()">
     <i class="las la-angle-left"></i>
 </button>
 @endif
@@ -1317,14 +1317,14 @@ window.addEventListener('pageshow', function () {
 @endphp
 
 <div class="youtube-mobile-search" id="youtubeMobileSearch">
-    <button type="button" class="yt-search-back" id="ytSearchBackBtn">
+    <button type="button" class="yt-search-back" id="ytSearchBackBtn" aria-label="Back">
         <i class="las la-angle-left"></i>
     </button>
 
     <form action="{{ route('listings.search') }}" method="GET" class="yt-search-form">
       <div class="yt-search-input-box">
 
-    <button type="submit" class="yt-search-submit left-search">
+    <button type="submit" class="yt-search-submit left-search" aria-label="Search">
         <i class="fas fa-search"></i>
     </button>
 
@@ -1335,7 +1335,7 @@ window.addEventListener('pageshow', function () {
            placeholder="Search Service Bazzar"
            autocomplete="off">
 
-    <button type="button" class="yt-mic-btn inside-mic" id="ytMicBtn">
+    <button type="button" class="yt-mic-btn inside-mic" id="ytMicBtn" aria-label="Voice search">
         <i class="fas fa-microphone"></i>
     </button>
 
@@ -4076,7 +4076,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <div id="voiceModal" class="voice-modal">
     <div class="voice-box">
-        <button type="button" class="voice-close" id="voiceCloseBtn">×</button>
+        <button type="button" class="voice-close" id="voiceCloseBtn" aria-label="Close">×</button>
         <h3 id="voiceStatusText">Listening.....</h3>
         <div class="voice-loader">
             <span></span><span></span><span></span><span></span><span></span>

@@ -3613,7 +3613,7 @@ window.SB = {
             <input type="text" id="categorySearch"
                    placeholder="Search"
                    class="search-input">
-            <span class="clear-search" onclick="clearSearch()">✕</span>
+            <span class="clear-search" role="button" tabindex="0" aria-label="Clear search" onclick="clearSearch()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();clearSearch();}">✕</span>
         </div>
     </div>
 
@@ -4161,7 +4161,7 @@ window.SB = {
                                 @if(!empty($cleanWhatsappPhone))
 
                                     <a href="https://wa.me/{{ $cleanWhatsappPhone }}"
-                                       target="_blank"
+                                       target="_blank" rel="noopener noreferrer"
                                        class="btn-whatsapp">
 
                                         <i class="lab la-whatsapp"></i>
@@ -4315,7 +4315,7 @@ $cleanPhone=preg_replace('/[^0-9]/','',$phone);
 Call Now
 </a>
 
-<a href="https://wa.me/{{ $cleanPhone }}" target="_blank" class="btn-whatsapp">
+<a href="https://wa.me/{{ $cleanPhone }}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
 <i class="lab la-whatsapp"></i>
 WhatsApp
 </a>
@@ -4358,7 +4358,7 @@ WhatsApp
         <div class="carousel-inner">
             @foreach($hbbs as $key => $hbb)
                 <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
-                    <a href="{{ $hbb->link ?? '#' }}" target="_blank">
+                    <a href="{{ $hbb->link ?? '#' }}" target="_blank" rel="noopener noreferrer">
                         <picture>
                             @if(!empty($hbb->mobile_banner))
                                 <source media="(max-width: 767px)"
