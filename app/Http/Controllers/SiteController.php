@@ -553,7 +553,15 @@ public function getPopularCategories()
         // (?page=2, 3, ...) falls back to includes/seo.blade.php's default
         // (url()->current(), which drops the query string) and incorrectly
         // canonicalizes back to page 1.
-        $data['seoUrl'] = request()->fullUrlWithQuery(['page' => $data['blogs']->currentPage()]);
+        //
+        // Page 1 is the exception: its canonical/hreflang must be the clean
+        // /blogs URL, not /blogs?page=1 — the ?page= variant is disallowed in
+        // robots.txt and isn't the URL crawlers land on, which made the
+        // canonical and the self-referencing hreflang disagree.
+        $blogPage = $data['blogs']->currentPage();
+        $data['seoUrl'] = $blogPage > 1
+            ? request()->fullUrlWithQuery(['page' => $blogPage])
+            : url()->current();
 
         return view($this->theme.'blogs', $data);
     }
