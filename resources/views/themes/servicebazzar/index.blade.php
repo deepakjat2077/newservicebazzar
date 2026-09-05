@@ -3377,11 +3377,35 @@ window.SB = {
                                                     : $desktopSrc;
                             @endphp
 
+                            @php
+                                // If a banner links to an internal
+                                // /{city}/{category} URL (admin often hardcodes
+                                // the city, e.g. /jaipur/packers-and-movers),
+                                // tag it so the same dynamic-category-link JS
+                                // rewrites the city to the visitor's location.
+                                // Otherwise the shared page cache would show one
+                                // baked city (Jaipur) to every visitor.
+                                $bannerLink    = $imgData['link'] ?? '';
+                                $bannerCatSlug = '';
+                                if (!empty($bannerLink)) {
+                                    $bHost = parse_url($bannerLink, PHP_URL_HOST);
+                                    $bPath = trim((string) parse_url($bannerLink, PHP_URL_PATH), '/');
+                                    $bSegs = $bPath === '' ? [] : explode('/', $bPath);
+                                    $reservedFirst = ['listings','blogs','blog','user','admin','dashboard','category','search','contact','location','free-listing','pricing','popular-services'];
+                                    if ((!$bHost || $bHost === request()->getHost())
+                                        && count($bSegs) === 2
+                                        && !in_array(strtolower($bSegs[0]), $reservedFirst, true)) {
+                                        $bannerCatSlug = $bSegs[1];
+                                    }
+                                }
+                            @endphp
+
                             <div class="carousel-item {{ $isFirst ? 'active' : '' }}">
                                 <div class="main-banner-box">
 
-                                    @if(!empty($imgData['link']))
-                                        <a href="{{ $imgData['link'] }}">
+                                    @if(!empty($bannerLink))
+                                        <a href="{{ $bannerLink }}"
+                                           @if($bannerCatSlug) class="dynamic-category-link" data-slug="{{ $bannerCatSlug }}" @endif>
                                     @endif
 
                                         {{-- Desktop banner — WebP with fallback --}}
@@ -3408,7 +3432,7 @@ window.SB = {
                                                 class="mobile-banner-img">
                                         </picture>
 
-                                    @if(!empty($imgData['link']))
+                                    @if(!empty($bannerLink))
                                         </a>
                                     @endif
 
