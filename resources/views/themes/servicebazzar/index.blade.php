@@ -3504,7 +3504,7 @@ window.SB = {
                    data-slug="{{ $categoryItem->slug }}"
                    style="background-color: {{ $bgColor }}; display:block; height:100%;">
 
-                    <img width="300" height="200" src="{{ loadImage('assets/images/category/'.$categoryItem- loading="lazy">image) }}"
+                    <img width="300" height="200" src="{{ loadImage('assets/images/category/'.$categoryItem->image) }}"
                          loading="lazy"
                          alt="{{ $categoryItem->name }}">
 
@@ -3593,7 +3593,7 @@ window.SB = {
                                 )
                             )
                                 <img width="60" height="60"
-                                    src="{{ asset('assets/images/category/icons/' . $categoryItem- loading="lazy">icon) }}"
+                                    src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                                     loading="lazy"
                                     alt="Top {{ $categoryItem->name }}"
                                     class="category-icon-img"
@@ -3693,7 +3693,7 @@ window.SB = {
                      style="cursor:pointer;">
 
                     <div class="thumb">
-                        <img width="300" height="225" src="{{ loadImage('assets/images/listing/thumb/'.$featured- loading="lazy">thumb) }}"
+                        <img width="300" height="225" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
                          loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
                     </div>
 
@@ -3898,7 +3898,7 @@ window.SB = {
 
             @if($categoryItem->icon && Str::endsWith($categoryItem->icon, ['.png', '.jpg', '.jpeg', '.svg']))
 
-                <img width="60" height="60" src="{{ asset('assets/images/category/icons/' . $categoryItem- loading="lazy">icon) }}"
+                <img width="60" height="60" src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                      loading="lazy"
                      alt="Browse {{ $categoryItem->name }}"
                      class="popup-category-icon">
@@ -3948,7 +3948,7 @@ window.SB = {
    data-slug="{{ $category->slug }}">
 
    
-                                            <img width="300" height="200" src="{{ asset('assets/images/category/' . $category- loading="lazy">image) }}"
+                                            <img width="300" height="200" src="{{ asset('assets/images/category/' . $category->image) }}"
                                               loading="lazy"   alt="{{ $category->name }} Services">
 
                                          
@@ -4004,7 +4004,7 @@ window.SB = {
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
-                                <img width="300" height="200" src="{{ asset('assets/images/category/' . $category- loading="lazy">image) }}"
+                                <img width="300" height="200" src="{{ asset('assets/images/category/' . $category->image) }}"
                                      loading="lazy"
                                      onerror="this.hidden=true;"
                                     alt="{{ $category->name }}">
@@ -4053,16 +4053,14 @@ window.SB = {
               
 
                 <div class="trending-scroll" >
-                    {{-- Limit to top 20 locations to reduce homepage size (5.9MB → faster load) --}}
                     @foreach($locations as $location)
-                        @if($loop->index < 20)
                         <div class="trend-card-item">
                       <a href="javascript:void(0)"
    class="trend-card-link select-home-location"
    data-location-name="{{ $location->name }}"
    data-location-slug="{{ $location->slug }}">
                                 
-     <img width="300" height="200" src="{{ loadImage('assets/images/location/'.$location- loading="lazy">image) }}"
+     <img width="300" height="200" src="{{ loadImage('assets/images/location/'.$location->image) }}"
                                   loading="lazy"   alt="{{ $location->name }}">
 
 
@@ -4072,11 +4070,10 @@ window.SB = {
                                         <div class="trend-card-subtitle">Explore Now</div>
                                     </div>
 
-
+                                   
                                 </div>
                             </a>
                         </div>
-                        @endif
                     @endforeach
                 </div>
 
@@ -4110,9 +4107,7 @@ window.SB = {
 
             <div id="popularScroll" class="trending-scroll">
 
-           {{-- Limit to top 20 popular categories to reduce page size --}}
            @foreach($popularCategories as $category)
-               @if($loop->index < 20)
                   
 
                     <div class="trend-card-item">
@@ -4121,7 +4116,7 @@ window.SB = {
                            class="trend-card-link dynamic-category-link"
                            data-slug="{{ $category->slug }}">
 
-                            <img width="300" height="200" src="{{ asset('assets/images/category/'.$category- loading="lazy">image) }}"
+                            <img width="300" height="200" src="{{ asset('assets/images/category/'.$category->image) }}"
                                  loading="lazy"
                                  onerror="this.hidden=true;"
                                  alt="Best {{ $category->name }}">
@@ -4138,7 +4133,6 @@ window.SB = {
 
                     </div>
 
-                @endif
                 @endforeach
 
             </div>
@@ -4196,7 +4190,7 @@ window.SB = {
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
-                                <img width="300" height="200" src="{{ asset('assets/images/category/'.$category- loading="lazy">image) }}"
+                                <img width="300" height="200" src="{{ asset('assets/images/category/'.$category->image) }}"
                                   loading="lazy"  onerror="this.hidden=true;" alt="Find {{ $category->name }}">
 
                                 <div class="trend-card-overlay">
@@ -4306,7 +4300,7 @@ role="tabpanel">
 <div class="listing-area">
 
 <div class="thumb">
-<img width="300" height="225" src="{{ loadImage('assets/images/listing/thumb/'.$catListing- loading="lazy">thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb" loading="lazy">
+<img width="300" height="225" src="{{ loadImage('assets/images/listing/thumb/'.$catListing->thumb) }}" alt="{{ $catListing->name }}" class="listing-thumb" loading="lazy">
 </div>
 
 <div class="listing-content">
@@ -4314,7 +4308,7 @@ role="tabpanel">
 <div class="listing-author">
 <div class="author-thumb">
 <a href="{{ route('listings.author',$catListing->user->id) }}">
-<img width="48" height="48" src="{{ loadImage('assets/images/user/'.$catListing- loading="lazy">user->image) }}" alt="{{ $catListing->user->name ?? 'Business owner' }}" loading="lazy">
+<img width="48" height="48" src="{{ loadImage('assets/images/user/'.$catListing->user->image) }}" alt="{{ $catListing->user->name ?? 'Business owner' }}" loading="lazy">
 </a>
 </div>
 </div>
@@ -4410,7 +4404,7 @@ WhatsApp
                                         srcset="{{ asset('assets/images/category/hbb/' . $hbb->mobile_banner) }}">
                             @endif
 
-                            <img width="1200" height="400" src="{{ asset('assets/images/category/hbb/' . $hbb- loading="lazy">desktop_banner) }}"
+                            <img width="1200" height="400" src="{{ asset('assets/images/category/hbb/' . $hbb->desktop_banner) }}"
                                  class="d-block w-100 category-banner-img"
                              loading="lazy"    alt="{{ $hbb->title ?? 'Banner' }}">
                         </picture>
@@ -4449,7 +4443,7 @@ WhatsApp
      data-url="{{ route('blog.details', $blog->content->slug) }}"
      style="cursor:pointer;">
                         <div class="thumb">
-                            <img width="400" height="250" src="{{ loadImage('assets/servicebazzar/images/blog/'.$blog- loading="lazy">content->image) }}" loading="lazy" alt="blog">
+                            <img width="400" height="250" src="{{ loadImage('assets/servicebazzar/images/blog/'.$blog->content->image) }}" loading="lazy" alt="blog">
                         </div>
                        
                        <div class="content-area">
@@ -4524,7 +4518,7 @@ WhatsApp
 
                 <span class="category-content-icon">
                     @if(!empty($categoryItem->icon) && Str::endsWith(strtolower($categoryItem->icon), ['.png', '.jpg', '.jpeg', '.svg', '.webp']))
-                        <img width="60" height="60" src="{{ asset('assets/images/category/icons/' . $categoryItem- loading="lazy">icon) }}"
+                        <img width="60" height="60" src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
                              loading="lazy"
                              alt="{{ $categoryItem->name }}">
                     @elseif(!empty($categoryItem->icon) && Str::startsWith($categoryItem->icon, ['fa', 'fas', 'far', 'fab', 'las', 'la']))
