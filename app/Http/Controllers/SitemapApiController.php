@@ -50,14 +50,12 @@ class SitemapApiController extends Controller
         $combinations = \DB::table('listings')
             ->join('locations', 'listings.location_id', '=', 'locations.id')
             ->join('categories', 'listings.category_id', '=', 'categories.id')
-            ->leftJoin('categories as subcategories', function($join) {
-                $join->on('listings.sub_category_id', '=', 'subcategories.id')
-                     ->where('subcategories.status', 1);
-            })
+            ->join('categories as subcategories', 'listings.sub_category_id', '=', 'subcategories.id')
             ->where('listings.status', 1)
             ->where('locations.status', 1)
             ->where('categories.status', 1)
-            ->whereNotNull('listings.sub_category_id')  // Only listings WITH subcategories
+            ->where('subcategories.status', 1)
+            ->where('listings.sub_category_id', '!=', null)  // Only listings WITH subcategories
             ->select('locations.slug as city_slug', 'locations.name as city_name',
                      'categories.slug as category_slug', 'categories.name as category_name',
                      'subcategories.slug as subcategory_slug', 'subcategories.name as subcategory_name',
