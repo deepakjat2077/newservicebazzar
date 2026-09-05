@@ -3554,8 +3554,8 @@ window.SB = {
 <section class="custom-right category-area py-5">
     <div class="container-fildu">
 
-        {{-- $gridCitySlug computed once, near the top of the page (see the
-             @php block above the "fixed categories" section). --}}
+        {{-- gridCitySlug is computed once near the top of this page, in the
+             block just above the fixed-categories cards. --}}
         <div class="category-grid mt-4">
 
             @foreach($categoryItems as $index => $categoryItem)
