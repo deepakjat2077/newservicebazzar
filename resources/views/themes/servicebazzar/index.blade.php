@@ -3430,6 +3430,23 @@ window.SB = {
             </div>
 
      @php
+    // Shared by every category link on this page (the 4 fixed cards, the
+    // main category grid, the popup panel, and every "related categories"
+    // rail below): render the city-prefixed URL straight away when we
+    // already know the visitor's city server-side, instead of pointing at
+    // the generic /listings/{slug} redirector everywhere. That redirector
+    // still lands the visitor in the right place eventually (the route
+    // itself falls back to a default city, and dynamic-category-link's
+    // click handler can upgrade it further client-side), but the
+    // hover/status-bar URL and whatever a crawler follows showed
+    // /listings/physiotherapists even for a known-Jaipur visitor instead
+    // of the real /jaipur/physiotherapists.
+    $gridCurrentCity = $locationText ?? request('location_name') ?? session('detected_city') ?? '';
+    if (!empty($gridCurrentCity) && str_contains($gridCurrentCity, ',')) {
+        $gridCurrentCity = trim(explode(',', $gridCurrentCity)[1] ?? $gridCurrentCity);
+    }
+    $gridCitySlug = !empty($gridCurrentCity) ? \Str::slug($gridCurrentCity) : '';
+
     $fixedCategories = [
         'packers-and-movers',
         'real-estate',
@@ -3468,7 +3485,7 @@ window.SB = {
 
             <div class="col-6 col-md-3 mobile-category-item">
 
-                <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
+                <a href="{{ !empty($gridCitySlug) ? url($gridCitySlug . '/' . $categoryItem->slug) : route('listings.category', ['slug' => $categoryItem->slug]) }}"
                    class="mini-service-card dynamic-category-link"
                    data-slug="{{ $categoryItem->slug }}"
                    style="background-color: {{ $bgColor }}; display:block; height:100%;">
@@ -3537,22 +3554,8 @@ window.SB = {
 <section class="custom-right category-area py-5">
     <div class="container-fildu">
 
-        @php
-            // Render the city-prefixed URL straight away when we already know
-            // the visitor's city server-side, instead of always pointing at
-            // the generic /listings/{slug} redirector. That redirector still
-            // gets the visitor to the right place (dynamic-category-link's
-            // click handler upgrades it further, and the route itself falls
-            // back to a default city), but the hover/status-bar URL and any
-            // link a crawler follows showed /listings/physiotherapists even
-            // for a Jaipur visitor instead of /jaipur/physiotherapists.
-            $gridCurrentCity = $locationText ?? request('location_name') ?? session('detected_city') ?? '';
-            if (!empty($gridCurrentCity) && str_contains($gridCurrentCity, ',')) {
-                $gridCurrentCity = trim(explode(',', $gridCurrentCity)[1] ?? $gridCurrentCity);
-            }
-            $gridCitySlug = !empty($gridCurrentCity) ? \Str::slug($gridCurrentCity) : '';
-        @endphp
-
+        {{-- $gridCitySlug computed once, near the top of the page (see the
+             @php block above the "fixed categories" section). --}}
         <div class="category-grid mt-4">
 
             @foreach($categoryItems as $index => $categoryItem)
@@ -3877,7 +3880,7 @@ window.SB = {
              can build a city-prefixed URL. With location denied/unset — or
              with JS off entirely — the browser follows this link and
              listings.category redirects to the visitor's city. --}}
-        <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
+        <a href="{{ !empty($gridCitySlug) ? url($gridCitySlug . '/' . $categoryItem->slug) : route('listings.category', ['slug' => $categoryItem->slug]) }}"
    class="popup-item dynamic-category-link"
    data-slug="{{ $categoryItem->slug }}">
 
@@ -3928,7 +3931,7 @@ window.SB = {
         $usedCategoryIds[] = $category->id;
     @endphp
                                     <div class="subcategory-col text_center mt-10">
-                                    <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                                    <a href="{{ !empty($gridCitySlug) ? url($gridCitySlug . '/' . $category->slug) : route('listings.category', ['slug' => $category->slug]) }}"
    class="mini-service-card dynamic-category-link"
    data-slug="{{ $category->slug }}">
 
@@ -3985,7 +3988,7 @@ window.SB = {
                              data-category-id="{{ $category->id }}"
                              data-category-name="{{ strtolower($category->name) }}">
 
-                            <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                            <a href="{{ !empty($gridCitySlug) ? url($gridCitySlug . '/' . $category->slug) : route('listings.category', ['slug' => $category->slug]) }}"
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
@@ -4097,7 +4100,7 @@ window.SB = {
 
                     <div class="trend-card-item">
 
-                        <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                        <a href="{{ !empty($gridCitySlug) ? url($gridCitySlug . '/' . $category->slug) : route('listings.category', ['slug' => $category->slug]) }}"
                            class="trend-card-link dynamic-category-link"
                            data-slug="{{ $category->slug }}">
 
@@ -4171,7 +4174,7 @@ window.SB = {
 
                         <div class="trend-card-item">
 
-                            <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                            <a href="{{ !empty($gridCitySlug) ? url($gridCitySlug . '/' . $category->slug) : route('listings.category', ['slug' => $category->slug]) }}"
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
