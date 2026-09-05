@@ -69,7 +69,7 @@ class SitemapApiController extends Controller
                 'id' => $listing->id,
                 'name' => $listing->name,
                 'slug' => $listing->slug,
-                'url' => url($city->slug . '/' . $category->slug . '/' . $listing->slug),
+                'url' => url('/listings/' . $category->slug . '/' . $listing->slug),
             ]),
         ]);
     }
