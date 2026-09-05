@@ -28,6 +28,40 @@ function menuActive($routename)
 }
 
 /**
+ * Normalise a page/listing SEO title so the brand is consistent and never the
+ * part Google truncates.
+ *
+ * Listing meta_titles are admin-authored and carry the brand in three
+ * spellings ("Service Bazzar", "Services Bazzar", "ServiceBazzar"), often
+ * pushing the title past ~60 chars so Google cuts the brand off anyway. This
+ * strips whatever brand tail is present and re-appends the ONE canonical brand
+ * only when it still fits within $max; otherwise the title keeps the business
+ * name + keywords and drops the brand (which was getting truncated regardless).
+ * It never hard-cuts mid-phrase — an over-long core is left for Google to
+ * truncate cleanly in the SERP.
+ */
+function normalizeSeoTitle(?string $title, ?string $brand = null, int $max = 60): string
+{
+    $brand = $brand ?: 'ServiceBazzar';
+    $title = trim(preg_replace('/\s+/', ' ', (string) $title));
+    if ($title === '') {
+        return $brand;
+    }
+
+    // Drop a trailing brand tail in any spelling, with or without a separator
+    // ("... | Service Bazzar", "... - services bazzar", "...ServiceBazzar").
+    $core = preg_replace('/[\s|·\-–—,]*services?\s*bazzar\s*$/i', '', $title);
+    $core = trim(rtrim($core, " \t|·-–—,;:."));
+    if ($core === '') {
+        $core = $title; // title was only the brand — keep it
+    }
+
+    $withBrand = $core . ' | ' . $brand;
+
+    return mb_strlen($withBrand) <= $max ? $withBrand : $core;
+}
+
+/**
  * Does a lander's name reference a city OTHER than the one in its URL?
  *
  * The catalogue holds location-keyword entries like "PG with laundry service
