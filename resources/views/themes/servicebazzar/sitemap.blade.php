@@ -34,7 +34,14 @@
     <div id="step-categories" class="row" style="display: none; margin-top: 30px;">
         <div class="col-12">
             <button type="button" onclick="resetSteps()" style="padding: 6px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 3px; cursor: pointer; color: #333; font-size: 13px; margin-bottom: 20px;">← Change City</button>
-            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #333;">Services in <span id="selected-city-name" style="color: #0d6efd; font-weight: 700;"></span></h2>
+            <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 15px; color: #333;">Services in <span id="selected-city-name" style="color: #0d6efd; font-weight: 700;"></span></h2>
+
+            <!-- Category Search -->
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="category-search" placeholder="Search services..."
+                    style="width: 100%; max-width: 400px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+            </div>
+
             <div id="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;">
             </div>
         </div>
@@ -143,12 +150,16 @@
                     return;
                 }
 
+                // Store all categories for search functionality
+                window.allCategories = data.categories;
+
                 data.categories.forEach(cat => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     btn.className = 'category-btn';
                     btn.dataset.categorySlug = cat.slug;
                     btn.dataset.categoryName = cat.name;
+                    btn.dataset.searchText = cat.name.toLowerCase();
                     btn.style.cssText = 'padding: 10px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #333; font-size: 14px; font-weight: 500; transition: all 0.2s; text-align: center;';
                     btn.textContent = cat.name;
 
@@ -166,11 +177,48 @@
 
                     grid.appendChild(btn);
                 });
+
+                // Setup search filter
+                const searchBox = document.getElementById('category-search');
+                searchBox.value = '';
+                searchBox.addEventListener('input', function() {
+                    filterCategories(this.value.toLowerCase());
+                });
             })
             .catch(err => {
                 console.error('Error loading categories:', err);
                 document.getElementById('categories-grid').innerHTML = '<p style="color: red;">Error loading categories</p>';
             });
+    }
+
+    function filterCategories(searchText) {
+        const buttons = document.querySelectorAll('.category-btn');
+        let visibleCount = 0;
+
+        buttons.forEach(btn => {
+            const categoryName = btn.dataset.searchText;
+            if (categoryName.includes(searchText)) {
+                btn.style.display = 'block';
+                visibleCount++;
+            } else {
+                btn.style.display = 'none';
+            }
+        });
+
+        // Show "no results" message if nothing matches
+        if (visibleCount === 0 && searchText.length > 0) {
+            const grid = document.getElementById('categories-grid');
+            if (!grid.querySelector('.no-results')) {
+                const msg = document.createElement('p');
+                msg.className = 'no-results';
+                msg.style.cssText = 'color: #666; padding: 20px; grid-column: 1 / -1;';
+                msg.textContent = 'No services found matching "' + searchText + '"';
+                grid.appendChild(msg);
+            }
+        } else {
+            const noResults = document.querySelector('.no-results');
+            if (noResults) noResults.remove();
+        }
     }
 
     function loadListings(citySlug, categorySlug) {
