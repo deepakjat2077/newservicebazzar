@@ -58,15 +58,11 @@
         if (!empty($schemaService['areaServed']))  {
             $service['areaServed'] = ['@type' => 'City', 'name' => $schemaService['areaServed']];
         }
-        if (!empty($schemaService['aggregate']['reviewCount']) && !empty($schemaService['aggregate']['ratingValue'])) {
-            $service['aggregateRating'] = [
-                '@type'       => 'AggregateRating',
-                'ratingValue' => round((float) $schemaService['aggregate']['ratingValue'], 1),
-                'reviewCount' => (int) $schemaService['aggregate']['reviewCount'],
-                'bestRating'  => 5,
-                'worstRating' => 1,
-            ];
-        }
+        // Note: aggregateRating deliberately NOT added here — Google's review-
+        // snippet rich results only support aggregateRating on certain parent
+        // types (LocalBusiness, Product, Organization, ...), not on Service.
+        // GSC flagged it as "Invalid object type for field <parent_node>" on
+        // /jaipur/real-estate. The LocalBusiness schema below still carries it.
         $emit($service);
     @endphp
 @endif
