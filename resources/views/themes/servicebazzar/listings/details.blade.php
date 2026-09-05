@@ -3630,7 +3630,15 @@
     @endif
 
     @if(!empty($listing->whatsapp_numbers[0]))
-    <a href="https://wa.me/91{{ $listing->whatsapp_numbers[0] ?? '' }}"
+    @php
+        // Pre-fill message for WhatsApp so user doesn't have to type
+        // and business owner knows lead came from ServiceBazzar
+        $categoryName = $listing->category?->name ?? 'services';
+        $businessName = $listing->name ?? 'your business';
+        $message = "Hi, I found you on ServiceBazzar. I'm interested in your {$categoryName}. Please tell me more.";
+        $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
+    @endphp
+    <a href="{{ $whatsappUrl }}"
     target="_blank"
     class="listing-btn btn-whatsapp-main track-click"
     data-track="whatsapp_click"
@@ -3761,7 +3769,12 @@
                                 @endif
 
                                 @if(!empty($listing->whatsapp_numbers[0]))
-                                    <a href="https://wa.me/91{{ $listing->whatsapp_numbers[0] ?? '' }}"
+                                    @php
+                                        $categoryName = $listing->category?->name ?? 'services';
+                                        $message = "Hi, I found you on ServiceBazzar. I'm interested in your {$categoryName}. Please tell me more.";
+                                        $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
+                                    @endphp
+                                    <a href="{{ $whatsappUrl }}"
                                        target="_blank"
                                        class="mqa-btn mqa-whatsapp track-click"
                                        data-track="whatsapp_click"
@@ -4827,7 +4840,12 @@
     </a>
     @endif
     @if(!empty($listing->whatsapp_numbers[0]))
-        <a href="https://wa.me/91{{ $listing->whatsapp_numbers[0] ?? '' }}"
+        @php
+            $categoryName = $listing->category?->name ?? 'services';
+            $message = "Hi, I found you on ServiceBazzar. I'm interested in your {$categoryName}. Please tell me more.";
+            $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
+        @endphp
+        <a href="{{ $whatsappUrl }}"
         target="_blank"
         class="listing-btn btn-whatsapp-main track-click"
         data-track="whatsapp_click"
