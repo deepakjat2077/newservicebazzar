@@ -42,9 +42,15 @@
 
 {{-- The whole catalogue is India-facing, English content. Both point at the
      same URL: hreflang tells Google this page targets English speakers in
-     India, and x-default keeps it the fallback for every other locale. --}}
+     India, and x-default keeps it the fallback for every other locale.
+
+     Only on indexable pages: a noindex page must not carry hreflang (its
+     self-referencing return link would point at a noindex URL, which breaks
+     the hreflang set — Screaming Frog's "Noindex Return Links" issue). --}}
+@if(!Str::contains(strtolower($seoRobots), 'noindex'))
 <link rel="alternate" hreflang="en-in" href="{{ $seoUrl }}">
 <link rel="alternate" hreflang="x-default" href="{{ $seoUrl }}">
+@endif
 <meta name="google-site-verification" content="B178KugYDqjU7Y2Y6oIbKdwZa2vWRc_aJj5vmyjxmRE" />
 <link rel="shortcut icon" 
       href="{{ asset('assets/images/logo/favicon_new.png') }}" 
