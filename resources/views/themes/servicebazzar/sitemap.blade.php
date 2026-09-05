@@ -41,21 +41,11 @@
         </div>
     </div>
 
-    <!-- Step 3: Subcategories Selection (Hidden Initially) -->
-    <div id="step-subcategories" class="row" style="display: none;">
+    <!-- Step 3: Listings (Hidden Initially) -->
+    <div id="step-listings" class="row" style="display: none;">
         <div class="col-12 mb-4">
             <button type="button" onclick="backToCategories()" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; color: #111; margin-bottom: 15px;">← Back to Categories</button>
             <h3 style="font-weight: 600; margin-bottom: 20px; color: #111;"><span id="selected-category-name" style="color: #0d6efd;"></span> in <span id="selected-city-name-2" style="color: #0d6efd;"></span></h3>
-            <div id="subcategories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
-            </div>
-        </div>
-    </div>
-
-    <!-- Step 4: Listings (Hidden Initially) -->
-    <div id="step-listings" class="row" style="display: none;">
-        <div class="col-12 mb-4">
-            <button type="button" onclick="backToSubcategories()" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; color: #111; margin-bottom: 15px;">← Back</button>
-            <h3 style="font-weight: 600; margin-bottom: 20px; color: #111;">Businesses in <span id="selected-location" style="color: #0d6efd;"></span></h3>
             <div id="listings-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
             </div>
         </div>
@@ -118,8 +108,6 @@
     let selectedCityName = null;
     let selectedCategory = null;
     let selectedCategoryName = null;
-    let selectedSubcategory = null;
-    let selectedSubcategoryName = null;
 
     // City selection
     document.querySelectorAll('.city-btn').forEach(btn => {
@@ -127,10 +115,9 @@
             selectedCity = this.dataset.citySlug;
             selectedCityName = this.dataset.cityName;
 
-            // Show categories and hide other steps
+            // Show categories
             document.getElementById('step-cities').style.display = 'none';
             document.getElementById('step-categories').style.display = 'block';
-            document.getElementById('step-subcategories').style.display = 'none';
             document.getElementById('step-listings').style.display = 'none';
 
             document.getElementById('selected-city-name').textContent = selectedCityName;
@@ -162,11 +149,11 @@
                         selectedCategoryName = this.dataset.categoryName;
 
                         document.getElementById('step-categories').style.display = 'none';
-                        document.getElementById('step-subcategories').style.display = 'block';
+                        document.getElementById('step-listings').style.display = 'block';
                         document.getElementById('selected-category-name').textContent = selectedCategoryName;
                         document.getElementById('selected-city-name-2').textContent = selectedCityName;
 
-                        loadSubcategories(selectedCity, selectedCategory, selectedCategoryName);
+                        loadListings(selectedCity, selectedCategory);
                     });
 
                     grid.appendChild(btn);
@@ -175,72 +162,44 @@
             .catch(err => console.error('Error loading categories:', err));
     }
 
-    function loadSubcategories(citySlug, categorySlug, categoryName) {
-        fetch(`/api/city/${citySlug}/category/${categorySlug}/subcategories`)
-            .then(r => r.json())
-            .then(data => {
-                const grid = document.getElementById('subcategories-grid');
-                grid.innerHTML = '';
-
-                data.subcategories.forEach(subcat => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'subcategory-btn';
-                    btn.dataset.subcategorySlug = subcat.slug;
-                    btn.dataset.subcategoryName = subcat.name;
-                    btn.style.cssText = 'padding: 12px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; color: #111; font-weight: 500; transition: all 0.2s;';
-                    btn.textContent = subcat.name;
-
-                    btn.addEventListener('click', function() {
-                        selectedSubcategory = this.dataset.subcategorySlug;
-                        selectedSubcategoryName = this.dataset.subcategoryName;
-
-                        document.getElementById('step-subcategories').style.display = 'none';
-                        document.getElementById('step-listings').style.display = 'block';
-                        document.getElementById('selected-location').textContent = selectedSubcategoryName + ' in ' + selectedCityName;
-
-                        loadListings(selectedCity, selectedCategory, selectedSubcategory);
-                    });
-
-                    grid.appendChild(btn);
-                });
-            })
-            .catch(err => console.error('Error loading subcategories:', err));
-    }
-
-    function loadListings(citySlug, categorySlug, subcategorySlug) {
-        fetch(`/${citySlug}/${categorySlug}?subcategory=${subcategorySlug}&ajax=1`)
+    function loadListings(citySlug, categorySlug) {
+        // Fetch listings from the actual listings page
+        const url = `/${citySlug}/${categorySlug}`;
+        fetch(url)
             .then(r => r.text())
             .then(html => {
                 const container = document.getElementById('listings-container');
-                container.innerHTML = html;
+                // Extract the listings HTML from the page
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const listingsSection = doc.querySelector('[data-listings]') || doc.querySelector('.listings-grid') || doc.querySelector('.all-listings');
+
+                if (listingsSection) {
+                    container.innerHTML = listingsSection.innerHTML;
+                } else {
+                    container.innerHTML = '<p style="color: #666; padding: 20px;">No listings found for this category in ' + selectedCityName + '.</p>';
+                }
             })
-            .catch(err => console.error('Error loading listings:', err));
+            .catch(err => {
+                console.error('Error loading listings:', err);
+                document.getElementById('listings-container').innerHTML = '<p style="color: #666; padding: 20px;">No listings found for this category in ' + selectedCityName + '.</p>';
+            });
     }
 
     function resetSteps() {
         selectedCity = null;
         selectedCategory = null;
-        selectedSubcategory = null;
 
         document.getElementById('step-cities').style.display = 'block';
         document.getElementById('step-categories').style.display = 'none';
-        document.getElementById('step-subcategories').style.display = 'none';
         document.getElementById('step-listings').style.display = 'none';
     }
 
     function backToCategories() {
-        selectedSubcategory = null;
-
-        document.getElementById('step-subcategories').style.display = 'none';
-        document.getElementById('step-categories').style.display = 'block';
-    }
-
-    function backToSubcategories() {
-        selectedSubcategory = null;
+        selectedCategory = null;
 
         document.getElementById('step-listings').style.display = 'none';
-        document.getElementById('step-subcategories').style.display = 'block';
+        document.getElementById('step-categories').style.display = 'block';
     }
 </script>
 

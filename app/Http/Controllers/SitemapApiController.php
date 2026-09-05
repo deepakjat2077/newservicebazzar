@@ -40,9 +40,9 @@ class SitemapApiController extends Controller
     }
 
     /**
-     * Get all subcategories for a category in a specific city
+     * Get listing count for a category in a specific city
      */
-    public function categorySubcategories($citySlug, $categorySlug)
+    public function categoryListingsCount($citySlug, $categorySlug)
     {
         $city = Location::where('slug', $citySlug)->where('status', 1)->first();
         $category = Category::where('slug', $categorySlug)->where('status', 1)->first();
@@ -51,25 +51,14 @@ class SitemapApiController extends Controller
             return response()->json(['error' => 'City or Category not found'], 404);
         }
 
-        // Get subcategories that have listings in this city for this category
-        $subcategories = $category->children()
-            ->where('status', 1)
-            ->whereHas('listings', function ($query) use ($city) {
-                $query->where('location_id', $city->id)
-                    ->where('status', 1);
-            })
-            ->orderBy('name')
-            ->select('id', 'name', 'slug', 'parent_id')
-            ->get();
+        $listingsCount = $category->listings()
+            ->where('location_id', $city->id)
+            ->count();
 
         return response()->json([
             'city' => $city->name,
             'category' => $category->name,
-            'subcategories' => $subcategories->map(fn($subcat) => [
-                'id' => $subcat->id,
-                'name' => $subcat->name,
-                'slug' => $subcat->slug,
-            ]),
+            'listingsCount' => $listingsCount,
         ]);
     }
 }
