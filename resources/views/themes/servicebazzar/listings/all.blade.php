@@ -479,9 +479,9 @@ a {
 
     </div>
 
-    <h2 class="listing-main-title">
+    <div class="listing-main-title">
         Popular {{ $categoryText }}{{ !empty($locationText) ? ' in ' . $locationText : '' }}
-    </h2>
+    </div>
 
 </div>
 
@@ -549,6 +549,48 @@ a {
             line-height: 1.3;
         }
 
+        /* Semantic replacements for styling-only headings */
+        .filter-sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+            margin-top: 16px;
+            margin-bottom: 0;
+            line-height: 1.4;
+        }
+
+        .enquiry-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .related-search-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #111;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .category-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+            margin: 0;
+            line-height: 1.4;
+        }
+
         @media (max-width: 767px) {
             .listing-top-info {
                 padding: 10px 10px 0;
@@ -562,7 +604,15 @@ a {
 
             .listing-main-title {
                 font-size: 18px;
-               
+
+            }
+
+            .enquiry-title {
+                font-size: 16px;
+            }
+
+            .related-search-title {
+                font-size: 18px;
             }
         }
 
@@ -799,7 +849,7 @@ a {
 
     <div class="filter-sidebar" id="sidebar">
         <div class="sidebar-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">MORE FILTERS</h5>
+            <div class="filter-sidebar-title">MORE FILTERS</div>
             <button type="button" class="close-sidebar-btn" onclick="closeSidebar()">
                 <i class="las la-times"></i>
             </button>
@@ -814,7 +864,7 @@ a {
             it from following/indexing these links at the source, across
             every city/category page that renders this sidebar.
         --}}
-        <h6 class="mt-4">Sort By</h6>
+        <div class="filter-label">Sort By</div>
         <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('sort') == 'rating' ? 'active' : '' }}">
             Rating
@@ -831,7 +881,7 @@ a {
             Distance
         </a>
 
-        <h6 class="mt-4">Ratings</h6>
+        <div class="filter-label">Ratings</div>
 
         @for($i = 1; $i <= 5; $i++)
             <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $i])) }}"
@@ -840,7 +890,7 @@ a {
             </a>
         @endfor
 
-        <h6 class="mt-4">More Filters</h6>
+        <div class="filter-label">More Filters</div>
 
         {{-- <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'top_rated'])) }}"
             class="filter-chip d-inline-block mb-2 {{ request('filter') == 'top_rated' ? 'active' : '' }}">
@@ -1010,10 +1060,10 @@ a {
 
                         {{-- ORIGINAL ENQUIRY FORM --}}
                         <div class="enquiry-card mt-3 sticky-enquiry" id="mainEnquiryForm">
-                            <h6 class="enquiry-title">
+                            <div class="enquiry-title">
                                 Get the List of
                                 <span>{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}</span>
-                            </h6>
+                            </div>
 
                             <p class="enquiry-subtitle">
                                 We'll send you contact details in seconds for free
@@ -1088,7 +1138,7 @@ a {
                         @endphp
                         {{-- TRIGGER SECTION --}}
                         <div class="related-search-card mt-3" id="relatedSearchTrigger">
-                            <h6 class="related-search-title">People Also Search For</h6>
+                            <div class="related-search-title">People Also Search For</div>
 
                             @foreach($relatedCategories as $category)
                                                 <div class="related-search-item">
@@ -1098,7 +1148,7 @@ a {
                                                     </div>
 
                                                     <div class="related-search-content">
-                                                        <h6>{{ $category->name }}</h6>
+                                                        <div class="category-label">{{ $category->name }}</div>
                                                         <p>{{ $category->listings_count }}+ listings</p>
 
                                                         <a href="{{ !empty($currentLocationName)
@@ -1117,10 +1167,10 @@ a {
                 {{-- STICKY FLOATING ENQUIRY FORM --}}
                 <div class="sticky-floating-form" id="stickyFloatingForm">
                     <div class="enquiry-card">
-                        <h6 class="enquiry-title">
+                        <div class="enquiry-title">
                             Get the List of
                             <span>{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}</span>
-                        </h6>
+                        </div>
 
                         <p class="enquiry-subtitle">
                             We'll send you contact details in seconds for free
