@@ -42,76 +42,74 @@ class SitemapApiController extends Controller
     }
 
     /**
-     * Get ALL city-category-subcategory combinations from JSON subcategory_ids
+     * Get ALL city-subcategory combinations from the subcategories table.
+     *
+     * Subcategories live in their own `subcategories` table (each has a
+     * parent category_id). A listing links to them through its JSON
+     * `subcategory_ids` column, and each subcategory has its own page at
+     * /listings/subcategory/{slug}. We walk every live listing, expand its
+     * subcategory_ids, and pair each real subcategory with the listing's
+     * city — so the directory shows genuine "Parent Category > Subcategory
+     * in City" rows, not sibling categories mislabelled as subcategories.
      */
     public function subcategoryCombinations()
     {
-        // Fetch all listings with subcategory_ids as JSON
+        // Preload every live subcategory keyed by id, with its parent
+        // category name — one query instead of one per listing.
+        $subcategories = \DB::table('subcategories')
+            ->join('categories', 'subcategories.category_id', '=', 'categories.id')
+            ->where('subcategories.status', 1)
+            ->where('categories.status', 1)
+            ->select('subcategories.id', 'subcategories.name', 'subcategories.slug',
+                     'categories.name as category_name', 'categories.slug as category_slug')
+            ->get()
+            ->keyBy('id');
+
+        // Fetch all live listings that carry subcategory_ids, with their city.
         $listings = \DB::table('listings')
             ->join('locations', 'listings.location_id', '=', 'locations.id')
-            ->join('categories', 'listings.category_id', '=', 'categories.id')
             ->where('listings.status', 1)
             ->where('locations.status', 1)
-            ->where('categories.status', 1)
             ->whereNotNull('listings.subcategory_ids')
-            ->select('locations.id as location_id', 'locations.slug as city_slug', 'locations.name as city_name',
-                     'categories.id as category_id', 'categories.slug as category_slug', 'categories.name as category_name',
+            ->select('locations.slug as city_slug', 'locations.name as city_name',
                      'listings.subcategory_ids')
             ->get();
 
-        // Parse JSON and build combinations
-        $combinations = collect();
+        // Build city + subcategory combinations, deduped by a composite key.
+        $seen = [];
+        $combinations = [];
         foreach ($listings as $listing) {
-            if (!$listing->subcategory_ids) continue;
-
             $subcategoryIds = json_decode($listing->subcategory_ids, true);
             if (!is_array($subcategoryIds)) continue;
 
-            // Get subcategory details
-            $subcategories = \DB::table('categories')
-                ->whereIn('id', $subcategoryIds)
-                ->where('status', 1)
-                ->select('id', 'name', 'slug')
-                ->get();
+            foreach ($subcategoryIds as $subId) {
+                // subcategory_ids stores ids as strings; normalise to int.
+                $sub = $subcategories->get((int) $subId);
+                if (!$sub) continue;
 
-            foreach ($subcategories as $subcat) {
-                $combinations->push((object)[
+                $key = $listing->city_slug . '|' . $sub->slug;
+                if (isset($seen[$key])) continue;
+                $seen[$key] = true;
+
+                $combinations[] = [
                     'city_name' => $listing->city_name,
                     'city_slug' => $listing->city_slug,
-                    'category_name' => $listing->category_name,
-                    'category_slug' => $listing->category_slug,
-                    'subcategory_name' => $subcat->name,
-                    'subcategory_slug' => $subcat->slug,
-                ]);
+                    'category_name' => $sub->category_name,
+                    'category_slug' => $sub->category_slug,
+                    'subcategory_name' => $sub->name,
+                    'subcategory_slug' => $sub->slug,
+                    'url' => url('/listings/subcategory/' . $sub->slug),
+                ];
             }
         }
 
-        // Remove duplicates and sort alphabetically
-        $unique = $combinations->unique(function($item) {
-            return $item->city_slug . '|' . $item->category_slug . '|' . $item->subcategory_slug;
-        })->values();
+        // Sort alphabetically: City -> Parent Category -> Subcategory.
+        usort($combinations, function ($a, $b) {
+            return [$a['city_name'], $a['category_name'], $a['subcategory_name']]
+                <=> [$b['city_name'], $b['category_name'], $b['subcategory_name']];
+        });
 
-        $sorted = $unique->sort(function($a, $b) {
-            if ($a->city_name !== $b->city_name) {
-                return strcmp($a->city_name, $b->city_name);
-            }
-            if ($a->category_name !== $b->category_name) {
-                return strcmp($a->category_name, $b->category_name);
-            }
-            return strcmp($a->subcategory_name, $b->subcategory_name);
-        })->values();
-
-        return response()->json([
-            'combinations' => $sorted->map(fn($combo) => [
-                'city_name' => $combo->city_name,
-                'city_slug' => $combo->city_slug,
-                'category_name' => $combo->category_name,
-                'category_slug' => $combo->category_slug,
-                'subcategory_name' => $combo->subcategory_name,
-                'subcategory_slug' => $combo->subcategory_slug,
-                'url' => url('/listings/' . $combo->category_slug . '/' . $combo->subcategory_slug),
-            ]),
-        ]);
+        return response()->json(['combinations' => $combinations]);
     }
 
     /**
