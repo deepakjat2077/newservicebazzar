@@ -42,6 +42,47 @@ class SitemapApiController extends Controller
     }
 
     /**
+     * Get ALL city-category-subcategory combinations sorted alphabetically
+     */
+    public function subcategoryCombinations()
+    {
+        // Get listings with category and subcategory data
+        $combinations = \DB::table('listings')
+            ->join('locations', 'listings.location_id', '=', 'locations.id')
+            ->join('categories', 'listings.category_id', '=', 'categories.id')
+            ->leftJoin('categories as subcategories', function($join) {
+                $join->on('listings.sub_category_id', '=', 'subcategories.id')
+                     ->where('subcategories.status', 1);
+            })
+            ->where('listings.status', 1)
+            ->where('locations.status', 1)
+            ->where('categories.status', 1)
+            ->whereNotNull('listings.sub_category_id')  // Only listings WITH subcategories
+            ->select('locations.slug as city_slug', 'locations.name as city_name',
+                     'categories.slug as category_slug', 'categories.name as category_name',
+                     'subcategories.slug as subcategory_slug', 'subcategories.name as subcategory_name',
+                     \DB::raw('COUNT(*) as count'))
+            ->groupBy('locations.id', 'categories.id', 'subcategories.id')
+            ->orderBy('locations.name')      // Sort by city name alphabetically
+            ->orderBy('categories.name')     // Then by category name alphabetically
+            ->orderBy('subcategories.name')  // Then by subcategory name alphabetically
+            ->get();
+
+        return response()->json([
+            'combinations' => $combinations->map(fn($combo) => [
+                'city_name' => $combo->city_name,
+                'city_slug' => $combo->city_slug,
+                'category_name' => $combo->category_name,
+                'category_slug' => $combo->category_slug,
+                'subcategory_name' => $combo->subcategory_name,
+                'subcategory_slug' => $combo->subcategory_slug,
+                'count' => $combo->count,
+                'url' => url('/listings/' . $combo->category_slug . '/' . $combo->subcategory_slug),
+            ]),
+        ]);
+    }
+
+    /**
      * Get all categories available in a specific city
      */
     public function cityCategories($slug)
