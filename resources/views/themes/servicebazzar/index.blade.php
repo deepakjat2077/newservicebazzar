@@ -6,7 +6,7 @@
     $ogDescription = 'Discover and connect with verified local businesses across India — services, healthcare, repairs, restaurants and professionals. Compare ratings and prices, then contact them directly. Free to use.';
 @endphp
 @section('content')
-@section('title','Find Businesses Near You')
+@section('title','Find Local Businesses & Trusted Services Near You - India')
 @include($themeView.'includes.rich-content')
 <!-- Banner Section -->
 @php
