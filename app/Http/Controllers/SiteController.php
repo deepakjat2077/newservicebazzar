@@ -555,9 +555,11 @@ public function getPopularCategories()
         // canonicalizes back to page 1.
         //
         // Page 1 is the exception: its canonical/hreflang must be the clean
-        // /blogs URL, not /blogs?page=1 — the ?page= variant is disallowed in
-        // robots.txt and isn't the URL crawlers land on, which made the
-        // canonical and the self-referencing hreflang disagree.
+        // /blogs URL, not /blogs?page=1 — that's not the URL crawlers land
+        // on for page 1, which made the canonical and the self-referencing
+        // hreflang disagree. (robots.txt no longer disallows ?page= at all —
+        // it used to, which blocked Google from ever reaching this
+        // self-referencing canonical on page 2+.)
         $blogPage = $data['blogs']->currentPage();
         $data['seoUrl'] = $blogPage > 1
             ? request()->fullUrlWithQuery(['page' => $blogPage])

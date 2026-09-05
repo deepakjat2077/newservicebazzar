@@ -1,14 +1,15 @@
 User-agent: *
 Disallow: /dashboard
-Disallow: /my-profile
-Disallow: /messages
-Disallow: /login
-Disallow: /register
 Disallow: /admin
-Disallow: /user
-Disallow: /profile
 Disallow: /dev
 Disallow: /tmp
+
+# /user/ is mostly login/register/dashboard/account pages, but
+# /user/profile/{username} is a real public, indexable page (a reviewer's
+# profile) — Allow it explicitly since it sits under the same prefix.
+# The bare "Disallow: /user" this replaced blocked that page outright.
+Allow: /user/profile/
+Disallow: /user/
 
 # Search-result pages are query-driven and hold no unique content of their
 # own — every result already lives on a canonical city/category page.
@@ -30,10 +31,15 @@ Disallow: /category-suggestions
 # the canonical tag on each already points back at the plain URL. Left
 # crawlable they multiply every city/category page by every sort and filter
 # combination, which is crawl budget spent to re-read pages already indexed.
+#
+# ?page= is deliberately NOT in this list: /blogs?page=2 and paginated
+# listings pages carry a self-referencing canonical (see SiteController's
+# blogs() and its listings pagination) — the code treats them as real,
+# distinct, indexable pages. Blocking the crawl here made that canonical
+# unreachable, so Google could never index page 2+ of anything paginated.
 Disallow: /*?sort=
 Disallow: /*?filter=
 Disallow: /*?rating=
-Disallow: /*?page=
 Disallow: /*?order=
 Disallow: /*?location_id=
 
