@@ -117,16 +117,21 @@
                 </div>
             @endforelse
 
-            {{-- Pagination --}}
-            @if($blogs->hasPages())
+        </div>
+
+        {{-- Pagination: kept out of the ".row.mb__30" card grid above —
+             that row's negative margin-bottom (gutter compensation for the
+             card columns' own mb-4) was pulling the pagination up into the
+             SEO outro paragraph below it. --}}
+        @if($blogs->hasPages())
+            <div class="row">
                 <div class="col-12 mt-3">
                     <div class="blog-pagination">
                         {{ $blogs->links() }}
                     </div>
                 </div>
-            @endif
-
-        </div>
+            </div>
+        @endif
 
         {{-- SEO Outro Section: the rest of the intro copy that used to sit
              above the blog cards — moved here (still page-1-only, same

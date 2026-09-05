@@ -9,7 +9,7 @@
             <div class="row justify-content-center">
                 <div class="col-xl-8 col-lg-8 text-center">
                     <div class="section-title">
-                        <h4>{{ __($faq_section?->content?->title) }}</h4>
+                        <h2 class="h4">{{ __($faq_section?->content?->title) }}</h2>
                         <p>{{ __($faq_section?->content?->sub_title) }}</p>
                     </div>
                 </div>

@@ -236,9 +236,9 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <h3 class="related-title mb-4">
+                <h2 class="related-title mb-4">
                     Related Services & Categories
-                </h3>
+                </h2>
 
                 <div class="related-links">
                     <p class="text-muted mb-3">
