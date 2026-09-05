@@ -889,8 +889,6 @@
                                         @if(($listing->verified ?? 0) == 1)
                                             <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
                                         @endif
-                                    @else
-                                        <span style="visibility:hidden;">dummy</span>
                                     @endif
                                 </div>
 
@@ -1191,6 +1189,13 @@
 
 .jd-rating-wrap {
     gap: 10px;
+    /* Reserve the badge row's height even when a listing has no rating/
+       trust/verified badge to show, so cards without one don't shrink and
+       misalign with cards that have one. Used to be a hidden "dummy" text
+       node for this — an SEO audit flagged that as hidden-keyword-stuffing
+       risk (Google can see it in source even though visibility:hidden). An
+       empty div with min-height does the same job without any text. */
+    min-height: 22px;
 }
 
 .jd-rating-badge {
