@@ -3537,6 +3537,22 @@ window.SB = {
 <section class="custom-right category-area py-5">
     <div class="container-fildu">
 
+        @php
+            // Render the city-prefixed URL straight away when we already know
+            // the visitor's city server-side, instead of always pointing at
+            // the generic /listings/{slug} redirector. That redirector still
+            // gets the visitor to the right place (dynamic-category-link's
+            // click handler upgrades it further, and the route itself falls
+            // back to a default city), but the hover/status-bar URL and any
+            // link a crawler follows showed /listings/physiotherapists even
+            // for a Jaipur visitor instead of /jaipur/physiotherapists.
+            $gridCurrentCity = $locationText ?? request('location_name') ?? session('detected_city') ?? '';
+            if (!empty($gridCurrentCity) && str_contains($gridCurrentCity, ',')) {
+                $gridCurrentCity = trim(explode(',', $gridCurrentCity)[1] ?? $gridCurrentCity);
+            }
+            $gridCitySlug = !empty($gridCurrentCity) ? \Str::slug($gridCurrentCity) : '';
+        @endphp
+
         <div class="category-grid mt-4">
 
             @foreach($categoryItems as $index => $categoryItem)
@@ -3548,7 +3564,7 @@ window.SB = {
                 @endphp
 
                 <div class="category-item text-center {{ $index >= 11 ? 'hide-mobile' : '' }}">
-                    <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
+                    <a href="{{ !empty($gridCitySlug) ? url($gridCitySlug . '/' . $categoryItem->slug) : route('listings.category', ['slug' => $categoryItem->slug]) }}"
                        class="text-decoration-none text-dark dynamic-category-link"
                        data-slug="{{ $categoryItem->slug }}">
 
