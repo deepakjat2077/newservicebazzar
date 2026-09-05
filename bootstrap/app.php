@@ -123,7 +123,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Redirect trailing slashes early in the web stack (before caching)
         // so /blogs/ → /blogs with 301 for consistent URL structure.
-        $middleware->prependToGroup('web', RedirectTrailingSlash::class);
+        // Temporarily disabled while diagnosing homepage error
+        // $middleware->prependToGroup('web', RedirectTrailingSlash::class);
 
         // Laravel sorts the stack by its priority list, and ThrottleRequests
         // sits in that list while CachePublicPages does not — so the throttle
