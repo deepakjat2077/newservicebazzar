@@ -33,10 +33,6 @@ class RatingInteractionController extends Controller
         if ($like) {
             $like->delete();
 
-            if ($rating->likes_count > 0) {
-                $rating->decrement('likes_count');
-            }
-
             $liked = false;
         } else {
             RatingLike::create([
@@ -44,15 +40,17 @@ class RatingInteractionController extends Controller
                 'user_id' => auth()->id(),
             ]);
 
-            $rating->increment('likes_count');
-
             $liked = true;
         }
 
+        // The `ratings` table has no likes_count column — that used to make
+        // every like/unlike 500 (increment()/decrement() on a missing
+        // column), silently failing the button after already writing the
+        // RatingLike row. Count the real relation instead of caching it.
         return response()->json([
             'status' => true,
             'liked' => $liked,
-            'count' => $rating->fresh()->likes_count,
+            'count' => $rating->likes()->count(),
         ]);
     }
 
@@ -78,15 +76,15 @@ class RatingInteractionController extends Controller
             'comment' => $request->comment,
         ]);
 
-        $rating->increment('comments_count');
-
         $user = auth()->user();
 
+        // Same as likes above: `ratings` has no comments_count column, so
+        // increment() would 500 here. Count the real relation instead.
         return response()->json([
             'status' => true,
             'id' => $comment->id,
             'rating_id' => $rating->id,
-            'count' => $rating->fresh()->comments_count,
+            'count' => $rating->comments()->count(),
             'name' => $user->fullname ?? $user->name ?? 'User',
             'comment' => $comment->comment,
             'time' => 'Just now',
@@ -112,14 +110,10 @@ class RatingInteractionController extends Controller
 
         $comment->delete();
 
-        if ($rating && $rating->comments_count > 0) {
-            $rating->decrement('comments_count');
-        }
-
         return response()->json([
             'status' => true,
             'rating_id' => $rating ? $rating->id : null,
-            'count' => $rating ? $rating->fresh()->comments_count : 0,
+            'count' => $rating ? $rating->comments()->count() : 0,
         ]);
     }
 }

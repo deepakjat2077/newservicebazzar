@@ -5710,14 +5710,14 @@
         class="review-action-btn like-btn {{ $rating->likes()->where('user_id', auth()->id())->exists() ? 'liked' : '' }}"
         data-rating-id="{{ $rating->id }}">
             <i class="las la-thumbs-up"></i>
-            Helpful (<span class="like-count">{{ $rating->likes_count ?? 0 }}</span>)
+            Helpful (<span class="like-count">{{ $rating->likes()->count() }}</span>)
         </button>
 
         <button type="button"
                 class="review-action-btn comment-toggle-btn"
                 data-rating-id="{{ $rating->id }}">
             <i class="las la-comment"></i>
-            Comment (<span class="comment-count">{{ $rating->comments_count ?? 0 }}</span>)
+            Comment (<span class="comment-count">{{ $rating->comments()->count() }}</span>)
         </button>
 
     <button type="button"
