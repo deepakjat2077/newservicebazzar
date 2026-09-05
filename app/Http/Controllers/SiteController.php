@@ -3137,7 +3137,7 @@ public function sitemap()
 {
     $data = [];
     $data['locations'] = activeLocations();
-    $data['popularLocations'] = activeLocations()->where('is_popular', 1)->take(10);
+    $data['popularLocations'] = activeLocations()->filter(fn($loc) => $loc->is_popular == 1)->take(10);
     $data['categories'] = \App\Models\Category::where('status', 1)->orderBy('name')->get();
     $data['popularCategories'] = \App\Models\Category::where('status', 1)->orderBy('name')->limit(10)->get();
 
