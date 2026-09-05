@@ -51,7 +51,7 @@
           <div class="sbsocial-cover"></div>
           <div class="sbsocial-identity">
             <img class="sbsocial-avatar"
-                 src="{{ $user->image ? loadImage('assets/images/user/'.$user->image) : asset('assets/images/149071.png') }}"
+                 src="{{ userAvatarUrl($user->image ?? null) }}"
                  alt="{{ $user->first_name }}">
             <div class="sbsocial-idtext">
               <h1 class="sbsocial-name">{{ trim($user->first_name.' '.$user->last_name) }}</h1>
@@ -106,7 +106,7 @@
 
             <header class="sbsocial-post-head">
               <img class="sbsocial-post-avatar"
-                   src="{{ $user->image ? loadImage('assets/images/user/'.$user->image) : asset('assets/images/149071.png') }}"
+                   src="{{ userAvatarUrl($user->image ?? null) }}"
                    alt="{{ $user->first_name }}">
               <div class="sbsocial-post-meta">
                 <p class="sbsocial-post-title">

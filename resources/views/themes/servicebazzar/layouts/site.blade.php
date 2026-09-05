@@ -1355,7 +1355,7 @@ window.addEventListener('pageshow', function () {
 </button>
 @else
 <a href="{{ route('user.dashboard') }}" class="navbar-toggler profile-dashboard-link">
-    <img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->name ?? 'User profile' }}" class="profile-icon">
+    <img src="{{ userAvatarUrl(auth()->user()->image ?? null) }}" alt="{{ auth()->user()->name ?? 'User profile' }}" class="profile-icon">
 </a>
 @endguest
 
@@ -1438,7 +1438,7 @@ window.addEventListener('pageshow', function () {
 							@else
 								<li class="nav-item profile-dashboard-item">
 									<a href="{{ route('user.dashboard') }}" class="nav-link nav-btn profile-dashboard-link d-flex align-items-center gap-2" title="{{ auth()->user()->fullname() }}">
-										<img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->fullname() }}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
+										<img src="{{ userAvatarUrl(auth()->user()->image ?? null) }}" alt="{{ auth()->user()->fullname() }}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
 									</a>
 								</li>
 							@endguest
@@ -4415,7 +4415,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <div id="sbProfilePanel" class="sb-profile-panel">
     <div class="sb-profile-head">
         <a href="{{ route('user.profile.view', ['username' => Str::slug(auth()->user()->first_name . '-' . auth()->user()->last_name)]) }}" class="sb-profile-identity">
-            <img src="{{ auth()->user()->image ? loadImage('assets/images/user/'.auth()->user()->image) : asset('assets/images/149071.png') }}" alt="{{ auth()->user()->fullname() }}">
+            <img src="{{ userAvatarUrl(auth()->user()->image ?? null) }}" alt="{{ auth()->user()->fullname() }}">
             <span>
                 <strong>{{ auth()->user()->fullname() }}</strong>
                 <small>Click to view profile</small>
