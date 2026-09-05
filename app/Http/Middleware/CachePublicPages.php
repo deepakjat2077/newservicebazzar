@@ -86,7 +86,7 @@ class CachePublicPages
         'track/*', 'ajax/*', 'api/*',
         'geocode-address', 'search-locations',
         'set-location-session', 'set-category-session',
-        'sitemap.xml', 'up',
+        'sitemap.xml', 'sitemap-*', 'up',
     ];
 
     public function handle(Request $request, Closure $next)

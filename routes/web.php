@@ -793,7 +793,17 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
     */
 
     Route::get('search', 'UserController@search')->name('users.search');
+    // Sitemap index + section/city child sitemaps. sitemap.xml is the index
+    // (that's the URL robots.txt and Search Console already know); the rest
+    // are its children so coverage can be diagnosed section-by-section.
     Route::get('sitemap.xml', 'SitemapController@index')->name('sitemap');
+    Route::get('sitemap-pages.xml', 'SitemapController@pages')->name('sitemap.pages');
+    Route::get('sitemap-listings.xml', 'SitemapController@listingsSitemap')->name('sitemap.listings');
+    Route::get('sitemap-city-{city}.xml', 'SitemapController@city')
+        ->where('city', '[a-z0-9-]+')->name('sitemap.city');
+    // Common alternate index names some tools probe for — send them to the real one.
+    Route::redirect('sitemap_index.xml', '/sitemap.xml', 301);
+    Route::redirect('sitemap-index.xml', '/sitemap.xml', 301);
 
 Route::post('/set-location-session', function (Illuminate\Http\Request $request) {
         session(['selected_location' => english_location_name($request->location)]);
