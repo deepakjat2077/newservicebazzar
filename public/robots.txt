@@ -49,11 +49,32 @@ Allow: /
 # www is the canonical host (see the redirect in the root .htaccess) — the
 # non-www URL that used to be declared here 301-redirected on every fetch.
 Sitemap: https://www.servicebazzar.com/sitemap.xml
-# Block AI/LLM crawlers - protect content from unauthorized AI training
-User-agent: GPTBot
-Disallow: /
 
+# Explicitly allow AI crawlers for live user queries and social previews
 User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: FacebookExternalHit
+Allow: /
+
+# AI crawlers policy:
+# ALLOWED (live user queries & previews - not training data scraping):
+# - ChatGPT-User: When users ask ChatGPT about services
+# - PerplexityBot: When users query Perplexity for services
+# - FacebookExternalHit: CRITICAL - creates preview cards for WhatsApp/Facebook shares
+#   (blocking this breaks sharing in a major discovery channel)
+#
+# BLOCKED (training data protection):
+# - GPTBot: OpenAI's training crawler
+# - CCBot: Common Crawl training data
+# - Bytespider: ByteDance training
+# - PetalBot: Baidu training
+# - Others: General data aggregation/training
+
+User-agent: GPTBot
 Disallow: /
 
 User-agent: CCBot
@@ -63,9 +84,6 @@ User-agent: anthropic-ai
 Disallow: /
 
 User-agent: Omgili
-Disallow: /
-
-User-agent: FacebookExternalHit
 Disallow: /
 
 User-agent: Applebot-Extended
