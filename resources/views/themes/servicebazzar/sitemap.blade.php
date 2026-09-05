@@ -33,7 +33,7 @@
         <div class="col-md-3 mb-4">
             <h5 style="font-weight: 600; margin-bottom: 15px; color: #111;">Popular Cities</h5>
             <ul style="list-style: none; padding: 0;">
-                @foreach(activeLocations()->where('is_popular', 1)->take(10) as $location)
+                @foreach($popularLocations as $location)
                     <li style="margin-bottom: 10px;">
                         <a href="{{ url($location->slug) }}" style="color: #0d6efd; text-decoration: none;">{{ $location->name }}</a>
                     </li>
@@ -48,8 +48,7 @@
         <div class="col-md-3 mb-4">
             <h5 style="font-weight: 600; margin-bottom: 15px; color: #111;">Popular Services</h5>
             <ul style="list-style: none; padding: 0;">
-                @php $categories = \App\Models\Category::where('status', 1)->orderBy('name')->limit(10)->get(); @endphp
-                @foreach($categories as $category)
+                @foreach($popularCategories as $category)
                     <li style="margin-bottom: 10px;">
                         <a href="{{ cityCategoryUrl($category->slug) }}" style="color: #0d6efd; text-decoration: none;">{{ $category->name }}</a>
                     </li>
@@ -77,7 +76,7 @@
         <div class="col-12">
             <h3 id="all-cities" style="font-weight: 600; margin-bottom: 20px; color: #111;">All Cities</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
-                @foreach(activeLocations()->orderBy('name')->get() as $location)
+                @foreach($locations->sortBy('name') as $location)
                     <a href="{{ url($location->slug) }}" style="color: #0d6efd; text-decoration: none; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; text-align: center; transition: all 0.2s;">
                         {{ $location->name }}
                     </a>
@@ -91,8 +90,7 @@
         <div class="col-12">
             <h3 id="all-services" style="font-weight: 600; margin-bottom: 20px; color: #111;">All Services</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
-                @php $allCategories = \App\Models\Category::where('status', 1)->orderBy('name')->get(); @endphp
-                @foreach($allCategories as $category)
+                @foreach($categories as $category)
                     <a href="{{ cityCategoryUrl($category->slug) }}" style="color: #0d6efd; text-decoration: none; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; text-align: center; transition: all 0.2s;">
                         {{ $category->name }}
                     </a>

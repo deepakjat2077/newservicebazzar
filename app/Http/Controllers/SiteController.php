@@ -3135,7 +3135,13 @@ public function userProfile($username)
  */
 public function sitemap()
 {
-    return view($this->theme . 'sitemap');
+    $data = [];
+    $data['locations'] = activeLocations();
+    $data['popularLocations'] = activeLocations()->where('is_popular', 1)->take(10);
+    $data['categories'] = \App\Models\Category::where('status', 1)->orderBy('name')->get();
+    $data['popularCategories'] = \App\Models\Category::where('status', 1)->orderBy('name')->limit(10)->get();
+
+    return view($this->theme . 'sitemap', $data);
 }
 
 }
