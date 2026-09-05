@@ -10,6 +10,38 @@ use Illuminate\Http\Request;
 class SitemapApiController extends Controller
 {
     /**
+     * Get popular city-category combinations for homepage
+     */
+    public function popularCombinations()
+    {
+        // Get most popular city-category combinations (by listing count)
+        $combinations = \DB::table('listings')
+            ->join('locations', 'listings.location_id', '=', 'locations.id')
+            ->join('categories', 'listings.category_id', '=', 'categories.id')
+            ->where('listings.status', 1)
+            ->where('locations.status', 1)
+            ->where('categories.status', 1)
+            ->select('locations.slug as city_slug', 'locations.name as city_name',
+                     'categories.slug as category_slug', 'categories.name as category_name',
+                     \DB::raw('COUNT(*) as count'))
+            ->groupBy('locations.id', 'categories.id')
+            ->orderByDesc('count')
+            ->limit(12)
+            ->get();
+
+        return response()->json([
+            'combinations' => $combinations->map(fn($combo) => [
+                'city_name' => $combo->city_name,
+                'city_slug' => $combo->city_slug,
+                'category_name' => $combo->category_name,
+                'category_slug' => $combo->category_slug,
+                'count' => $combo->count,
+                'url' => url($combo->city_slug . '/' . $combo->category_slug),
+            ]),
+        ]);
+    }
+
+    /**
      * Get all categories available in a specific city
      */
     public function cityCategories($slug)

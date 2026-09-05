@@ -19,13 +19,20 @@
     <div id="step-cities" class="row">
         <div class="col-12">
             <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #333;">Select Your City</h2>
-            <div id="cities-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px;">
+            <div id="cities-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 40px;">
                 @foreach($locations->sortBy('name') as $location)
                     <button type="button" class="city-btn" data-city-slug="{{ $location->slug }}" data-city-name="{{ $location->name }}"
                         style="padding: 10px 12px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #333; font-size: 14px; font-weight: 500; transition: all 0.2s; text-align: center;">
                         {{ $location->name }}
                     </button>
                 @endforeach
+            </div>
+
+            <!-- Popular City-Category Combinations -->
+            <div style="border-top: 1px solid #eee; padding-top: 30px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #333;">Popular Services</h3>
+                <div id="popular-combinations" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                </div>
             </div>
         </div>
     </div>
@@ -118,6 +125,39 @@
     let selectedCityName = null;
     let selectedCategory = null;
     let selectedCategoryName = null;
+
+    // Load popular combinations on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadPopularCombinations();
+    });
+
+    function loadPopularCombinations() {
+        fetch('/api/sitemap/popular-combinations')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('popular-combinations');
+                container.innerHTML = '';
+
+                data.combinations.forEach(combo => {
+                    const link = document.createElement('a');
+                    link.href = combo.url;
+                    link.style.cssText = 'padding: 12px 15px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #333; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; display: block; text-align: center;';
+                    link.innerHTML = `<div style="color: #0d6efd; font-weight: 600; margin-bottom: 5px;">${combo.category_name}</div><div style="font-size: 12px; color: #666;">in ${combo.city_name}</div>`;
+
+                    link.onmouseover = () => {
+                        link.style.borderColor = '#0d6efd';
+                        link.style.backgroundColor = '#f0f7ff';
+                    };
+                    link.onmouseout = () => {
+                        link.style.borderColor = '#ddd';
+                        link.style.backgroundColor = 'white';
+                    };
+
+                    container.appendChild(link);
+                });
+            })
+            .catch(err => console.error('Error loading popular combinations:', err));
+    }
 
     // City selection
     document.querySelectorAll('.city-btn').forEach(btn => {

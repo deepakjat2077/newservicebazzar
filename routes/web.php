@@ -8,6 +8,7 @@ Route::get('/health', fn () => response('ok', 200))->name('health');
 Route::get('/sitemap-page', [\App\Http\Controllers\SiteController::class, 'sitemap'])->name('sitemap.page');
 
 // Sitemap API endpoints for interactive drill-down navigation
+Route::get('/api/sitemap/popular-combinations', [\App\Http\Controllers\SitemapApiController::class, 'popularCombinations']);
 Route::get('/api/city/{slug}/categories', [\App\Http\Controllers\SitemapApiController::class, 'cityCategories']);
 Route::get('/api/city/{citySlug}/category/{categorySlug}/listings', [\App\Http\Controllers\SitemapApiController::class, 'cityListings']);
 
