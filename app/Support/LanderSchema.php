@@ -105,16 +105,17 @@ class LanderSchema
 
             // Build the title, then shorten progressively so long category
             // names don't blow past Google's ~60-char limit: drop the brand,
-            // then the "N verified" prefix, then truncate as a last resort.
+            // then the "N verified" prefix. We deliberately do NOT hard-cut
+            // with an ellipsis: chopping the HTML title mid-phrase ("... in
+            // Jai…") loses keywords and the brand and reads as broken, whereas
+            // Google already truncates cleanly in the SERP on its own. A long
+            // category name simply keeps its full "{name} in {city}" title.
             $full = trim($countLabel . $inCity) . ' | ' . $siteName;
             if (mb_strlen($full) > 60) {
                 $full = trim($countLabel . $inCity);
             }
             if (mb_strlen($full) > 60) {
                 $full = $inCity;
-            }
-            if (mb_strlen($full) > 60) {
-                $full = rtrim(mb_substr($full, 0, 59)) . '…';
             }
             $data['seoTitle'] = $full;
 
