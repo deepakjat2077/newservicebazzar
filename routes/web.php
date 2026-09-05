@@ -9,6 +9,7 @@ Route::get('/sitemap-page', [\App\Http\Controllers\SiteController::class, 'sitem
 
 // Sitemap API endpoints for interactive drill-down navigation
 Route::get('/api/city/{slug}/categories', [\App\Http\Controllers\SitemapApiController::class, 'cityCategories']);
+Route::get('/api/city/{citySlug}/category/{categorySlug}/listings', [\App\Http\Controllers\SitemapApiController::class, 'cityListings']);
 
 /*
  * AI-engine-readable site map (llmstxt.org). Registered up here, ahead of the

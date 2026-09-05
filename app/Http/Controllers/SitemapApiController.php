@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Location;
+use App\Models\Listing;
 use Illuminate\Http\Request;
 
 class SitemapApiController extends Controller
@@ -40,9 +41,9 @@ class SitemapApiController extends Controller
     }
 
     /**
-     * Get listing count for a category in a specific city
+     * Get listings for a city and category (simple list format like JustDial)
      */
-    public function categoryListingsCount($citySlug, $categorySlug)
+    public function cityListings($citySlug, $categorySlug)
     {
         $city = Location::where('slug', $citySlug)->where('status', 1)->first();
         $category = Category::where('slug', $categorySlug)->where('status', 1)->first();
@@ -51,14 +52,25 @@ class SitemapApiController extends Controller
             return response()->json(['error' => 'City or Category not found'], 404);
         }
 
-        $listingsCount = $category->listings()
-            ->where('location_id', $city->id)
-            ->count();
+        // Get listings for this city and category
+        $listings = Listing::where('location_id', $city->id)
+            ->where('category_id', $category->id)
+            ->where('status', 1)
+            ->orderBy('name')
+            ->select('id', 'name', 'slug')
+            ->limit(100)
+            ->get();
 
         return response()->json([
             'city' => $city->name,
             'category' => $category->name,
-            'listingsCount' => $listingsCount,
+            'total' => count($listings),
+            'listings' => $listings->map(fn($listing) => [
+                'id' => $listing->id,
+                'name' => $listing->name,
+                'slug' => $listing->slug,
+                'url' => url($city->slug . '/' . $category->slug . '/' . $listing->slug),
+            ]),
         ]);
     }
 }
