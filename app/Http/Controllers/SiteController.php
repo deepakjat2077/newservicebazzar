@@ -151,7 +151,9 @@ if (!empty($location)) {
             ->get();
     });
 
-    $data['locations'] = activeLocations();
+    // Limit to top 20 locations for homepage to reduce page size (5.9MB → smaller)
+    // Users can still access all locations via search/picker
+    $data['locations'] = activeLocations()->take(20);
 
     /*
      * category / location are read inside the featured slider loop, and the
@@ -241,7 +243,9 @@ $data['commonLocation'] = $commonLocation;
 $currentLocation = $this->resolvePopularCategoriesLocation();
 
 $data['popularCategoriesLocation'] = $currentLocation;
-$data['popularCategories'] = $this->buildPopularCategoriesQuery($currentLocation);
+// Limit to top 20 popular categories for homepage performance
+// Reduces HTML bloat without affecting UX (scrollable carousel shows ~5-8 at a time)
+$data['popularCategories'] = $this->buildPopularCategoriesQuery($currentLocation)->take(20);
 $data['totalUsers'] = Cache::remember('home:total_users:v1', now()->addMinutes(10), function () {
     return User::count();
 });
