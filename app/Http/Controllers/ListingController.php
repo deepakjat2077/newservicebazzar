@@ -3154,6 +3154,13 @@ $data['categoryLocalities'] = $categoryLocalities;
  */
 $data['seoRobots'] = \App\Support\PageIndexability::robots($listings->count());
 
+// A lander whose name names a *different* city than this URL (e.g. a
+// "...Delhi" keyword rendered under /jaipur/) is a doorway page — never
+// index it under the wrong city, whatever its listing count.
+if (landerMentionsForeignCity($selectedItem->name ?? null, $locationData->name)) {
+    $data['seoRobots'] = 'noindex, follow';
+}
+
 
 $data['listing'] = $listings->first() ?? (object) [
     'name' => $selectedItem->name,

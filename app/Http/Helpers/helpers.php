@@ -28,6 +28,51 @@ function menuActive($routename)
 }
 
 /**
+ * Does a lander's name reference a city OTHER than the one in its URL?
+ *
+ * The catalogue holds location-keyword entries like "PG with laundry service
+ * Delhi" or "best Travel Agents in Noida". Rendered under /jaipur/ they become
+ * "... in Jaipur" doorway pages — a Delhi keyword sitting on a Jaipur URL.
+ * When that mismatch is detected the lander is served noindex (see the
+ * controllers), so Google is told not to index the wrong-city page. The same
+ * entry under its own city (/delhi/...) matches and stays indexable.
+ *
+ * Whole-word / whole-phrase match only, so "Punjabi" is never mistaken for a
+ * city and a name that names its own URL city ("...Jaipur" under /jaipur/) is
+ * not flagged. City list is cached — this runs on every lander render.
+ */
+function landerMentionsForeignCity(?string $name, ?string $urlCityName): bool
+{
+    $name = trim((string) $name);
+    if ($name === '') {
+        return false;
+    }
+
+    $cities = \Illuminate\Support\Facades\Cache::remember('lander:city_names:v1', now()->addHours(6), function () {
+        return \App\Models\Location::where('status', 1)
+            ->pluck('name')
+            ->map(fn ($n) => trim((string) $n))
+            ->filter(fn ($n) => mb_strlen($n) >= 3)
+            ->unique()
+            ->values()
+            ->all();
+    });
+
+    $urlCityName = mb_strtolower(trim((string) $urlCityName));
+
+    foreach ($cities as $city) {
+        if (mb_strtolower($city) === $urlCityName) {
+            continue; // the page's own city is not "foreign"
+        }
+        if (preg_match('/\b' . preg_quote($city, '/') . '\b/i', $name)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Direct, non-redirecting URL for a category/subcategory lander.
  *
  * Prefer this over route('listings.category', $slug): that route points at
