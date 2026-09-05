@@ -29,16 +29,9 @@
             </div>
 
             <!-- All City-Category Combinations (Alphabetically Sorted) -->
-            <div style="border-top: 1px solid #eee; padding-top: 30px; padding-bottom: 40px;">
+            <div style="border-top: 1px solid #eee; padding-top: 30px;">
                 <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #333;">All Services by City</h3>
                 <div id="popular-combinations" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
-                </div>
-            </div>
-
-            <!-- All City-Category-Subcategory Combinations (Alphabetically Sorted) -->
-            <div style="border-top: 1px solid #eee; padding-top: 30px;">
-                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #333;">All Subcategories by City</h3>
-                <div id="subcategory-combinations" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
                 </div>
             </div>
         </div>
@@ -136,7 +129,6 @@
     // Load popular combinations on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadPopularCombinations();
-        loadSubcategoryCombinations();
     });
 
     function loadPopularCombinations() {
@@ -165,34 +157,6 @@
                 });
             })
             .catch(err => console.error('Error loading popular combinations:', err));
-    }
-
-    function loadSubcategoryCombinations() {
-        fetch('/api/sitemap/subcategory-combinations')
-            .then(r => r.json())
-            .then(data => {
-                const container = document.getElementById('subcategory-combinations');
-                container.innerHTML = '';
-
-                data.combinations.forEach(combo => {
-                    const link = document.createElement('a');
-                    link.href = combo.url;
-                    link.style.cssText = 'padding: 12px 15px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #333; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; display: block; text-align: left; word-break: break-word;';
-                    link.innerHTML = `<div style="color: #0d6efd; font-weight: 600; margin-bottom: 5px;">${combo.category_name} > ${combo.subcategory_name}</div><div style="font-size: 12px; color: #666;">in ${combo.city_name}</div>`;
-
-                    link.onmouseover = () => {
-                        link.style.borderColor = '#0d6efd';
-                        link.style.backgroundColor = '#f0f7ff';
-                    };
-                    link.onmouseout = () => {
-                        link.style.borderColor = '#ddd';
-                        link.style.backgroundColor = 'white';
-                    };
-
-                    container.appendChild(link);
-                });
-            })
-            .catch(err => console.error('Error loading subcategory combinations:', err));
     }
 
     // City selection
