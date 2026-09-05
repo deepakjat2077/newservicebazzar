@@ -4726,7 +4726,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
 
-            <h5>{{ $popupRatingValue > 0 ? 'Update Review' : 'Add Review' }}</h5>
+            <div class="modal-title" style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">{{ $popupRatingValue > 0 ? 'Update Review' : 'Add Review' }}</div>
     <input type="hidden" id="popup_rating_value" value="{{ $popupRatingValue }}">
                 <textarea id="popup_review"
                         class="form-control mb-2"
@@ -5551,7 +5551,7 @@
 
                 <div class="user-reviews-header">
 
-        <h6 class="user-reviews-title">User Reviews</h6>
+        <div class="user-reviews-title">User Reviews</div>
 
         <div class="review-filters">
 
@@ -6409,9 +6409,9 @@
 
                 {{-- ORIGINAL ENQUIRY FORM --}}
                 <div class="enquiry-card mt-3" id="mainEnquiryForm">
-                    <h6 class="enquiry-title">
+                    <div class="enquiry-title">
                         Get the List of <span>{{ $listing->category->name ?? 'No Category' }}</span>
-                    </h6>
+                    </div>
 
                     <p class="enquiry-subtitle">
                         We'll send you contact details in seconds for free
@@ -6471,7 +6471,7 @@
     <div class="related-search-card mt-3">
         <div class="related-search-box">
 
-            <h6 class="mb-2">People Also Search For</h6>
+            <div class="mb-2">People Also Search For</div>
 
             <div class="related-search-tags">
 
@@ -6571,9 +6571,9 @@
     {{-- STICKY FLOATING ENQUIRY FORM --}}
     <div class="sticky-floating-form" id="stickyFloatingForm">
         <div class="enquiry-card">
-            <h6 class="enquiry-title">
+            <div class="enquiry-title">
                 Get the List of <span>{{ $listing->category->name ?? 'No Category' }}</span>
-            </h6>
+            </div>
 
             <p class="enquiry-subtitle">
                 We'll send you contact details in seconds for free
@@ -6689,9 +6689,9 @@
 
     <div class="popular-city-section">
 
-        <h5 class="popular-title">
+        <div class="popular-title">
             {{ $currentCategory }} in Nearby Areas
-        </h5>
+        </div>
 
         <div class="popular-city-list">
 
@@ -6726,9 +6726,9 @@
 
     <div class="popular-city-section">
 
-        <h5 class="popular-title">
+        <div class="popular-title">
             {{ $currentCategory }} in Popular Cities
-        </h5>
+        </div>
 
         <div class="popular-city-list">
 
