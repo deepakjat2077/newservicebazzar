@@ -63,7 +63,7 @@
         <div class="col-md-3 mb-4">
             <h5 style="font-weight: 600; margin-bottom: 15px; color: #111;">Information</h5>
             <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 10px;"><a href="{{ route('free-listing') }}" style="color: #0d6efd; text-decoration: none;">Post Free Listing</a></li>
+                <li style="margin-bottom: 10px;"><a href="{{ route('free.listing') }}" style="color: #0d6efd; text-decoration: none;">Post Free Listing</a></li>
                 <li style="margin-bottom: 10px;"><a href="{{ route('contact') }}" style="color: #0d6efd; text-decoration: none;">Support</a></li>
                 <li style="margin-bottom: 10px;"><a href="{{ route('blogs') }}" style="color: #0d6efd; text-decoration: none;">Tips & Guides</a></li>
                 <li style="margin-bottom: 10px;"><a href="{{ route('home') }}#faq" style="color: #0d6efd; text-decoration: none;">Help Center</a></li>
@@ -104,7 +104,7 @@
         <div class="col-12">
             <p style="color: #666; font-size: 14px; text-align: center;">
                 <strong>ServiceBazzar</strong> connects you with trusted local businesses and service providers across India.
-                Browse our complete directory above or <a href="{{ route('free-listing') }}" style="color: #0d6efd;">post your business free</a>.
+                Browse our complete directory above or <a href="{{ route('free.listing') }}" style="color: #0d6efd;">post your business free</a>.
             </p>
         </div>
     </div>
