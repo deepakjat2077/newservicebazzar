@@ -4053,7 +4053,8 @@ window.SB = {
               
 
                 <div class="trending-scroll" >
-                    @foreach($locations as $location)
+                    {{-- Limit to top 20 locations to reduce homepage size (5.9MB → faster load) --}}
+                    @foreach($locations->slice(0, 20) as $location)
                         <div class="trend-card-item">
                       <a href="javascript:void(0)"
    class="trend-card-link select-home-location"
@@ -4107,7 +4108,8 @@ window.SB = {
 
             <div id="popularScroll" class="trending-scroll">
 
-           @foreach($popularCategories as $category)
+           {{-- Limit to top 20 popular categories to reduce page size --}}
+           @foreach($popularCategories->slice(0, 20) as $category)
                   
 
                     <div class="trend-card-item">
