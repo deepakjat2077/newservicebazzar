@@ -183,7 +183,7 @@
                                 <li><a href="{{ route('blogs') }}">@lang('News')</a></li>
                                 <li><a href="{{ route('contact') }}">@lang('Contact')</a></li>
                                 <li><a href="{{ route('faq') }}">@lang('FAQ')</a></li>
-                                <li><a href="{{ route('sitemap') }}">@lang('Sitemap')</a></li>
+                                <li><a href="{{ route('sitemap.page') }}">@lang('Sitemap')</a></li>
                             </ul>
                         </div>
                     </div>
