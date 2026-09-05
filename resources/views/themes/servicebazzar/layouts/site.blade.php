@@ -3155,8 +3155,33 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
 
     window.sbRefreshCategoryLinks();
 
-    // Keep a click handler too, as a safety net for links added after load or
-    // a location chosen without a full reload.
+    // Update a single link's href from the CURRENT location, right now.
+    function sbUpdateOneCategoryLink(link) {
+        if (!link) return;
+        const categorySlug = link.dataset.slug || "";
+        if (!categorySlug) return;
+        const loc = sbResolveCityArea();
+        if (!loc) return; // unknown city: leave the server's generic href
+        const url = sbCategoryUrl(categorySlug, loc);
+        if (url) link.setAttribute("href", url);
+    }
+
+    // The real fix for "hover shows the old city until I refresh":
+    // rewrite the link's href the instant the cursor (or keyboard focus, or a
+    // touch) reaches it, reading the live location at that moment. This does
+    // not depend on catching every place the location can change — whatever
+    // the input says when you point at the link is what the status-bar URL
+    // will show. Delegated on document so it also covers the banner carousel
+    // and any links added after load.
+    ["mouseover", "focusin", "touchstart"].forEach(function (evt) {
+        document.addEventListener(evt, function (e) {
+            const link = e.target.closest ? e.target.closest(".dynamic-category-link") : null;
+            if (link) sbUpdateOneCategoryLink(link);
+        }, true);
+    });
+
+    // Keep a click handler too, as a final safety net (e.g. a link clicked
+    // without ever firing a hover, as on some touch flows).
     document.querySelectorAll(".dynamic-category-link").forEach(function (link) {
         link.addEventListener("click", function (e) {
             const categorySlug = this.dataset.slug || "";
