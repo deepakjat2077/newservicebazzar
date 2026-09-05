@@ -7,6 +7,10 @@ Route::get('/health', fn () => response('ok', 200))->name('health');
 // Sitemap page - directory of all cities, services, and links (HTML directory)
 Route::get('/sitemap-page', [\App\Http\Controllers\SiteController::class, 'sitemap'])->name('sitemap.page');
 
+// Sitemap API endpoints for interactive drill-down navigation
+Route::get('/api/city/{slug}/categories', [\App\Http\Controllers\SitemapApiController::class, 'cityCategories']);
+Route::get('/api/city/{citySlug}/category/{categorySlug}/subcategories', [\App\Http\Controllers\SitemapApiController::class, 'categorySubcategories']);
+
 /*
  * AI-engine-readable site map (llmstxt.org). Registered up here, ahead of the
  * catch-all /{slug} route at the bottom of this file, so "llms.txt" is served
