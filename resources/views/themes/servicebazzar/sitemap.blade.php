@@ -28,10 +28,10 @@
                 @endforeach
             </div>
 
-            <!-- Popular City-Category Combinations -->
+            <!-- All City-Category Combinations (Alphabetically Sorted) -->
             <div style="border-top: 1px solid #eee; padding-top: 30px;">
-                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #333;">Popular Services</h3>
-                <div id="popular-combinations" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #333;">All Services by City</h3>
+                <div id="popular-combinations" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
                 </div>
             </div>
         </div>

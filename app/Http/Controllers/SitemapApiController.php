@@ -10,11 +10,11 @@ use Illuminate\Http\Request;
 class SitemapApiController extends Controller
 {
     /**
-     * Get popular city-category combinations for homepage
+     * Get ALL city-category combinations sorted alphabetically
      */
     public function popularCombinations()
     {
-        // Get most popular city-category combinations (by listing count)
+        // Get ALL city-category combinations with listings, sorted alphabetically
         $combinations = \DB::table('listings')
             ->join('locations', 'listings.location_id', '=', 'locations.id')
             ->join('categories', 'listings.category_id', '=', 'categories.id')
@@ -25,8 +25,8 @@ class SitemapApiController extends Controller
                      'categories.slug as category_slug', 'categories.name as category_name',
                      \DB::raw('COUNT(*) as count'))
             ->groupBy('locations.id', 'categories.id')
-            ->orderByDesc('count')
-            ->limit(12)
+            ->orderBy('locations.name')  // Sort by city name alphabetically
+            ->orderBy('categories.name')  // Then by category name alphabetically
             ->get();
 
         return response()->json([
