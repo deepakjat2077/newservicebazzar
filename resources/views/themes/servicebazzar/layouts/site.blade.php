@@ -3094,38 +3094,69 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
         }
     });
 
+    // The homepage HTML is served from a shared full-page cache, so the
+    // city-prefixed category URLs cannot be baked server-side — one visitor's
+    // city would be cached and handed to everyone (that's how a Delhi visitor
+    // was seeing /jaipur/... links). The location the visitor actually picked
+    // lives client-side (the input value / localStorage), so the links are
+    // resolved here, per visitor, instead.
+
+    // Resolve the visitor's chosen location into {city, area}, or null when we
+    // genuinely don't know it yet. Same precedence the location input uses.
+    function sbResolveCityArea() {
+        let selectedLocation = "";
+        if (homeInput && homeInput.dataset.selectedLocation === "1" && homeInput.value.trim() !== "") {
+            selectedLocation = homeInput.value.trim();
+        } else if (headerInput && headerInput.dataset.selectedLocation === "1" && headerInput.value.trim() !== "") {
+            selectedLocation = headerInput.value.trim();
+        } else {
+            selectedLocation = localStorage.getItem("jf_detected_city") || "";
+        }
+        selectedLocation = (selectedLocation || "").trim();
+        if (!selectedLocation) return null;
+
+        let city = selectedLocation, area = "";
+        if (selectedLocation.includes(",")) {
+            const parts = selectedLocation.split(",");
+            area = parts[0].trim();
+            city = parts[1].trim();
+        }
+        return { city: city, area: area };
+    }
+
+    function sbCategoryUrl(categorySlug, loc) {
+        const citySlug = slugify(loc.city);
+        if (!citySlug || !categorySlug) return null;
+        let url = `${window.location.origin}/${citySlug}/${categorySlug}`;
+        if (loc.area !== "") url += `-in-${slugify(loc.area)}`;
+        return url;
+    }
+
+    // Rewrite every category link's href to the visitor's city on load, so the
+    // hover/status-bar URL, middle-click and normal click all match the
+    // location shown in the input — not just a JS-intercepted left click.
+    function sbRefreshCategoryLinks() {
+        const loc = sbResolveCityArea();
+        if (!loc) return; // unknown city: leave the server's generic href as-is
+        document.querySelectorAll(".dynamic-category-link").forEach(function (link) {
+            const categorySlug = link.dataset.slug || "";
+            const url = sbCategoryUrl(categorySlug, loc);
+            if (url) link.setAttribute("href", url);
+        });
+    }
+
+    sbRefreshCategoryLinks();
+
+    // Keep a click handler too, as a safety net for links added after load or
+    // a location chosen without a full reload.
     document.querySelectorAll(".dynamic-category-link").forEach(function (link) {
         link.addEventListener("click", function (e) {
-            // No preventDefault() until a city-prefixed URL actually exists:
-            // otherwise a link whose location is unknown gets swallowed here
-            // and the click does nothing at all.
             const categorySlug = this.dataset.slug || "";
             if (!categorySlug) return;
-            let selectedLocation = "";
-            if (homeInput && homeInput.dataset.selectedLocation === "1" && homeInput.value.trim() !== "") {
-                selectedLocation = homeInput.value.trim();
-            } else if (headerInput && headerInput.dataset.selectedLocation === "1" && headerInput.value.trim() !== "") {
-                selectedLocation = headerInput.value.trim();
-            } else {
-                selectedLocation = localStorage.getItem("jf_detected_city") || "";
-            }
-            if (!selectedLocation) {
-                // Fall through to the anchor's own href.
-                return;
-            }
-            selectedLocation = selectedLocation.trim();
-            let city = "";
-            let area = "";
-            if (selectedLocation.includes(",")) {
-                const parts = selectedLocation.split(",");
-                area = parts[0].trim();
-                city = parts[1].trim();
-            } else {
-                city = selectedLocation;
-            }
-            const citySlug = slugify(city);
-            let finalUrl = `${window.location.origin}/${citySlug}/${categorySlug}`;
-            if (area !== "") finalUrl += `-in-${slugify(area)}`;
+            const loc = sbResolveCityArea();
+            if (!loc) return; // fall through to the anchor's own href
+            const finalUrl = sbCategoryUrl(categorySlug, loc);
+            if (!finalUrl) return;
             e.preventDefault();
             window.location.href = finalUrl;
         });
