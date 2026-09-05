@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response('ok', 200))->name('health');
 
+// Sitemap page - directory of all cities, services, and links
+Route::get('/sitemap', 'SiteController@sitemap')->name('sitemap');
+
 /*
  * AI-engine-readable site map (llmstxt.org). Registered up here, ahead of the
  * catch-all /{slug} route at the bottom of this file, so "llms.txt" is served

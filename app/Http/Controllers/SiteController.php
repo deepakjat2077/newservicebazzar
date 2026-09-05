@@ -3129,4 +3129,13 @@ public function userProfile($username)
     return view($this->theme . 'user.profile-view', $data);
 }
 
+/**
+ * Sitemap page - directory of all cities, services, and links
+ * Helps users navigate and improves SEO via internal linking
+ */
+public function sitemap()
+{
+    return view($this->theme . 'sitemap');
+}
+
 }
