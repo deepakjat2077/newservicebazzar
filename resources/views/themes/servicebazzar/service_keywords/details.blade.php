@@ -498,7 +498,7 @@
                             </div>
 
                             @if($keywordListingTotal > count($keywordListings))
-                                <a href="{{ route('listings.category', $keywordCategory->slug) }}" class="kw-see-all">
+                                <a href="{{ cityCategoryUrl($keywordCategory->slug) }}" class="kw-see-all">
                                     See all {{ number_format($keywordListingTotal) }}
                                     <i class="fas fa-arrow-right"></i>
                                 </a>

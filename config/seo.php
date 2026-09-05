@@ -28,4 +28,21 @@ return [
 
     'min_listings_to_index' => (int) env('SEO_MIN_LISTINGS_TO_INDEX', 1),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default city for internal category links
+    |--------------------------------------------------------------------------
+    |
+    | Category links on shared, full-page-cached pages (the homepage etc.)
+    | can't carry a per-visitor city server-side, so they're rendered with
+    | this stable default city and rewritten client-side to the visitor's own
+    | location. Using a real city here means those links point straight at a
+    | live 200 page (e.g. /jaipur/packers-and-movers) instead of the
+    | /listings/{slug} shortcut, which only 301-redirects to the same place —
+    | so crawlers don't spend a redirect hop on every internal category link.
+    |
+    */
+
+    'default_city' => env('SEO_DEFAULT_CITY', 'jaipur'),
+
 ];

@@ -645,7 +645,7 @@ a {
         if ($selectedCategory && $currentLocationSlug) {
             $filterBaseUrl = url($currentLocationSlug . '/' . $selectedCategory->slug);
         } elseif ($selectedCategory) {
-            $filterBaseUrl = route('listings.category', ['slug' => $selectedCategory->slug]);
+            $filterBaseUrl = cityCategoryUrl($selectedCategory->slug);
         } elseif ($selectedSubcategory && $currentLocationSlug) {
             $filterBaseUrl = url($currentLocationSlug . '/' . $selectedSubcategory->slug);
         } elseif ($selectedSubcategory) {
@@ -1103,7 +1103,7 @@ a {
 
                                                         <a href="{{ !empty($currentLocationName)
                                 ? url(Str::slug($currentLocationName) . '/' . $category->slug)
-                                : route('listings.category', ['slug' => $category->slug]) }}" class="related-search-btn">
+                                : cityCategoryUrl($category->slug) }}" class="related-search-btn">
                                                             {{ $loop->odd ? 'Get Best Deal' : 'View Details' }}
                                                         </a>
                                                     </div>

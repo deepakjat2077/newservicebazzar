@@ -27,6 +27,24 @@ function menuActive($routename)
     }
 }
 
+/**
+ * Direct, non-redirecting URL for a category/subcategory lander.
+ *
+ * Prefer this over route('listings.category', $slug): that route points at
+ * /listings/{slug}, which only 301-redirects to /{city}/{slug} — a wasted hop
+ * on every internal category link (slower for users, double crawl cost for
+ * Googlebot). This returns the final /{city}/{slug} straight away.
+ *
+ * On shared, full-page-cached pages the city can't be per-visitor server-side,
+ * so it defaults to config('seo.default_city') and the .dynamic-category-link
+ * JS rewrites it to the visitor's own location client-side. Pass $city
+ * explicitly on pages that already know the city (a city/category page).
+ */
+function cityCategoryUrl($categorySlug, $city = null){
+    $city = $city ?: config('seo.default_city', 'jaipur');
+    return url('/' . \Illuminate\Support\Str::slug($city) . '/' . $categorySlug);
+}
+
 function loadImage($image,$isAvatar = false){
     return file_exists($image) && is_file($image) ? asset($image) : ($isAvatar ? asset('assets/images/avatar.jpg') : asset('assets/images/default.jpg'));
 }

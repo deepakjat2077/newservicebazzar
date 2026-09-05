@@ -3454,15 +3454,13 @@ window.SB = {
             </div>
 
      @php
-    // NOTE: category links here intentionally use the generic
-    // route('listings.category', slug) => /listings/{slug} and are NOT
-    // city-prefixed server-side. This page is served from a shared
-    // full-page cache, so any city baked in here would be cached once and
-    // shown to every visitor (a Delhi visitor was getting /jaipur/... this
-    // way). The visitor's real city lives client-side, so the .dynamic-
-    // category-link JS in the layout rewrites these hrefs to /{city}/{slug}
-    // on load, per visitor. Crawlers (no JS) follow the generic route,
-    // which redirects per request.
+    // Category links use cityCategoryUrl(): a direct /{default-city}/{slug}
+    // URL (a live 200 page), NOT the /listings/{slug} shortcut that only
+    // 301-redirects — so crawlers don't spend a redirect hop on every
+    // internal category link. The city baked in is a stable default
+    // (config seo.default_city); this page is shared/full-page-cached, so the
+    // .dynamic-category-link JS in the layout rewrites each href to the
+    // visitor's own city on load and on hover, per visitor.
     $fixedCategories = [
         'packers-and-movers',
         'real-estate',
@@ -3501,7 +3499,7 @@ window.SB = {
 
             <div class="col-6 col-md-3 mobile-category-item">
 
-                <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
+                <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
                    class="mini-service-card dynamic-category-link"
                    data-slug="{{ $categoryItem->slug }}"
                    style="background-color: {{ $bgColor }}; display:block; height:100%;">
@@ -3581,7 +3579,7 @@ window.SB = {
                 @endphp
 
                 <div class="category-item text-center {{ $index >= 11 ? 'hide-mobile' : '' }}">
-                    <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
+                    <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
                        class="text-decoration-none text-dark dynamic-category-link"
                        data-slug="{{ $categoryItem->slug }}">
 
@@ -3894,7 +3892,7 @@ window.SB = {
              can build a city-prefixed URL. With location denied/unset — or
              with JS off entirely — the browser follows this link and
              listings.category redirects to the visitor's city. --}}
-        <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
+        <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
    class="popup-item dynamic-category-link"
    data-slug="{{ $categoryItem->slug }}">
 
@@ -3945,7 +3943,7 @@ window.SB = {
         $usedCategoryIds[] = $category->id;
     @endphp
                                     <div class="subcategory-col text_center mt-10">
-                                    <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                                    <a href="{{ cityCategoryUrl($category->slug) }}"
    class="mini-service-card dynamic-category-link"
    data-slug="{{ $category->slug }}">
 
@@ -4002,7 +4000,7 @@ window.SB = {
                              data-category-id="{{ $category->id }}"
                              data-category-name="{{ strtolower($category->name) }}">
 
-                            <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                            <a href="{{ cityCategoryUrl($category->slug) }}"
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
@@ -4114,7 +4112,7 @@ window.SB = {
 
                     <div class="trend-card-item">
 
-                        <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                        <a href="{{ cityCategoryUrl($category->slug) }}"
                            class="trend-card-link dynamic-category-link"
                            data-slug="{{ $category->slug }}">
 
@@ -4188,7 +4186,7 @@ window.SB = {
 
                         <div class="trend-card-item">
 
-                            <a href="{{ route('listings.category', ['slug' => $category->slug]) }}"
+                            <a href="{{ cityCategoryUrl($category->slug) }}"
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
@@ -4531,10 +4529,10 @@ WhatsApp
                 </span>
 
                 <h5 class="category-content-title mb-0">
-                    {{-- Generic route (not city-baked): shared page cache +
-                         client-side rewrite by .dynamic-category-link JS, same
-                         as the other category links on this page. --}}
-                    <a href="{{ route('listings.category', ['slug' => $categoryItem->slug]) }}"
+                    {{-- Direct /{city}/{slug} (no redirect) + client-side
+                         rewrite by .dynamic-category-link JS, same as every
+                         other category link on this page. --}}
+                    <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
                        class="text-dark dynamic-category-link"
                        data-slug="{{ $categoryItem->slug }}">
 
