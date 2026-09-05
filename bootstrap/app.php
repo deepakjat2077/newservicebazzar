@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AdminApiPermission;
 use App\Http\Middleware\AdminPermission;
+use App\Http\Middleware\AllowSearchEngineCrawlers;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\AuthenticateAdminApi;
 use App\Http\Middleware\AuthenticateUserApi;
@@ -17,6 +18,7 @@ use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RedirectIfNotAdmin;
 use App\Http\Middleware\RedirectTrailingSlash;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\ThrottleRequestsForHumans;
 use App\Http\Middleware\Verification;
 use App\Models\UrlRedirect;
 use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
@@ -66,7 +68,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest' => RedirectIfAuthenticated::class,
             'password.confirm' => RequirePassword::class,
             'signed' => ValidateSignature::class,
-            'throttle' => ThrottleRequests::class,
+            'throttle' => ThrottleRequestsForHumans::class,
 
             'admin' => RedirectIfNotAdmin::class,
             'admin.guest' => RedirectIfAdmin::class,
@@ -120,6 +122,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // to put the visitor's own token back on the way out.
             CachePublicPages::class,
         ]);
+
+        // Detect and exempt search engine crawlers from rate limiting
+        $middleware->prependToGroup('web', AllowSearchEngineCrawlers::class);
 
         // Redirect trailing slashes early in the web stack (before caching)
         // so /blogs/ → /blogs with 301 for consistent URL structure.
