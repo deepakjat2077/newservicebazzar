@@ -2425,6 +2425,12 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
         jdCityText.textContent = city;
     }
 
+    // Location just changed — re-point every category link to the new city
+    // immediately, so the visitor never has to refresh to see /delhi/... etc.
+    if (typeof window.sbRefreshCategoryLinks === "function") {
+        window.sbRefreshCategoryLinks();
+    }
+
     if (save) {
         try {
 
@@ -3132,10 +3138,12 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
         return url;
     }
 
-    // Rewrite every category link's href to the visitor's city on load, so the
+    // Rewrite every category link's href to the visitor's city, so the
     // hover/status-bar URL, middle-click and normal click all match the
     // location shown in the input — not just a JS-intercepted left click.
-    function sbRefreshCategoryLinks() {
+    // Exposed on window so setCity() can re-run it the moment the visitor
+    // changes location, with no page refresh needed.
+    window.sbRefreshCategoryLinks = function () {
         const loc = sbResolveCityArea();
         if (!loc) return; // unknown city: leave the server's generic href as-is
         document.querySelectorAll(".dynamic-category-link").forEach(function (link) {
@@ -3143,9 +3151,9 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
             const url = sbCategoryUrl(categorySlug, loc);
             if (url) link.setAttribute("href", url);
         });
-    }
+    };
 
-    sbRefreshCategoryLinks();
+    window.sbRefreshCategoryLinks();
 
     // Keep a click handler too, as a safety net for links added after load or
     // a location chosen without a full reload.
@@ -5073,6 +5081,11 @@ document.addEventListener("DOMContentLoaded", function () {
             homeInput.value = detectedCity;
             homeInput.dataset.selectedLocation = "1";
         }
+
+        // Point category links at the detected city right away (no refresh).
+        if (typeof window.sbRefreshCategoryLinks === "function") {
+            window.sbRefreshCategoryLinks();
+        }
     }
 
     const cityBtn = document.getElementById("jdMobileCityBtn");
@@ -5105,6 +5118,14 @@ window.addEventListener("load", function () {
         if (homeInput) {
             homeInput.value = detectedCity;
             homeInput.dataset.selectedLocation = "1";
+        }
+
+        // This auto-detect fills the location input on load (after the first
+        // category-link pass has already run with no known city), so re-point
+        // the category links to the detected city now — otherwise they'd stay
+        // on the generic /listings/... URL until the visitor refreshed.
+        if (typeof window.sbRefreshCategoryLinks === "function") {
+            window.sbRefreshCategoryLinks();
         }
     }
 });
