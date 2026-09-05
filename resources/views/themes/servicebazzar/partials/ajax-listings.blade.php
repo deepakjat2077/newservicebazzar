@@ -4,8 +4,41 @@
             return is_object($item) && isset($item->id);
         })
         ->values();
+@endphp
 
-    // 1. Fixed top-rank listings
+{{-- Empty state: no listings in this category/city combo --}}
+@if($allListings->isEmpty())
+    <div class="col-12">
+        <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 30px;">
+            <h3 style="color: #333; font-size: 22px; margin-bottom: 12px;">
+                No Businesses Yet in {{ $headingName ?? 'This Category' }}
+            </h3>
+            <p style="color: #666; font-size: 16px; margin-bottom: 24px;">
+                Be the first to list your {{ strtolower($headingName ?? 'business') }} in {{ $locationText ?? 'this location' }}.
+                It's free and takes just 2 minutes!
+            </p>
+            <a href="{{ route('free-listing') }}" style="display: inline-block; background: #0d6efd; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-bottom: 40px;">
+                List Your Business Free
+            </a>
+
+            @if(!empty($relatedSubcategories) && $relatedSubcategories->count() > 0)
+                <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #ddd;">
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Or explore related categories:</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                        @foreach($relatedSubcategories->take(5) as $related)
+                            <a href="{{ route('listings.subcategory', ['slug' => $related->slug]) }}"
+                               style="padding: 8px 16px; background: #e7f1ff; color: #0d6efd; text-decoration: none; border-radius: 20px; font-size: 14px;">
+                                {{ $related->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+@else
+    @php
+        // 1. Fixed top-rank listings
     $fixedListings = $allListings->filter(function ($item) {
         return isset($item->top_rank) && in_array((int) $item->top_rank, [1, 2, 3, 4]);
     })->sortBy(function ($item) {
@@ -1092,14 +1125,7 @@
     </div>
 @endif
 
-
-@if($fixedListings->count() == 0 && $starListings->count() == 0 && $rotatingListings->count() == 0)
-    <div class="col-12">
-        <div class="alert alert-warning text-center p-4">
-            <h5 class="mb-2">No Listings Found</h5>
-            <p class="mb-0">No listings are available at the moment.</p>
-        </div>
-    </div>
+{{-- Close the empty-state if/else block --}}
 @endif
 
 
