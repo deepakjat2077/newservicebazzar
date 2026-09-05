@@ -3603,6 +3603,181 @@ window.SB = {
     </div>
 </section>
 
+<section class="featured pt-4 pb-4">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="section-title">
+                    <h4>{{ __($featured_listing->content->title) }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="featured-listing-slider">
+            @foreach($featureds as $featured)
+
+                @php
+
+                    $mobileNumbers = is_array($featured->mobile_numbers)
+                        ? $featured->mobile_numbers
+                        : json_decode($featured->mobile_numbers, true);
+
+                    $whatsappNumbers = is_array($featured->whatsapp_numbers)
+                        ? $featured->whatsapp_numbers
+                        : json_decode($featured->whatsapp_numbers, true);
+
+                    $mobilePhone = $mobileNumbers[0] ?? '';
+                    $whatsappPhone = $whatsappNumbers[0] ?? '';
+
+                    $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
+                    $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
+
+                    // =========================
+                    // REAL RATING + REVIEW COUNT
+                    // =========================
+
+                    // Preloaded in SiteController@index (withAvg/withCount) so this
+                    // loop does not fire two rating queries per card.
+                    $rating = (float) ($featured->verified_ratings_avg ?? 0);
+                    $ratingCount = (int) ($featured->verified_ratings_count ?? 0);
+
+                    // =========================
+                    // YEARS IN BUSINESS
+                    // =========================
+
+                    $yearsInBusiness = null;
+
+                    if (!empty($featured->established_year) && is_numeric($featured->established_year)) {
+                        $yearsInBusiness = date('Y') - (int) $featured->established_year;
+                    }
+
+                @endphp
+
+
+                <div class="listing-area"
+                     data-url="{{ route('listings.details', [
+                        'category' => optional($featured->category)->slug,
+                        'slug' => $featured->slug
+                     ]) }}"
+                     style="cursor:pointer;">
+
+                    <div class="thumb">
+                        <img width="300" height="225" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
+                         loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
+                    </div>
+
+                    <div class="listing-content">
+
+                        <h2 class="title align-items-center flex-wrap">
+
+                            @if(($featured->is_star ?? 0) == 1)
+                                <i class="fas fa-star ico"></i>
+                            @endif
+
+                            <a href="{{ route('listings.details', [
+                                'category' => optional($featured->category)->slug,
+                                'slug' => $featured->slug
+                            ]) }}">
+                                {{ __($featured->name) }}
+                            </a>
+
+                        </h2>
+
+
+                        <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
+
+                            @if($rating > 0 && $ratingCount > 0)
+
+                                <span class="jd-rating-badge">
+                                    {{ number_format($rating, 1) }} ★
+                                </span>
+
+                                <span class="jd-rating-count">
+                                    {{ $ratingCount }} Ratings
+                                </span>
+
+                            @endif
+
+                            @if(($featured->trust ?? 0) == 1)
+                                <img width="20" height="20" src="{{ asset('assets/images/trust_2x.gif') }}"
+                                     class="jd-badge-img"
+                                     loading="lazy"
+                                     decoding="async"
+                                     alt="Trust">
+                            @endif
+
+                            @if(($featured->verified ?? 0) == 1)
+                                <img width="20" height="20" src="{{ asset('assets/images/verified_2x.gif') }}"
+                                     class="jd-badge-img"
+                                     loading="lazy"
+                                     decoding="async"
+                                     alt="Verified">
+                            @endif
+
+                        </div>
+
+
+                        <div class="listing-location">
+
+                            <i class="las la-map-marker"></i>
+
+                            <span>{{ $featured->location->name ?? '' }}</span>
+
+                            @if(!empty($yearsInBusiness) && $yearsInBusiness > 0)
+
+                                <span class="dot-separator">•</span>
+
+                                <span class="business-years">
+                                    <i class="las la-briefcase"></i>
+                                    {{ $yearsInBusiness }} Years in Business
+                                </span>
+
+                            @endif
+
+                        </div>
+
+
+                        @if(!empty($cleanMobilePhone) || !empty($cleanWhatsappPhone))
+
+                            <div class="listing-contact mt-3">
+
+                                @if(!empty($cleanMobilePhone))
+
+                                    <a href="tel:{{ $cleanMobilePhone }}" class="btn-call">
+                                        <i class="las la-phone"></i>
+                                        Call Now
+                                    </a>
+
+                                @endif
+
+
+                                @if(!empty($cleanWhatsappPhone))
+
+                                    <a href="https://wa.me/{{ $cleanWhatsappPhone }}"
+                                       target="_blank" rel="noopener noreferrer"
+                                       class="btn-whatsapp">
+
+                                        <i class="lab la-whatsapp"></i>
+                                        WhatsApp
+
+                                    </a>
+
+                                @endif
+
+                            </div>
+
+                        @endif
+
+                    </div>
+
+                </div>
+
+            @endforeach
+        </div>
+    </div>
+</section>
+
+
 
 <label class="popup-overlay" id="popupOverlay" for="categoryPopupToggle" aria-label="Close categories"></label>
 
@@ -4016,179 +4191,6 @@ window.SB = {
 
 @endforeach
 
-<section class="featured pt-4 pb-4">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="section-title">
-                    <h4>{{ __($featured_listing->content->title) }}</h4>
-                </div>
-            </div>
-        </div>
-
-        <div class="featured-listing-slider">
-            @foreach($featureds as $featured)
-
-                @php
-
-                    $mobileNumbers = is_array($featured->mobile_numbers)
-                        ? $featured->mobile_numbers
-                        : json_decode($featured->mobile_numbers, true);
-
-                    $whatsappNumbers = is_array($featured->whatsapp_numbers)
-                        ? $featured->whatsapp_numbers
-                        : json_decode($featured->whatsapp_numbers, true);
-
-                    $mobilePhone = $mobileNumbers[0] ?? '';
-                    $whatsappPhone = $whatsappNumbers[0] ?? '';
-
-                    $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
-                    $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
-
-                    // =========================
-                    // REAL RATING + REVIEW COUNT
-                    // =========================
-
-                    // Preloaded in SiteController@index (withAvg/withCount) so this
-                    // loop does not fire two rating queries per card.
-                    $rating = (float) ($featured->verified_ratings_avg ?? 0);
-                    $ratingCount = (int) ($featured->verified_ratings_count ?? 0);
-
-                    // =========================
-                    // YEARS IN BUSINESS
-                    // =========================
-
-                    $yearsInBusiness = null;
-
-                    if (!empty($featured->established_year) && is_numeric($featured->established_year)) {
-                        $yearsInBusiness = date('Y') - (int) $featured->established_year;
-                    }
-
-                @endphp
-
-
-                <div class="listing-area"
-                     data-url="{{ route('listings.details', [
-                        'category' => optional($featured->category)->slug,
-                        'slug' => $featured->slug
-                     ]) }}"
-                     style="cursor:pointer;">
-
-                    <div class="thumb">
-                        <img width="300" height="225" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
-                         loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
-                    </div>
-
-                    <div class="listing-content">
-
-                        <h2 class="title align-items-center flex-wrap">
-
-                            @if(($featured->is_star ?? 0) == 1)
-                                <i class="fas fa-star ico"></i>
-                            @endif
-
-                            <a href="{{ route('listings.details', [
-                                'category' => optional($featured->category)->slug,
-                                'slug' => $featured->slug
-                            ]) }}">
-                                {{ __($featured->name) }}
-                            </a>
-
-                        </h2>
-
-
-                        <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
-
-                            @if($rating > 0 && $ratingCount > 0)
-
-                                <span class="jd-rating-badge">
-                                    {{ number_format($rating, 1) }} ★
-                                </span>
-
-                                <span class="jd-rating-count">
-                                    {{ $ratingCount }} Ratings
-                                </span>
-
-                            @endif
-
-                            @if(($featured->trust ?? 0) == 1)
-                                <img width="20" height="20" src="{{ asset('assets/images/trust_2x.gif') }}"
-                                     class="jd-badge-img"
-                                     loading="lazy"
-                                     decoding="async"
-                                     alt="Trust">
-                            @endif
-
-                            @if(($featured->verified ?? 0) == 1)
-                                <img width="20" height="20" src="{{ asset('assets/images/verified_2x.gif') }}"
-                                     class="jd-badge-img"
-                                     loading="lazy"
-                                     decoding="async"
-                                     alt="Verified">
-                            @endif
-
-                        </div>
-
-
-                        <div class="listing-location">
-
-                            <i class="las la-map-marker"></i>
-
-                            <span>{{ $featured->location->name ?? '' }}</span>
-
-                            @if(!empty($yearsInBusiness) && $yearsInBusiness > 0)
-
-                                <span class="dot-separator">•</span>
-
-                                <span class="business-years">
-                                    <i class="las la-briefcase"></i>
-                                    {{ $yearsInBusiness }} Years in Business
-                                </span>
-
-                            @endif
-
-                        </div>
-
-
-                        @if(!empty($cleanMobilePhone) || !empty($cleanWhatsappPhone))
-
-                            <div class="listing-contact mt-3">
-
-                                @if(!empty($cleanMobilePhone))
-
-                                    <a href="tel:{{ $cleanMobilePhone }}" class="btn-call">
-                                        <i class="las la-phone"></i>
-                                        Call Now
-                                    </a>
-
-                                @endif
-
-
-                                @if(!empty($cleanWhatsappPhone))
-
-                                    <a href="https://wa.me/{{ $cleanWhatsappPhone }}"
-                                       target="_blank" rel="noopener noreferrer"
-                                       class="btn-whatsapp">
-
-                                        <i class="lab la-whatsapp"></i>
-                                        WhatsApp
-
-                                    </a>
-
-                                @endif
-
-                            </div>
-
-                        @endif
-
-                    </div>
-
-                </div>
-
-            @endforeach
-        </div>
-    </div>
-</section>
 
 
 
