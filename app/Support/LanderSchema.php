@@ -87,7 +87,13 @@ class LanderSchema
         // duplicate-title problem the SEO audit flagged, so a city lander always
         // gets a city-keyed title instead.
         if ($cityName) {
-            $name = lcfirst($item->name);
+            // Use the catalogue name as it is stored (it's already Title Case),
+            // with Str::ucfirst only to guarantee the title never starts on a
+            // lower-case letter. This previously used lcfirst(), which lower-
+            // cased the first letter of a clean name — turning "Packers And
+            // Movers" into "packers And Movers" and even breaking acronyms
+            // ("CCTV" -> "cCTV") across ~8,000 city-keyword titles.
+            $name = Str::ucfirst(trim($item->name));
 
             // Some category names already end with the city ("affordable taxi
             // service Jaipur") — don't append " in Jaipur" again.
@@ -105,7 +111,7 @@ class LanderSchema
                 $full = trim($countLabel . $inCity);
             }
             if (mb_strlen($full) > 60) {
-                $full = ucfirst($inCity);
+                $full = $inCity;
             }
             if (mb_strlen($full) > 60) {
                 $full = rtrim(mb_substr($full, 0, 59)) . '…';
