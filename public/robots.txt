@@ -4,11 +4,12 @@ Disallow: /admin
 Disallow: /dev
 Disallow: /tmp
 
-# /user/ is mostly login/register/dashboard/account pages, but
-# /user/profile/{username} is a real public, indexable page (a reviewer's
-# profile) — Allow it explicitly since it sits under the same prefix.
-# The bare "Disallow: /user" this replaced blocked that page outright.
-Allow: /user/profile/
+# Everything under /user/ is account-facing — login/register/dashboard,
+# and /user/profile/{username} too. That last one was briefly allowed
+# (it does hold public review content), but that content already
+# belongs to and shows on the listing page a review was left on; the
+# profile URL itself is the user's own account page and should not show
+# up in search on its own.
 Disallow: /user/
 
 # Search-result pages are query-driven and hold no unique content of their

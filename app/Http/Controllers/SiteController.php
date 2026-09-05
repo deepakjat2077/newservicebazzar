@@ -3115,6 +3115,10 @@ public function userProfile($username)
     $data['recentSearches'] = $recentSearches;
     $data['seoTitle'] = $user->first_name . ' ' . $user->last_name . ' | ' . ($this->setting->site_name ?? 'ServiceBazzar');
     $data['seoDescription'] = 'View ' . $user->first_name . '\'s profile on ' . ($this->setting->site_name ?? 'ServiceBazzar');
+    // This is the user's own account page, not a business/listing page —
+    // it should not show up in search on its own. Their reviews already
+    // surface (and are indexable) on the listing page each was left on.
+    $data['seoRobots'] = 'noindex, follow';
 
     return view($this->theme . 'user.profile-view', $data);
 }
