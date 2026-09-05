@@ -1195,7 +1195,7 @@
        node for this — an SEO audit flagged that as hidden-keyword-stuffing
        risk (Google can see it in source even though visibility:hidden). An
        empty div with min-height does the same job without any text. */
-    min-height: 22px;
+    min-height: 10px;
 }
 
 .jd-rating-badge {
