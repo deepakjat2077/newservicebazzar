@@ -5604,9 +5604,7 @@
             <div class="review-left">
 
                 <img
-                    src="{{ $rating->user && !empty($rating->user->image)
-                        ? asset('assets/images/user/'.$rating->user->image)
-                        : asset('assets/images/user82.avif') }}"
+                    src="{{ userAvatarUrl($rating->user->image ?? null) }}"
                     class="review-avatar"
                     alt="{{ $rating->user ? $rating->user->fullname : ($rating->name ?? 'Guest') }}"
                     loading="lazy">
@@ -5736,9 +5734,7 @@
 
         <div class="comment-input-row">
 
-            <img src="{{ auth()->check() && auth()->user()->image
-                ? asset('assets/images/user/profile/'.auth()->user()->image)
-                : asset('assets/images/user82.avif') }}"
+            <img src="{{ userAvatarUrl(auth()->check() ? auth()->user()->image : null) }}"
                 alt="{{ auth()->check() ? (auth()->user()->fullname ?? auth()->user()->name ?? 'User') : 'Guest' }}"
                 class="comment-user-img">
 
@@ -5762,9 +5758,7 @@
         @foreach($rating->comments->sortByDesc('id') as $comment)
             <div class="single-comment" id="comment_{{ $comment->id }}">
 
-                <img src="{{ $comment->user && !empty($comment->user->image)
-                    ? asset('assets/images/user/profile/'.$comment->user->image)
-                    : asset('assets/images/user82.avif') }}"
+                <img src="{{ userAvatarUrl($comment->user->image ?? null) }}"
                     alt="{{ $comment->user->fullname ?? $comment->user->name ?? 'User' }}"
                     loading="lazy"
                     class="comment-user-img">

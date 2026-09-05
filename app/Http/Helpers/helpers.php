@@ -32,6 +32,25 @@ function loadImage($image,$isAvatar = false){
 }
 
 /**
+ * Resolve a user's avatar for display: reviews, comments etc.
+ *
+ * $user->image is not always a local filename — a Google-OAuth signup
+ * stores the full googleusercontent.com URL there, which was getting
+ * concatenated onto 'assets/images/user/' and 404'ing (broken avatar
+ * icon on reviews, e.g. Mohan Malhotra). This normalizes all three
+ * cases: absolute URL, local filename, and no image at all.
+ */
+function userAvatarUrl($image) {
+    if (!empty($image)) {
+        if (Str::startsWith($image, ['http://', 'https://'])) {
+            return $image;
+        }
+        return asset('assets/images/user/'.$image);
+    }
+    return asset('assets/images/user82.avif');
+}
+
+/**
  * Return the WebP version of an image path if it exists on disk.
  * Strips the original extension and appends .webp.
  * Falls back to the original path if no WebP is found.
