@@ -4313,11 +4313,11 @@ role="tabpanel">
 </div>
 </div>
 
-<h1 class="title">
+<h3 class="title">
 <a href="{{ route('listings.details',$catListing->slug) }}">
 {{ __($catListing->name) }}
 </a>
-</h1>
+</h3>
 
 <p>{{ \Str::limit(strip_tags($catListing->details),95) }}</p>
 
