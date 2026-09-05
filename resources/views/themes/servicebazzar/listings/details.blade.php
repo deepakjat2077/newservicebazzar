@@ -6556,7 +6556,7 @@
         <span class="nav-arrow left" id="prevImage">&#10094;</span>
 
         <!-- Image -->
-        <img class="image-preview-content" id="previewImage">
+        <img class="image-preview-content" id="previewImage" alt="{{ $listing->name }} photo">
 
         <!-- Right Arrow -->
         <span class="nav-arrow right" id="nextImage">&#10095;</span>
@@ -7906,7 +7906,7 @@
                     if (list) {
                         list.insertAdjacentHTML("afterbegin", `
                             <div class="single-comment" id="comment_${data.id}">
-                                <img src="${data.image}" class="comment-user-img">
+                                <img src="${data.image}" class="comment-user-img" alt="${data.name}">
                                 <div class="comment-body">
                                     <div class="comment-head">
                                         <b>${data.name}</b>
