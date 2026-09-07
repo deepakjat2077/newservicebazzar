@@ -4934,7 +4934,7 @@ function openSbAuthPopup() {
 }
 
 // /user/login redirects here with ?login=1 — this is the sign-in screen now.
-@if(request()->boolean('login'))
+@if(request()->boolean('login') || session('showAuthPopup'))
 document.addEventListener('DOMContentLoaded', function () { openSbAuthPopup(); });
 @endif
 </script>

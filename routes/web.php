@@ -612,7 +612,11 @@ Route::get('/enquiry-clicks/export', 'EnquiryController@exportClicks')->middlewa
 
     Route::name('user.')->prefix('user')->group(function () {
 
-        Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
+        // Redirect login page to home with popup trigger
+        Route::get('login', function () {
+            return redirect('/')->with('showAuthPopup', true);
+        })->name('login');
+
         Route::post('login', 'Auth\LoginController@login')->middleware('throttle:5,1');
 
         Route::get('otp-login', 'Auth\OtpLoginController@showOtpLoginForm')->name('otp.login.form');
