@@ -12,12 +12,12 @@
         <div style="
             text-align: center;
             padding: 120px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #286efb 0%, #0d6efd 100%);
             border-radius: 12px;
             margin-bottom: 30px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 40px rgba(40, 110, 251, 0.2);
         ">
             <!-- Decorative background circles -->
             <div style="
@@ -104,14 +104,14 @@
                     <a href="{{ route('free.listing') }}" style="
                         display: inline-block;
                         background: #fff;
-                        color: #667eea;
+                        color: #286efb;
                         padding: 14px 32px;
                         border-radius: 8px;
                         text-decoration: none;
                         font-weight: 700;
                         font-size: 15px;
                         transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                        box-shadow: 0 4px 15px rgba(40, 110, 251, 0.25);
                     "
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)';"
