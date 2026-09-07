@@ -5772,6 +5772,7 @@
 
             <img src="{{ userAvatarUrl(auth()->check() ? auth()->user()->image : null) }}"
                 alt="{{ auth()->check() ? (auth()->user()->fullname ?? auth()->user()->name ?? 'User') : 'Guest' }}"
+                loading="lazy"
                 class="comment-user-img">
 
             <div class="comment-input-flex">
@@ -7942,7 +7943,7 @@
                     if (list) {
                         list.insertAdjacentHTML("afterbegin", `
                             <div class="single-comment" id="comment_${data.id}">
-                                <img src="${data.image}" class="comment-user-img" alt="${data.name}">
+                                <img src="${data.image}" class="comment-user-img" alt="${data.name}" loading="lazy">
                                 <div class="comment-body">
                                     <div class="comment-head">
                                         <b>${data.name}</b>

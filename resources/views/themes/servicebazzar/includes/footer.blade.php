@@ -49,7 +49,7 @@
             <div class="d-flex align-items-center social-icons">
                 @foreach($socialSites as $social)
                     <a href="{{ $social->link }}" target="_blank" rel="noopener noreferrer" class="social-icon">
-                        <img src="{{ asset($social->image) }}" alt="social">
+                        <img src="{{ asset($social->image) }}" alt="social" loading="lazy">
                     </a>
                 @endforeach
             </div>
