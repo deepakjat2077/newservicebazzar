@@ -30,6 +30,27 @@ foreach ($retiredCitySlugs as $oldSlug => $newSlug) {
         ->where('path', '.*');
 }
 
+/*
+ * Short aliases people and old backlinks type for pages that live under a
+ * longer slug. Each target is a real 200 page; the short form used to fall
+ * through to the /{slug} catch-all and 404. Exact-path 301s only — "/blog"
+ * redirects but "/blog/{post}" (a real 200 blog post) is untouched, since
+ * Route::redirect matches the exact path, not its children.
+ *
+ * Only slugs with a genuine destination are listed. "/how-it-works" and
+ * "/advertise" have no equivalent page, so they stay 404 rather than
+ * redirect to something unrelated.
+ */
+$aliasRedirects = [
+    'about' => '/about-us',
+    'terms' => '/terms-and-conditions',
+    'blog'  => '/blogs',
+];
+
+foreach ($aliasRedirects as $from => $to) {
+    Route::redirect($from, $to, 301);
+}
+
 // Sitemap page - directory of all cities, services, and links (HTML directory)
 Route::get('/sitemap-page', [\App\Http\Controllers\SiteController::class, 'sitemap'])->name('sitemap.page');
 
