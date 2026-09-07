@@ -4,6 +4,32 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response('ok', 200))->name('health');
 
+/*
+ * Retired duplicate city slugs -> the surviving one, 301.
+ *
+ * "surat-1" was a second Surat row in `locations` (id 61, created three
+ * months after the real id 9). Both slugs served the same city with the
+ * same titles, H1s and self-referencing canonicals, so Google saw ~800
+ * duplicate URLs competing with the originals. The listings have been
+ * merged onto id 9 and id 61 is status=0, which alone would turn every
+ * /surat-1/... URL into a 404 — these redirects hand the accumulated link
+ * equity to the surviving URL instead of dropping it.
+ *
+ * Registered above every other route so they win over the /{city}/{slug}
+ * and /{slug} catch-alls at the bottom of this file. The {path} form keeps
+ * the rest of the URL intact (/surat-1/physiotherapists ->
+ * /surat/physiotherapists); query strings ride along automatically.
+ */
+$retiredCitySlugs = [
+    'surat-1' => 'surat',
+];
+
+foreach ($retiredCitySlugs as $oldSlug => $newSlug) {
+    Route::redirect($oldSlug, '/'.$newSlug, 301);
+    Route::get($oldSlug.'/{path}', fn (string $path) => redirect('/'.$newSlug.'/'.$path, 301))
+        ->where('path', '.*');
+}
+
 // Sitemap page - directory of all cities, services, and links (HTML directory)
 Route::get('/sitemap-page', [\App\Http\Controllers\SiteController::class, 'sitemap'])->name('sitemap.page');
 
