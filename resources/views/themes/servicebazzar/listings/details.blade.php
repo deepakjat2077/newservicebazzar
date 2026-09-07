@@ -5238,9 +5238,13 @@
         // than duplicating content. aggregateRating is only included when a
         // real rating count exists — Google explicitly disallows emitting a
         // fake/empty rating.
+        // Specific schema.org LocalBusiness subtype per category (Dentist,
+        // MovingCompany, Restaurant, ...), falling back to the generic
+        // LocalBusiness — see App\Support\ListingSchema for the mapping and
+        // why only true LocalBusiness subtypes are used.
         $listingSchema = [
             '@context' => 'https://schema.org',
-            '@type'    => 'LocalBusiness',
+            '@type'    => \App\Support\ListingSchema::type($categorySlug),
             'name'     => $listingName,
             'url'      => $seoUrl,
         ];
@@ -5270,6 +5274,20 @@
                 'ratingValue' => round($rating, 1),
                 'reviewCount' => $ratingCount,
             ];
+        }
+
+        // geo / openingHoursSpecification / sameAs — each only when the
+        // listing actually carries the data (helper returns null / [] when it
+        // doesn't), so we never emit a coordinate, an hour or a profile URL
+        // the page can't back up.
+        if ($geo = \App\Support\ListingSchema::geo($listing)) {
+            $listingSchema['geo'] = $geo;
+        }
+        if ($openingHours = \App\Support\ListingSchema::openingHours($listing)) {
+            $listingSchema['openingHoursSpecification'] = $openingHours;
+        }
+        if ($sameAs = \App\Support\ListingSchema::sameAs($listing)) {
+            $listingSchema['sameAs'] = $sameAs;
         }
 
         $breadcrumbItems = [];
