@@ -504,11 +504,9 @@ if ($q === '') {
     }
 
     // ---- Base Listing Query ----
+    // Note: We don't filter by location for listing searches,
+    // so users can find listings from any location by name
     $listingQuery = Listing::where('status', 1);
-
-    if (!empty($locationId)) {
-        $listingQuery->where('location_id', $locationId);
-    }
 
     // ---- Get Used Category & Subcategory IDs ----
     $listings = $listingQuery
