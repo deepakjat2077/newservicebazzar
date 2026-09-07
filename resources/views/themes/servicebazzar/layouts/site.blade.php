@@ -216,6 +216,12 @@ body.header-fixed {
 			}
 		}
 
+		#locationInput,
+		#homeLocationInput,
+		#jdMobileLocationInput {
+			text-transform: capitalize !important;
+		}
+
 		@media (max-width: 767px){
 			#locationInput {
 				display: none !important;

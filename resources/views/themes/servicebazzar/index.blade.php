@@ -215,6 +215,13 @@
     background-repeat: no-repeat;
     background-position: center;
 }
+.input_location,
+#locationInput,
+#homeLocationInput,
+#jdMobileLocationInput{
+    text-transform: capitalize;
+}
+
 .input_location{
     width: 100%;
     height: 100%;
