@@ -1654,19 +1654,16 @@ a {
         <div class="category-content-header">
             <div class="listing-main-title">
 
-                {{-- The city sits INSIDE the h1, not in a sibling span beside it.
-                     These are the site's highest-value pages (~20k city/category
-                     URLs) and the h1 used to read just "Physiotherapist Services"
-                     — the one term the page actually competes on, "in Jaipur",
-                     was in a <span> outside the heading where it carried no
-                     heading weight. .listing-main-title is already
-                     display:flex/gap:8px on the h1 as well as on this wrapper,
-                     so nesting the span changes nothing visually. --}}
+                {{-- The city is part of the h1 text itself, as plain text with
+                     no wrapper element. These are the site's highest-value
+                     pages (~20k city/category URLs) and the h1 used to read
+                     just "Physiotherapist Services" — the one term the page
+                     actually competes on, "in Jaipur", sat in a <span> outside
+                     the heading where it carried no heading weight. The @if
+                     hugs the preceding output so the space before "in" comes
+                     from the template, not from Blade indentation. --}}
                 <h1 class="listing-main-title">
-                    {{ $headingWithServices }}
-                    @if(!empty($dynamicLocation))
-                        <span>in {{ $dynamicLocation }}</span>
-                    @endif
+                    {{ $headingWithServices }}@if(!empty($dynamicLocation)) in {{ $dynamicLocation }}@endif
                 </h1>
 
             </div>
