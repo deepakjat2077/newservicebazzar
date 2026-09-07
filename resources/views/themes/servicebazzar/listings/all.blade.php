@@ -1690,7 +1690,7 @@ a {
         {{-- Nearby-cities internal-link module: same service in other cities.
              Builds the siloed Service → City internal linking the SEO audit
              asked for, and gives crawlers a path into every city variant. --}}
-        @if($landerCatSlug && $landerNearbyCities->isNotEmpty())
+        {{-- @if($landerCatSlug && $landerNearbyCities->isNotEmpty())
             <div class="lander-nearby-cities">
                 <h2>{{ $landerServiceName }} in @if($landerHasCity)nearby @endif cities</h2>
                 <ul class="lander-nearby-cities-list">
@@ -1703,7 +1703,7 @@ a {
                     @endforeach
                 </ul>
             </div>
-        @endif
+        @endif --}}
 
     </div>
 @endif
