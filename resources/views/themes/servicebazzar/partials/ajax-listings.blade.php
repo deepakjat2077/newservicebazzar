@@ -9,31 +9,156 @@
 {{-- Empty state: no listings in this category/city combo --}}
 @if($allListings->isEmpty())
     <div class="col-12">
-        <div style="text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 30px;">
-            <h3 style="color: #333; font-size: 22px; margin-bottom: 12px;">
-                No Businesses Yet in {{ $headingName ?? 'This Category' }}
-            </h3>
-            <p style="color: #666; font-size: 16px; margin-bottom: 24px;">
-                Be the first to list your {{ strtolower($headingName ?? 'business') }} in {{ $locationText ?? 'this location' }}.
-                It's free and takes just 2 minutes!
-            </p>
-            <a href="{{ route('free-listing') }}" style="display: inline-block; background: #0d6efd; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-bottom: 40px;">
-                List Your Business Free
-            </a>
+        <div style="
+            text-align: center;
+            padding: 120px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        ">
+            <!-- Decorative background circles -->
+            <div style="
+                position: absolute;
+                top: -50px;
+                right: -50px;
+                width: 200px;
+                height: 200px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+            "></div>
+            <div style="
+                position: absolute;
+                bottom: -30px;
+                left: -30px;
+                width: 150px;
+                height: 150px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+            "></div>
 
-            @if(!empty($relatedSubcategories) && $relatedSubcategories->count() > 0)
-                <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #ddd;">
-                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Or explore related categories:</p>
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-                        @foreach($relatedSubcategories->take(5) as $related)
-                            <a href="{{ route('listings.subcategory', ['slug' => $related->slug]) }}"
-                               style="padding: 8px 16px; background: #e7f1ff; color: #0d6efd; text-decoration: none; border-radius: 20px; font-size: 14px;">
-                                {{ $related->name }}
-                            </a>
-                        @endforeach
-                    </div>
+            <!-- Main content -->
+            <div style="position: relative; z-index: 1;">
+                <!-- Coming Soon Badge -->
+                <div style="
+                    display: inline-block;
+                    background: rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(10px);
+                    padding: 8px 24px;
+                    border-radius: 50px;
+                    margin-bottom: 24px;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                ">
+                    <span style="
+                        color: #fff;
+                        font-size: 13px;
+                        font-weight: 600;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                    ">🚀 Coming Soon</span>
                 </div>
-            @endif
+
+                <!-- Main heading -->
+                <h2 style="
+                    color: #fff;
+                    font-size: 36px;
+                    font-weight: 800;
+                    margin: 0 0 16px 0;
+                    line-height: 1.2;
+                ">
+                    {{ $headingName ?? 'This Service' }}
+                </h2>
+
+                <!-- Location text -->
+                <p style="
+                    color: rgba(255, 255, 255, 0.95);
+                    font-size: 20px;
+                    margin: 0 0 32px 0;
+                    font-weight: 500;
+                ">
+                    in <strong>{{ $locationText ?? 'your area' }}</strong>
+                </p>
+
+                <!-- Description -->
+                <p style="
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 15px;
+                    margin: 0 auto 40px;
+                    max-width: 500px;
+                    line-height: 1.6;
+                ">
+                    We're working to bring the best {{ strtolower($headingName ?? 'service') }} providers to {{ $locationText ?? 'your area' }}.
+                    Get ready for an amazing experience!
+                </p>
+
+                <!-- CTA Buttons -->
+                <div style="
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    margin-bottom: 40px;
+                ">
+                    <a href="{{ route('free-listing') }}" style="
+                        display: inline-block;
+                        background: #fff;
+                        color: #667eea;
+                        padding: 14px 32px;
+                        border-radius: 8px;
+                        text-decoration: none;
+                        font-weight: 700;
+                        font-size: 15px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                    "
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)';\"
+                    >
+                        List Your Business
+                    </a>
+                </div>
+
+                <!-- Related categories section -->
+                @if(!empty($relatedSubcategories) && $relatedSubcategories->count() > 0)
+                    <div style="
+                        margin-top: 50px;
+                        padding-top: 40px;
+                        border-top: 1px solid rgba(255, 255, 255, 0.2);
+                    ">
+                        <p style="
+                            color: rgba(255, 255, 255, 0.8);
+                            font-size: 13px;
+                            margin-bottom: 20px;
+                            font-weight: 600;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        ">Explore Other Services</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                            @foreach($relatedSubcategories->take(5) as $related)
+                                <a href="{{ route('listings.subcategory', ['slug' => $related->slug]) }}"
+                                   style="
+                                       padding: 10px 18px;
+                                       background: rgba(255, 255, 255, 0.15);
+                                       color: #fff;
+                                       text-decoration: none;
+                                       border-radius: 25px;
+                                       font-size: 14px;
+                                       font-weight: 600;
+                                       border: 1px solid rgba(255, 255, 255, 0.3);
+                                       transition: all 0.3s ease;
+                                   "
+                                   onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'; this.style.transform='translateY(-2px)';"
+                                   onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(0)';\"
+                                >
+                                    {{ $related->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 @else
