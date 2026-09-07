@@ -1,6 +1,15 @@
 @extends($themeView.'layouts.site')
 
-@section('title', 'ServiceBazzar Badges & Verification - ' . ($setting->site_name ?? 'ServiceBazzar'))
+{{--
+    Block-form @section (see index.blade.php for why): the two-argument
+    shorthand double-escapes "&" into "&amp;amp;" once it reaches
+    <title>{{ $seoTitle }}</title>. This section's value is normally
+    unused anyway — $seoTitle below overrides it — but fixing it here too
+    so it renders correctly if that override is ever removed.
+--}}
+@section('title')
+ServiceBazzar Badges & Verification - {{ $setting->site_name ?? 'ServiceBazzar' }}
+@endsection
 
 @php
     $seoTitle = 'ServiceBazzar Business Badges & Verification';

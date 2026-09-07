@@ -6,7 +6,17 @@
     $ogDescription = 'Discover and connect with verified local businesses across India — services, healthcare, repairs, restaurants and professionals. Compare ratings and prices, then contact them directly. Free to use.';
 @endphp
 @section('content')
-@section('title','Find Local Businesses & Trusted Services Near You - India')
+{{--
+    Block-form @section, not the two-argument shorthand: Blade's shorthand
+    `@section('title', '...')` runs the string through e() internally, and
+    <title>{{ $seoTitle }}</title> in includes/seo.blade.php escapes it
+    again — the shorthand form turned "&" into "&amp;amp;" in the rendered
+    <title> tag. Block form captures the text raw so it's escaped exactly
+    once, at render.
+--}}
+@section('title')
+Local Businesses & Trusted Services Near You
+@endsection
 @include($themeView.'includes.rich-content')
 <!-- Banner Section -->
 @php
