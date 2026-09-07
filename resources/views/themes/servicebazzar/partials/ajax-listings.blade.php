@@ -101,23 +101,49 @@
                     flex-wrap: wrap;
                     margin-bottom: 40px;
                 ">
-                    <a href="{{ route('free.listing') }}" style="
+                    <button onclick="handleListYourBusiness(event)" style="
                         display: inline-block;
                         background: #fff;
                         color: #286efb;
                         padding: 14px 32px;
                         border-radius: 8px;
+                        border: none;
                         text-decoration: none;
                         font-weight: 700;
                         font-size: 15px;
                         transition: all 0.3s ease;
                         box-shadow: 0 4px 15px rgba(40, 110, 251, 0.25);
+                        cursor: pointer;
                     "
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)';"
                     >
                         List Your Business
-                    </a>
+                    </button>
+
+                    <script>
+                    function handleListYourBusiness(event) {
+                        event.preventDefault();
+                        fetch('{{ route("free.listing") }}', {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => {
+                            if (response.status === 401) {
+                                openSbAuthPopup();
+                                return;
+                            }
+                            if (response.ok) {
+                                window.location.href = '{{ route("free.listing") }}';
+                            }
+                        })
+                        .catch(() => {
+                            window.location.href = '{{ route("free.listing") }}';
+                        });
+                    }
+                    </script>
                 </div>
 
                 <!-- Related categories section -->

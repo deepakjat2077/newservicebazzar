@@ -1007,10 +1007,8 @@ Route::middleware('throttle:60,1')->group(function () {
 
     Route::get('search-locations', 'SiteController@searchLocations')->name('locations.search');
 
-    Route::middleware('auth')->group(function () {
-        Route::get('/free-listing', 'SiteController@freelisting')->name('free.listing');
-        Route::post('/free-listing-store', 'SiteController@freeListingStore')->middleware('throttle:10,1')->name('free.listing.store');
-    });
+    Route::get('/free-listing', 'SiteController@freelisting')->name('free.listing');
+    Route::post('/free-listing-store', 'SiteController@freeListingStore')->middleware('throttle:10,1')->name('free.listing.store');
 
 
     /*

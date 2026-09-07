@@ -2362,8 +2362,22 @@ public function linkDetails($slug)
     return view($this->theme.'faq', $data);
 }
 
-     public function freelisting()
+     public function freelisting(Request $request)
 {
+    // Check authentication - return JSON if not logged in
+    if (!auth()->check()) {
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Please login to create a listing',
+                'requiresAuth' => true
+            ], 401);
+        }
+
+        // For non-AJAX requests, show popup via redirect
+        return redirect('/')->with('showAuthPopup', true);
+    }
+
     $categories = Category::where('status', 1)->get();
     $locations  = activeLocations();
 
