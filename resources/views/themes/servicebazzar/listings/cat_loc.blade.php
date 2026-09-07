@@ -203,7 +203,13 @@
 
     top:0;
 
-    right:-100%;
+    /* transform, not right:-100% — an off-screen right:-100% fixed drawer
+       widens the mobile scroll area and lets the whole page scroll sideways
+       to reveal it (the viewport-overflow bug). translateX(100%) hides it
+       without adding to scroll width. */
+    right:0;
+
+    transform:translateX(100%);
 
     width:85%;
 
@@ -215,7 +221,7 @@
 
     z-index:1050;
 
-    transition:0.3s ease;
+    transition:transform 0.3s ease;
 
     overflow-y:auto;
 
@@ -224,7 +230,7 @@
 }
 
 .filter-sidebar.active{
-    right:0;
+    transform:translateX(0);
 }
 
 

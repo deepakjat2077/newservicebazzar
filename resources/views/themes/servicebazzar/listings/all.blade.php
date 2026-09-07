@@ -193,20 +193,28 @@
         .filter-sidebar {
             position: fixed;
             top: 0;
-            right: -100%;
+            /* Hidden state uses transform, not right:-100%. An off-screen
+               fixed element positioned with right:-100% still widens the
+               document's scroll area on mobile, so the whole page could be
+               scrolled sideways to reveal the closed drawer — which is what
+               made .filter-sidebar / .filters-scroll / .filter-pill all read
+               as "outside the viewport". A translateX(100%) element adds
+               nothing to scroll width and animates identically. */
+            right: 0;
+            transform: translateX(100%);
             width: 85%;
             max-width: 400px;
             height: 100vh;
             background: #fff;
             z-index: 1050;
-            transition: 0.3s ease;
+            transition: transform 0.3s ease;
             overflow-y: auto;
             padding: 20px;
         }
 
         .filter-sidebar.active {
             z-index: 1000000;
-            right: 0;
+            transform: translateX(0);
         }
 
         .filter-overlay {
