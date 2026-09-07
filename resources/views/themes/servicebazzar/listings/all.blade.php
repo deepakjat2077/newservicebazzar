@@ -1654,13 +1654,20 @@ a {
         <div class="category-content-header">
             <div class="listing-main-title">
 
+                {{-- The city sits INSIDE the h1, not in a sibling span beside it.
+                     These are the site's highest-value pages (~20k city/category
+                     URLs) and the h1 used to read just "Physiotherapist Services"
+                     — the one term the page actually competes on, "in Jaipur",
+                     was in a <span> outside the heading where it carried no
+                     heading weight. .listing-main-title is already
+                     display:flex/gap:8px on the h1 as well as on this wrapper,
+                     so nesting the span changes nothing visually. --}}
                 <h1 class="listing-main-title">
                     {{ $headingWithServices }}
+                    @if(!empty($dynamicLocation))
+                        <span>in {{ $dynamicLocation }}</span>
+                    @endif
                 </h1>
-
-                @if(!empty($dynamicLocation))
-                    <span>in {{ $dynamicLocation }}</span>
-                @endif
 
             </div>
         </div>
