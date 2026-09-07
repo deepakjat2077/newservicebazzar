@@ -114,7 +114,7 @@
                         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
                     "
                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)';\"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)';"
                     >
                         List Your Business
                     </a>
@@ -150,7 +150,7 @@
                                        transition: all 0.3s ease;
                                    "
                                    onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'; this.style.transform='translateY(-2px)';"
-                                   onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(0)';\"
+                                   onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(0)';"
                                 >
                                     {{ $related->name }}
                                 </a>
