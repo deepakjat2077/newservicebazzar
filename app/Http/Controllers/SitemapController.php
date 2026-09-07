@@ -154,14 +154,22 @@ class SitemapController extends Controller
         $subCounts = $counts[$location->id]['sub'] ?? [];
         $min = PageIndexability::minimumListings();
 
+        // Same doorway-page test the lander itself applies before rendering
+        // noindex — see the mentions map below.
+        $mentions = $this->landerCityMentions();
+        $ownCity = mb_strtolower(trim((string) $location->name));
+
         $urls = [];
 
-        $categories = Category::where('status', 1)->select(['id', 'slug', 'updated_at'])->get();
+        $categories = Category::where('status', 1)->select(['id', 'name', 'slug', 'updated_at'])->get();
         foreach ($categories as $c) {
             if (empty($c->slug) || str_contains($c->slug, '-in-')) {
                 continue;
             }
             if (($catCounts[$c->id] ?? 0) < $min) {
+                continue;
+            }
+            if (array_diff($mentions['cat'][$c->id] ?? [], [$ownCity])) {
                 continue;
             }
             $urls[] = [
@@ -172,12 +180,15 @@ class SitemapController extends Controller
             ];
         }
 
-        $subcategories = Subcategory::where('status', 1)->select(['id', 'slug', 'updated_at'])->get();
+        $subcategories = Subcategory::where('status', 1)->select(['id', 'name', 'slug', 'updated_at'])->get();
         foreach ($subcategories as $s) {
             if (empty($s->slug) || str_contains($s->slug, '-in-')) {
                 continue;
             }
             if (($subCounts[$s->id] ?? 0) < $min) {
+                continue;
+            }
+            if (array_diff($mentions['sub'][$s->id] ?? [], [$ownCity])) {
                 continue;
             }
             $urls[] = [
@@ -189,6 +200,83 @@ class SitemapController extends Controller
         }
 
         return $this->urlset($urls);
+    }
+
+    /**
+     * Which city names each category/subcategory name mentions:
+     * ['cat' => [id => ['delhi', ...]], 'sub' => [id => [...]]].
+     *
+     * A lander whose name names a city other than the one in its URL is a
+     * doorway page — "PG with laundry service Delhi" rendered under /jaipur/ —
+     * and ListingController serves it noindex via landerMentionsForeignCity().
+     * The sitemap has to reach the same verdict or it submits URLs that tell
+     * Google not to index them. It used to approximate the test with
+     * str_contains($slug, '-in-'), which caught "…-in-delhi" but sailed past
+     * "…-for-chennai" and plain trailing "…-pune", leaving ~4% of submitted
+     * URLs noindex.
+     *
+     * Calling the helper directly would mean names x cities regex matches —
+     * ~476k per city sitemap, measured at 4.5s. Instead this matches every
+     * city in ONE alternation per name and caches the result, which drops the
+     * whole build to well under a second.
+     *
+     * A city name can contain another ("Navi Mumbai" contains "Mumbai"), and
+     * the helper — looping city by city — reports both. The containment map
+     * reproduces that, so a name mentioning "Navi Mumbai" is still foreign to
+     * /navi-mumbai/'s own sibling "Mumbai" exactly as the helper says it is.
+     */
+    private function landerCityMentions(): array
+    {
+        return Cache::remember('sitemap:lander_city_mentions:v1', now()->addHours(self::COUNTS_TTL_HOURS), function () {
+            // Mirror landerMentionsForeignCity()'s city list exactly.
+            $cities = Location::where('status', 1)
+                ->pluck('name')
+                ->map(fn ($n) => trim((string) $n))
+                ->filter(fn ($n) => mb_strlen($n) >= 3)
+                ->unique()
+                ->values()
+                ->all();
+
+            if (empty($cities)) {
+                return ['cat' => [], 'sub' => []];
+            }
+
+            $containedIn = [];
+            foreach ($cities as $outer) {
+                foreach ($cities as $inner) {
+                    if ($outer !== $inner && preg_match('/\b'.preg_quote($inner, '/').'\b/i', $outer)) {
+                        $containedIn[mb_strtolower($outer)][] = mb_strtolower($inner);
+                    }
+                }
+            }
+
+            $alternation = '/\b('.implode('|', array_map(fn ($c) => preg_quote($c, '/'), $cities)).')\b/i';
+
+            $scan = function ($rows) use ($alternation, $containedIn) {
+                $out = [];
+                foreach ($rows as $row) {
+                    if (!preg_match_all($alternation, (string) $row->name, $m)) {
+                        continue;
+                    }
+                    $found = [];
+                    foreach ($m[1] as $hit) {
+                        $lc = mb_strtolower($hit);
+                        $found[$lc] = true;
+                        foreach ($containedIn[$lc] ?? [] as $nested) {
+                            $found[$nested] = true;
+                        }
+                    }
+                    $out[$row->id] = array_keys($found);
+                }
+
+                return $out;
+            };
+
+            return [
+                'cat' => $scan(Category::where('status', 1)->select(['id', 'name'])->get()),
+                'sub' => $scan(Subcategory::where('status', 1)->select(['id', 'name'])->get()),
+            ];
+        });
     }
 
     /** City slugs (status=1) that have at least one indexable lander. */
