@@ -101,7 +101,7 @@
                     flex-wrap: wrap;
                     margin-bottom: 40px;
                 ">
-                    <a href="{{ route('free-listing') }}" style="
+                    <a href="{{ route('free.listing') }}" style="
                         display: inline-block;
                         background: #fff;
                         color: #667eea;
