@@ -125,7 +125,7 @@ function cityCategoryUrl($categorySlug, $city = null){
 }
 
 function loadImage($image,$isAvatar = false){
-    return file_exists($image) && is_file($image) ? asset($image) : ($isAvatar ? asset('assets/images/avatar.jpg') : asset('assets/images/default.jpg'));
+    return file_exists(public_path($image)) && is_file(public_path($image)) ? asset($image) : ($isAvatar ? asset('assets/images/avatar.jpg') : asset('assets/images/default.jpg'));
 }
 
 /**
@@ -155,7 +155,7 @@ function userAvatarUrl($image) {
 function loadImageWebp($image, $isAvatar = false) {
     if ($image) {
         $webpPath = preg_replace('/\.(png|jpe?g|gif)$/i', '.webp', $image);
-        if ($webpPath !== $image && file_exists($webpPath) && is_file($webpPath)) {
+        if ($webpPath !== $image && file_exists(public_path($webpPath)) && is_file(public_path($webpPath))) {
             return asset($webpPath);
         }
     }
