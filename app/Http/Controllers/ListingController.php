@@ -3046,7 +3046,16 @@ $relatedSubcategories = Subcategory::query()
         $query->where('id', '!=', $subcategory->id);
     })
     ->orderBy('name')
-    ->get();
+    ->get()
+    // Drop subcategories whose name names a city other than this URL's city
+    // ("Car Rental For Nagpur" under /jaipur/). Rendered in the "Related
+    // Categories" rail they become internal links to /{city}/{foreign-slug}
+    // doorway pages — the same pages already served noindex and kept out of
+    // the sitemap. Linking to them anyway keeps Google crawling a doorway
+    // pattern that drags down sitewide quality, so they're filtered here at
+    // the source, consistent with landerMentionsForeignCity() everywhere else.
+    ->reject(fn ($sub) => landerMentionsForeignCity($sub->name, $locationData->name))
+    ->values();
 
     $data['popularCities'] = activeLocations()
     ->where('is_popular', 1)

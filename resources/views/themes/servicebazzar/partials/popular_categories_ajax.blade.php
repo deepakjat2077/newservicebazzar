@@ -95,6 +95,19 @@
                                     );
                             @endphp
 
+                            {{-- Skip subcategories whose name names a city other
+                                 than the one we're building the URL for (e.g.
+                                 "Car Rental For Coimbatore" under /jaipur/). As a
+                                 /{city}/{slug} link that's an internal link to a
+                                 doorway page — already served noindex and kept
+                                 out of the sitemap — so linking to it here would
+                                 keep Google crawling the doorway pattern. Only
+                                 applies to the city-prefixed URL; the
+                                 /listings/subcategory fallback (no current city)
+                                 is the canonical page and is left alone. --}}
+                            @if(!empty($currentLocationName) && landerMentionsForeignCity($subcat->name, $currentLocationName))
+                                @continue
+                            @endif
 
                             @if(!empty($subcat->slug))
 
