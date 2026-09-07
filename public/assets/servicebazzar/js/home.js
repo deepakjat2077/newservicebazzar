@@ -963,7 +963,20 @@ input.addEventListener("click", function () {
 closeCategoryDropdown();
 
         if (item.dataset.type === "listing") {
-            window.location.href = item.dataset.url;
+            // Auto-fill location if listing has an area
+            if (item.dataset.area) {
+                const locationInput = document.getElementById("homeLocationInput");
+                if (locationInput) {
+                    locationInput.value = item.dataset.area;
+                    // Trigger input event to update suggestions if needed
+                    locationInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+
+            // Small delay to allow location to be set before redirecting
+            setTimeout(() => {
+                window.location.href = item.dataset.url;
+            }, 100);
             return;
         }
 
