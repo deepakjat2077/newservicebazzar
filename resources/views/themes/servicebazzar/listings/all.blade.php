@@ -25,6 +25,19 @@
     $seoImage ??= !empty($seoCategory?->image)
         ? asset('assets/images/category/' . $seoCategory->image)
         : asset('assets/images/logo/logo.png');
+
+    // Pages with zero listings waste crawl budget; they are empty in a way
+    // users and search engines can't use. Noindex them so Google doesn't
+    // treat an empty city page the same as a populated one. $listings is
+    // provided by the controller; it is a Paginator on category pages with
+    // filters, and an array on static endpoints. Either way, count() or
+    // total() tell the true count.
+    $listingsCount = isset($listings)
+        ? (method_exists($listings, 'total') ? $listings->total() : count($listings))
+        : 0;
+    if ($listingsCount === 0) {
+        $seoRobots = 'noindex, follow';
+    }
 @endphp
 
 @section('title', $seoTitle)
