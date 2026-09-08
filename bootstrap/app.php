@@ -3,6 +3,7 @@
 use App\Http\Middleware\AdminApiPermission;
 use App\Http\Middleware\AdminPermission;
 use App\Http\Middleware\AllowSearchEngineCrawlers;
+use App\Http\Middleware\RemoveIndexPhp;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\AuthenticateAdminApi;
 use App\Http\Middleware\AuthenticateUserApi;
@@ -135,6 +136,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // lowercase canonical, same as the trailing-slash rule and for the same
         // reason: one URL per page, before it's rendered or cached.
         $middleware->prependToGroup('web', ForceLowercaseLanderUrl::class);
+
+        // Redirect /index.php to / (301) to prevent it from appearing as a
+        // location in the search box. Run early, before caching.
+        $middleware->prependToGroup('web', RemoveIndexPhp::class);
 
         // Laravel sorts the stack by its priority list, and ThrottleRequests
         // sits in that list while CachePublicPages does not — so the throttle
