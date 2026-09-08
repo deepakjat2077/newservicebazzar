@@ -1606,10 +1606,27 @@ a {
     */
     $description = $contentCategory?->description ?? '';
 
+    /*
+    | Swap the placeholder city ("Jaipur") for this page's city. Two passes on
+    | purpose: the descriptions carry internal links like
+    | servicebazzar.com/jaipur/<category>, and a single case-insensitive
+    | replace would rewrite the lowercase "jaipur" inside those URLs to the
+    | capitalised city name ("…/Delhi/…") — a mixed-case URL that renders a
+    | duplicate of the lowercase page. So rewrite the URL segment with the
+    | lowercase slug first, then the prose with the proper-case city name.
+    */
+    $cityUrlSlug = \Illuminate\Support\Str::slug($dynamicLocation);
+
+    $dynamicDescription = str_ireplace(
+        'servicebazzar.com/jaipur',
+        'servicebazzar.com/' . $cityUrlSlug,
+        $description
+    );
+
     $dynamicDescription = str_ireplace(
         'Jaipur',
         $dynamicLocation,
-        $description
+        $dynamicDescription
     );
 
     /*

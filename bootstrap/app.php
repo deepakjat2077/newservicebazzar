@@ -17,6 +17,7 @@ use App\Http\Middleware\RedirectIfAdmin;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RedirectIfNotAdmin;
 use App\Http\Middleware\RedirectTrailingSlash;
+use App\Http\Middleware\ForceLowercaseLanderUrl;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\ThrottleRequestsForHumans;
 use App\Http\Middleware\Verification;
@@ -129,6 +130,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Redirect trailing slashes early in the web stack (before caching)
         // so /blogs/ → /blogs with 301 for consistent URL structure.
         $middleware->prependToGroup('web', RedirectTrailingSlash::class);
+
+        // Collapse mixed-case lander URLs (/Delhi/home-renovation) onto their
+        // lowercase canonical, same as the trailing-slash rule and for the same
+        // reason: one URL per page, before it's rendered or cached.
+        $middleware->prependToGroup('web', ForceLowercaseLanderUrl::class);
 
         // Laravel sorts the stack by its priority list, and ThrottleRequests
         // sits in that list while CachePublicPages does not — so the throttle

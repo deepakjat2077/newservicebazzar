@@ -58,8 +58,13 @@ class LanderSchema
 
         // FAQPage from the item's own FAQ copy, city-interpolated the same way
         // listings.all interpolates it for display (the 'Jaipur' placeholder ->
-        // the real city), so schema and on-page text stay identical.
-        $faqSource = str_ireplace('Jaipur', $cityName ?: 'Jaipur', $item->description ?? '');
+        // the real city), so schema and on-page text stay identical. Rewrite
+        // the URL segment with the lowercase slug before the prose, so an
+        // internal link like servicebazzar.com/jaipur/<cat> doesn't become the
+        // mixed-case servicebazzar.com/<City>/<cat> (matches listings.all).
+        $citySlug = \Illuminate\Support\Str::slug($cityName ?: 'Jaipur');
+        $faqSource = str_ireplace('servicebazzar.com/jaipur', 'servicebazzar.com/' . $citySlug, $item->description ?? '');
+        $faqSource = str_ireplace('Jaipur', $cityName ?: 'Jaipur', $faqSource);
         $data['schemaFaqs'] = FaqExtractor::fromHtml($faqSource);
 
         // ItemList of the providers on the page, each a LocalBusiness.
