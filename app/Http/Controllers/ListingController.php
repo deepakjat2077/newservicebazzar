@@ -2963,6 +2963,14 @@ public function cityCategoryArea($city, $categoryArea)
     }
 
     if (!$category && !$subcategory) {
+        // Old keyword-stuffed subcategory slug (audit #42)? Send it to the
+        // renamed/merged one with a 301 before trying anything more
+        // expensive — this is a cheap in-memory array lookup.
+        $retired = retiredSubcategorySlugs();
+        if (isset($retired[$serviceSlug])) {
+            return redirect('/' . $city . '/' . $retired[$serviceSlug], 301);
+        }
+
         // Neither a category nor a subcategory matched.  Before giving up,
         // check whether the slug is actually a *listing* detail page that
         // Google still has indexed under the old /city/listing-slug URL

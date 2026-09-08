@@ -410,3 +410,41 @@ function validRouteFirstSegments(): array
         }
     );
 }
+
+/**
+ * Retired subcategory slugs -> their surviving slug, 301 (audit #42).
+ *
+ * A bulk import once wrote subcategory rows with a keyword-stuffed slug
+ * (many "X for Y" phrases concatenated together) instead of running them
+ * through the admin controller's Str::slug($name); nine of those hit
+ * 80-255 characters, one truncated mid-word at the varchar(255) limit.
+ * Google had already indexed and was re-crawling those URLs, so renaming
+ * the slug alone would have turned each into a fresh 404 — this map lets
+ * cityCategoryArea() 301 the old URL to the short one instead (or, for the
+ * three that were exact-name duplicates of an existing clean subcategory,
+ * to that survivor).
+ *
+ * Small and fixed, so a plain array is cheaper than a cached query.
+ */
+function retiredSubcategorySlugs(): array
+{
+    return [
+        'event-organisers-for-navratri-audition-organisers-event-organisers-for-corporate-event-organisers-for-holi-street-play-organisers-puppet-show-organisers-rain-dance-organisers-firework-show-organisers-dance-competition-organisers-music-concert-organisers-e' => 'event-organisers',
+        'best-photographer-in-kolkata-wedding-photographer-pre-wedding-photography-baby-shower-photography-kids-photography-food-photography-cinematic-wedding-film' => 'best-photographer-in-kolkata',
+        'business-stay-corporate-stay-executive-stay-vacation-home-holiday-home-homestay-serviced-apartment-fully-furnished-apartment-pet-friendly-airbnb-weekend-stay-in-mumbai' => 'business-stay',
+        'business-stay-corporate-stay-executive-stay-vacation-home-holiday-home-homestay-serviced-apartment-fully-furnished-apartment-pet-friendly-airbnb-weekend-stay' => 'business-stay',
+        'on-site-eye-testing-and-mobile-optical-services-across-delhi-for-convenient-vision-care' => 'on-site-eye-testing-and-mobile-optical',
+        'advanced-lens-coatings-such-as-anti-glare-blue-light-filter-and-scratch-resistant-options' => 'advanced-lens-coatings-such-as-anti-glare',
+        'customized-prescription-optical-lenses-including-single-vision-bifocal-and-progressive-lenses' => 'customized-prescription-optical-lenses',
+        'job-placement-services-for-freshers-and-experienced-candidates-across-multiple-industries' => 'job-placement-services-for-freshers-and',
+        'recruitment-and-staffing-solutions-for-companies-including-permanent-and-temporary-hiring' => 'recruitment-and-staffing-solutions-for',
+        'career-support-services-such-as-resume-building-interview-preparation-and-job-counseling' => 'career-support-services-such-as-resume',
+        'recruitment-solutions-for-companies-including-permanent-temporary-and-contract-staffing' => 'recruitment-solutions-for-companies',
+        'codleo-consulting-trusted-partner-for-digital-transformation-and-crm-success-in-delhi' => 'codleo-consulting',
+        'business-stay-mumbai-weekend-stay-mumbai-vacation-home-mumbai-homestay-mumbai-serviced-apartment-mumbai-premium-airbnb-mumbai-pet-friendly-airbnb-mumbai' => 'business-stay-mumbai',
+        'rainwear-dealers-mumbai-umbrella-dealers-mumbai-raincoat-shop-mumbai-rainwear-store-mumbai-umbrella-shop-mumbai-waterproof-rainwear-mumbai-raincoat-suppliers-mumbai-monsoon-wear-mumbai-rain-protection-accessories-mumbai-rain-gear-mumbai' => 'rainwear-dealers-mumbai',
+        'hotel-with-free-wifi-in-mumbai-hotel-with-parking-in-mumbai-couple-friendly-hotel-in-mumbai-family-stay-in-mumbai-hotel-for-business-travelers-in-mumbai-weekend-stay-hotel-in-mumbai' => 'hotel-with-free-wifi-in-mumbai',
+        'best-wedding-band-mumbai-wedding-bands-mumbai-mumbai-wedding-band-marriage-band-mumbai-brass-band-mumbai-baraat-band-mumbai-wedding-music-band-mumbai-professional-wedding-band-mumbai-premium-wedding-band-mumbai' => 'best-wedding-band-mumbai',
+        'decorators-event-organisers-for-arm-wrestling-event-organisers-for-bachelorette-party-event-organisers-for-bhajan-sandhya-event-organisers-for-birthday-party-event-organisers-for-concert-event-organisers-for-corporate-event-organisers-for-dj-event-organis' => 'decorators-event-organisers',
+    ];
+}
