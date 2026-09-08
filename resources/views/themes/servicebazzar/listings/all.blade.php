@@ -1604,17 +1604,33 @@ a {
 
     /*
     |--------------------------------------------------------------------------
-    | If category name already ends with "Service(s)", keep it as-is.
-    | Otherwise, append " Services".
+    | Append " Services" ONLY for the service categories listed below, and
+    | only when the name doesn't already end in "Service(s)". Every other
+    | category (Schools, Packers And Movers, Astrology Reading Classes, …)
+    | keeps its name verbatim in the H1 — "Schools Services" reads wrong.
     |
-    | "Deep Cleaning Services" → "Deep Cleaning Services in X" (as-is)
-    | "Schools" → "Schools Services in Delhi" (Services added)
-    | "Packers And Movers" → "Packers And Movers Services in Tonk" (Services added)
+    | "Electrician"        → "Electrician Services in Delhi"  (added)
+    | "AC Repair & Services" → "AC Repair & Services in Delhi" (as-is)
+    | "Schools"            → "Schools in Delhi"               (verbatim)
+    | "Packers And Movers" → "Packers And Movers in Tonk"     (verbatim)
     |--------------------------------------------------------------------------
     */
-    $headingWithServices = preg_match('/\b(service|services)\s*$/i', $headingName)
-        ? $headingName
-        : $headingName . ' Services';
+    $serviceCategorySlugs = [
+        'ac-repair-services', 'electrician', 'plumber', 'pest-control-services',
+        'courier-services', 'laptop-repair-services', 'car-repair',
+        'cleaning-services', 'home-renovation', 'water-tank-cleaning',
+        'refrigerator-repair', 'warehouse-storage-services',
+        'cargo-shipping-services', 'logistics', 'transporters',
+        'house-keeping-services', 'printing-services',
+        'ro-water-purifier-repair-services',
+    ];
+
+    $headingWithServices = (
+        in_array($headingCategory?->slug, $serviceCategorySlugs, true)
+        && ! preg_match('/\b(service|services)\s*$/i', $headingName)
+    )
+        ? $headingName . ' Services'
+        : $headingName;
 
     /*
     |--------------------------------------------------------------------------
