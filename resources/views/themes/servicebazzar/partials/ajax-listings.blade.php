@@ -1261,7 +1261,7 @@
                                                 <input class="form-check-input" type="checkbox" checked>
                                                 <label class="form-check-label small">
                                                     I Agree to
-                                                    <a href="{{ route('single.slug',38) }}" class="text-decoration-none">T&amp;C's Privacy Policy</a>
+                                                    <a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
                                                 </label>
                                             </div>
                                         </div>
@@ -1322,7 +1322,7 @@
                         <input type="checkbox" id="agreePolicy" checked>
                         <label for="agreePolicy">
                             I Agree to Terms and Conditions
-                            <a href="{{ route('single.slug',38) }}">T&amp;C's Privacy Policy</a>
+                            <a href="{{ route('single.slug',38) }}"><a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a></a>
                         </label>
                     </div>
 
@@ -2100,7 +2100,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <input class="form-check-input" type="checkbox" checked>
                                         <label class="form-check-label small">
                                             I Agree to
-                                            <a href="{{ route('single.slug',38) }}" class="text-decoration-none">T&amp;C's Privacy Policy</a>
+                                            <a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
                                         </label>
                                     </div>
                                 </div>

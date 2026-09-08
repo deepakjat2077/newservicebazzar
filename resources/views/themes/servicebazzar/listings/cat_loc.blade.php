@@ -621,7 +621,7 @@
     <div class="form-check enquiry-check mb-3">
         <input class="form-check-input" type="checkbox" id="policyCheck" required>
         <label class="form-check-label" for="policyCheck">
-            I Agree to <a href="{{ route('single.slug', 'privacy-policy') }}">T&C's Privacy Policy</a>
+            I Agree to <a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
         </label>
     </div>
 

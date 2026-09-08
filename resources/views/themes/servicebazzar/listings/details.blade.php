@@ -4926,7 +4926,7 @@
                             <input type="checkbox" id="agreePolicy" checked>
                             <label for="agreePolicy">
                                 I Agree to Terms and Conditions
-                                <a href="{{ route('single.slug',38) }}">T&amp;C's Privacy Policy</a>
+                                <a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
                             </label>
                         </div>
 

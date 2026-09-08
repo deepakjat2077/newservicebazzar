@@ -4431,7 +4431,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         I Agree to Terms and Conditions
                     </label>
                     <br>
-                    <a href="{{ url('/privacy-policy') }}">T&C's Privacy Policy</a>
+                    <a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
                 </div>
                 <button type="submit" class="sb-btn" id="sbSendBtn">Continue</button>
             </form>
