@@ -2771,11 +2771,11 @@ public function authorEmailContact(Request $request, SendMail $mail)
 
             <div style="text-align:center;padding-top:15px;">
                 <img src="https://www.servicebazzar.com/assets/images/logo/logo.png"
-                     alt="ServiceBazzar"
+                     alt="Service Bazzar"
                      style="max-width:180px;margin-bottom:10px;">
 
                 <p style="margin:10px 0 5px;">
-                    <strong>ServiceBazzar</strong>
+                    <strong>Service Bazzar</strong>
                 </p>
 
                 <p style="margin:0;color:#666;">
@@ -3160,8 +3160,8 @@ public function userProfile($username)
     $data['postCount'] = Listing::where('user_id', $user->id)->count();
     $data['recentBusinesses'] = $recentBusinesses;
     $data['recentSearches'] = $recentSearches;
-    $data['seoTitle'] = $user->first_name . ' ' . $user->last_name . ' | ' . ($this->setting->site_name ?? 'ServiceBazzar');
-    $data['seoDescription'] = 'View ' . $user->first_name . '\'s profile on ' . ($this->setting->site_name ?? 'ServiceBazzar');
+    $data['seoTitle'] = $user->first_name . ' ' . $user->last_name . ' | ' . ($this->setting->site_name ?? 'Service Bazzar');
+    $data['seoDescription'] = 'View ' . $user->first_name . '\'s profile on ' . ($this->setting->site_name ?? 'Service Bazzar');
     // This is the user's own account page, not a business/listing page —
     // it should not show up in search on its own. Their reviews already
     // surface (and are indexable) on the listing page each was left on.

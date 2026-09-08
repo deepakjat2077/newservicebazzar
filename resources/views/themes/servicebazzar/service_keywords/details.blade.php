@@ -492,7 +492,7 @@
                                     @if($currentCity)
                                         Trusted businesses in {{ $currentCity }}
                                     @else
-                                        Trusted businesses listed on ServiceBazzar
+                                        Trusted businesses listed on Service Bazzar
                                     @endif
                                 </p>
                             </div>

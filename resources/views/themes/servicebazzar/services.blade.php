@@ -1,7 +1,7 @@
 @extends($themeView.'layouts.site')
 @php
-    $seoTitle = 'Home Services Directory | ServiceBazzar';
-    $seoDescription = 'Browse home and professional services on ServiceBazzar. Find verified service providers in your area.';
+    $seoTitle = 'Home Services Directory | Service Bazzar';
+    $seoDescription = 'Browse home and professional services on Service Bazzar. Find verified service providers in your area.';
 @endphp
 @section('title', $seoTitle)
 
@@ -23,7 +23,7 @@
                 </div>
                <h3>Smart Business<br>Listings</h3>
                 <p>
-                   ServiceBazzar helps local businesses showcase their services, contact
+                   Service Bazzar helps local businesses showcase their services, contact
                     details, locations, and key highlights so customers can discover
                     them quickly and easily.
                 </p>
@@ -50,11 +50,11 @@
 
             <div class="partner-card">
                 <div class="card-image">
-                    <img src="{{asset('assets/images/service3.webp')}}" width="400" height="300" loading="lazy" alt="Grow Your Local Presence with ServiceBazzar">
+                    <img src="{{asset('assets/images/service3.webp')}}" width="400" height="300" loading="lazy" alt="Grow Your Local Presence with Service Bazzar">
                 </div>
                 <h3>Grow Your<br>Local Presence</h3>
                 <p>
-                     From better online reach to more customer inquiries, ServiceBazzar gives
+                     From better online reach to more customer inquiries, Service Bazzar gives
                     businesses a strong digital presence and helps people connect with
                     trusted local services faster.
                 </p>

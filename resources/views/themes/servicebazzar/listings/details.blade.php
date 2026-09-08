@@ -3632,10 +3632,10 @@
     @if(!empty($listing->whatsapp_numbers[0]))
     @php
         // Pre-fill message for WhatsApp so user doesn't have to type
-        // and business owner knows lead came from ServiceBazzar
+        // and business owner knows lead came from Service Bazzar
         $categoryName = $listing->category?->name ?? 'services';
         $businessName = $listing->name ?? 'your business';
-        $message = "Hi, I found you on ServiceBazzar. I'm interested in your {$categoryName}. Please tell me more.";
+        $message = "Hi, I found you on Service Bazzar. I'm interested in your {$categoryName}. Please tell me more.";
         $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
     @endphp
     <a href="{{ $whatsappUrl }}"
@@ -3771,7 +3771,7 @@
                                 @if(!empty($listing->whatsapp_numbers[0]))
                                     @php
                                         $categoryName = $listing->category?->name ?? 'services';
-                                        $message = "Hi, I found you on ServiceBazzar. I'm interested in your {$categoryName}. Please tell me more.";
+                                        $message = "Hi, I found you on Service Bazzar. I'm interested in your {$categoryName}. Please tell me more.";
                                         $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
                                     @endphp
                                     <a href="{{ $whatsappUrl }}"
@@ -4842,7 +4842,7 @@
     @if(!empty($listing->whatsapp_numbers[0]))
         @php
             $categoryName = $listing->category?->name ?? 'services';
-            $message = "Hi, I found you on ServiceBazzar. I'm interested in your {$categoryName}. Please tell me more.";
+            $message = "Hi, I found you on Service Bazzar. I'm interested in your {$categoryName}. Please tell me more.";
             $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
         @endphp
         <a href="{{ $whatsappUrl }}"

@@ -3,7 +3,7 @@
 @php
     // Title now aligns with H1 for consistency
     $seoTitle = 'Business Blog | Growth, Local SEO & Marketing Tips';
-    $seoDescription = 'Read blog posts about business growth, marketing tips, and entrepreneurship advice on ServiceBazzar.';
+    $seoDescription = 'Read blog posts about business growth, marketing tips, and entrepreneurship advice on Service Bazzar.';
 @endphp
 @section('title', $seoTitle)
 

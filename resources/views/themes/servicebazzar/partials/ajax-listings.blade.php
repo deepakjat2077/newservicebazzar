@@ -447,7 +447,7 @@
                         @endif
 
                         @if(($listing->verified ?? 0) == 1)
-                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by ServiceBazzar">
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by Service Bazzar">
                                 <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
                             </a>
                         @endif
@@ -719,7 +719,7 @@
                         @endif
 
                         @if(($listing->verified ?? 0) == 1)
-                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by ServiceBazzar">
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by Service Bazzar">
                                 <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
                             </a>
                         @endif

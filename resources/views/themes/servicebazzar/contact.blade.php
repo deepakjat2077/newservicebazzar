@@ -1,8 +1,8 @@
 @extends($themeView.'layouts.site')
 @section('content')
 @php
-    $seoTitle = 'Contact Us | ServiceBazzar Customer Support';
-    $seoDescription = 'Get in touch with ServiceBazzar. Contact our customer support team for help with listings and inquiries.';
+    $seoTitle = 'Contact Us | Service Bazzar Customer Support';
+    $seoDescription = 'Get in touch with Service Bazzar. Contact our customer support team for help with listings and inquiries.';
 @endphp
 @section('title', $seoTitle)
 
@@ -339,7 +339,7 @@
     <div class="overlay">
         <div class=" sks container">
             <h1>Contact Us</h1>
-            <h2>Get in Touch with ServiceBazzar</h2>
+            <h2>Get in Touch with Service Bazzar</h2>
         </div>
     </div>
 </section>
@@ -434,7 +434,7 @@
 @if(!empty($mapQuery))
     <div class="git-map-wrap git-map-outer">
         <iframe
-            title="ServiceBazzar location on Google Maps"
+            title="Service Bazzar location on Google Maps"
             src="https://www.google.com/maps?q={{ urlencode($mapQuery) }}&output=embed"
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"

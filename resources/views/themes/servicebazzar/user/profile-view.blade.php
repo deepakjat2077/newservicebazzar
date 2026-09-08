@@ -275,7 +275,7 @@ document.addEventListener('click', function (e) {
   var url = btn.getAttribute('data-url');
   var text = btn.getAttribute('data-text') || '';
   if (navigator.share) {
-    navigator.share({ title: 'ServiceBazzar', text: text, url: url }).catch(function(){});
+    navigator.share({ title: 'Service Bazzar', text: text, url: url }).catch(function(){});
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(url).then(function () {
       var old = btn.innerHTML;

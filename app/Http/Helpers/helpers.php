@@ -42,7 +42,7 @@ function menuActive($routename)
  */
 function normalizeSeoTitle(?string $title, ?string $brand = null, int $max = 60): string
 {
-    $brand = $brand ?: 'ServiceBazzar';
+    $brand = $brand ?: 'Service Bazzar';
     $title = trim(preg_replace('/\s+/', ' ', (string) $title));
     if ($title === '') {
         return $brand;

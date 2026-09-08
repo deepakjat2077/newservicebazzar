@@ -1,9 +1,9 @@
 @extends($themeView.'layouts.site')
 
-@section('title', 'Browse Services by City | ServiceBazzar')
+@section('title', 'Browse Services by City | Service Bazzar')
 
 @php
-    $seoDescription = 'Browse and find local businesses by city and category on ServiceBazzar.';
+    $seoDescription = 'Browse and find local businesses by city and category on Service Bazzar.';
 @endphp
 
 @section('content')

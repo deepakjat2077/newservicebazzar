@@ -16,7 +16,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>ServiceBazzar — we'll be right back</title>
+<title>Service Bazzar — we'll be right back</title>
 <style>
     :root {
         --bg: #f6f7fb;
@@ -128,7 +128,7 @@
 
         <h1>We'll be right back</h1>
 
-        <p>ServiceBazzar is under a moment of heavy load.</p>
+        <p>Service Bazzar is under a moment of heavy load.</p>
         <p>Kuch hi der mein wapas aa rahe hain.</p>
 
         <a class="btn" href="{{ url('/') }}">Try again</a>

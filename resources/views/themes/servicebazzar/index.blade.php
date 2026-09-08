@@ -2,7 +2,7 @@
 @php
     // Distinct social-share text so the homepage card isn't the generic site
     // meta description (SEO include falls back to $seoDescription otherwise).
-    $ogTitle = 'ServiceBazzar — Find Trusted Local Businesses Near You';
+    $ogTitle = 'Service Bazzar — Find Trusted Local Businesses Near You';
     $ogDescription = 'Discover and connect with verified local businesses across India — services, healthcare, repairs, restaurants and professionals. Compare ratings and prices, then contact them directly. Free to use.';
 @endphp
 @section('content')

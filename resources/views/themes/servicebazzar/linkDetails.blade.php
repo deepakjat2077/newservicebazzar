@@ -194,7 +194,7 @@
                     @if($coveredCities->isNotEmpty())
                         <div class="cities-we-cover">
                             <h2>Cities We Cover</h2>
-                            <p>ServiceBazzar connects you with verified local professionals across
+                            <p>Service Bazzar connects you with verified local professionals across
                                {{ $coveredCities->count() }} Indian cities:</p>
                             <ul class="cities-we-cover-list">
                                 @foreach($coveredCities as $coveredCity)

@@ -65,7 +65,7 @@
                             Are these providers verified?
                         </div>
                         <div class="faq-answer" id="faq-answer-3" hidden>
-                            ServiceBazzar verifies business credentials and ownership through a multi-step
+                            Service Bazzar verifies business credentials and ownership through a multi-step
                             process. A blue "Verified" badge indicates a provider has passed our verification
                             checks. A "Trusted" badge shows additional credentials or certifications.
                         </div>
@@ -86,13 +86,13 @@
                         </div>
                     </div>
 
-                    {{-- FAQ Item 5: "Is ServiceBazzar free?" --}}
+                    {{-- FAQ Item 5: "Is Service Bazzar free?" --}}
                     <div class="faq-item mb-3">
                         <div class="faq-question" role="button" tabindex="0"
                              aria-expanded="false" aria-controls="faq-answer-5"
                              onclick="toggleFaqItem(this)">
                             <span class="faq-icon">+</span>
-                            Is ServiceBazzar free to use?
+                            Is Service Bazzar free to use?
                         </div>
                         <div class="faq-answer" id="faq-answer-5" hidden>
                             Yes. Searching, viewing provider profiles, and reading reviews is completely free.

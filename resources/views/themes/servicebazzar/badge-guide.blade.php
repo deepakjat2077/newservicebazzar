@@ -8,12 +8,12 @@
     so it renders correctly if that override is ever removed.
 --}}
 @section('title')
-ServiceBazzar Badges & Verification - {{ $setting->site_name ?? 'ServiceBazzar' }}
+Service Bazzar Badges & Verification - {{ $setting->site_name ?? 'Service Bazzar' }}
 @endsection
 
 @php
-    $seoTitle = 'ServiceBazzar Business Badges & Verification';
-    $seoDescription = 'Learn what Trusted and Verified badges mean on ServiceBazzar. How we verify businesses and what each badge indicates about a service provider.';
+    $seoTitle = 'Service Bazzar Business Badges & Verification';
+    $seoDescription = 'Learn what Trusted and Verified badges mean on Service Bazzar. How we verify businesses and what each badge indicates about a service provider.';
     $seoKeywords = 'verified business, trusted badge, business verification, service provider ratings';
     $seoImage = asset('assets/images/logo/logo.png');
 @endphp
@@ -24,10 +24,10 @@ ServiceBazzar Badges & Verification - {{ $setting->site_name ?? 'ServiceBazzar' 
     <div class="row">
         <div class="col-lg-8 mx-auto">
 
-            <h1 class="mb-4">ServiceBazzar Badges & Verification</h1>
+            <h1 class="mb-4">Service Bazzar Badges & Verification</h1>
 
             <p class="lead text-muted">
-                ServiceBazzar badges indicate that a business has passed our verification process
+                Service Bazzar badges indicate that a business has passed our verification process
                 and meets our standards for professionalism, authenticity, and customer service quality.
             </p>
 
@@ -45,7 +45,7 @@ ServiceBazzar Badges & Verification - {{ $setting->site_name ?? 'ServiceBazzar' 
                 <div class="badge-content">
                     <h3 class="h5">What It Means</h3>
                     <p>
-                        A <strong>Verified</strong> badge indicates that ServiceBazzar has independently verified
+                        A <strong>Verified</strong> badge indicates that Service Bazzar has independently verified
                         the business's identity and key credentials. This verification includes:
                     </p>
 
@@ -136,7 +136,7 @@ ServiceBazzar Badges & Verification - {{ $setting->site_name ?? 'ServiceBazzar' 
                                  alt="Verified" style="height: 40px; margin-bottom: 8px;">
                             <h4>Verified</h4>
                             <p class="small text-muted">
-                                Identity and business details confirmed by ServiceBazzar team.
+                                Identity and business details confirmed by Service Bazzar team.
                             </p>
                         </div>
                     </div>
@@ -197,7 +197,7 @@ ServiceBazzar Badges & Verification - {{ $setting->site_name ?? 'ServiceBazzar' 
 
                 <div class="faq-item mb-3">
                     <h4 class="h6 mb-2">
-                        <strong>Q: How does ServiceBazzar verify businesses?</strong>
+                        <strong>Q: How does Service Bazzar verify businesses?</strong>
                     </h4>
                     <p class="mb-3">
                         Our verification process includes document review, phone verification, cross-checking with

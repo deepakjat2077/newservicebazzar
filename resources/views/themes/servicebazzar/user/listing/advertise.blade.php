@@ -87,7 +87,7 @@
     </div>
 
     {{-- feature highlights (informational) --}}
-    <h2 class="sbadv-section-title">Why advertise on {{ $setting->site_name ?? 'ServiceBazzar' }}?</h2>
+    <h2 class="sbadv-section-title">Why advertise on {{ $setting->site_name ?? 'Service Bazzar' }}?</h2>
     <div class="sbadv-features">
       @php
         $benefits = [

@@ -12,7 +12,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>ServiceBazzar — something went wrong</title>
+<title>Service Bazzar — something went wrong</title>
 <style>
     :root {
         --bg: #f6f7fb;
