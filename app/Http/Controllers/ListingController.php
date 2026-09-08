@@ -2963,6 +2963,29 @@ public function cityCategoryArea($city, $categoryArea)
     }
 
     if (!$category && !$subcategory) {
+        // Neither a category nor a subcategory matched.  Before giving up,
+        // check whether the slug is actually a *listing* detail page that
+        // Google still has indexed under the old /city/listing-slug URL
+        // format.  If it is, 301 to the canonical /listings/{cat}/{slug}
+        // route so we stop wasting 25 % of crawl budget on 404s for pages
+        // that exist but were reachable only via SiteController before the
+        // route-ordering change.
+        $listing = Listing::where('status', 1)
+            ->where('slug', $serviceSlug)
+            ->with('category')
+            ->first();
+
+        if (
+            $listing &&
+            !empty(optional($listing->category)->slug) &&
+            !empty($listing->slug)
+        ) {
+            return redirect()->route('listings.details', [
+                'category' => $listing->category->slug,
+                'slug'     => $listing->slug,
+            ], 301);
+        }
+
         abort(404);
     }
 
