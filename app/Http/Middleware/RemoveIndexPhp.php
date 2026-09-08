@@ -4,14 +4,18 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class RemoveIndexPhp
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        // If request path is /index.php, redirect to /
-        if ($request->getPathInfo() === '/index.php') {
-            return redirect('/', 301);
+        $path = $request->getPathInfo();
+
+        // If request is /index.php, return 301 to / using raw response
+        if ($path === '/index.php') {
+            return response('', 301)
+                ->header('Location', $request->getSchemeAndHttpHost() . '/');
         }
 
         return $next($request);
