@@ -1604,15 +1604,15 @@ a {
 
     /*
     |--------------------------------------------------------------------------
-    | Append " Services" ONLY for the service categories listed below, and
-    | only when the name doesn't already end in "Service(s)". Every other
-    | category (Schools, Packers And Movers, Astrology Reading Classes, …)
-    | keeps its name verbatim in the H1 — "Schools Services" reads wrong.
+    | Build the display name shown in the H1 and the on-page copy:
     |
-    | "Electrician"        → "Electrician Services in Delhi"  (added)
-    | "AC Repair & Services" → "AC Repair & Services in Delhi" (as-is)
-    | "Schools"            → "Schools in Delhi"               (verbatim)
-    | "Packers And Movers" → "Packers And Movers in Tonk"     (verbatim)
+    |  - A listed service category, name not already ending in "Service(s)":
+    |    append " Services".  "Electrician" → "Electrician Services".
+    |  - Name already ends in "Service(s)": keep verbatim.
+    |    "AC Repair & Services" → "AC Repair & Services".
+    |  - Any other category: pluralise the noun, because the page lists many
+    |    businesses.  "Hotel" → "Hotels", "School" → "Schools". (Already-
+    |    plural names like "Packers And Movers" are unchanged by Str::plural.)
     |--------------------------------------------------------------------------
     */
     $serviceCategorySlugs = [
@@ -1625,12 +1625,16 @@ a {
         'ro-water-purifier-repair-services',
     ];
 
-    $headingWithServices = (
+    if (
         in_array($headingCategory?->slug, $serviceCategorySlugs, true)
         && ! preg_match('/\b(service|services)\s*$/i', $headingName)
-    )
-        ? $headingName . ' Services'
-        : $headingName;
+    ) {
+        $headingWithServices = $headingName . ' Services';
+    } elseif (preg_match('/\b(service|services)\s*$/i', $headingName)) {
+        $headingWithServices = $headingName;
+    } else {
+        $headingWithServices = \Illuminate\Support\Str::plural($headingName);
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -1691,7 +1695,9 @@ a {
         $landerProviders = isset($listings)
             ? (method_exists($listings, 'total') ? $listings->total() : $listings->count())
             : 0;
-        $landerServiceName = $selectedSubcategory?->name ?? $selectedCategory?->name ?? $headingName;
+        // Same display form as the H1 (pluralised / " Services"-suffixed) so
+        // the TL;DR and nearby-city copy read the same as the heading.
+        $landerServiceName = $headingWithServices;
 
         // Popular cities to cross-link this service into (skip the current one).
         $landerNearbyCities = collect();
