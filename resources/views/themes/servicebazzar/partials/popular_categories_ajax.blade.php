@@ -83,6 +83,15 @@
                                     ?: session('selected_location')
                                     ?: session('detected_city');
 
+                                // The session value can be an "Area, City"
+                                // string (e.g. "Hathoj, Jaipur"). Slugified
+                                // whole it becomes "hathoj-jaipur" — not a real
+                                // city slug — and the /{city}/{slug} URL 404s.
+                                // Normalise to just the city before slugging.
+                                $currentLocationName = $currentLocationName
+                                    ? english_location_name($currentLocationName)
+                                    : $currentLocationName;
+
                                 $subcatUrl = !empty($currentLocationName)
                                     ? url(
                                         \Illuminate\Support\Str::slug(

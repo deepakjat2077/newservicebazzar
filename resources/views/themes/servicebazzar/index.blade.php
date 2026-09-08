@@ -3122,7 +3122,7 @@ color: #555;
 
    <h1 class="hero-title">
 
-    Discover Trusted 
+    Discover Trusted
 
     <span class="text-slider">
 

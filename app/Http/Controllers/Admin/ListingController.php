@@ -2057,4 +2057,94 @@ public function usedSubcategories(Request $request)
     }
 }
 
+    /**
+     * Sync GMB photos for a listing
+     * Fetches top 5-10 photos from Google My Business
+     */
+    public function syncGmbPhotos(Request $request, $id)
+    {
+        try {
+            $listing = Listing::findOrFail($id);
+
+            // Initialize Google Places API
+            $googlePlaces = new \App\Support\GooglePlaces();
+
+            // Search for the business on Google Places
+            $placeId = $googlePlaces->searchPlace($listing->name, $listing->location_id ? $listing->location->name : null);
+
+            if (!$placeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'GMB profile nahi mila. Business name check karein.',
+                ], 404);
+            }
+
+            // Get photos
+            $photoUrls = $googlePlaces->getPhotos($placeId, 10);
+
+            if (empty($photoUrls)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Koi photos nahi mile GMB profile mein.',
+                ], 404);
+            }
+
+            // Download and save images
+            $savedPhotos = [];
+            foreach (array_slice($photoUrls, 0, 10) as $photoUrl) {
+                try {
+                    $imageContent = Http::get($photoUrl)->body();
+
+                    if (!empty($imageContent)) {
+                        // Save using UploadedFile
+                        $filename = 'gmb_' . $listing->id . '_' . time() . '_' . rand(1000, 9999) . '.jpg';
+                        $filepath = public_path('assets/images/listing/photos/' . $filename);
+
+                        // Ensure directory exists
+                        if (!is_dir(dirname($filepath))) {
+                            mkdir(dirname($filepath), 0755, true);
+                        }
+
+                        file_put_contents($filepath, $imageContent);
+
+                        // Convert to WebP
+                        $webpFilename = \App\Support\Images\WebpImage::store(
+                            new \Illuminate\Http\UploadedFile($filepath, $filename, 'image/jpeg', null, true),
+                            'assets/images/listing/photos',
+                            'gmb_' . $listing->id . '_' . time() . '_' . rand(1000, 9999)
+                        );
+
+                        $savedPhotos[] = 'assets/images/listing/photos/' . $webpFilename;
+                    }
+                } catch (\Exception $e) {
+                    Log::error('GMB Photo Download Error: ' . $e->getMessage());
+                    continue;
+                }
+            }
+
+            // Update listing with GMB data
+            $listing->update([
+                'gmb_place_id' => $placeId,
+                'gmb_photo_urls' => json_encode($savedPhotos),
+                'gmb_last_sync' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => count($savedPhotos) . ' photos successfully synced from GMB!',
+                'count' => count($savedPhotos),
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('GMB Sync Error: ' . $e->getMessage(), [
+                'listing_id' => $id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'GMB sync mein error aa gayi. Log check karein.',
+            ], 500);
+        }
+    }
 }   

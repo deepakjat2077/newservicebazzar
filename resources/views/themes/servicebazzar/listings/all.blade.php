@@ -456,7 +456,10 @@ a {
             $areaText = ucwords(str_replace('-', ' ', $parts[1]));
             $cityText = ucwords(str_replace('-', ' ', $citySegment));
 
-            $locationText = $areaText . ', ' . $cityText;
+            // Remove city name from area if it's present (e.g. "Station Road Jaipur" -> "Station Road")
+            $areaTextClean = trim(str_ireplace($cityText, '', $areaText));
+
+            $locationText = $areaTextClean . ', ' . $cityText;
         }
     }
 
@@ -1601,16 +1604,17 @@ a {
 
     /*
     |--------------------------------------------------------------------------
-    | "Services Services" prevent karega, aur category name ekvachan
-    | (singular) me rakhega — "Astrologers Services" nahi, "Astrologer
-    | Services" chahiye.
+    | If category name already ends with "Service(s)", keep it as-is.
+    | Otherwise, append " Services".
+    |
+    | "Deep Cleaning Services" → "Deep Cleaning Services in X" (as-is)
+    | "Schools" → "Schools Services in Delhi" (Services added)
+    | "Packers And Movers" → "Packers And Movers Services in Tonk" (Services added)
     |--------------------------------------------------------------------------
     */
-    $headingNameSingular = \Illuminate\Support\Str::singular($headingName);
-
-    $headingWithServices = preg_match('/\bservices\s*$/i', $headingNameSingular)
-        ? $headingNameSingular
-        : $headingNameSingular . ' Services';
+    $headingWithServices = preg_match('/\b(service|services)\s*$/i', $headingName)
+        ? $headingName
+        : $headingName . ' Services';
 
     /*
     |--------------------------------------------------------------------------

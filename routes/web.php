@@ -205,6 +205,10 @@ Route::get('/jaipur/maintenance', function () {
             Route::get('dashboard', 'AdminController@dashboard')->name('dashboard');
             Route::get('dashboard/listing-export', 'AdminController@listingExport')->middleware('permission:listing.export')->name('dashboard.listing.export');
 
+            // Admin Listing Details & GMB Photo Sync
+            Route::get('listing/details/{id}', 'ListingController@details')->name('listing.details');
+            Route::post('listing/details/{id}/sync-gmb-photos', 'ListingController@syncGmbPhotos')->name('listing.sync-gmb-photos');
+
             Route::prefix('analytics')->name('analytics.')->middleware('permission:analytics.view')->group(function () {
                 Route::get('/', 'AnalyticsController@index')->name('index');
                 Route::get('export/excel', 'AnalyticsController@exportExcel')->name('export.excel');
@@ -774,6 +778,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::post('{id}/request-address-change', 'ListingController@requestAddressChange')->name('request-address-change');
                     Route::get('{id}/business-contact', 'ListingController@businessContactForm')->name('business-contact');
                     Route::post('{id}/business-contact', 'ListingController@updateContactDetails')->name('business-contact.update');
+
                     Route::post('{id}/contact/send-otp', 'ListingController@sendContactOtp')->middleware('throttle:30,1')->name('contact.send-otp');
                     Route::post('{id}/contact/verify-otp', 'ListingController@verifyContactOtp')->middleware('throttle:60,1')->name('contact.verify-otp');
                     Route::get('{id}/serviceable-area', 'ListingController@businessServiceableAreaForm')->name('serviceable-area');

@@ -3113,7 +3113,7 @@ $categoryLocalities = $localityQuery
     ->take(5)
     ->values();
     $locationText = !empty($area)
-        ? ucwords($area) . ', ' . $locationData->name
+        ? trim(str_ireplace($locationData->name, '', ucwords($area))) . ', ' . $locationData->name
         : $locationData->name;
 
     session([

@@ -258,6 +258,18 @@ if (!empty($currentLocationFromUrl)) {
     $data['seoDescription'] = "Find top-rated businesses, services and shops in {$currentLocationFromUrl->name}. "
         . "Browse verified listings, reviews, contact details and more on {$siteName}.";
     $data['seoUrl'] = url('/' . $currentLocationFromUrl->slug);
+
+    // Empty city pages (0 listings) should not be indexed — they're thin, have
+    // no unique value, and just add noise to search results. Google will crawl
+    // them, but we signal "don't index this" via noindex. When listings are
+    // added to the city later, this is automatically removed on the next request.
+    $listingCount = Listing::where('status', 1)
+        ->where('location_id', $currentLocationFromUrl->id)
+        ->count();
+
+    if ($listingCount === 0) {
+        $data['seoRobots'] = 'noindex, follow';
+    }
 }
 
 return view($this->theme . 'index', $data);
@@ -529,7 +541,13 @@ public function resolvePopularCategoriesLocation()
         return null;
     }
 
-    $cleanLocation = trim($commonLocation);
+    // The stored value is often "Area, City" (e.g. "Hathoj, Jaipur"). Looked
+    // up whole it matches no Location row, so this returned null and the
+    // caller fell back to the sitewide branch — which lists every subcategory
+    // regardless of whether the city has a listing for it. Normalising to just
+    // the city ("Jaipur") lets the location-scoped branch run, and that branch
+    // already restricts subcategories to the ones this city's listings use.
+    $cleanLocation = english_location_name(trim($commonLocation));
     $cleanSlug = Str::slug($cleanLocation);
 
     return Location::where('status', 1)
@@ -1921,9 +1939,18 @@ public function listingsDetails(Request $request, $category, $slug)
     $data['trackCategoryId'] = $listing->category_id;
     $data['trackLocationId'] = $listing->location_id;
 
-    // Same query index() uses (location resolved the same way — see
-    // resolvePopularCategoriesLocation()/buildPopularCategoriesQuery() above).
-    $data['popularCategories'] = $this->getPopularCategories();
+    // On a listing detail page the "current city" is the listing's OWN city —
+    // not whatever is (or isn't) sitting in the visitor's server session. A
+    // session-less direct visit resolved to null and fell back to the sitewide
+    // branch, which lists every subcategory regardless of whether a listing
+    // uses it (that is why "24 Hours Packers And Movers", "Corporate
+    // Relocation" etc. showed here with nothing behind them). Scoping to the
+    // listing's location makes Popular Categories list only the subcategories
+    // this city's listings actually reference.
+    $data['popularCategoriesLocation'] = $listing->location;
+    $data['popularCategories'] = $listing->location
+        ? $this->buildPopularCategoriesQuery($listing->location)
+        : $this->getPopularCategories();
 
     $data['locations'] = activeLocations()->sortBy('name')->values();
 

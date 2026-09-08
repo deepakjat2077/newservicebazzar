@@ -70,11 +70,13 @@ return [
  * Laravel Socialite). Credentials are managed from the admin panel
  * (Setting > Social Login), not .env — AppServiceProvider pushes them in
  * here at runtime, same as the gupshup block below.
+ * Also includes Google Places API for GMB business photo sync.
  */
 'google' => [
     'client_id'     => env('GOOGLE_CLIENT_ID'),
     'client_secret' => env('GOOGLE_CLIENT_SECRET'),
     'redirect'      => env('GOOGLE_REDIRECT_URI'),
+    'places_api_key' => env('GOOGLE_PLACES_API_KEY'),
 ],
 
 'facebook' => [

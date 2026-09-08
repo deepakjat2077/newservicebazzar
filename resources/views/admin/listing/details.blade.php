@@ -347,6 +347,9 @@
 <button class="btn btn-primary" data-toggle="modal" data-target="#actionModal">
     @lang('Action')
 </button>
+<button class="btn btn-success ms-2" id="syncGmbBtn" data-listing-id="{{ $listing->id }}">
+    🔄 Sync GMB Photos
+</button>
 @endpush
 
 @push('css')
@@ -362,7 +365,7 @@
 </style>
 @endpush
 
-@push('script')
+@push('js')
 <script>
     $(document).ready(function () {
         function toggleTopRank() {
@@ -379,6 +382,40 @@
         toggleTopRank();
         $('#listingStatus').on('change', function () {
             toggleTopRank();
+        });
+
+        // GMB Photos Sync
+        $('#syncGmbBtn').on('click', function () {
+            const listingId = $(this).data('listing-id');
+            const btn = $(this);
+
+            btn.prop('disabled', true);
+            const originalText = btn.html();
+            btn.html('🔄 Syncing...');
+
+            $.ajax({
+                url: `/admin/listing/details/${listingId}/sync-gmb-photos`,
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert(`✅ ${response.message}`);
+                        location.reload();
+                    } else {
+                        alert(`❌ ${response.message}`);
+                    }
+                },
+                error: function (xhr) {
+                    const msg = xhr.responseJSON?.message || 'एक त्रुटि हुई। कृपया फिर से प्रयास करें।';
+                    alert(`❌ ${msg}`);
+                },
+                complete: function () {
+                    btn.prop('disabled', false);
+                    btn.html(originalText);
+                }
+            });
         });
     });
 </script>
