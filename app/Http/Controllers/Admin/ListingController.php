@@ -1335,25 +1335,19 @@ City: {$city}
 State: {$state}
 Subcategories: " . implode(', ', $subcategories) . "
 
-Strict Rules:
-- Return JSON only
-- Do not wrap in markdown or code block
-- meta_title MUST follow this format exactly (under 60 chars): \"{$name} - {Category/Service} in {$city} - ServiceBazzar\"
-- Example: \"Ashu Pest Control - Pest Control in Indore - ServiceBazzar\"
-- MUST include: Business Name, Service/Category, City, and ServiceBazzar
-- If it exceeds 60 chars, shorten the service type to fit (e.g., use \"Services\" instead of full category name)
-- meta_description must be under 160 characters, ideally 145 to 155
-- meta_keywords must be comma separated SEO keywords
-- details must be unique and specific to this business
-- details must contain proper HTML <p> paragraphs
-- details must be at least 300 words
-- no links
-- no fake claims
-- no adult content
-- no illegal content
-- faqs must contain exactly 3 items
-- every faq must contain question and answer
-- write natural SEO-friendly business content, not generic filler";
+Strict Rules (ABSOLUTE - NO EXCEPTIONS):
+- Return JSON only, no markdown, no code blocks
+- meta_title MUST be 60 CHARACTERS OR LESS (count every character including spaces and punctuation)
+- meta_title format: \"{$name} - {Service} in {$city} - ServiceBazzar\" (adjust service type to fit 60 char limit)
+- Example: \"Ashu Pest Control - Pest Control in Indore - ServiceBazzar\" (exactly 57 chars)
+- Verify: Business Name + Service + Location + \"ServiceBazzar\" must all fit in 60 characters
+- meta_description MUST be 160 CHARACTERS OR LESS (count every character)
+- meta_description should be 145-160 chars, not less, not more
+- meta_keywords: comma separated, no special characters except commas
+- details: minimum 300 words, proper HTML <p> paragraphs, specific to business
+- no placeholder text, no generic content, no links, no fake claims
+- faqs: exactly 3 items with complete questions and answers
+- write natural, engaging, SEO-friendly business content";
 
         $result = $this->callGemini($apiKey, $basePrompt, $schema);
 
@@ -1374,13 +1368,18 @@ Strict Rules:
         if (!empty($seriousErrors)) {
             $retryPrompt = $basePrompt . "
 
-The previous output was invalid. Fix these issues strictly:
+The previous output was invalid. Fix these issues STRICTLY and exactly:
 - " . implode("\n- ", $seriousErrors) . "
+
+CRITICAL: Character limits are ABSOLUTE:
+- meta_title MUST be 60 characters or LESS (count carefully)
+- meta_description MUST be 160 characters or LESS (count carefully)
+- If unsure, make it shorter to be safe
 
 Return corrected JSON only.
 Do not explain anything.
 Do not add markdown.
-Do not exceed SEO character limits.";
+Count characters carefully before responding.";
 
             $retryResult = $this->callGemini($apiKey, $retryPrompt, $schema);
 
@@ -1591,12 +1590,9 @@ public function spellFix(Request $request, \App\Services\SpellFixer $fixer)
      */
     private function seriousAiErrors(array $errors): array
     {
-        return array_values(array_filter($errors, function ($error) {
-            return !in_array($error, [
-                'meta_title exceeds 60 characters',
-                'meta_description exceeds 160 characters',
-            ], true);
-        }));
+        // ALL errors are serious now - including character limits
+        // This forces the AI to strictly follow SEO constraints on retry
+        return $errors;
     }
 
     private function validateAiData(array $data)
@@ -1656,10 +1652,13 @@ public function spellFix(Request $request, \App\Services\SpellFixer $fixer)
             return $text;
         }
 
+        // Hard cap at limit (don't break at word boundary if it means exceeding)
         $trimmed = mb_substr($text, 0, $limit);
-        $lastSpace = mb_strrpos($trimmed, ' ');
 
-        if ($lastSpace !== false) {
+        // Try to break at last space, but only if it keeps us under limit
+        $lastSpace = mb_strrpos($trimmed, ' ');
+        if ($lastSpace !== false && $lastSpace > ($limit * 0.7)) {
+            // Only use word boundary if it's substantial (at least 70% of limit)
             $trimmed = mb_substr($trimmed, 0, $lastSpace);
         }
 
