@@ -281,7 +281,9 @@ $(document).ready(function(){
     });
 
     // Load Listings Button
-    $('#loadListingsBtn').on('click', function(){
+    $(document).on('click', '#loadListingsBtn', function(e){
+        e.preventDefault();
+
         const categoryId = $('#filterCategory').val();
         const locationId = $('#filterLocation').val();
         const subcategoryIds = $('#assignSubcategory').val();
@@ -410,11 +412,13 @@ $(document).ready(function(){
                     },
                     success: function(response) {
                         Swal.fire('Success', response.message, 'success').then(() => {
-                            // Reload listings (automatically excludes ones now having these subcategories)
-                            const categoryId = $('#filterCategory').val();
-                            const locationId = $('#filterLocation').val();
-                            const firstSubcategoryId = Array.isArray(subcategoryIds) ? subcategoryIds[0] : subcategoryIds;
-                            loadListings(categoryId, locationId, firstSubcategoryId);
+                            // Clear listings table after successful assignment
+                            $('#listingsTableBody').html('<tr><td colspan="5" class="text-center text-muted">Select filters and click "Load Listings"</td></tr>');
+                            // Clear checkboxes
+                            $('.listing-checkbox').prop('checked', false);
+                            $('#selectAllListings').prop('checked', false);
+                            // Hide bulk action bar
+                            $('#bulkActionBar').addClass('d-none');
                         });
                     },
                     error: function(xhr) {
