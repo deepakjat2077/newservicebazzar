@@ -347,4 +347,101 @@ public function quickStore(Request $request)
     {
         return app(\App\Services\SubcategorySeoWriter::class)->generate($name, $categoryName);
     }
+
+    /**
+     * Bulk add page — AI-powered form to add multiple subcategories at once
+     */
+    public function bulkAddPage()
+    {
+        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $seoWriter = app(\App\Services\SubcategorySeoWriter::class);
+        $aiConfigured = $seoWriter->isConfigured();
+
+        return view('admin.subcategories.bulk-add', [
+            'categories' => $categories,
+            'aiConfigured' => $aiConfigured,
+        ]);
+    }
+
+    /**
+     * Bulk store — process list of subcategory names with AI-generated SEO
+     */
+    public function bulkStore(Request $request)
+    {
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'names' => 'required|string',
+        ]);
+
+        $categoryId = $validated['category_id'];
+        $category = Category::findOrFail($categoryId);
+
+        // Parse the names (one per line)
+        $names = collect(explode("\n", $validated['names']))
+            ->map(fn ($name) => trim($name))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($names->isEmpty()) {
+            return back()->withError('No subcategory names provided.');
+        }
+
+        $seoWriter = app(\App\Services\SubcategorySeoWriter::class);
+        $created = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($names as $name) {
+            // Check if already exists
+            if (Subcategory::where('category_id', $categoryId)
+                ->whereRaw('LOWER(name) = ?', [strtolower($name)])
+                ->exists()) {
+                $skipped++;
+                continue;
+            }
+
+            try {
+                // Generate SEO
+                $seo = $seoWriter->generate($name, $category->name);
+
+                // Create subcategory
+                $slug = Str::slug($name);
+                $originalSlug = $slug;
+                $count = 1;
+
+                // Ensure unique slug
+                while (Subcategory::where('slug', $slug)->exists()) {
+                    $slug = $originalSlug . '-' . $count;
+                    $count++;
+                }
+
+                Subcategory::create([
+                    'category_id' => $categoryId,
+                    'name' => $name,
+                    'slug' => $slug,
+                    'seo_title' => $seo['seo_title'],
+                    'seo_keywords' => $seo['seo_keywords'],
+                    'seo_description' => $seo['seo_description'],
+                    'status' => 1,
+                ]);
+
+                $created++;
+            } catch (\Exception $e) {
+                $errors[] = "$name: " . $e->getMessage();
+            }
+        }
+
+        $message = "$created subcategories created";
+        if ($skipped > 0) {
+            $message .= ", $skipped skipped (already exist)";
+        }
+        if (!empty($errors)) {
+            $message .= ", " . count($errors) . " errors";
+        }
+
+        return back()
+            ->with('success', $message)
+            ->with('errors', $errors);
+    }
 }

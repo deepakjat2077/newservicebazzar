@@ -192,6 +192,11 @@
    class="btn btn-sm btn-primary">
     @lang('Add New Subcategories')
 </a>
+<a href="{{ route('admin.subcategories.bulk.page') }}"
+   class="btn btn-sm btn-success ml-2"
+   title="Add multiple subcategories with AI-generated SEO">
+    <i class="fas fa-magic"></i> @lang('Bulk Add (AI)')
+</a>
 @endpush
 
 {{-- select2 is vendored under public/assets/admin (same copy setting/seo.blade.php

@@ -344,6 +344,8 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
                 Route::get('/', 'SubcategoriesController@index')->name('index');
                 Route::post('create', 'SubcategoriesController@create')->name('create');
                 Route::get('create', 'SubcategoriesController@createPage')->name('create.page');
+                Route::get('bulk-add', 'SubcategoriesController@bulkAddPage')->name('bulk.page');
+                Route::post('bulk-store', 'SubcategoriesController@bulkStore')->name('bulk.store');
                 Route::get('update/{id}', 'SubcategoriesController@update')->name('update.page');
                 Route::put('edit/{id}', 'SubcategoriesController@edit')->name('edit');
                 Route::delete('delete/{id}', 'SubcategoriesController@delete')->name('delete');
