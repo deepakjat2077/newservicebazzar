@@ -1338,7 +1338,8 @@ Subcategories: " . implode(', ', $subcategories) . "
 Strict Rules:
 - Return JSON only
 - Do not wrap in markdown or code block
-- meta_title must be under 60 characters, ideally 50 to 58
+- meta_title MUST START WITH BUSINESS NAME: \"{$name} - {Service/Category} in {$city} - ServiceBazzar\" (must be under 60 chars)
+- meta_title format: Business name FIRST, then service type, then location, then platform
 - meta_description must be under 160 characters, ideally 145 to 155
 - meta_keywords must be comma separated SEO keywords
 - details must be unique and specific to this business
