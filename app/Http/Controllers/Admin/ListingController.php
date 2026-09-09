@@ -2150,11 +2150,13 @@ public function usedSubcategories(Request $request)
 
     /**
      * Get listings by category and location for bulk assignment
+     * Excludes listings that already have the selected subcategory
      */
     public function bulkGetListings(Request $request)
     {
         $categoryId = $request->category_id;
         $locationId = $request->location_id;
+        $subcategoryId = $request->subcategory_id;
 
         $query = Listing::where('status', 1);
 
@@ -2164,6 +2166,15 @@ public function usedSubcategories(Request $request)
 
         if ($locationId) {
             $query->where('location_id', $locationId);
+        }
+
+        // Exclude listings that already have this subcategory
+        if ($subcategoryId) {
+            $query->where(function($q) use ($subcategoryId) {
+                $q->whereNull('subcategory_ids')
+                  ->orWhere('subcategory_ids', '')
+                  ->orWhereRaw("JSON_CONTAINS(subcategory_ids, JSON_ARRAY(?)) = 0", [$subcategoryId]);
+            });
         }
 
         $listings = $query->select('id', 'name', 'category_id', 'location_id', 'user_id')

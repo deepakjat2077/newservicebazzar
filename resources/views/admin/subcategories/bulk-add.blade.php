@@ -276,22 +276,29 @@ $(document).ready(function(){
     $('#loadListingsBtn').on('click', function(){
         const categoryId = $('#filterCategory').val();
         const locationId = $('#filterLocation').val();
+        const subcategoryId = $('#assignSubcategory').val();
 
         if (!categoryId) {
             Swal.fire('Error', 'Please select a category', 'error');
             return;
         }
 
-        loadListings(categoryId, locationId);
+        if (!subcategoryId) {
+            Swal.fire('Error', 'Please select a subcategory first', 'error');
+            return;
+        }
+
+        loadListings(categoryId, locationId, subcategoryId);
     });
 
-    function loadListings(categoryId, locationId) {
+    function loadListings(categoryId, locationId, subcategoryId) {
         $.ajax({
             url: '{{ route("admin.listing.bulk.getListings") }}',
             type: 'GET',
             data: {
                 category_id: categoryId,
-                location_id: locationId
+                location_id: locationId,
+                subcategory_id: subcategoryId
             },
             success: function(response) {
                 renderListingsTable(response.listings);
@@ -391,10 +398,11 @@ $(document).ready(function(){
                     },
                     success: function(response) {
                         Swal.fire('Success', response.message, 'success').then(() => {
-                            // Reload listings
+                            // Reload listings (automatically excludes ones now having this subcategory)
                             const categoryId = $('#filterCategory').val();
                             const locationId = $('#filterLocation').val();
-                            loadListings(categoryId, locationId);
+                            const subcategoryId = $('#assignSubcategory').val();
+                            loadListings(categoryId, locationId, subcategoryId);
                         });
                     },
                     error: function(xhr) {
