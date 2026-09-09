@@ -3669,7 +3669,7 @@
     <div class="share-hover-wrap">
 
         <button type="button" style="cursor: pointer;" class="listing-btn share-btn-icon">
-    <img src="{{ asset('assets/images/download.svg') }}" alt="">
+    <img src="{{ asset('assets/images/download.svg') }}" alt="Share listing">
         </button>
 
         <div class="share-hover-popup">
@@ -4877,7 +4877,7 @@
                 data-url="{{ url()->current() }}"
                 data-text="{{ $listing->name }}">
 
-        <img src="{{ asset('assets/images/download.svg') }}" alt="">
+        <img src="{{ asset('assets/images/download.svg') }}" alt="Share business card">
         </button>
 
         {{-- Edit button intentionally omitted from the sticky/mobile bottom
