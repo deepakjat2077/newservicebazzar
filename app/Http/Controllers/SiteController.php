@@ -1769,15 +1769,15 @@ public function listingsDetails(Request $request, $category, $slug)
     $cityName     = $listing->city ?? '';
     $stateName    = $listing->state ?? '';
 
-    // Concise fallback (business name + city); the old fallback tacked on
-    // " - Phone Number, Address, Reviews, Photos | Brand" which always blew
-    // past 60 chars. normalizeSeoTitle() then standardises the brand tail and
-    // appends " | Brand" only when it still fits within ~60 — for both the
-    // fallback and admin-authored meta_titles (which carry the brand in three
-    // different spellings) — so the brand is never the part Google truncates.
+    // Format: {Business Name} | {Service Name} in {City}
+    // This ensures each listing has a unique title even in the same city/category.
+    // Fallback: if no user/business name, use just {Service Name} in {City}.
+    // normalizeSeoTitle() standardises the brand tail and enforces ~60 char limit.
+    $businessName = optional($listing->user)->name ?: optional($listing->user)->fullname();
+
     $rawTitle = !empty($listing->meta_title)
         ? $listing->meta_title
-        : trim($listing->name . ($locationName ? ' in ' . $locationName : ''));
+        : trim(($businessName ? $businessName . ' | ' : '') . $listing->name . ($locationName ? ' in ' . $locationName : ''));
 
     $data['seoTitle'] = normalizeSeoTitle($rawTitle, $siteName);
 
