@@ -1590,9 +1590,15 @@ public function spellFix(Request $request, \App\Services\SpellFixer $fixer)
      */
     private function seriousAiErrors(array $errors): array
     {
-        // ALL errors are serious now - including character limits
-        // This forces the AI to strictly follow SEO constraints on retry
-        return $errors;
+        // Character limit overages are handled by limitText() truncation,
+        // so they're not serious enough to warrant an expensive retry.
+        // Only structural/content errors (empty fields, missing FAQs) trigger retry.
+        return array_values(array_filter($errors, function ($error) {
+            return !in_array($error, [
+                'meta_title exceeds 60 characters',
+                'meta_description exceeds 160 characters',
+            ], true);
+        }));
     }
 
     private function validateAiData(array $data)
