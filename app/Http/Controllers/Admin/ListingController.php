@@ -2203,30 +2203,38 @@ public function usedSubcategories(Request $request)
     public function bulkAssign(Request $request)
     {
         // Accept either subcategory_id (single) or subcategory_ids (array)
-        $rules = [
+        $request->validate([
             'listing_ids' => 'required|array|min:1',
-            'listing_ids.*' => 'exists:listings,id',
-        ];
-
-        // Validate based on what was sent
-        if ($request->has('subcategory_ids')) {
-            $rules['subcategory_ids'] = 'required|array|min:1';
-            $rules['subcategory_ids.*'] = 'exists:subcategories,id';
-        } else {
-            $rules['subcategory_id'] = 'required|exists:subcategories,id';
-        }
-
-        $request->validate($rules);
+            'listing_ids.*' => 'required|integer|exists:listings,id',
+        ]);
 
         // Support both single and multiple subcategory IDs
         $subcategoryIds = [];
-        if ($request->has('subcategory_ids')) {
-            $subcategoryIds = $request->subcategory_ids;
+        if ($request->has('subcategory_ids') && is_array($request->subcategory_ids)) {
+            // Multiple subcategories (array)
+            $subcategoryIds = array_map('intval', array_filter($request->subcategory_ids));
         } elseif ($request->has('subcategory_id')) {
-            $subcategoryIds = [$request->subcategory_id];
+            // Single subcategory
+            $subcategoryIds = [(int)$request->subcategory_id];
         }
 
-        $listingIds = $request->listing_ids;
+        if (empty($subcategoryIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please select at least one subcategory'
+            ], 422);
+        }
+
+        // Verify all subcategories exist
+        $existingCount = Subcategory::whereIn('id', $subcategoryIds)->count();
+        if ($existingCount !== count($subcategoryIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Some selected subcategories are invalid'
+            ], 422);
+        }
+
+        $listingIds = array_map('intval', $request->listing_ids);
 
         try {
             $assignedCount = 0;
