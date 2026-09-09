@@ -4434,3 +4434,15 @@ i.fill {
         line-height: 1.4;
     }
 }
+/* Heading Hierarchy Fix: Keep original font sizes while changing HTML tags */
+/* h4 को h2/h3 में बदलो लेकिन font size h4 जितनी रखो */
+.hh-h4-size {
+    font-size: 1.125rem !important;
+    /* h4 का default size */
+}
+
+/* h5 को h3 में बदलो लेकिन font size h5 जितनी रखो */
+.hh-h5-size {
+    font-size: 1rem !important;
+    /* h5 का default size */
+}
