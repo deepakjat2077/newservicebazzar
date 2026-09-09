@@ -3111,6 +3111,49 @@ color: #555;
         padding-top: 0 !important;
     }
 }
+
+/* ==========================================================================
+   Heading-hierarchy fix (SEO audit): several section titles were h4 and
+   several card titles were h5, producing skips like h1->h4 and h2->h5.
+   Tags below are promoted to h2/h3 so H1->H2->H3 with no level skipped.
+
+   style.css sets font-size PER TAG NAME (h2:25px, h3:1.75rem), which would
+   make this text visibly bigger once the tag changes. These two classes
+   pin the font-size back to what the old h4/h5 actually rendered as -
+   nothing else about the design changes. */
+.hh-h4-size {
+    font-size: 1.5rem; /* h4's own site rule is empty -> this is the browser/bootstrap default it was already rendering at */
+}
+@media (max-width: 1200px) {
+    .hh-h4-size {
+        font-size: calc(1.275rem + -1.7vw); /* same mobile override style.css already gives h4 */
+    }
+}
+.hh-h5-size {
+    font-size: 1.25rem; /* style.css's own h5 rule; no separate mobile override existed */
+}
+
+/* .section-title h4 carried margin-bottom:0 (style.css) - same for the h2s now inside it. */
+.section-title h2 {
+    margin-bottom: 0;
+}
+
+/* .blog-area h5 / h5 a carried their own margin + link colour (style.css) - same for the h3 now inside it. */
+.blog-area h3 {
+    margin: 5px 0px;
+}
+.blog-area h3 a {
+    color: #464646;
+}
+.blog-area h3 a:hover {
+    color: #286efb;
+}
+
+/* .popup-top h5 carried margin:0 + font-weight:600 (index.css) - same for the h3 now inside it. */
+.popup-top h3 {
+    margin: 0;
+    font-weight: 600;
+}
 </style>
 
 <section class="banner-section">
@@ -3656,7 +3699,7 @@ window.SB = {
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="section-title">
-                    <h4>{{ __($featured_listing->content->title) }}</h4>
+                    <h2 class="hh-h4-size">{{ __($featured_listing->content->title) }}</h2>
                 </div>
             </div>
         </div>
@@ -3834,7 +3877,7 @@ window.SB = {
     <div class="popup-top">
         <div class="d-flex align-items-center gap-3">
             <label for="categoryPopupToggle" class="close-btn" tabindex="0">✕</label>
-            <h5 class="mb-0">Popular Categories</h5>
+            <h3 class="mb-0 hh-h5-size">Popular Categories</h3>
         </div>
 
         
@@ -3994,7 +4037,7 @@ window.SB = {
 
             <div class="d-flex align-items-center mb-2">
                 {{-- aria-level, not a different tag: the CSS styles h4 and the visual has to stay put. --}}
-                <h4 class="fw-bold mb-0" aria-level="2">Trending Searches Near You</h4>
+                <h2 class="fw-bold mb-0 hh-h4-size">Trending Searches Near You</h2>
                 <span class="badge bg-danger text-white ms-2">NEW</span>
             </div>
 
@@ -4028,9 +4071,9 @@ window.SB = {
 
                                 <div class="trend-card-overlay">
                                     <div>
-                                        <h5 aria-level="3" class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
+                                        <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }} hh-h5-size">
                                             {{ $category->name }}
-                                        </h5>
+                                        </h3>
                                     </div>
                                 </div>
 
@@ -4057,7 +4100,7 @@ window.SB = {
         <div class="border rounded-4 p-2 bg-white">
 
             <div class="d-flex align-items-center mb-0">
-                <h4 class="fw-bold mb-0">{{ __($location_section->content->title) }}</h4>
+                <h2 class="fw-bold mb-0 hh-h4-size">{{ __($location_section->content->title) }}</h2>
                 <span class="badge bg-danger text-white ms-2">NEW</span>
             </div>
 
@@ -4083,7 +4126,7 @@ window.SB = {
 
                                 <div class="trend-card-overlay">
                                     <div>
-                                        <h5 aria-level="3" class="trend-card-title">{{ $location->name }}</h5>
+                                        <h3 class="trend-card-title hh-h5-size">{{ $location->name }}</h3>
                                         <div class="trend-card-subtitle">Explore Now</div>
                                     </div>
 
@@ -4111,7 +4154,7 @@ window.SB = {
     <div class="container-fluid">
 
         <div class="d-flex align-items-center mb-2">
-            <h4 class="fw-bold mb-0">Popular Searches</h4>
+            <h2 class="fw-bold mb-0 hh-h4-size">Popular Searches</h2>
         </div>
 
         <div class="trending-wrapper position-relative">
@@ -4140,9 +4183,9 @@ window.SB = {
 
                             <div class="trend-card-overlay">
                                 <div>
-                                    <h5 aria-level="3" class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
+                                    <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }} hh-h5-size">
                                         {{ $category->name }}
-                                    </h5>
+                                    </h3>
                                 </div>
                             </div>
 
@@ -4176,9 +4219,9 @@ window.SB = {
 
             <div class="d-flex align-items-center mb-0">
 
-                <h4 class="fw-bold mb-0">
+                <h2 class="fw-bold mb-0 hh-h4-size">
                     {{ $section->title }}
-                </h4>
+                </h2>
 
                 @if($section->badge_text)
                     <span class="badge bg-danger text-white ms-2">
@@ -4213,9 +4256,9 @@ window.SB = {
                                 <div class="trend-card-overlay">
                                     <div>
 
-                                        <h5 aria-level="3" class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
+                                        <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }} hh-h5-size">
                                             {{ $category->name }}
-                                        </h5>
+                                        </h3>
 
                                        
                                     </div>
@@ -4448,7 +4491,7 @@ WhatsApp
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <div class="section-title">
-                        <h4 aria-level="2">{{ __($blog_section->content->title) }}</h4>
+                        <h2 class="hh-h4-size">{{ __($blog_section->content->title) }}</h2>
                         <p class="bgl">{{ __($blog_section->content->sub_title) }}</p>
                     </div>
                 </div>
@@ -4464,11 +4507,11 @@ WhatsApp
                         </div>
                        
                        <div class="content-area">
-    <h5 aria-level="3">
+    <h3 class="hh-h5-size">
         <a href="{{ route('blog.details', $blog->content->slug) }}">
             {{ __($blog->content->title) }}
         </a>
-    </h5>
+    </h3>
 
     <p>{{ __($blog->content->sub_title) }}</p>
 
@@ -4495,9 +4538,9 @@ WhatsApp
     @foreach($homeContentSections as $homeContent)
 
         <div class="home-top-content-box">
-         <h4 class="cod mb-0">
+         <h2 class="cod mb-0 hh-h4-size">
             {{ $homeContent->title }}
-            </h4>
+            </h2>
             <div class="home-top-content-text rich-content">
               {!! \App\Support\ContentHtml::cleanCached($homeContent->content ?? '') !!}
             </div>
@@ -4511,9 +4554,9 @@ WhatsApp
 @endif
 
         <div class="category-content-heading mb-4">
-            <h4 class=" cod mb-0">
+            <h2 class=" cod mb-0 hh-h4-size">
                 Explore Popular Services That Can Help You In Your Daily Needs :
-            </h4>
+            </h2>
         </div>
 
       @php
@@ -4545,7 +4588,7 @@ WhatsApp
                     @endif
                 </span>
 
-                <h5 class="category-content-title mb-0">
+                <h3 class="category-content-title mb-0 hh-h5-size">
                     {{-- Direct /{city}/{slug} (no redirect) + client-side
                          rewrite by .dynamic-category-link JS, same as every
                          other category link on this page. --}}
@@ -4555,7 +4598,7 @@ WhatsApp
 
                         {{ $categoryItem->name }}
                     </a>
-                </h5>
+                </h3>
 
             </div>
 
