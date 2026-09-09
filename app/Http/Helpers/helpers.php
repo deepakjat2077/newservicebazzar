@@ -412,7 +412,8 @@ function validRouteFirstSegments(): array
 }
 
 /**
- * Retired subcategory slugs -> their surviving slug, 301 (audit #42).
+ * Retired category AND subcategory slugs -> their surviving slug, 301
+ * (audit #42, plus any later one-off category rename).
  *
  * A bulk import once wrote subcategory rows with a keyword-stuffed slug
  * (many "X for Y" phrases concatenated together) instead of running them
@@ -420,15 +421,20 @@ function validRouteFirstSegments(): array
  * 80-255 characters, one truncated mid-word at the varchar(255) limit.
  * Google had already indexed and was re-crawling those URLs, so renaming
  * the slug alone would have turned each into a fresh 404 — this map lets
- * cityCategoryArea() 301 the old URL to the short one instead (or, for the
- * three that were exact-name duplicates of an existing clean subcategory,
- * to that survivor).
+ * cityCategoryArea() 301 the old URL to the current one instead (or, for
+ * the three that were exact-name duplicates of an existing clean
+ * subcategory, to that survivor).
+ *
+ * Also holds plain category renames (e.g. "house-keeping-services" ->
+ * "housekeeping-services") for the same reason — cityCategoryArea() checks
+ * this map right after both the category and subcategory lookups miss.
  *
  * Small and fixed, so a plain array is cheaper than a cached query.
  */
 function retiredSubcategorySlugs(): array
 {
     return [
+        'house-keeping-services' => 'housekeeping-services',
         'event-organisers-for-navratri-audition-organisers-event-organisers-for-corporate-event-organisers-for-holi-street-play-organisers-puppet-show-organisers-rain-dance-organisers-firework-show-organisers-dance-competition-organisers-music-concert-organisers-e' => 'event-organisers',
         'best-photographer-in-kolkata-wedding-photographer-pre-wedding-photography-baby-shower-photography-kids-photography-food-photography-cinematic-wedding-film' => 'best-photographer-in-kolkata',
         'business-stay-corporate-stay-executive-stay-vacation-home-holiday-home-homestay-serviced-apartment-fully-furnished-apartment-pet-friendly-airbnb-weekend-stay-in-mumbai' => 'business-stay',
