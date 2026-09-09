@@ -2147,4 +2147,85 @@ public function usedSubcategories(Request $request)
             ], 500);
         }
     }
-}   
+
+    /**
+     * Get listings by category and location for bulk assignment
+     */
+    public function bulkGetListings(Request $request)
+    {
+        $categoryId = $request->category_id;
+        $locationId = $request->location_id;
+
+        $query = Listing::where('status', 1);
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($locationId) {
+            $query->where('location_id', $locationId);
+        }
+
+        $listings = $query->select('id', 'name', 'category_id', 'location_id', 'user_id')
+            ->with(['category:id,name', 'location:id,name', 'user:id,username'])
+            ->orderBy('name')
+            ->limit(100)
+            ->get()
+            ->map(function($listing) {
+                return [
+                    'id' => $listing->id,
+                    'name' => $listing->name,
+                    'user_name' => optional($listing->user)->username,
+                    'category_name' => optional($listing->category)->name,
+                    'location_name' => optional($listing->location)->name,
+                ];
+            });
+
+        return response()->json(['listings' => $listings]);
+    }
+
+    /**
+     * Bulk assign subcategory to listings
+     */
+    public function bulkAssign(Request $request)
+    {
+        $request->validate([
+            'subcategory_id' => 'required|exists:subcategories,id',
+            'listing_ids' => 'required|array|min:1',
+            'listing_ids.*' => 'exists:listings,id',
+        ]);
+
+        $subcategoryId = $request->subcategory_id;
+        $listingIds = $request->listing_ids;
+
+        try {
+            foreach ($listingIds as $listingId) {
+                $listing = Listing::findOrFail($listingId);
+
+                // Get existing subcategory IDs
+                $subcategoryIds = $listing->subcategory_ids ?? [];
+                if (is_string($subcategoryIds)) {
+                    $subcategoryIds = json_decode($subcategoryIds, true) ?? [];
+                }
+
+                // Add new subcategory if not already present
+                if (!in_array($subcategoryId, $subcategoryIds)) {
+                    $subcategoryIds[] = $subcategoryId;
+                    $listing->subcategory_ids = $subcategoryIds;
+                    $listing->save();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => count($listingIds) . ' listing(s) successfully updated with subcategory!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+}

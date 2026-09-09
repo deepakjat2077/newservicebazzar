@@ -351,6 +351,7 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
                 Route::delete('delete/{id}', 'SubcategoriesController@delete')->name('delete');
                 // Called by the listing form's subcategory picker.
                 Route::post('quick-store', 'SubcategoriesController@quickStore')->withoutMiddleware('permission:subcategory.view')->middleware('permission:subcategory.manage,listing.create')->name('quick.store');
+                Route::get('by-category/{id}', 'SubcategoriesController@byCategory')->name('by.category');
             });
 
 
@@ -443,6 +444,12 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
 
     Route::delete('delete/{id}', 'ListingController@delete')
         ->name('delete');
+
+    Route::get('bulk/get-listings', 'ListingController@bulkGetListings')
+        ->name('bulk.getListings');
+
+    Route::post('bulk/assign', 'ListingController@bulkAssign')
+        ->name('bulk.assign');
 });
 
 

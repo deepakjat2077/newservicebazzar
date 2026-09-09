@@ -7,13 +7,13 @@
         <div class="card">
             <div class="card-body p-0">
                 <div class="p-3 border-bottom">
-                    <form method="get" action="">
+                    <form method="get" action="" id="filterForm">
                         <div class="form-row align-items-end">
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-2">
                                 <label class="mb-1">@lang('Search')</label>
                                 <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="@lang('Listing name or username')">
                             </div>
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-2 mb-2">
                                 <label class="mb-1">@lang('Category')</label>
                                 <select name="category_id" class="form-control">
                                     <option value="">@lang('All')</option>
@@ -22,8 +22,8 @@
                                     @endforeach
                                 </select>
                             </div>
-                            
-                            <div class="col-md-3 mb-2">
+
+                            <div class="col-md-2 mb-2">
                                 <label class="mb-1">@lang('Location')</label>
                                 <select name="location_id" class="form-control">
                                     <option value="">@lang('All')</option>
@@ -32,17 +32,47 @@
                                     @endforeach
                                 </select>
                             </div>
+
+                            <div class="col-md-3 mb-2">
+                                <label class="mb-1">Assign Subcategory</label>
+                                <select name="bulk_subcategory" id="bulkSubcategory" class="form-control">
+                                    <option value="">Select to bulk assign...</option>
+                                </select>
+                                <small class="text-muted">Select, check listings, then click "Assign"</small>
+                            </div>
+
                             <div class="col-md-2 mb-2 d-flex">
                                 <button type="submit" class="btn btn-primary btn-block mr-2">@lang('Filter')</button>
-                                <a href="{{ url()->current() }}" class="btn btn-light btn-block mr-2">@lang('Reset')</a>
+                                <a href="{{ url()->current() }}" class="btn btn-light btn-block">@lang('Reset')</a>
                             </div>
                         </div>
                     </form>
                 </div>
+
+                {{-- Bulk Assign Actions --}}
+                <div class="p-3 border-bottom bg-light d-none" id="bulkActions">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span>
+                            <strong id="selectedCount">0</strong> listing(s) selected
+                        </span>
+                        <div>
+                            <button type="button" class="btn btn-success btn-sm" id="bulkAssignBtn">
+                                <i class="fas fa-check"></i> Assign Selected
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="bulkCancelBtn">
+                                Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
+                                <th scope="col" style="width: 50px;">
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
                                 <th scope="col">@lang('Name')</th>
                                 <th scope="col">@lang('Username')</th>
                                 <th scope="col">@lang('Category')</th>
@@ -53,6 +83,9 @@
                         <tbody class="cur-body">
                             @forelse($listings as $listing)
                                 <tr>
+                                    <td>
+                                        <input type="checkbox" class="form-check-input listing-checkbox" value="{{ $listing->id }}">
+                                    </td>
                                     <td>{{ __($listing->name) }}</td>
                                     {{-- A listing added from the admin panel
                                          need not belong to a registered user —
@@ -138,7 +171,114 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+$(document).ready(function(){
 
+    // Load subcategories based on selected category
+    function loadSubcategories() {
+        const categoryId = $('select[name="category_id"]').val();
+        const $subSelect = $('#bulkSubcategory');
+
+        if (!categoryId) {
+            $subSelect.html('<option value="">Select category first...</option>');
+            return;
+        }
+
+        $.get('/admin/subcategories/by-category/' + categoryId, function(data) {
+            let html = '<option value="">Select subcategory...</option>';
+            data.forEach(sub => {
+                html += `<option value="${sub.id}">${sub.name}</option>`;
+            });
+            $subSelect.html(html);
+        });
+    }
+
+    // Load subcategories on page load if category is already selected
+    loadSubcategories();
+
+    // Reload subcategories when category changes
+    $('select[name="category_id"]').on('change', loadSubcategories);
+
+    // Select All checkbox
+    $('#selectAll').on('change', function(){
+        const isChecked = $(this).is(':checked');
+        $('.listing-checkbox').prop('checked', isChecked);
+        updateBulkActionsBar();
+    });
+
+    // Individual checkbox change
+    $(document).on('change', '.listing-checkbox', function(){
+        updateBulkActionsBar();
+    });
+
+    // Update bulk actions bar
+    function updateBulkActionsBar() {
+        const checked = $('.listing-checkbox:checked').length;
+        if (checked > 0) {
+            $('#bulkActions').removeClass('d-none');
+            $('#selectedCount').text(checked);
+        } else {
+            $('#bulkActions').addClass('d-none');
+            $('#selectAll').prop('checked', false);
+        }
+    }
+
+    // Bulk Assign Button
+    $('#bulkAssignBtn').on('click', function(){
+        const subcategoryId = $('#bulkSubcategory').val();
+        const selectedIds = $('.listing-checkbox:checked').map(function(){
+            return $(this).val();
+        }).get();
+
+        if (!subcategoryId) {
+            Swal.fire('Error', 'Please select a subcategory', 'error');
+            return;
+        }
+
+        if (selectedIds.length === 0) {
+            Swal.fire('Error', 'Please select at least one listing', 'error');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Confirm Assignment',
+            text: `Assign subcategory to ${selectedIds.length} listing(s)?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Assign!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '{{ route("admin.listing.bulk.assign") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        subcategory_id: subcategoryId,
+                        listing_ids: selectedIds
+                    },
+                    success: function(response) {
+                        Swal.fire('Success', response.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function(xhr) {
+                        const message = xhr.responseJSON?.message || 'An error occurred';
+                        Swal.fire('Error', message, 'error');
+                    }
+                });
+            }
+        });
+    });
+
+    // Clear Selection Button
+    $('#bulkCancelBtn').on('click', function(){
+        $('.listing-checkbox').prop('checked', false);
+        $('#selectAll').prop('checked', false);
+        updateBulkActionsBar();
+    });
+
+});
 
     $(document).on('click', '.deleteBtn', function () {
     var id = $(this).data('id');

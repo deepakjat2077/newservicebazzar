@@ -354,11 +354,13 @@ public function quickStore(Request $request)
     public function bulkAddPage()
     {
         $categories = Category::where('status', 1)->orderBy('name')->get();
+        $locations = Location::where('status', 1)->orderBy('name')->get();
         $seoWriter = app(\App\Services\SubcategorySeoWriter::class);
         $aiConfigured = $seoWriter->isConfigured();
 
         return view('admin.subcategories.bulk-add', [
             'categories' => $categories,
+            'locations' => $locations,
             'aiConfigured' => $aiConfigured,
         ]);
     }
@@ -443,5 +445,19 @@ public function quickStore(Request $request)
         return back()
             ->with('success', $message)
             ->with('errors', $errors);
+    }
+
+    /**
+     * Get subcategories by category ID (for AJAX)
+     */
+    public function byCategory($categoryId)
+    {
+        $subcategories = Subcategory::where('category_id', $categoryId)
+            ->where('status', 1)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($subcategories);
     }
 }
