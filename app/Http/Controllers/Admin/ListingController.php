@@ -2198,40 +2198,70 @@ public function usedSubcategories(Request $request)
     }
 
     /**
-     * Bulk assign subcategory to listings
+     * Bulk assign subcategories to listings (supports single or multiple)
      */
     public function bulkAssign(Request $request)
     {
-        $request->validate([
-            'subcategory_id' => 'required|exists:subcategories,id',
+        // Accept either subcategory_id (single) or subcategory_ids (array)
+        $rules = [
             'listing_ids' => 'required|array|min:1',
             'listing_ids.*' => 'exists:listings,id',
-        ]);
+        ];
 
-        $subcategoryId = $request->subcategory_id;
+        // Validate based on what was sent
+        if ($request->has('subcategory_ids')) {
+            $rules['subcategory_ids'] = 'required|array|min:1';
+            $rules['subcategory_ids.*'] = 'exists:subcategories,id';
+        } else {
+            $rules['subcategory_id'] = 'required|exists:subcategories,id';
+        }
+
+        $request->validate($rules);
+
+        // Support both single and multiple subcategory IDs
+        $subcategoryIds = [];
+        if ($request->has('subcategory_ids')) {
+            $subcategoryIds = $request->subcategory_ids;
+        } elseif ($request->has('subcategory_id')) {
+            $subcategoryIds = [$request->subcategory_id];
+        }
+
         $listingIds = $request->listing_ids;
 
         try {
+            $assignedCount = 0;
+
             foreach ($listingIds as $listingId) {
                 $listing = Listing::findOrFail($listingId);
 
                 // Get existing subcategory IDs
-                $subcategoryIds = $listing->subcategory_ids ?? [];
-                if (is_string($subcategoryIds)) {
-                    $subcategoryIds = json_decode($subcategoryIds, true) ?? [];
+                $existingIds = $listing->subcategory_ids ?? [];
+                if (is_string($existingIds)) {
+                    $existingIds = json_decode($existingIds, true) ?? [];
                 }
 
-                // Add new subcategory if not already present
-                if (!in_array($subcategoryId, $subcategoryIds)) {
-                    $subcategoryIds[] = $subcategoryId;
-                    $listing->subcategory_ids = $subcategoryIds;
+                // Add new subcategories if not already present
+                $updated = false;
+                foreach ($subcategoryIds as $subId) {
+                    if (!in_array($subId, $existingIds)) {
+                        $existingIds[] = $subId;
+                        $updated = true;
+                    }
+                }
+
+                if ($updated) {
+                    $listing->subcategory_ids = $existingIds;
                     $listing->save();
+                    $assignedCount++;
                 }
             }
 
+            $subCount = count($subcategoryIds);
+            $message = "$assignedCount listing(s) updated with " . $subCount . " subcategory(ies)";
+
             return response()->json([
                 'success' => true,
-                'message' => count($listingIds) . ' listing(s) successfully updated with subcategory!'
+                'message' => $message
             ]);
 
         } catch (\Exception $e) {

@@ -168,10 +168,11 @@ AI will auto-generate:
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label><strong>Assign Subcategory</strong></label>
-                                <select id="assignSubcategory" class="form-control">
-                                    <option value="">Select subcategory...</option>
+                                <label><strong>Assign Subcategories</strong></label>
+                                <select id="assignSubcategory" class="form-control select2-multiple" multiple="multiple">
+                                    <option value="">Select subcategories...</option>
                                 </select>
+                                <small class="text-muted d-block mt-1">Select multiple to assign all at once</small>
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-block" id="loadListingsBtn">
@@ -243,10 +244,17 @@ AI will auto-generate:
 <script>
 $(document).ready(function(){
 
-    // Initialize Select2
+    // Initialize Select2 for filters and multi-select
     $('.select2-filter').select2({
         width: '100%',
         allowClear: true
+    });
+
+    $('.select2-multiple').select2({
+        width: '100%',
+        placeholder: 'Select subcategories...',
+        allowClear: true,
+        closeOnSelect: false
     });
 
     // Load subcategories when category changes
@@ -254,16 +262,16 @@ $(document).ready(function(){
         const $subSelect = $('#assignSubcategory');
 
         if (!categoryId) {
-            $subSelect.html('<option value="">Select category first...</option>');
+            $subSelect.html('<option value="">Select category first...</option>').trigger('change');
             return;
         }
 
         $.get('/admin/subcategories/by-category/' + categoryId, function(data) {
-            let html = '<option value="">Select subcategory...</option>';
+            let html = '<option value="">Select subcategories...</option>';
             data.forEach(sub => {
                 html += `<option value="${sub.id}">${sub.name}</option>`;
             });
-            $subSelect.html(html);
+            $subSelect.html(html).trigger('change');
         });
     }
 
@@ -276,19 +284,22 @@ $(document).ready(function(){
     $('#loadListingsBtn').on('click', function(){
         const categoryId = $('#filterCategory').val();
         const locationId = $('#filterLocation').val();
-        const subcategoryId = $('#assignSubcategory').val();
+        const subcategoryIds = $('#assignSubcategory').val();
 
         if (!categoryId) {
             Swal.fire('Error', 'Please select a category', 'error');
             return;
         }
 
-        if (!subcategoryId) {
-            Swal.fire('Error', 'Please select a subcategory first', 'error');
+        if (!subcategoryIds || subcategoryIds.length === 0) {
+            Swal.fire('Error', 'Please select at least one subcategory', 'error');
             return;
         }
 
-        loadListings(categoryId, locationId, subcategoryId);
+        // If multiple selected, just use the first one for filtering
+        // (listings are shown for first selected, and all will be assigned)
+        const firstSubcategoryId = Array.isArray(subcategoryIds) ? subcategoryIds[0] : subcategoryIds;
+        loadListings(categoryId, locationId, firstSubcategoryId);
     });
 
     function loadListings(categoryId, locationId, subcategoryId) {
@@ -363,13 +374,13 @@ $(document).ready(function(){
 
     // Assign Subcategory Button
     $('#assignBtn').on('click', function(){
-        const subcategoryId = $('#assignSubcategory').val();
+        const subcategoryIds = $('#assignSubcategory').val();
         const selectedIds = $('.listing-checkbox:checked').map(function(){
             return $(this).val();
         }).get();
 
-        if (!subcategoryId) {
-            Swal.fire('Error', 'Please select a subcategory', 'error');
+        if (!subcategoryIds || subcategoryIds.length === 0) {
+            Swal.fire('Error', 'Please select at least one subcategory', 'error');
             return;
         }
 
@@ -378,9 +389,10 @@ $(document).ready(function(){
             return;
         }
 
+        const subCount = Array.isArray(subcategoryIds) ? subcategoryIds.length : 1;
         Swal.fire({
             title: 'Confirm Assignment',
-            text: `Assign subcategory to ${selectedIds.length} listing(s)?`,
+            text: `Assign ${subCount} subcategory(ies) to ${selectedIds.length} listing(s)?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#28a745',
@@ -393,16 +405,16 @@ $(document).ready(function(){
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        subcategory_id: subcategoryId,
+                        subcategory_ids: subcategoryIds, // Now array
                         listing_ids: selectedIds
                     },
                     success: function(response) {
                         Swal.fire('Success', response.message, 'success').then(() => {
-                            // Reload listings (automatically excludes ones now having this subcategory)
+                            // Reload listings (automatically excludes ones now having these subcategories)
                             const categoryId = $('#filterCategory').val();
                             const locationId = $('#filterLocation').val();
-                            const subcategoryId = $('#assignSubcategory').val();
-                            loadListings(categoryId, locationId, subcategoryId);
+                            const firstSubcategoryId = Array.isArray(subcategoryIds) ? subcategoryIds[0] : subcategoryIds;
+                            loadListings(categoryId, locationId, firstSubcategoryId);
                         });
                     },
                     error: function(xhr) {
