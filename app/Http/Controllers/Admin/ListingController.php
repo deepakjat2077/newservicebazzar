@@ -2170,20 +2170,25 @@ public function usedSubcategories(Request $request)
             $query->where('location_id', $locationId);
         }
 
-        // Exclude listings that already have this subcategory
-        if ($subcategoryId) {
-            $query->where(function($q) use ($subcategoryId) {
-                $q->whereNull('subcategory_ids')
-                  ->orWhere('subcategory_ids', '')
-                  ->orWhereRaw("JSON_CONTAINS(subcategory_ids, JSON_ARRAY(?)) = 0", [$subcategoryId]);
-            });
-        }
-
-        $listings = $query->select('id', 'name', 'category_id', 'location_id', 'user_id')
+        $listings = $query->select('id', 'name', 'category_id', 'location_id', 'user_id', 'subcategory_ids')
             ->with(['category:id,name', 'location:id,name', 'user:id,username'])
             ->orderBy('name')
             ->limit(100)
             ->get()
+            ->filter(function($listing) use ($subcategoryId) {
+                // Exclude listings that already have this subcategory
+                if (!$subcategoryId) {
+                    return true;
+                }
+
+                $existingIds = $listing->subcategory_ids ?? [];
+                if (is_string($existingIds)) {
+                    $existingIds = json_decode($existingIds, true) ?? [];
+                }
+
+                // Return true if subcategory is NOT in the listing
+                return !in_array($subcategoryId, $existingIds);
+            })
             ->map(function($listing) {
                 return [
                     'id' => $listing->id,
