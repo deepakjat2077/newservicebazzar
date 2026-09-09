@@ -26,7 +26,7 @@ use DOMXPath;
  */
 class ContentHtml
 {
-    protected const CACHE_VERSION = 'v5';
+    protected const CACHE_VERSION = 'v6';
 
     /** Block tags kept as-is. */
     protected const BLOCKS = [
@@ -90,6 +90,7 @@ class ContentHtml
         static::normaliseDivs($xpath);
         static::renameTags($xpath);
         static::stripAttributes($xpath);
+        static::fixHeadingHierarchy($xpath);
         static::normaliseWhitespace($xpath);
         static::promoteLooseInlineContent($body);
         static::normaliseTypedBulletParagraphs($xpath);
@@ -651,13 +652,13 @@ class ContentHtml
         $parent->removeChild($node);
     }
 
-    /** Swap a node's tag, keeping its children. */
-    protected static function rename(DOMNode $node, string $tag): void
+    /** Swap a node's tag, keeping its children. Returns the new node, so a caller that needs to set an attribute on it (fixHeadingHierarchy()) can. */
+    protected static function rename(DOMNode $node, string $tag): ?DOMElement
     {
         $parent = $node->parentNode;
 
         if (!$parent) {
-            return;
+            return null;
         }
 
         $replacement = $node->ownerDocument->createElement($tag);
@@ -667,6 +668,86 @@ class ContentHtml
         }
 
         $parent->replaceChild($replacement, $node);
+
+        return $replacement;
+    }
+
+    /**
+     * Admins write headings freely — a category's own article can jump
+     * straight from h2 to h4, or open with an h4 and never use h2/h3 at all.
+     * That is the same "skipped level" problem as the template audit (#?):
+     * a screen reader's heading list, and some SEO tools, expect h1 -> h2 ->
+     * h3 with nothing skipped, and this content sits right after the page's
+     * own h1 (see all.blade.php), so its first heading should read as h2.
+     *
+     * Standard outline-repair algorithm: walk headings in document order,
+     * keep a stack of (original level -> corrected level) for the headings
+     * still "open" (an ancestor in the heading outline, not literal DOM
+     * nesting — html headings don't nest, levels imply it). A heading whose
+     * original level is >= the top of the stack closes that entry (it's a
+     * sibling or a return to an outer level); the corrected level is always
+     * one below the corrected level of whatever remains open, so two
+     * headings that were both h4 under the same h2 both become h3 — not
+     * h3 then h4, which a naive "previous+1" pass would produce.
+     *
+     * Only headings whose level actually changes get touched. Changing the
+     * tag changes which font-size/margin-top rule in rich-content.blade.php
+     * applies (h2:18px, h3:16px, h4/h5:15px; h3 alone has no top margin) -
+     * an inline style pins both back to what the ORIGINAL tag rendered as,
+     * so nothing on the page looks different even though the tag is now
+     * semantically correct. Must run after stripAttributes() so that style
+     * survives (h2-h5 aren't in KEEP_ATTRIBUTES).
+     */
+    protected static function fixHeadingHierarchy(DOMXPath $xpath): void
+    {
+        $headings = iterator_to_array($xpath->query('//h2 | //h3 | //h4 | //h5') ?: []);
+
+        if (!$headings) {
+            return;
+        }
+
+        $fontSizeByOriginalLevel = [2 => '18px', 3 => '16px', 4 => '15px', 5 => '15px'];
+
+        $stackOriginal = [];
+        $stackNew = [];
+
+        foreach ($headings as $node) {
+            if (!$node instanceof DOMElement) {
+                continue;
+            }
+
+            $originalLevel = (int) substr($node->nodeName, 1);
+
+            while ($stackOriginal && end($stackOriginal) >= $originalLevel) {
+                array_pop($stackOriginal);
+                array_pop($stackNew);
+            }
+
+            $parentNew = $stackNew ? end($stackNew) : 1;
+            $newLevel = max(2, min($parentNew + 1, 5));
+
+            $stackOriginal[] = $originalLevel;
+            $stackNew[] = $newLevel;
+
+            if ($newLevel === $originalLevel) {
+                continue;
+            }
+
+            // h2/h4 (not h5) lose their top margin only when they are the
+            // very first element in the content - matches the
+            // `> h2:first-child, > h4:first-child` rule in rich-content.blade.php.
+            $isFirstChild = $node->parentNode
+                && $node->parentNode->firstChild === $node;
+            $marginTop = ($originalLevel === 3 || ($isFirstChild && in_array($originalLevel, [2, 4], true)))
+                ? '0'
+                : '18px';
+
+            $style = 'font-size:' . $fontSizeByOriginalLevel[$originalLevel] . ';margin-top:' . $marginTop . ';';
+            $existingStyle = $node->getAttribute('style');
+
+            $replacement = static::rename($node, 'h' . $newLevel);
+            $replacement?->setAttribute('style', trim($style . $existingStyle));
+        }
     }
 
     protected static function hasBlockChild(DOMNode $node): bool

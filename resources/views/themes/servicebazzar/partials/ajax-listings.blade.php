@@ -385,7 +385,7 @@
                 </div>
 
                <div class="col-7 col-md-8">
-                    <h4 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
+                    <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
                         @if(($listing->is_star ?? 0) == 1)
                             <i class="fas fa-star ico"></i>
                         @endif
@@ -395,7 +395,7 @@
 ]) }}">
     {{ __($listing->name) }}
 </a>
-                    </h4>
+                    </h3>
 
                     @php
                         $rating = 0;
@@ -658,7 +658,7 @@
                 </div>
 
              <div class="col-7 col-md-8">
-                    <h4 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
+                    <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
                         @if(($listing->is_star ?? 0) == 1)
                             <i class="fas fa-star ico"></i>
                         @endif
@@ -668,7 +668,7 @@
 ]) }}">
                             {{ __($listing->name) }}
                         </a>
-                    </h4>
+                    </h3>
 
                     @php
                         $rating = 0;
@@ -1000,7 +1000,7 @@
                             </div>
 
                            <div class="col-7 col-md-8">
-                                <h4 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
+                                <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
                                     @if(($listing->is_star ?? 0) == 1)
                                          <i class="fas fa-star ico"></i>
                                     @endif
@@ -1022,7 +1022,7 @@
 @else
     <span>{{ __($listing->name) }}</span>
 @endif
-                                </h4>
+                                </h3>
 
                                 @php
                                     $rating = 0;
@@ -1218,12 +1218,12 @@
                                 <div class="rounded-3 overflow-hidden">
                                     <div class="row g-0 align-items-center">
                                         <div class="col-lg-4 p-4">
-                                            <h4 class="fw-bold mb-1">
+                                            <h3 class="fw-bold mb-1 hh-h4-size">
                                                 Get the List of Top
                                                 <span class="text-primary">
                                                     {{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}
                                                 </span>
-                                            </h4>
+                                            </h3>
                                             <p class="mb-0 small text-dark">
                                                 We'll send you contact details in seconds for free
                                             </p>
@@ -2063,12 +2063,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="rounded-3 overflow-hidden">
                             <div class="row g-0 align-items-center">
                                 <div class="col-lg-4 p-4">
-                                    <h4 class="fw-bold mb-1">
+                                    <h3 class="fw-bold mb-1 hh-h4-size">
                                         Get the List of Top
                                         <span class="text-primary">
                                             {{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}
                                         </span>
-                                    </h4>
+                                    </h3>
                                     <p class="mb-0 small text-dark">
                                         We'll send you contact details in seconds for free
                                     </p>
