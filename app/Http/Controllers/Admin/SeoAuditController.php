@@ -145,7 +145,7 @@ class SeoAuditController extends Controller
                 $subcategory->id,
                 $subcategory->name,
                 route('admin.subcategories.index'),
-                $auditor->auditTaxonomy($subcategory, $subcategoryDuplicates),
+                $auditor->auditTaxonomy($subcategory, $subcategoryDuplicates, checkImage: false),
                 $subcategory->status
             );
         }

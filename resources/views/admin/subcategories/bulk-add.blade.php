@@ -169,9 +169,16 @@ AI will auto-generate:
                             </div>
                             <div class="col-md-3">
                                 <label><strong>Assign Subcategories</strong></label>
-                                <select id="assignSubcategory" class="form-control select2-multiple" multiple="multiple">
-                                    <option value="">Select subcategories...</option>
-                                </select>
+                                <div class="input-group">
+                                    <select id="assignSubcategory" class="form-control select2-multiple" multiple="multiple">
+                                        <option value="">Select subcategories...</option>
+                                    </select>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" id="selectAllBtn" title="Select all subcategories">
+                                            <i class="fas fa-check-double"></i> All
+                                        </button>
+                                    </div>
+                                </div>
                                 <small class="text-muted d-block mt-1">Select multiple to assign all at once</small>
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
@@ -278,6 +285,18 @@ $(document).ready(function(){
     // Load subcategories when category filter changes
     $('#filterCategory').on('change', function(){
         loadSubcategoriesByCategory($(this).val());
+    });
+
+    // Select All button
+    $(document).on('click', '#selectAllBtn', function(e){
+        e.preventDefault();
+        const allOptions = $('#assignSubcategory option').map(function(){
+            return $(this).val();
+        }).get().filter(val => val !== '');
+
+        if(allOptions.length > 0) {
+            $('#assignSubcategory').val(allOptions).trigger('change');
+        }
     });
 
     // Load Listings Button
@@ -407,7 +426,7 @@ $(document).ready(function(){
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        subcategory_ids: subcategoryIds, // Now array
+                        subcategory_ids: subcategoryIds,
                         listing_ids: selectedIds
                     },
                     success: function(response) {

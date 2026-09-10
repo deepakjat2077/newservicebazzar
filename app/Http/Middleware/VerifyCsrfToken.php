@@ -10,5 +10,7 @@ class VerifyCsrfToken extends Middleware
         'ipn*',
         'gupshup/webhook',
         '/gupshup/webhook',
+        'user/deposit/confirm',  // Payment gateway redirect — session may have expired, but IPN validates the transaction
+        'pay/*',  // Mobile app checkout (URL-keyed, not session-keyed)
     ];
 }

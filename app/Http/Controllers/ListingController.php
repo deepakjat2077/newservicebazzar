@@ -2917,6 +2917,42 @@ public function cityCategoryArea($city, $categoryArea)
     $known = validRouteFirstSegments();
 
     if (!isset($known[$city]) && !isset($known[\Str::slug($city)])) {
+        // Old area+city combined slugs ("mini-sectt-gurgaon") that Google
+        // indexed under some earlier version of the site — not a real
+        // Location, but it ends with one. Strip the area prefix and send
+        // the visitor to the real city instead of a flat 404; the area
+        // itself isn't preserved (nothing downstream resolves it from
+        // this position anyway), but the category/subcategory page is
+        // the part actually worth landing on.
+        $citySlug = \Str::slug($city);
+        $realCitySlug = null;
+
+        // Same cache/DB-cost concern the comment above raises for every
+        // junk first-segment hitting this route — cached, not a live query.
+        $locationSlugs = \Illuminate\Support\Facades\Cache::remember('route:location_slugs', 300, function () {
+            return \App\Models\Location::where('status', 1)->pluck('slug')->filter()->values()->all();
+        });
+
+        foreach ($locationSlugs as $locSlug) {
+            if ($citySlug !== $locSlug && \Str::endsWith($citySlug, '-' . $locSlug)) {
+                $realCitySlug = $locSlug;
+                break;
+            }
+        }
+
+        // "lucknow-1", "coimbatore-1": a Location slug that once collided
+        // with an existing one got auto-suffixed "-1"/"-2", Google indexed
+        // it, and the row was later cleaned up back to the bare city name —
+        // leaving every old indexed URL 404ing. Strip a trailing "-<number>"
+        // and check that against the same known-location list.
+        if (!$realCitySlug && preg_match('/^(.*)-\d+$/', $citySlug, $m) && in_array($m[1], $locationSlugs, true)) {
+            $realCitySlug = $m[1];
+        }
+
+        if ($realCitySlug) {
+            return redirect('/' . $realCitySlug . '/' . $categoryArea, 301);
+        }
+
         abort(404);
     }
 
@@ -2936,20 +2972,31 @@ public function cityCategoryArea($city, $categoryArea)
     $subcategory = null;
     $area = null;
 
+    // Default: look categories/subcategories/listings up by the full slug.
+    // Only the redirect case below should ever look up a *truncated* one —
+    // using the truncated guess for every "-in-" slug (regardless of
+    // whether it actually isolated a trailing city) was sending real,
+    // active subcategories like "...transport-service-in-mumbai-to-all-
+    // india" to a 404, because "affordable-...-transport-service" alone
+    // matches nothing. That single-URL confusion was landing 1,000+
+    // "-in-"-containing subcategory slugs in Search Console as Not Found.
+    $serviceSlug = $categoryArea;
+
     if (str_contains($categoryArea, '-in-')) {
-        [$serviceSlug, $areaSlug] = explode('-in-', $categoryArea, 2);
+        [$maybeServiceSlug, $areaSlug] = explode('-in-', $categoryArea, 2);
         $area = trim(str_replace('-', ' ', $areaSlug));
 
         // "/jaipur/courier-services-in-jaipur" is the same page as
         // "/jaipur/courier-services" — the area just repeats the city. That
         // produced two self-canonical URLs with identical content/meta
         // (a duplicate-description flag). Send the redundant one to the
-        // clean city/category URL with a 301 so it consolidates.
+        // clean city/category URL with a 301 so it consolidates. This is
+        // the ONLY situation where the truncated slug is trusted — every
+        // other "-in-" is just part of the slug's own wording, not a city
+        // repeat, and must not be chopped off before the lookups below.
         if (\Str::slug($areaSlug) === \Str::slug($city)) {
-            return redirect('/' . $city . '/' . $serviceSlug, 301);
+            return redirect('/' . $city . '/' . $maybeServiceSlug, 301);
         }
-    } else {
-        $serviceSlug = $categoryArea;
     }
 
     $category = Category::where('status', 1)
@@ -2971,33 +3018,70 @@ public function cityCategoryArea($city, $categoryArea)
             return redirect('/' . $city . '/' . $retired[$serviceSlug], 301);
         }
 
-        // Neither a category nor a subcategory matched.  Before giving up,
-        // check whether the slug is actually a *listing* detail page that
-        // Google still has indexed under the old /city/listing-slug URL
-        // format.  If it is, 301 to the canonical /listings/{cat}/{slug}
-        // route so we stop wasting 25 % of crawl budget on 404s for pages
-        // that exist but were reachable only via SiteController before the
-        // route-ordering change.
-        $listing = Listing::where('status', 1)
-            ->where('slug', $serviceSlug)
-            ->with('category')
-            ->first();
+        // Mirror image of the dedup redirect above: plenty of subcategories
+        // were only ever saved with the city baked into their own slug
+        // ("best-travel-agency-in-jaipur" has no bare "best-travel-agency"
+        // row at all). A visitor or an old link trying the bare short form
+        // got a 404 despite the page genuinely existing — try it with
+        // "-in-{city}" appended before giving up. Resolved in place rather
+        // than redirected: the dedup rule above sends that same "-in-city"
+        // slug straight back to the short form, so a 301 here would just
+        // bounce forever between the two.
+        $suffixedSlug = $serviceSlug . '-in-' . \Str::slug($city);
 
-        if (
-            $listing &&
-            !empty(optional($listing->category)->slug) &&
-            !empty($listing->slug)
-        ) {
-            return redirect()->route('listings.details', [
-                'category' => $listing->category->slug,
-                'slug'     => $listing->slug,
-            ], 301);
+        $category = Category::where('status', 1)->where('slug', $suffixedSlug)->first();
+        if (!$category) {
+            $subcategory = Subcategory::where('status', 1)->where('slug', $suffixedSlug)->first();
         }
 
-        abort(404);
+        if (!$category && !$subcategory) {
+            // Neither a category nor a subcategory matched (with or without
+            // the "-in-{city}" suffix). Before giving up, check whether the
+            // slug is actually a *listing* detail page that Google still
+            // has indexed under the old /city/listing-slug URL format. If
+            // it is, 301 to the canonical /listings/{cat}/{slug} route so
+            // we stop wasting 25% of crawl budget on 404s for pages that
+            // exist but were reachable only via SiteController before the
+            // route-ordering change.
+            $listing = Listing::where('status', 1)
+                ->where('slug', $serviceSlug)
+                ->with('category')
+                ->first();
+
+            if (
+                $listing &&
+                !empty(optional($listing->category)->slug) &&
+                !empty($listing->slug)
+            ) {
+                return redirect()->route('listings.details', [
+                    'category' => $listing->category->slug,
+                    'slug'     => $listing->slug,
+                ], 301);
+            }
+
+            abort(404);
+        }
     }
 
     $selectedItem = $subcategory ?? $category;
+
+    // A catalogue entry named for one city ("band baja in Chandigarh")
+    // reached under a different city's URL ("/jaipur/band-baja-in-
+    // chandigarh") used to render anyway — noindex kept it out of Google,
+    // but a real visitor still saw a nonsensical "in Chandigarh, Jaipur"
+    // page with zero listings. Send them straight to the city the page is
+    // actually about instead. Only when that city is itself a real,
+    // active Location — otherwise fall through and render as before.
+    $foreignCity = landerForeignCityName($selectedItem->name ?? null, $city);
+    if ($foreignCity) {
+        $foreignLocation = Location::where('status', 1)
+            ->where('slug', \Str::slug($foreignCity))
+            ->first();
+
+        if ($foreignLocation) {
+            return redirect('/' . $foreignLocation->slug . '/' . $selectedItem->slug, 301);
+        }
+    }
 
     $citySlug = \Str::slug($city);
 

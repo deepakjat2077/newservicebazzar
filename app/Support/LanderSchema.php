@@ -125,8 +125,13 @@ class LanderSchema
             $data['seoTitle'] = $full;
 
             $countPhrase = $providerCount > 0 ? "{$providerCount} verified" : 'verified';
-            $data['seoDescription'] = "Find {$countPhrase} {$item->name} in {$cityName}. "
-                . "Compare ratings, prices & contact details, and book trusted local providers on {$siteName}.";
+            $seed = ($item->id ?? $item->name) . ':' . $cityName;
+            $data['seoDescription'] = seoTextVariant($seed, [
+                "Find {$countPhrase} {$item->name} in {$cityName}. Compare ratings, prices & contact details, and book trusted local providers on {$siteName}.",
+                "Looking for {$item->name} in {$cityName}? Explore {$countPhrase} providers, compare prices and check reviews on {$siteName}.",
+                "Discover {$countPhrase} {$item->name} in {$cityName} — compare ratings and connect with providers directly on {$siteName}.",
+                "{$cityName} {$item->name}: browse {$countPhrase} listings, compare prices and reviews, and get in touch on {$siteName}.",
+            ]);
         }
     }
 }

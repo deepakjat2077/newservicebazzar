@@ -77,6 +77,18 @@ if (!empty($location)) {
         ->first();
 
     if (!$currentLocationFromUrl) {
+        // Same "lucknow-1"/"coimbatore-1" history as the city/category
+        // route: an old slug-collision suffix Google still has indexed,
+        // long since cleaned up in the locations table. 301 to the bare
+        // slug instead of a flat 404.
+        if (preg_match('/^(.*)-\d+$/', $location, $m)) {
+            $retryLocation = Location::where('status', 1)->where('slug', $m[1])->first();
+
+            if ($retryLocation) {
+                return redirect('/location/' . $retryLocation->slug, 301);
+            }
+        }
+
         abort(404);
     }
 
@@ -255,8 +267,12 @@ $data['totalUsers'] = Cache::remember('home:total_users:v1', now()->addMinutes(1
 if (!empty($currentLocationFromUrl)) {
     $siteName = $this->setting->site_name ?? config('app.name', 'Website');
     $data['seoTitle'] = "Best Local Businesses in {$currentLocationFromUrl->name} | {$siteName}";
-    $data['seoDescription'] = "Find top-rated businesses, services and shops in {$currentLocationFromUrl->name}. "
-        . "Browse verified listings, reviews, contact details and more on {$siteName}.";
+    $data['seoDescription'] = seoTextVariant((string) $currentLocationFromUrl->id, [
+        "Find top-rated businesses, services and shops in {$currentLocationFromUrl->name}. Browse verified listings, reviews, contact details and more on {$siteName}.",
+        "Looking for reliable businesses in {$currentLocationFromUrl->name}? Explore verified listings with reviews and contact details on {$siteName}.",
+        "Discover trusted local businesses and services in {$currentLocationFromUrl->name}. Compare verified listings and check reviews on {$siteName}.",
+        "{$currentLocationFromUrl->name}'s local business directory — verified listings, genuine reviews and contact details, all on {$siteName}.",
+    ]);
     $data['seoUrl'] = url('/' . $currentLocationFromUrl->slug);
 
     // Empty city pages (0 listings) should not be indexed — they're thin, have
@@ -1580,8 +1596,12 @@ $data['listing'] = $data['listings']->first();
         // city pages identical/duplicate for SEO purposes.
         $siteName = $this->setting->site_name ?? config('app.name', 'Website');
         $data['seoTitle'] = "Best Local Businesses in {$location->name} | {$siteName}";
-        $data['seoDescription'] = "Find top-rated businesses, services and shops in {$location->name}. "
-            . "Browse verified listings, reviews, contact details and more on {$siteName}.";
+        $data['seoDescription'] = seoTextVariant((string) $location->id, [
+            "Find top-rated businesses, services and shops in {$location->name}. Browse verified listings, reviews, contact details and more on {$siteName}.",
+            "Looking for reliable businesses in {$location->name}? Explore verified listings with reviews and contact details on {$siteName}.",
+            "Discover trusted local businesses and services in {$location->name}. Compare verified listings and check reviews on {$siteName}.",
+            "{$location->name}'s local business directory — verified listings, genuine reviews and contact details, all on {$siteName}.",
+        ]);
         $data['seoUrl'] = route('listings.location', ['slug' => $location->slug]);
 
         /*

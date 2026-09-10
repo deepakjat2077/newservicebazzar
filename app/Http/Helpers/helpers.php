@@ -77,9 +77,19 @@ function normalizeSeoTitle(?string $title, ?string $brand = null, int $max = 60)
  */
 function landerMentionsForeignCity(?string $name, ?string $urlCityName): bool
 {
+    return landerForeignCityName($name, $urlCityName) !== null;
+}
+
+/**
+ * Same detection as landerMentionsForeignCity(), but hands back which city
+ * it found instead of a plain bool — the 301 in cityCategoryArea() needs
+ * the actual name to build the redirect target, not just "yes, foreign".
+ */
+function landerForeignCityName(?string $name, ?string $urlCityName): ?string
+{
     $name = trim((string) $name);
     if ($name === '') {
-        return false;
+        return null;
     }
 
     $cities = \Illuminate\Support\Facades\Cache::remember('lander:city_names:v1', now()->addHours(6), function () {
@@ -99,11 +109,11 @@ function landerMentionsForeignCity(?string $name, ?string $urlCityName): bool
             continue; // the page's own city is not "foreign"
         }
         if (preg_match('/\b' . preg_quote($city, '/') . '\b/i', $name)) {
-            return true;
+            return $city;
         }
     }
 
-    return false;
+    return null;
 }
 
 /**
@@ -431,6 +441,29 @@ function validRouteFirstSegments(): array
  *
  * Small and fixed, so a plain array is cheaper than a cached query.
  */
+/**
+ * Picks one of several phrasings for a templated SEO title/description,
+ * deterministically by $seed — the same page always gets the same variant
+ * (stable across requests and the page cache), but different pages spread
+ * across the set instead of all rendering byte-identical text.
+ *
+ * Google was choosing a different canonical than the one each page
+ * declared for exactly this reason: city/category lander pages built their
+ * title and description from one fixed template with only the city/count
+ * swapped in, so thousands of pages read as near-duplicates of each other.
+ *
+ * @param  string  $seed  Something stable and unique to the page (e.g. "{itemId}:{citySlug}").
+ * @param  string[]  $variants
+ */
+function seoTextVariant(string $seed, array $variants): string
+{
+    if (count($variants) === 1) {
+        return $variants[0];
+    }
+
+    return $variants[crc32($seed) % count($variants)];
+}
+
 function retiredSubcategorySlugs(): array
 {
     return [

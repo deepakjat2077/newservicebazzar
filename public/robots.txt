@@ -22,11 +22,6 @@ Disallow: /search
 Disallow: /ajax/
 Disallow: /set-location-session
 Disallow: /set-category-session
-Disallow: /geocode-address
-Disallow: /category/search
-Disallow: /search-locations
-Disallow: /nearby-location-suggestions
-Disallow: /category-suggestions
 
 # Sorted and filtered views are the same listings in a different order, and
 # the canonical tag on each already points back at the plain URL. Left

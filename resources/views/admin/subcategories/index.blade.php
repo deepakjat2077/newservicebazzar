@@ -72,7 +72,7 @@
 										<td>{{ $subcategories->firstItem() + $loop->index }}</td>
 										<td>
 											<div class="image-circle-preview">
-												<img src="{{ loadImage('assets/images/subcategory/' . $category->image) }}">
+												<img src="{{ $category->image ? loadImage('assets/images/subcategory/' . $category->image) : asset('assets/images/default.jpg') }}">
 											</div>
 											{{ __($category->name) }}
 										</td>

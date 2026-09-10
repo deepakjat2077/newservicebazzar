@@ -119,8 +119,11 @@ PROMPT;
         }
 
         return [
-            // Never from the AI: the name is the search term itself, and
-            // padding it only weakens the exact match.
+            // Never from the AI: the name is the search term itself, so the
+            // title always starts from fallback()'s deterministic version
+            // (the bare name, or the bare name padded to fit Google's
+            // ~30-char floor when the name alone is too short) rather than
+            // whatever the model made up.
             'seo_title'       => $fallback['seo_title'],
             'seo_keywords'    => $keywords,
             'seo_description' => $description,
@@ -150,8 +153,18 @@ PROMPT;
             return strtolower(trim($word));
         })->unique()->implode(', ');
 
+        // The name alone is the right title when it's already long enough —
+        // but most subcategory names are well under Google's ~30-char floor
+        // ("Hotels", "Spa", "GST"), and shipping those as-is is exactly what
+        // filled the SEO audit's "Title short" bucket with thousands of rows.
+        // Pad only when needed, never touch a name that's already long enough.
+        $title = mb_strlen($name) >= 30 ? $name : "Best {$subject} | ServiceBazzar";
+        if (mb_strlen($title) > 60) {
+            $title = mb_strlen($subject) >= 30 && mb_strlen($subject) <= 60 ? $subject : $name;
+        }
+
         return [
-            'seo_title' => mb_substr($name, 0, 255),
+            'seo_title' => mb_substr($title, 0, 255),
             'seo_keywords' => mb_substr($keywords, 0, 500),
             'seo_description' => mb_substr(
                 'Get professional ' . $subject . ' from verified providers. Compare options, check contact details and choose the right one near you.',

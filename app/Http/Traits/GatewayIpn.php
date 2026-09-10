@@ -396,8 +396,7 @@ trait GatewayIpn{
 
     //razorpay
     public function razorpayIpn(Request $request){
-        // $track = session()->get('transaction');
-        $data = Payment::where('extra_data', $request->razorpay_order_id)->where('status', 0)->orderBy('id', 'DESC')->first();
+        $data = Payment::where('extra_data', $request->razorpay_order_id)->orderBy('id', 'DESC')->first();
 
         if (!$data) {
             $alert = ['danger', 'Invalid Request 1'];
@@ -410,11 +409,15 @@ trait GatewayIpn{
 
         $sig = hash_hmac('sha256', $request->razorpay_order_id . "|" . $request->razorpay_payment_id, $credential->key_secret);
 
-        if (hash_equals($sig, (string) $request->razorpay_signature) && $data->status == '0') {
-            $this->paymentSuccess($data);
-            $alert = ['success', 'Transaction successful'];
+        if (hash_equals($sig, (string) $request->razorpay_signature)) {
+            if ((int) $data->status === 0) {
+                $this->paymentSuccess($data);
+                $alert = ['success', 'Transaction successful'];
+            } else {
+                $alert = ['success', 'Payment already processed'];
+            }
         } else {
-            $alert = ['danger', "Invalid Request 2"];
+            $alert = ['danger', "Invalid Request - Signature mismatch"];
         }
 
         return redirect()->route($this->redirect())->withAlert($alert);

@@ -181,7 +181,7 @@ class SeoAuditor
      * seo_description, seo_keywords, description, slug), so one method
      * covers both.
      */
-    public function auditTaxonomy($row, array $duplicateMaps): array
+    public function auditTaxonomy($row, array $duplicateMaps, bool $checkImage = true): array
     {
         $issues = [];
 
@@ -198,7 +198,10 @@ class SeoAuditor
             $issues[] = $this->issue('name_not_in_title');
         }
 
-        if (empty($row->image)) {
+        // Subcategories don't carry their own photo in the UI (they show
+        // the parent category's), so flagging 8,500+ of them for "no image"
+        // was noise — only categories are checked here.
+        if ($checkImage && empty($row->image)) {
             $issues[] = $this->issue('image_missing');
         }
 

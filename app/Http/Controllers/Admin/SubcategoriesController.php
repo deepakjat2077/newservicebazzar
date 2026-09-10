@@ -109,17 +109,41 @@ class SubcategoriesController extends Controller
                 $count++;
             }
 
+            // The form's SEO fields are optional and this path had no
+            // fallback at all — a subcategory created with them left blank
+            // saved that way permanently, which is exactly what kept
+            // showing up as "Title short" / "No content" / "Keywords
+            // missing" in the SEO audit. Fill in the same deterministic
+            // defaults quick-add and bulk-add already use whenever a field
+            // comes in empty; anything the admin actually typed is kept.
+            $category = Category::find($request->category_id);
+            $seo = app(\App\Services\SubcategorySeoWriter::class)->fallback($request->name, optional($category)->name);
+
             $subcategory = new subcategory();
             $subcategory->category_id = $request->category_id;
             $subcategory->name = $request->name;
             $subcategory->slug = $slug;
             $subcategory->image = $image;
-            $subcategory->seo_title = $request->seo_title;
-            $subcategory->seo_keywords = $request->seo_keywords;
-            $subcategory->seo_description = $request->seo_description;
-            // No description: the form no longer has that textarea.
+            $subcategory->seo_title = $request->filled('seo_title') ? $request->seo_title : $seo['seo_title'];
+            $subcategory->seo_keywords = $request->filled('seo_keywords') ? $request->seo_keywords : $seo['seo_keywords'];
+            $subcategory->seo_description = $request->filled('seo_description') ? $request->seo_description : $seo['seo_description'];
+            // No description field on the form — every subcategory created
+            // here used to save with content_missing guaranteed. A short
+            // deterministic paragraph beats none; subcategories:fill-content
+            // (AI-written, richer) still upgrades it later since it only
+            // ever touches rows under its own length floor.
+            $subcategory->description = "<p><strong>{$request->name}</strong> is a category of "
+                . (optional($category)->name ?: 'service') . " providers on ServiceBazzar. "
+                . "Compare verified listings, check ratings and contact the right provider directly for pricing and availability.</p>";
             $subcategory->status = $request->has('status') ? 1 : 0;
             $subcategory->save();
+
+            // Unlike quick-add, this form lets the admin type seo_title /
+            // seo_keywords / seo_description directly — only the fields
+            // that came in blank were replaced above, and the async AI
+            // enrichment quick-add uses is deliberately NOT run here, since
+            // it would overwrite that manual input with a generated answer
+            // a few seconds later.
 
             $alert = ['success', 'Subcategory created successfully'];
             return redirect()->route('admin.subcategories.index')->withAlert($alert);
@@ -281,6 +305,10 @@ public function quickStore(Request $request)
     $subcategory->seo_title = $seo['seo_title'];
     $subcategory->seo_keywords = $seo['seo_keywords'];
     $subcategory->seo_description = $seo['seo_description'];
+    // Same reasoning as create()/bulkStore(): this path has no description
+    // field, so it always saved content_missing without this.
+    $subcategory->description = "<p><strong>{$name}</strong> is a category of " . (optional($category)->name ?: 'service')
+        . " providers on ServiceBazzar. Compare verified listings, check ratings and contact the right provider directly for pricing and availability.</p>";
     $subcategory->status = 1;
     $subcategory->save();
 
@@ -425,6 +453,12 @@ public function quickStore(Request $request)
                     'seo_title' => $seo['seo_title'],
                     'seo_keywords' => $seo['seo_keywords'],
                     'seo_description' => $seo['seo_description'],
+                    // This path has no description field either — same
+                    // deterministic paragraph create() now writes, so a
+                    // bulk-added batch doesn't reopen the SEO audit's
+                    // "No content" bucket the day it's created.
+                    'description' => "<p><strong>{$name}</strong> is a category of {$category->name} providers on ServiceBazzar. "
+                        . "Compare verified listings, check ratings and contact the right provider directly for pricing and availability.</p>",
                     'status' => 1,
                 ]);
 

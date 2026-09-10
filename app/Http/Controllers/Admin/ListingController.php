@@ -307,6 +307,14 @@ public function update(Request $request, $id)
     $metaKeywords    = $request->has('meta_keywords') ? $cleanText($request->meta_keywords) : $listing->meta_keywords;
     $metaDescription = $request->has('meta_description') ? $cleanText($request->meta_description) : $listing->meta_description;
 
+    // Backfill anything left blank — see fallbackSeoFor()'s docblock.
+    [$metaTitle, $metaKeywords, $metaDescription, $details] = $this->fallbackSeoFor(
+        $name,
+        $request->has('city') ? $request->city : $listing->city,
+        $request->filled('category_id') ? $request->category_id : $listing->category_id,
+        $metaTitle, $metaKeywords, $metaDescription, $details
+    );
+
     $plotNo          = $request->has('plot_no') ? $cleanText($request->plot_no) : $listing->plot_no;
     $buildingName    = $request->has('building_name') ? $cleanText($request->building_name) : $listing->building_name;
     $streetName      = $request->has('street_name') ? $cleanText($request->street_name) : $listing->street_name;
@@ -999,6 +1007,11 @@ if (!cache()->add($lockKey, true, 15)) {
     $metaKeywords        = $cleanText($request->meta_keywords);
     $metaDescription     = $cleanText($request->meta_description);
 
+    // Backfill anything left blank — see fallbackSeoFor()'s docblock.
+    [$metaTitle, $metaKeywords, $metaDescription, $details] = $this->fallbackSeoFor(
+        $name, $request->city, $request->category_id, $metaTitle, $metaKeywords, $metaDescription, $details
+    );
+
     $plotNo              = $cleanText($request->plot_no);
     $buildingName        = $cleanText($request->building_name);
     $streetName          = $cleanText($request->street_name);
@@ -1448,6 +1461,94 @@ public function spellFix(Request $request, \App\Services\SpellFixer $fixer)
         "corrections" => $result["corrections"],
     ]);
 }
+
+   /**
+    * Whoever submits a listing — admin, agent, or a business owner via the
+    * public free-listing / self-service form — can leave meta_title,
+    * meta_keywords, meta_description and details blank, and both store()
+    * and update() have always saved that as-is. That is exactly the class
+    * of listing the SEO audit kept turning up (missing title/description/
+    * keywords/content, sometimes hundreds at a time). Rather than relying
+    * on someone noticing it later, fill in a sane deterministic default at
+    * save time for whichever of the four fields is empty — the same recipe
+    * used to backfill the existing rows during the SEO cleanup.
+    *
+    * @return array{0: string, 1: string, 2: string, 3: string}  [metaTitle, metaKeywords, metaDescription, details]
+    */
+   private function fallbackSeoFor(
+       ?string $name,
+       ?string $city,
+       ?int $categoryId,
+       ?string $metaTitle,
+       ?string $metaKeywords,
+       ?string $metaDescription,
+       ?string $details
+   ): array {
+       $name     = trim((string) $name);
+       $city     = trim((string) $city);
+       $category = $categoryId ? (string) optional(Category::find($categoryId))->name : '';
+       $category = $category !== '' ? $category : 'Service';
+       // Strip a trailing "Services" so it doesn't double up with the word
+       // this method appends itself (many category names already end in it).
+       $categoryBase = trim((string) preg_replace('/\s+services?$/i', '', $category)) ?: $category;
+
+       if ($name === '') {
+           // Nothing sane to build a fallback from — leave the fields as
+           // they came in rather than write "Service in City" everywhere.
+           return [(string) $metaTitle, (string) $metaKeywords, (string) $metaDescription, (string) $details];
+       }
+
+       if (trim((string) $metaTitle) === '') {
+           $candidates = array_values(array_filter([
+               $city !== '' ? "{$name} - {$category} in {$city}" : null,
+               "{$name} - {$category}",
+               "Best {$categoryBase} - {$name}" . ($city !== '' ? " in {$city}" : ''),
+               "{$name} | ServiceBazzar",
+           ]));
+
+           $metaTitle = null;
+           foreach ($candidates as $candidate) {
+               $len = mb_strlen($candidate);
+               if ($len >= 30 && $len <= 60) { $metaTitle = $candidate; break; }
+           }
+           // Nothing landed in range (an unusually short name/category) —
+           // take the longest candidate and pad or trim it to fit rather
+           // than ship a title under Google's ~30-char floor.
+           if ($metaTitle === null) {
+               usort($candidates, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+               $metaTitle = $candidates[0] ?? $name;
+               if (mb_strlen($metaTitle) > 60) $metaTitle = mb_substr($metaTitle, 0, 60);
+               // An unusually short name/category combo (rare) may still
+               // land under 30 chars here — a real title beats none.
+           }
+       }
+
+       if (trim((string) $metaKeywords) === '') {
+           $metaKeywords = collect([
+               mb_strtolower($name),
+               mb_strtolower($name) . ' near me',
+               'best ' . mb_strtolower($name),
+               mb_strtolower($category),
+               $city !== '' ? mb_strtolower($category) . ' in ' . mb_strtolower($city) : null,
+           ])->filter()->unique()->implode(', ');
+       }
+
+       if (trim((string) $metaDescription) === '') {
+           $sentence = $city !== ''
+               ? "{$name} is a trusted {$category} provider in {$city}. Compare verified providers, check ratings and book online."
+               : "{$name} is a trusted {$category} provider. Compare verified providers, check ratings and book online.";
+           $metaDescription = mb_strlen($sentence) <= 160 ? $sentence : mb_substr($sentence, 0, 160);
+       }
+
+       if (trim(strip_tags((string) $details)) === '') {
+           $cityPhrase = $city !== '' ? " in {$city}" : '';
+           $details = "<p><strong>{$name}</strong> offers professional {$categoryBase} services{$cityPhrase}. "
+               . "This is a verified listing on ServiceBazzar — contact the provider directly to check pricing, "
+               . "availability, and book a service that fits your schedule.</p>";
+       }
+
+       return [$metaTitle, $metaKeywords, $metaDescription, $details];
+   }
 
    private function callGemini($apiKey, $prompt, $schema)
 {
@@ -2259,7 +2360,7 @@ public function usedSubcategories(Request $request)
                     $existingIds = json_decode($existingIds, true) ?? [];
                 }
 
-                // Add new subcategories if not already present
+                // Add new subcategories if not already present (ADD mode only)
                 $updated = false;
                 foreach ($subcategoryIds as $subId) {
                     if (!in_array($subId, $existingIds)) {

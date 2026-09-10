@@ -240,6 +240,8 @@ trait PaymentGateway{
 	        'prefill.email' => Auth::user()->email,
 	        'prefill.contact' => Auth::user()->mobile,
 	        'theme.color' => "#2ecc71",
+	        'handler_url' => route('ipn.razorpay'),
+	        'redirect_url' => route('user.deposit'),
 
 		];
 
