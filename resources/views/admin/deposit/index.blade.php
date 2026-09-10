@@ -31,7 +31,7 @@
 							@endif
 							<td>{{ $deposit->method_currency->paymentMethod->name }}</td>
 							<td>{{ numberFormat($deposit->amount) }} {{ $setting->site_currency }}</td>
-							<td>{{ @$deposit->listing->title ?? 'Account Package' }}</td>
+							<td>{{ @$deposit->listing->name ?? 'Account Package' }}</td>
 							@if(request()->routeIs('admin.deposit.all'))
 							<td>
 								@if($deposit->status == 1)

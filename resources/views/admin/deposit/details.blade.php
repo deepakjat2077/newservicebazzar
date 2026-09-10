@@ -51,7 +51,7 @@
 						    </tr>
 						    <tr>
 						      <th>@lang('Listing')</th>
-						      <td>{{ @$deposit->listing->title ?? 'Account Package' }}</td>
+						      <td>{{ @$deposit->listing->name ?? 'Account Package' }}</td>
 						    </tr>
 						</table>
 					</div>
