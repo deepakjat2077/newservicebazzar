@@ -29,8 +29,8 @@ class DepositController extends Controller
 
     public function depositDetails($id)
     {
-        $deposit = Payment::where('user_id',auth()->id())->orderBy('id','desc')->where('status','!=',0)->findOrFail($id);
-    	return view($this->theme.'user.payment.details',compact('deposit'));
+        $payment = Payment::where('user_id',auth()->id())->orderBy('id','desc')->where('status','!=',0)->findOrFail($id);
+    	return view($this->theme.'user.payment.details',compact('payment'));
     }
 
     public function depositSubmit(Request $request){
