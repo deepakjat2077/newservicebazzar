@@ -55,11 +55,25 @@
 
                     // Submit the form to our IPN handler
                     document.getElementById('razorpay_form').submit();
+                },
+                modal: {
+                    ondismiss: function() {
+                        // User cancelled - stay on this page, don't redirect
+                        console.log('Payment cancelled');
+                    }
                 }
             };
 
-            // Create and open Razorpay checkout
+            // Create Razorpay checkout
             var rzp = new Razorpay(checkoutOptions);
+
+            // Allow reopening modal on cancel
+            checkoutOptions.modal.ondismiss = function() {
+                console.log('Payment cancelled - user can retry');
+                // Modal will close but user can click Pay button to retry
+            };
+
+            // Open immediately
             rzp.open();
 
             $('input[type="submit"]').addClass("ml-4 mt-4 btn btn-primary btn-custom2 text-center btn-lg");
