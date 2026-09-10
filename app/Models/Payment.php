@@ -35,4 +35,8 @@ class Payment extends Model
     public function package(){
         return $this->belongsTo(Package::class);
     }
+
+    public function listing(){
+        return $this->belongsTo(Listing::class);
+    }
 }

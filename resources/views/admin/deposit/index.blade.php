@@ -15,6 +15,7 @@
 	                      @endif
 	                      <th scope="col">@lang('Method')</th>
 	                      <th scope="col">@lang('Amount')</th>
+		                      <th scope="col">@lang('Listing')</th>
 	                      @if(request()->routeIs('admin.deposit.all'))
 	                      <th scope="col">@lang('Status')</th>
 	                      @endif
@@ -30,6 +31,7 @@
 							@endif
 							<td>{{ $deposit->method_currency->paymentMethod->name }}</td>
 							<td>{{ numberFormat($deposit->amount) }} {{ $setting->site_currency }}</td>
+							<td>{{ @$deposit->listing->title ?? 'Account Package' }}</td>
 							@if(request()->routeIs('admin.deposit.all'))
 							<td>
 								@if($deposit->status == 1)

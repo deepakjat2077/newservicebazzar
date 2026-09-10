@@ -15,27 +15,27 @@ class DepositController extends Controller
 
     public function all()
     {
-    	$deposits = Payment::where('status','!=',0)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod')->paginate(20);
+    	$deposits = Payment::where('status','!=',0)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod','listing')->paginate(20);
     	$title = 'All Deposits';
     	return view('admin.deposit.index',compact('deposits','title'));
     }
 
     public function approved(){
-        $deposits = Payment::where('status',1)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod')->paginate(20);
+        $deposits = Payment::where('status',1)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod','listing')->paginate(20);
         $title = 'Approved Deposits';
-        return view('admin.deposit.index',compact('deposits','title'));   
+        return view('admin.deposit.index',compact('deposits','title'));
     }
 
     public function pending(){
-        $deposits = Payment::where('status',2)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod')->paginate(20);
+        $deposits = Payment::where('status',2)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod','listing')->paginate(20);
         $title = 'Pending Deposits';
-        return view('admin.deposit.index',compact('deposits','title'));   
+        return view('admin.deposit.index',compact('deposits','title'));
     }
 
     public function rejected(){
-        $deposits = Payment::where('status',3)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod')->paginate(20);
+        $deposits = Payment::where('status',3)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod','listing')->paginate(20);
         $title = 'Rejected Deposits';
-        return view('admin.deposit.index',compact('deposits','title'));   
+        return view('admin.deposit.index',compact('deposits','title'));
     }
 
     public function details($id){
