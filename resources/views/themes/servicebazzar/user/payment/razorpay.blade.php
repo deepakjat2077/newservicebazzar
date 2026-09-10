@@ -9,6 +9,7 @@
                 <div class="card-header">{{ __('Razorpay Payment') }}</div>
                 <div class="card-body">
                 	<form id="razorpay_form" action="{{$data['url']}}" method="{{$data['method']}}">
+                        @csrf
                         <script src="{{$data['checkout_js']}}"
                                 @foreach($data['value'] as $key=>$value)
                                 data-{{$key}}="{{$value}}"
