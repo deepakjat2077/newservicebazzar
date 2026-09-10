@@ -7,7 +7,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">{{ __('Razorpay Payment') }}</div>
-                <div class="card-body">
+                <div class="card-body text-center">
                 	<form id="razorpay_form" action="{{$data['url']}}" method="{{$data['method']}}">
                         @csrf
                         <script src="{{$data['checkout_js']}}"></script>
@@ -17,7 +17,11 @@
                         <input type="hidden" id="razorpay_order_id" name="razorpay_order_id">
                         <input type="hidden" id="razorpay_signature" name="razorpay_signature">
 
+                        <button type="button" id="pay_button" class="btn btn-primary btn-lg mt-4">
+                            <i class="fas fa-lock"></i> Pay with Razorpay (₹{{ $data['value']['amount'] / 100 }})
+                        </button>
                     </form>
+                    <p class="text-muted mt-3">Click the button above to complete your payment securely</p>
                 </div>
             </div>
         </div>
@@ -67,16 +71,19 @@
             // Create Razorpay checkout
             var rzp = new Razorpay(checkoutOptions);
 
-            // Allow reopening modal on cancel
-            checkoutOptions.modal.ondismiss = function() {
-                console.log('Payment cancelled - user can retry');
-                // Modal will close but user can click Pay button to retry
-            };
+            // Click handler for Pay button
+            $('#pay_button').on('click', function(e) {
+                e.preventDefault(); // Prevent form submission
+                rzp.open(); // Just open the modal
+                return false;
+            });
 
-            // Open immediately
-            rzp.open();
-
-            $('input[type="submit"]').addClass("ml-4 mt-4 btn btn-primary btn-custom2 text-center btn-lg");
+            // Prevent form from submitting on Enter key
+            $('#razorpay_form').on('submit', function(e) {
+                e.preventDefault();
+                rzp.open();
+                return false;
+            });
         })(jQuery);
     </script>
 @endpush
