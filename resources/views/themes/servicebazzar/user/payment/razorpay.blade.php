@@ -10,12 +10,7 @@
                 <div class="card-body">
                 	<form id="razorpay_form" action="{{$data['url']}}" method="{{$data['method']}}">
                         @csrf
-                        <script src="{{$data['checkout_js']}}"
-                                @foreach($data['value'] as $key=>$value)
-                                data-{{$key}}="{{$value}}"
-                                @endforeach >
-
-                        </script>
+                        <script src="{{$data['checkout_js']}}"></script>
 
                         <input type="hidden" custom="{{$data['custom']}}" name="hidden">
                         <input type="hidden" id="razorpay_payment_id" name="razorpay_payment_id">
