@@ -2282,20 +2282,6 @@ public function usedSubcategories(Request $request)
             ->orderBy('name')
             ->limit(100)
             ->get()
-            ->filter(function($listing) use ($subcategoryId) {
-                // Exclude listings that already have this subcategory
-                if (!$subcategoryId) {
-                    return true;
-                }
-
-                $existingIds = $listing->subcategory_ids ?? [];
-                if (is_string($existingIds)) {
-                    $existingIds = json_decode($existingIds, true) ?? [];
-                }
-
-                // Return true if subcategory is NOT in the listing
-                return !in_array($subcategoryId, $existingIds);
-            })
             ->map(function($listing) {
                 return [
                     'id' => $listing->id,
