@@ -17,11 +17,16 @@
                         <input type="hidden" id="razorpay_order_id" name="razorpay_order_id">
                         <input type="hidden" id="razorpay_signature" name="razorpay_signature">
 
-                        <button type="button" id="pay_button" class="btn btn-primary btn-lg mt-4">
+                        <button type="button" id="pay_button" class="btn btn-primary btn-lg mt-4" style="display:none;">
                             <i class="fas fa-lock"></i> Pay with Razorpay (₹{{ $data['value']['amount'] / 100 }})
                         </button>
                     </form>
-                    <p class="text-muted mt-3">Click the button above to complete your payment securely</p>
+                    <div id="loading_msg" class="text-center mt-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="text-muted mt-3">Opening Razorpay payment gateway...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,7 +76,19 @@
             // Create Razorpay checkout
             var rzp = new Razorpay(checkoutOptions);
 
-            // Click handler for Pay button
+            // Auto-open modal when page loads (seamless experience)
+            $(document).ready(function() {
+                // Hide loading message and show button
+                $('#loading_msg').hide();
+                $('#pay_button').show();
+
+                // Auto-open the modal
+                setTimeout(function() {
+                    rzp.open();
+                }, 500);
+            });
+
+            // Click handler for Pay button (if modal closes)
             $('#pay_button').on('click', function(e) {
                 e.preventDefault(); // Prevent form submission
                 rzp.open(); // Just open the modal
