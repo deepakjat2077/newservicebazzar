@@ -46,7 +46,7 @@
 										</tr>
 										<tr>
 											<th>@lang('Package Expire Date')</th>
-											<td>{{ $payment->created_at->addDays($payment->package->validity) }}</td>
+											<td>{{ $payment->created_at->addDays($payment->package->validity)->format('Y-m-d h:i A') }}</td>
 										</tr>
 									</tbody>
 								</table>
