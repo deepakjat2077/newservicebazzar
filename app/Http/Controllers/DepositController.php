@@ -79,6 +79,44 @@ class DepositController extends Controller
 
     	session()->put('transaction',$trx_number);
 
+    	// For AJAX requests from checkout page, return JSON with Razorpay details
+    	if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+    		// Create Razorpay order for checkout modal
+    		if ($method->paymentMethod->act === 'razorpay') {
+    			try {
+    				$razorpaySettings = $method->paymentMethod->setting;
+    				$api = new \Razorpay\Api\Api($razorpaySettings->key_id, $razorpaySettings->key_secret);
+    				$order = $api->order->create([
+    					'receipt' => $payment->trx_number,
+    					'amount' => $payment->after_convert * 100,
+    					'currency' => $method->currency,
+    					'payment_capture' => '0'
+    				]);
+
+    				// Store order ID in payment
+    				$payment->extra_data = $order->id;
+    				$payment->save();
+
+    				return response()->json([
+    					'success' => true,
+    					'payment' => [
+    						'id' => $payment->id,
+    						'trx_number' => $payment->trx_number,
+    						'order_id' => $order->id,
+    						'amount' => $payment->after_convert * 100,
+    						'currency' => $method->currency,
+    						'key' => $razorpaySettings->key_id,
+    						'user_name' => auth()->user()->username,
+    						'user_email' => auth()->user()->email,
+    						'user_phone' => auth()->user()->mobile,
+    					]
+    				]);
+    			} catch (\Exception $e) {
+    				return response()->json(['success' => false, 'error' => 'Failed to create order'], 500);
+    			}
+    		}
+    	}
+
     	return redirect()->route('user.deposit.confirm');
     }
 

@@ -198,8 +198,89 @@
 </style>
 
 <script>
-// Form will submit normally and redirect to /user/deposit/confirm
-// where the Razorpay modal will auto-open. Simple and reliable!
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('sbcoForm');
+
+    form.addEventListener('submit', function(e) {
+        var selectedMethod = form.querySelector('input[name="method"]:checked');
+        var methodLabel = selectedMethod ? selectedMethod.closest('.sbco-method').querySelector('.sbco-method-text strong').textContent : '';
+
+        // Check if RazorPay is selected
+        if (methodLabel.includes('RazorPay') || methodLabel.includes('Razorpay')) {
+            e.preventDefault();
+
+            // Show loading state
+            var payButton = form.querySelector('.sbco-pay');
+            var originalText = payButton.innerHTML;
+            payButton.disabled = true;
+            payButton.innerHTML = '<i class="las la-spinner la-spin"></i> Processing...';
+
+            // Submit via AJAX
+            var formData = new FormData(form);
+
+            fetch('{{ route("user.deposit.submit") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.payment) {
+                    // Open Razorpay modal with payment data
+                    var options = {
+                        key: data.payment.key,
+                        amount: data.payment.amount,
+                        currency: data.payment.currency,
+                        order_id: data.payment.order_id,
+                        name: data.payment.user_name,
+                        description: '{{ $package->name }} Package',
+                        image: '{{ asset("assets/images/logo/logo.png") }}',
+                        prefill: {
+                            name: data.payment.user_name,
+                            email: data.payment.user_email,
+                            contact: data.payment.user_phone
+                        },
+                        theme: {
+                            color: '#1a73e8'
+                        },
+                        handler: function(response) {
+                            // Submit payment to IPN handler
+                            var ipnForm = document.getElementById('razorpay_form_inline');
+                            ipnForm.querySelector('#razorpay_payment_id_inline').value = response.razorpay_payment_id;
+                            ipnForm.querySelector('#razorpay_order_id_inline').value = response.razorpay_order_id;
+                            ipnForm.querySelector('#razorpay_signature_inline').value = response.razorpay_signature;
+                            ipnForm.action = '{{ route("ipn.razorpay") }}';
+                            ipnForm.submit();
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                // Restore button on cancel
+                                payButton.disabled = false;
+                                payButton.innerHTML = originalText;
+                            }
+                        }
+                    };
+
+                    var rzp = new Razorpay(options);
+                    rzp.open();
+                } else {
+                    alert(data.error || 'Error processing payment. Please try again.');
+                    payButton.disabled = false;
+                    payButton.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error processing payment. Please try again.');
+                payButton.disabled = false;
+                payButton.innerHTML = originalText;
+            });
+        }
+        // For other payment methods, submit normally
+    });
+});
 </script>
 
 @endsection
