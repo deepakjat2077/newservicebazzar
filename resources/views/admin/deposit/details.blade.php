@@ -1,6 +1,13 @@
 @extends('admin.layouts.master')
 @section('content')
 @section('title','Deposit Details')
+<div class="row mb-3">
+	<div class="col-md-12">
+		<a href="{{ route('admin.deposit.all') }}" class="btn btn-secondary">
+			<i class="fas fa-arrow-left"></i> @lang('Back')
+		</a>
+	</div>
+</div>
 <div class="row justify-content-center">
 	<div class="@if($deposit->method_currency->is_manual) col-md-12 @else col-md-8 @endif">
 		<div class="card">
@@ -41,6 +48,10 @@
 						    <tr>
 						      <th>@lang('After Convert')</th>
 						      <td>{{ numberFormat($deposit->after_convert) }} {{ $setting->site_currency }}</td>
+						    </tr>
+						    <tr>
+						      <th>@lang('Listing')</th>
+						      <td>{{ @$deposit->listing->title ?? 'Account Package' }}</td>
 						    </tr>
 						</table>
 					</div>

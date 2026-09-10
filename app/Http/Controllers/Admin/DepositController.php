@@ -39,7 +39,7 @@ class DepositController extends Controller
     }
 
     public function details($id){
-    	$deposit = Payment::findOrFail($id);
+    	$deposit = Payment::with('listing','user','method_currency','method_currency.paymentMethod')->findOrFail($id);
     	return view('admin.deposit.details',compact('deposit'));
     }
 
