@@ -965,7 +965,11 @@ public function updatesection(Request $request, $id)
             return redirect()->route('admin.package.free.activate', $package->id);
         }
 
+        // Only show RazorPay for listing advertisement checkout
         $methods = \App\Models\MethodCurrency::where('enable_status', 1)
+            ->whereHas('paymentMethod', function($q) {
+                $q->where('act', 'razorpay');
+            })
             ->with('paymentMethod')->orderBy('currency_name')->get();
 
         return view($this->theme.'user.listing.advertise-checkout', compact('listing', 'package', 'methods'));
