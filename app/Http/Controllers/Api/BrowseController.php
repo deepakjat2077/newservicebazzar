@@ -316,7 +316,7 @@ class BrowseController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Review submitted successfully.',
-            'review'  => $this->reviewPayload($rating->fresh('comments.user'), $user->id),
+            'review'  => $this->reviewPayload($rating->fresh()->load('comments.user'), $user->id),
         ]);
     }
 
