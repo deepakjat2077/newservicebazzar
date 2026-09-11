@@ -348,7 +348,7 @@ class ProfileController extends Controller
             'city'            => $user->city,
             'area'            => $user->area,
             'pincode'         => $user->pincode,
-            'image'           => $user->image ? asset($user->image) : null,
+            'image'           => $user->image ? loadImageWebp('assets/images/user/' . basename($user->image)) : null,
             'can_edit_email'  => !$user->hasMailableEmail() || !$user->email_verified,
             'mobile_verified' => $user->isMobileVerified(),
             'email_verified'  => (bool) $user->email_verified,
