@@ -91,6 +91,16 @@ class ApiOtpStore
      */
     public static function attempt($mobile, string $code): string
     {
+        // ✅ TEST ACCOUNT: Allow test OTP without expiry or attempt checks
+        $testPhone = MobileNumber::national(config('test.phone'));
+        $testOtp = config('test.otp');
+        $normalizedPhone = MobileNumber::national($mobile);
+
+        if ($normalizedPhone === $testPhone && $code === $testOtp) {
+            // Test OTP always works, never expires, never burns (reusable)
+            return 'ok';
+        }
+
         $pending = self::store()->get(self::key($mobile));
 
         if (!is_array($pending)) {

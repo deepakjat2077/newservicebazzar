@@ -371,7 +371,14 @@
                             </div>
 
                             <div class="form-group smart-picker mt-4" id="subcategoryPicker">
-                                <label>Sub Categories</label>
+                                <label>Sub Categories
+                                    <button type="button" class="btn btn-sm btn-outline-primary ms-2" id="selectAllSubcategoriesBtn" style="display:none;">
+                                        <i class="fas fa-check-double"></i> Select All
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="unselectAllSubcategoriesBtn" style="display:none;">
+                                        <i class="fas fa-times-circle"></i> Unselect All
+                                    </button>
+                                </label>
                                 <input type="text" id="subcategorySearchInput" class="form-control smart-input"
                                        placeholder="Type sub category name"
                                        {{ old('category_id') ? '' : 'disabled' }}>
@@ -1414,6 +1421,25 @@ if (selectedCategory && locationId) {
         $('#subcategoryHiddenInputs').html(hidden);
     }
 
+    function updateSubcategoryButtonVisibility() {
+        // Show "Unselect All" only if there are selected subcategories
+        if (selectedSubcategories.length > 0) {
+            $('#unselectAllSubcategoriesBtn').show();
+        } else {
+            $('#unselectAllSubcategoriesBtn').hide();
+        }
+
+        // Show "Select All" only if there are available subcategories AND not all are selected
+        if (locationFilteredSubcategories.length > 0 &&
+            selectedSubcategories.length < locationFilteredSubcategories.length) {
+            $('#selectAllSubcategoriesBtn').show();
+        } else if (locationFilteredSubcategories.length > 0 && selectedSubcategories.length === 0) {
+            $('#selectAllSubcategoriesBtn').show();
+        } else if (locationFilteredSubcategories.length === 0) {
+            $('#selectAllSubcategoriesBtn').hide();
+        }
+    }
+
     function getPrimaryEmail() {
         return ($('input[name="extra_emails[]"]').first().val() || '').trim();
     }
@@ -2050,6 +2076,33 @@ $('#subcategorySearchInput').on('focus keyup', debounce(function () {
 
     renderSubcategoryDropdown(filtered);
 }, 200));
+
+    // Select All Subcategories button
+    $('#selectAllSubcategoriesBtn').on('click', function (e) {
+        e.preventDefault();
+        if (locationFilteredSubcategories.length === 0) return;
+
+        // Add all available subcategories that aren't already selected
+        locationFilteredSubcategories.forEach(sub => {
+            if (!selectedSubcategories.some(s => s.id === sub.id)) {
+                selectedSubcategories.push(sub);
+            }
+        });
+
+        renderSelectedSubcategories();
+        updateSubcategoryButtonVisibility();
+        $('#subcategorySearchInput').val('').trigger('keyup');
+    });
+
+    // Unselect All Subcategories button
+    $('#unselectAllSubcategoriesBtn').on('click', function (e) {
+        e.preventDefault();
+        selectedSubcategories = [];
+        renderSelectedSubcategories();
+        updateSubcategoryButtonVisibility();
+        $('#subcategorySearchInput').val('').trigger('keyup');
+    });
+
     // user search
     let searchTimer;
     $('#userSearchInput').on('keyup focus', function () {
@@ -2217,6 +2270,9 @@ $(document).on('click', '.add-category-item', function () {
             renderSubcategoryDropdown(
                 locationFilteredSubcategories
             );
+
+            // Update button visibility based on subcategory state
+            updateSubcategoryButtonVisibility();
         },
 
         error: function (xhr) {
@@ -2252,7 +2308,8 @@ $(document).on('click', '.add-category-item', function () {
 
         $('#subcategorySearchInput').val('');
         renderSelectedSubcategories();
-     renderSubcategoryDropdown(locationFilteredSubcategories);
+        updateSubcategoryButtonVisibility();
+        renderSubcategoryDropdown(locationFilteredSubcategories);
         triggerAutoAiGenerate();
     });
 
@@ -2362,6 +2419,7 @@ if (!alreadyInLocationList) {
                     }
 
                     renderSelectedSubcategories();
+                    updateSubcategoryButtonVisibility();
                     $('#subcategorySearchInput').val('');
                     $('#subcategorySuggestionBox').addClass('d-none').html('');
                     triggerAutoAiGenerate();
@@ -2389,6 +2447,8 @@ if (!alreadyInLocationList) {
         selectedSubcategories = [];
         $('#categorySearchInput').val('');
         $('#subcategorySearchInput').val('').prop('disabled', true);
+        $('#selectAllSubcategoriesBtn').hide();
+        $('#unselectAllSubcategoriesBtn').hide();
         renderSelectedCategory();
         renderSelectedSubcategories();
         updateSeoScore();
@@ -2399,7 +2459,8 @@ if (!alreadyInLocationList) {
         let id = $(this).data('id');
         selectedSubcategories = selectedSubcategories.filter(item => String(item.id) !== String(id));
         renderSelectedSubcategories();
-      renderSubcategoryDropdown(locationFilteredSubcategories);
+        updateSubcategoryButtonVisibility();
+        renderSubcategoryDropdown(locationFilteredSubcategories);
         triggerAutoAiGenerate();
     });
 
@@ -3472,6 +3533,9 @@ $('#location_id').on('change', function () {
     $('#subcategorySearchInput')
         .val('')
         .prop('disabled', true);
+
+    $('#selectAllSubcategoriesBtn').hide();
+    $('#unselectAllSubcategoriesBtn').hide();
 
     $('#subcategorySuggestionBox')
         .addClass('d-none')

@@ -1797,7 +1797,7 @@ public function listingsDetails(Request $request, $category, $slug)
 
     $rawTitle = !empty($listing->meta_title)
         ? $listing->meta_title
-        : trim(($businessName ? $businessName . ' | ' : '') . $listing->name . ($locationName ? ' in ' . $locationName : ''));
+        : trim($listing->name . ($locationName ? ' in ' . $locationName : ''));
 
     $data['seoTitle'] = normalizeSeoTitle($rawTitle, $siteName);
 

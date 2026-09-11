@@ -1293,6 +1293,7 @@ if (Schema::hasColumn('listings', 'longitude')) {
 
         $name = trim($request->name ?? '');
         $categoryName = trim($request->category_name ?? '');
+        $area = trim($request->area ?? '');
         $city = trim($request->city ?? '');
         $state = trim($request->state ?? '');
         $subcategories = $request->subcategories ?? [];
@@ -1344,6 +1345,7 @@ if (Schema::hasColumn('listings', 'longitude')) {
 Business Data:
 Name: {$name}
 Category: {$categoryName}
+Area: {$area}
 City: {$city}
 State: {$state}
 Subcategories: " . implode(', ', $subcategories) . "
@@ -1351,12 +1353,23 @@ Subcategories: " . implode(', ', $subcategories) . "
 Strict Rules (ABSOLUTE - NO EXCEPTIONS):
 - Return JSON only, no markdown, no code blocks
 - meta_title MUST be 60 CHARACTERS OR LESS (count every character including spaces and punctuation)
-- meta_title format: \"{$name} - {Service} in {$city} - ServiceBazzar\" (adjust service type to fit 60 char limit)
-- Example: \"Ashu Pest Control - Pest Control in Indore - ServiceBazzar\" (exactly 57 chars)
-- Verify: Business Name + Service + Location + \"ServiceBazzar\" must all fit in 60 characters
+- meta_title format: \"[Full Business Name] in [Area], [City]\"
+- STEP 1: Start with the FULL business name as provided
+- STEP 2: Add \" in [Area], [City]\" (use the Area field provided, NOT just City)
+- STEP 3: Count total characters. If under 60, use it. If over 60, THEN shorten the business name.
+- IMPORTANT: Area name in the title is CRITICAL for local SEO - never omit it
+- Examples (all under 60 chars):
+  * \"Balaji Packers and Movers in Vaishali Nagar, Jaipur\" (52 chars) ✓
+  * \"Ashu Pest Control in Model Town, Indore\" (40 chars) ✓
+  * \"Sharma Plumber Services in Sector 5, Mumbai\" (44 chars) ✓
+- Only abbreviate business name if result exceeds 60 chars (e.g., \"ABC Packers & Movers\" instead of \"ABC Packers and Movers\" to save 4 chars)
+- CRITICAL: Always include [Area], [City] - never use just [City] alone. Full Area name is essential.
+- Verify character count CAREFULLY. If unsure about length, count manually. Never exceed 60.
 - meta_description MUST be 160 CHARACTERS OR LESS (count every character)
 - meta_description should be 145-160 chars, not less, not more
-- meta_keywords: comma separated, no special characters except commas
+- meta_keywords: 5-8 comma-separated keywords, no special characters except commas
+- Include area-specific, location-based and service-related keywords
+- Example keywords: \"packers movers, relocation, Vaishali Nagar shifting, Jaipur moving, household transport\"
 - details: minimum 300 words, proper HTML <p> paragraphs, specific to business
 - no placeholder text, no generic content, no links, no fake claims
 - faqs: exactly 3 items with complete questions and answers
@@ -2376,5 +2389,25 @@ public function usedSubcategories(Request $request)
                 'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function countListings(Request $request)
+    {
+        $categoryId = $request->input('category_id');
+        $locationId = $request->input('location_id');
+
+        $query = Listing::where('status', 1); // Only approved listings
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($locationId) {
+            $query->where('location_id', $locationId);
+        }
+
+        $count = $query->count();
+
+        return response()->json(['count' => $count]);
     }
 }

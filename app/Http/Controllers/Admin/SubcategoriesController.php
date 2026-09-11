@@ -486,11 +486,15 @@ public function quickStore(Request $request)
      */
     public function byCategory($categoryId)
     {
+        // Get unique subcategories by name, taking the first ID for each unique name
         $subcategories = Subcategory::where('category_id', $categoryId)
             ->where('status', 1)
             ->select('id', 'name')
+            ->distinct('name')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->unique('name')  // Additional deduplication in case distinct() doesn't work as expected
+            ->values();
 
         return response()->json($subcategories);
     }

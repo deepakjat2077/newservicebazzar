@@ -154,7 +154,7 @@ class ContentController extends Controller
             'title'     => optional($c)->title,
             'sub_title' => optional($c)->sub_title,
             'slug'      => optional($c)->slug,
-            'image'     => optional($c)->image ? asset($c->image) : null,
+            'image'     => optional($c)->image ? loadImageWebp('assets/servicebazzar/images/blog/' . $c->image) : null,
             'views'     => (int) ($b->view ?? 0),
             'created_at'=> optional($b->created_at)->toIso8601String(),
         ];

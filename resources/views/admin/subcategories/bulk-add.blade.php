@@ -188,6 +188,12 @@ AI will auto-generate:
                             </div>
                         </div>
 
+                        {{-- Listing Count Display --}}
+                        <div class="alert alert-info mb-3" id="listingCountAlert" style="display:none;">
+                            <i class="fas fa-info-circle"></i>
+                            <strong id="listingCountText">0 listings</strong> match your filters
+                        </div>
+
                         {{-- Bulk Action Bar --}}
                         <div class="p-3 border-bottom bg-light d-none mb-3" id="bulkActionBar">
                             <div class="d-flex align-items-center justify-content-between">
@@ -282,9 +288,40 @@ $(document).ready(function(){
         });
     }
 
+    // Count listings based on filters
+    function updateListingCount() {
+        const categoryId = $('#filterCategory').val();
+        const locationId = $('#filterLocation').val();
+
+        if (!categoryId) {
+            $('#listingCountAlert').hide();
+            return;
+        }
+
+        $.get('/admin/listings/count', {
+            category_id: categoryId,
+            location_id: locationId
+        }, function(data) {
+            const count = data.count || 0;
+            $('#listingCountText').text(count + ' listing' + (count !== 1 ? 's' : ''));
+
+            if (count > 0) {
+                $('#listingCountAlert').show();
+            } else {
+                $('#listingCountAlert').hide();
+            }
+        });
+    }
+
     // Load subcategories when category filter changes
     $('#filterCategory').on('change', function(){
         loadSubcategoriesByCategory($(this).val());
+        updateListingCount();
+    });
+
+    // Update count when location changes
+    $('#filterLocation').on('change', function(){
+        updateListingCount();
     });
 
     // Select All button

@@ -238,6 +238,11 @@ class UserAuthController extends Controller
     /** Shared body of sendOtp()/resendOtp(). */
     protected function dispatchOtp(string $phone, WhatsappSender $whatsapp)
     {
+        // ✅ TEST ACCOUNT: Check if this is the test phone number
+        $testPhone = MobileNumber::national(config('test.phone'));
+        $testOtp = config('test.otp');
+        $isTestPhone = MobileNumber::national($phone) === $testPhone;
+
         $wait = ApiOtpStore::cooldownRemaining($phone);
 
         if ($wait > 0) {
@@ -254,6 +259,18 @@ class UserAuthController extends Controller
                 'success' => false,
                 'message' => 'Too many OTP requests for this number. Please try again later.',
             ], 429);
+        }
+
+        // ✅ TEST ACCOUNT: Use fixed OTP for test phone, skip WhatsApp
+        if ($isTestPhone) {
+            ApiOtpStore::challenge($phone, $testOtp);
+
+            return response()->json([
+                'success' => true,
+                'sent'    => true,
+                'message' => 'Test OTP sent to ' . MobileNumber::national($phone) . '.',
+                'retry_after' => ApiOtpStore::RESEND_COOLDOWN_SECONDS,
+            ]);
         }
 
         $templateId = config('services.gupshup.otp_template_id');

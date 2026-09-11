@@ -401,6 +401,9 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
     Route::get('used-subcategories', 'ListingController@usedSubcategories')
         ->name('used.subcategories');
 
+    Route::get('count', 'ListingController@countListings')
+        ->name('count');
+
     Route::post('ai-generate', 'ListingController@aiGenerate')
         ->name('ai.generate');
 

@@ -106,7 +106,7 @@ class LanderSchema
                 ? $name
                 : $name . ' in ' . $cityName;
 
-            $countLabel = $providerCount > 0 ? "{$providerCount} verified " : '';
+            $countLabel = $providerCount > 0 ? "{$providerCount} Verified " : '';
 
             // Build the title, then shorten progressively so long category
             // names don't blow past Google's ~60-char limit: drop the brand,
@@ -124,7 +124,7 @@ class LanderSchema
             }
             $data['seoTitle'] = $full;
 
-            $countPhrase = $providerCount > 0 ? "{$providerCount} verified" : 'verified';
+            $countPhrase = $providerCount > 0 ? "{$providerCount} Verified" : 'Verified';
             $seed = ($item->id ?? $item->name) . ':' . $cityName;
             $data['seoDescription'] = seoTextVariant($seed, [
                 "Find {$countPhrase} {$item->name} in {$cityName}. Compare ratings, prices & contact details, and book trusted local providers on {$siteName}.",
