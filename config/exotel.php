@@ -4,7 +4,8 @@ return [
     'enabled' => env('EXOTEL_ENABLED', false),
     'account_sid' => env('EXOTEL_ACCOUNT_SID'),
     'api_key' => env('EXOTEL_API_KEY'),
-    'api_endpoint' => env('EXOTEL_API_ENDPOINT', 'https://exotel.com'),
+    'api_token' => env('EXOTEL_API_TOKEN'),
+    'api_endpoint' => env('EXOTEL_API_ENDPOINT', 'https://api.exotel.com'),
     'recording' => env('EXOTEL_RECORDING', true),
 
     // Active Exotel-registered number used to bridge the call.
