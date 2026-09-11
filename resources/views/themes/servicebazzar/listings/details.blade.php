@@ -3596,9 +3596,33 @@
 
                             <div class="listing-action-buttons">
 
+        @php
+            // Pilot: bridge (masked) call only for the configured category +
+            // location (currently Jaipur / IT Consultants). Everyone else
+            // keeps the plain tel: link below, unchanged.
+            $bridgeCategoryIds = config('exotel.restricted_category_ids', []);
+            $bridgeLocationIds = config('exotel.restricted_location_ids', []);
+            $bridgeCallEligible = config('exotel.enabled')
+                && !empty($listing->mobile_numbers[0])
+                && (empty($bridgeCategoryIds) || in_array((string) ($listing->category_id ?? optional($listing->category)->id), $bridgeCategoryIds, true))
+                && (empty($bridgeLocationIds) || in_array((string) ($listing->location_id ?? optional($listing->location)->id), $bridgeLocationIds, true));
+        @endphp
 
         <!-- CALL BUTTON -->
-        @if(!empty($listing->mobile_numbers[0]))
+        @if($bridgeCallEligible)
+    <a href="javascript:void(0)"
+    class="listing-btn btn-call-main track-click bridge-call-btn"
+    data-track="call_click"
+    data-type="bridge_call"
+    data-listing-id="{{ $listing->id }}"
+    data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+    data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}">
+
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
+
+        <span class="bridge-call-btn-text">Call Now</span>
+    </a>
+    @elseif(!empty($listing->mobile_numbers[0]))
     <a href="tel:{{ $listing->mobile_numbers[0] }}"
     class="listing-btn btn-call-main track-click"
     data-track="call_click"
@@ -3754,7 +3778,18 @@
                             --}}
                             <div class="mobile-quick-actions">
 
-                                @if(!empty($listing->mobile_numbers[0]))
+                                @if($bridgeCallEligible)
+                                    <a href="javascript:void(0)"
+                                       class="mqa-btn mqa-call track-click bridge-call-btn"
+                                       data-track="call_click"
+                                       data-type="bridge_call"
+                                       data-listing-id="{{ $listing->id }}"
+                                       data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+                                       data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}">
+                                        <span class="mqa-icon"><i class="las la-phone"></i></span>
+                                        <span class="mqa-label bridge-call-btn-text">Call Now</span>
+                                    </a>
+                                @elseif(!empty($listing->mobile_numbers[0]))
                                     <a href="tel:{{ $listing->mobile_numbers[0] }}"
                                        class="mqa-btn mqa-call track-click"
                                        data-track="call_click"
@@ -4810,7 +4845,19 @@
 
         <div class="listing-action-buttons">
 
-            @if(!empty($listing->mobile_numbers[0]))
+            @if($bridgeCallEligible)
+    <a href="javascript:void(0)"
+    class="listing-btn btn-call-main track-click bridge-call-btn"
+    data-track="call_click"
+    data-type="bridge_call"
+    data-listing-id="{{ $listing->id }}"
+    data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+    data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}">
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
+
+        <span class="bridge-call-btn-text">Call Now</span>
+    </a>
+    @elseif(!empty($listing->mobile_numbers[0]))
     <a href="tel:{{ $listing->mobile_numbers[0] }}"
     class="listing-btn btn-call-main track-click"
     data-track="call_click"
@@ -6104,7 +6151,14 @@
                 <div class="contact-block">
                     <h5>Contact</h5>
 
-                @if(!empty($listing->mobile_numbers) && count(array_filter($listing->mobile_numbers)))
+                @if($bridgeCallEligible)
+
+        <a href="javascript:void(0)" class="contact-link d-block bridge-call-btn" data-listing-id="{{ $listing->id }}">
+            <i class="las la-phone"></i>
+            <span class="bridge-call-btn-text">Call Now</span>
+        </a>
+
+    @elseif(!empty($listing->mobile_numbers) && count(array_filter($listing->mobile_numbers)))
 
         @foreach($listing->mobile_numbers as $index => $number)
             @if(!empty($number))
@@ -7820,6 +7874,55 @@
                 window.location.href = "{{ route('user.login') }}";
             }
         }
+
+        // Bridge (masked) call — pilot listings only. Both copies of the
+        // call button on this page (main + sticky bar) share this class.
+        document.querySelectorAll(".bridge-call-btn").forEach(function(btn){
+            btn.addEventListener("click", function(){
+                if (btn.dataset.calling === "1") return; // guard double-click
+
+                const listingId = btn.dataset.listingId;
+                const label = btn.querySelector(".bridge-call-btn-text");
+                const originalText = label ? label.textContent : "";
+
+                btn.dataset.calling = "1";
+                if (label) label.textContent = "Connecting...";
+
+                fetch("{{ route('bridge.call') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({ listing_id: listingId })
+                })
+                .then(async function(res){
+                    if (res.status === 401) {
+                        openLoginPopup();
+                        return null;
+                    }
+                    const data = await res.json();
+                    if (!res.ok) throw data;
+                    return data;
+                })
+                .then(function(data){
+                    if (!data) return;
+                    if (data.success) {
+                        alert(data.message || "Connecting your call...");
+                    } else {
+                        alert(data.message || "Could not connect the call. Please try again.");
+                    }
+                })
+                .catch(function(err){
+                    alert((err && err.message) || "Could not connect the call. Please try again.");
+                })
+                .finally(function(){
+                    btn.dataset.calling = "0";
+                    if (label) label.textContent = originalText;
+                });
+            });
+        });
 
         document.querySelectorAll(".comment-toggle-btn").forEach(function(btn){
             btn.addEventListener("click", function(){

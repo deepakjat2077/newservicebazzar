@@ -3245,4 +3245,68 @@ public function deleteAccountSubmit(\Illuminate\Http\Request $request)
     }
 }
 
+/**
+ * Bridge call (number masking) from the website's listing detail page.
+ *
+ * Session-based twin of Api\ExotelController::initiateCall — the app talks
+ * to that one with a Bearer token, the website (no token, just a logged-in
+ * session) talks to this one. Same ExotelService and same category/city
+ * eligibility gate underneath, so a listing is either bridge-call-eligible
+ * everywhere or nowhere.
+ */
+public function bridgeCall(\Illuminate\Http\Request $request, \App\Services\ExotelService $exotel)
+{
+    $request->validate([
+        'listing_id' => 'required|integer|exists:listings,id',
+    ]);
+
+    $user = auth()->user();
+    if (!$user || empty($user->mobile)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Please log in with a mobile number to use this feature.',
+        ], 401);
+    }
+
+    $listing = \App\Models\Listing::where('status', 1)->find($request->listing_id);
+    if (!$listing) {
+        return response()->json(['success' => false, 'message' => 'Listing not found.'], 404);
+    }
+
+    $categoryIds = config('exotel.restricted_category_ids', []);
+    $locationIds = config('exotel.restricted_location_ids', []);
+    $eligible = (empty($categoryIds) || in_array((string) $listing->category_id, $categoryIds, true))
+        && (empty($locationIds) || in_array((string) $listing->location_id, $locationIds, true));
+
+    if (!$eligible) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bridge call is not available for this listing yet.',
+        ], 422);
+    }
+
+    $vendorNumber = $listing->mobile_numbers[0] ?? null;
+    if (!$vendorNumber) {
+        return response()->json(['success' => false, 'message' => 'No contact number on this listing.'], 422);
+    }
+
+    $result = $exotel->initiateCall(
+        \App\Services\ExotelService::formatPhoneNumber($user->mobile),
+        \App\Services\ExotelService::formatPhoneNumber($vendorNumber),
+        ['listing_id' => $listing->id]
+    );
+
+    if (!$result['success']) {
+        return response()->json([
+            'success' => false,
+            'message' => $result['error'] ?? 'Could not connect the call right now. Please try again.',
+        ], 503);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Connecting... your phone will ring shortly.',
+    ]);
+}
+
 }

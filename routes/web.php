@@ -1111,6 +1111,9 @@ Route::get('geocode-address', 'SiteController@geocodeAddress')->name('geocode.ad
     Route::get('/delete-account', 'SiteController@deleteAccount')->name('delete.account');
     Route::post('/delete-account', 'SiteController@deleteAccountSubmit')->middleware('throttle:5,1')->name('delete.account.submit');
 
+    // Bridge call (number masking) — pilot: Jaipur / IT Consultants listings only.
+    Route::post('/bridge-call', 'SiteController@bridgeCall')->middleware(['auth', 'throttle:10,1'])->name('bridge.call');
+
 Route::get('/{slug}', 'SiteController@handleSingleSlug')
     ->name('single.slug');
 
