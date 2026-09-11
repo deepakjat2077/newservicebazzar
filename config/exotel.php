@@ -8,8 +8,10 @@ return [
     'api_endpoint' => env('EXOTEL_API_ENDPOINT', 'https://api.exotel.com'),
     'recording' => env('EXOTEL_RECORDING', true),
 
-    // Active Exotel-registered number used to bridge the call.
-    'virtual_number' => env('EXOTEL_VIRTUAL_NUMBER', '8290231484'),
+    // The ExoPhone (virtual number) Exotel provisioned for this account —
+    // used as CallerId so both parties only ever see this number. Must be a
+    // real ExoPhone, not a co-worker's personal line.
+    'virtual_number' => env('EXOTEL_VIRTUAL_NUMBER', '01414940663'),
 
     /*
      * Trial-phase rollout: bridge call is only offered on listings that match
