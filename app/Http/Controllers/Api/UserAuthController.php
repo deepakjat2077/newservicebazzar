@@ -440,7 +440,7 @@ class UserAuthController extends Controller
             'username'        => $user->username,
             'email'           => $user->email,
             'mobile'          => $user->mobile,
-            'image'           => $user->image ? asset($user->image) : null,
+            'image'           => $user->image ? loadImageWebp('assets/images/user/' . basename($user->image)) : null,
             'mobile_verified' => $user->isMobileVerified(),
             'email_verified'  => (bool) $user->email_verified,
         ];
