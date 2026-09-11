@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\BusinessEditController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserAuthController;
 use App\Http\Controllers\Api\WhatsappApiController;
+use App\Http\Controllers\Api\ExotelController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -248,4 +249,19 @@ Route::prefix('whatsapp')
             Route::delete('conversations/{phone}', [WhatsappApiController::class, 'deleteConversation']);
         });
     });
+
+/*
+|--------------------------------------------------------------------------
+| Exotel Bridge Call Routes
+|--------------------------------------------------------------------------
+| Number masking and bridge call between vendors and customers
+*/
+Route::middleware('user.api')->group(function () {
+    Route::post('/bridge-call', [ExotelController::class, 'initiateCall']);
+    Route::post('/bridge-call/{callSid}/hangup', [ExotelController::class, 'hangupCall']);
+    Route::get('/bridge-call/{callSid}', [ExotelController::class, 'getCallDetails']);
+});
+
+// Exotel webhook callback (no auth required - Exotel calls this)
+Route::post('/exotel/callback', [ExotelController::class, 'callback'])->name('api.exotel.callback');
     
