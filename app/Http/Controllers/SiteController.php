@@ -3309,4 +3309,105 @@ public function bridgeCall(\Illuminate\Http\Request $request, \App\Services\Exot
     ]);
 }
 
+/**
+ * Option B — masked outbound call the customer places themselves.
+ *
+ * The customer taps "Call Now", their dialler opens pre-filled with our
+ * ExoPhone (the virtual number), and they dial it from their own SIM. So
+ * that Exotel knows which vendor to bridge that incoming call to, this
+ * endpoint records a short-lived caller->vendor mapping first, keyed on the
+ * customer's own number. When the ExoPhone rings, Exotel fetches the
+ * destination from voiceConnect() below, which reads this same mapping.
+ *
+ * The mapping lives in the shared (Redis) cache so it is visible from both
+ * app servers, and expires in minutes so a stale click can never connect a
+ * later, unrelated call.
+ */
+public function prepareMaskedCall(\Illuminate\Http\Request $request)
+{
+    $request->validate([
+        'listing_id' => 'required|integer|exists:listings,id',
+    ]);
+
+    $user = auth()->user();
+    if (!$user || empty($user->mobile)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Please log in with a mobile number to use this feature.',
+        ], 401);
+    }
+
+    $listing = \App\Models\Listing::where('status', 1)->find($request->listing_id);
+    if (!$listing) {
+        return response()->json(['success' => false, 'message' => 'Listing not found.'], 404);
+    }
+
+    $categoryIds = config('exotel.restricted_category_ids', []);
+    $locationIds = config('exotel.restricted_location_ids', []);
+    $eligible = (empty($categoryIds) || in_array((string) $listing->category_id, $categoryIds, true))
+        && (empty($locationIds) || in_array((string) $listing->location_id, $locationIds, true));
+
+    if (!$eligible) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Bridge call is not available for this listing yet.',
+        ], 422);
+    }
+
+    $vendorNumber = $listing->mobile_numbers[0] ?? null;
+    if (!$vendorNumber) {
+        return response()->json(['success' => false, 'message' => 'No contact number on this listing.'], 422);
+    }
+
+    // Key the mapping on the last 10 digits of the customer's number, the
+    // shape Exotel reports the caller in (CallFrom), so voiceConnect() can
+    // match it however Exotel formats the incoming call.
+    $callerKey = substr(preg_replace('/[^0-9]/', '', $user->mobile), -10);
+    \Illuminate\Support\Facades\Cache::store(config('cache.default'))->put(
+        'exotel_mask:' . $callerKey,
+        '0' . substr(preg_replace('/[^0-9]/', '', $vendorNumber), -10),
+        now()->addMinutes(5)
+    );
+
+    \Illuminate\Support\Facades\Log::info('Exotel masked call prepared', [
+        'caller' => $callerKey,
+        'listing_id' => $listing->id,
+    ]);
+
+    return response()->json([
+        'success'        => true,
+        'virtual_number' => config('exotel.virtual_number'),
+        'message'        => 'Dialling the secure number...',
+    ]);
+}
+
+/**
+ * Exotel incoming-call webhook for the ExoPhone (no auth — Exotel calls it).
+ *
+ * When a customer dials the virtual number, Exotel's "Connect" applet fetches
+ * the number to bridge to from this URL. We look up the caller (CallFrom)
+ * in the mapping prepareMaskedCall() stored and return the vendor's number as
+ * plain text, which is what Exotel's dynamic-destination Connect expects.
+ * Both legs then show only the ExoPhone, so neither real number is exposed.
+ */
+public function voiceConnect(\Illuminate\Http\Request $request)
+{
+    $rawFrom = $request->input('CallFrom', $request->input('From', ''));
+    $callerKey = substr(preg_replace('/[^0-9]/', '', (string) $rawFrom), -10);
+
+    $vendor = \Illuminate\Support\Facades\Cache::store(config('cache.default'))
+        ->get('exotel_mask:' . $callerKey);
+
+    \Illuminate\Support\Facades\Log::info('Exotel voiceConnect hit', [
+        'caller'  => $callerKey,
+        'vendor'  => $vendor,
+        'call_sid'=> $request->input('CallSid'),
+    ]);
+
+    // No mapping (expired, or a stray call) — hand back nothing so Exotel
+    // does not connect a random pair.
+    return response($vendor ?: '', 200)
+        ->header('Content-Type', 'text/plain');
+}
+
 }

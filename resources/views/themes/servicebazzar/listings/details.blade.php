@@ -7875,8 +7875,13 @@
             }
         }
 
-        // Bridge (masked) call — pilot listings only. Both copies of the
-        // call button on this page (main + sticky bar) share this class.
+        // Masked outbound call (Option B) — pilot listings only. On tap we
+        // register the caller->vendor mapping with the server, then open the
+        // dialler pre-filled with the virtual number. The customer dials it
+        // from their own SIM; Exotel bridges them to the vendor, and both
+        // sides only ever see the virtual number. All copies of the call
+        // button on this page (main + sticky bar + mobile + sidebar) share
+        // this class.
         document.querySelectorAll(".bridge-call-btn").forEach(function(btn){
             btn.addEventListener("click", function(){
                 if (btn.dataset.calling === "1") return; // guard double-click
@@ -7886,9 +7891,9 @@
                 const originalText = label ? label.textContent : "";
 
                 btn.dataset.calling = "1";
-                if (label) label.textContent = "Connecting...";
+                if (label) label.textContent = "Preparing...";
 
-                fetch("{{ route('bridge.call') }}", {
+                fetch("{{ route('bridge.call.prepare') }}", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -7908,14 +7913,15 @@
                 })
                 .then(function(data){
                     if (!data) return;
-                    if (data.success) {
-                        alert(data.message || "Connecting your call...");
+                    if (data.success && data.virtual_number) {
+                        // Open the phone dialler with the virtual number filled in.
+                        window.location.href = "tel:" + data.virtual_number;
                     } else {
-                        alert(data.message || "Could not connect the call. Please try again.");
+                        alert(data.message || "Could not start the call. Please try again.");
                     }
                 })
                 .catch(function(err){
-                    alert((err && err.message) || "Could not connect the call. Please try again.");
+                    alert((err && err.message) || "Could not start the call. Please try again.");
                 })
                 .finally(function(){
                     btn.dataset.calling = "0";

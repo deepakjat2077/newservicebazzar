@@ -265,4 +265,10 @@ Route::middleware('user.api')->group(function () {
 
 // Exotel webhook callback (no auth required - Exotel calls this)
 Route::post('/exotel/callback', [ExotelController::class, 'callback'])->name('api.exotel.callback');
+
+// Exotel incoming-call "Connect" fetch for masked outbound calls (Option B).
+// Exotel dials this when a customer rings the ExoPhone; it returns the vendor
+// number to bridge to. No auth/CSRF (Exotel is the caller); GET+POST since the
+// applet may use either. Lives here (api.php) so it is exempt from web CSRF.
+Route::match(['get', 'post'], '/exotel/voice', [\App\Http\Controllers\SiteController::class, 'voiceConnect'])->name('api.exotel.voice');
     

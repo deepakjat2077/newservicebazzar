@@ -1114,6 +1114,11 @@ Route::get('geocode-address', 'SiteController@geocodeAddress')->name('geocode.ad
     // Bridge call (number masking) — pilot: Jaipur / IT Consultants listings only.
     Route::post('/bridge-call', 'SiteController@bridgeCall')->middleware(['auth', 'throttle:10,1'])->name('bridge.call');
 
+    // Option B (masked outbound): customer dials the virtual number themselves.
+    // 'prepare' records the caller->vendor mapping; Exotel then fetches the
+    // destination from the public 'voice' webhook when the ExoPhone rings.
+    Route::post('/bridge-call/prepare', 'SiteController@prepareMaskedCall')->middleware(['auth', 'throttle:15,1'])->name('bridge.call.prepare');
+
 Route::get('/{slug}', 'SiteController@handleSingleSlug')
     ->name('single.slug');
 
