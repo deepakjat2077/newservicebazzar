@@ -257,6 +257,7 @@ Route::prefix('whatsapp')
 | Number masking and bridge call between vendors and customers
 */
 Route::middleware('user.api')->group(function () {
+    Route::get('/bridge-call/eligibility/{listing_id}', [ExotelController::class, 'checkEligibility'])->whereNumber('listing_id');
     Route::post('/bridge-call', [ExotelController::class, 'initiateCall']);
     Route::post('/bridge-call/{callSid}/hangup', [ExotelController::class, 'hangupCall']);
     Route::get('/bridge-call/{callSid}', [ExotelController::class, 'getCallDetails']);

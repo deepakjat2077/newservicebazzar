@@ -54,6 +54,16 @@ class ExotelController extends Controller
                 ], 404);
             }
 
+            // Trial phase: bridge call is only offered on the pilot
+            // category/city (currently Jaipur + IT Consultants). Every other
+            // listing falls back to the plain "Call" button.
+            if (!$this->isEligible($listing)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bridge call is not available for this listing yet.',
+                ], 422);
+            }
+
             // Format phone numbers
             $customerPhone = ExotelService::formatPhoneNumber($user->mobile);
             $vendorPhone = ExotelService::formatPhoneNumber($request->vendor_phone);
@@ -194,5 +204,51 @@ class ExotelController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Whether a listing qualifies for bridge call — lets the app decide
+     * whether to show the "Call" (bridge) button before the user taps it,
+     * instead of only failing on initiateCall().
+     *
+     * GET /api/bridge-call/eligibility/{listing_id}
+     */
+    public function checkEligibility(Request $request, int $listing_id)
+    {
+        $listing = Listing::find($listing_id);
+
+        if (!$listing || $listing->status !== 1) {
+            return response()->json([
+                'success' => true,
+                'eligible' => false,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'eligible' => $this->isEligible($listing),
+        ]);
+    }
+
+    /**
+     * Trial-phase gate: only listings in the configured category AND
+     * location get the bridge-call button. Both lists come from
+     * config('exotel.restricted_*') — empty means "no restriction",
+     * for when the pilot expands to more cities/categories.
+     */
+    private function isEligible(Listing $listing): bool
+    {
+        $categoryIds = config('exotel.restricted_category_ids', []);
+        $locationIds = config('exotel.restricted_location_ids', []);
+
+        if (!empty($categoryIds) && !in_array((string) $listing->category_id, $categoryIds, true)) {
+            return false;
+        }
+
+        if (!empty($locationIds) && !in_array((string) $listing->location_id, $locationIds, true)) {
+            return false;
+        }
+
+        return true;
     }
 }

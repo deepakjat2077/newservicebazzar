@@ -7,6 +7,15 @@ return [
     'api_endpoint' => env('EXOTEL_API_ENDPOINT', 'https://exotel.com'),
     'recording' => env('EXOTEL_RECORDING', true),
 
-    // Add your Exotel phone number (Virtual Number) here
-    'virtual_number' => env('EXOTEL_VIRTUAL_NUMBER', '9876543210'),
+    // Active Exotel-registered number used to bridge the call.
+    'virtual_number' => env('EXOTEL_VIRTUAL_NUMBER', '8290231484'),
+
+    /*
+     * Trial-phase rollout: bridge call is only offered on listings that match
+     * BOTH a category and a location below. Empty arrays = no restriction
+     * (every listing gets the feature) — used once this expands past the
+     * pilot category/city.
+     */
+    'restricted_category_ids' => array_filter(explode(',', env('EXOTEL_CATEGORY_IDS', '65'))),
+    'restricted_location_ids' => array_filter(explode(',', env('EXOTEL_LOCATION_IDS', '1'))),
 ];
