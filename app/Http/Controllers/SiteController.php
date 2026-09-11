@@ -3205,4 +3205,44 @@ public function sitemap()
     return view($this->theme . 'sitemap', $data);
 }
 
+/**
+ * Delete account page - Google Play Store requirement for user data deletion
+ * Users can request account deletion here without signing in
+ */
+public function deleteAccount()
+{
+    return view($this->theme . 'delete-account');
+}
+
+/**
+ * Handle account deletion request
+ * Accepts phone and sends OTP for verification before deletion
+ */
+public function deleteAccountSubmit(\Illuminate\Http\Request $request)
+{
+    $request->validate([
+        'phone' => ['required', new \App\Rules\IndianMobile()],
+    ]);
+
+    try {
+        // Find user by phone
+        $user = \App\Models\User::where('mobile', \App\Support\MobileNumber::national($request->phone))->first();
+
+        if (!$user) {
+            return back()->with('error', 'No account found with this phone number.');
+        }
+
+        // Send OTP for verification
+        $otp = (string) verification_code(6);
+        \App\Support\ApiOtpStore::challenge($request->phone, $otp);
+
+        return back()->with('success', 'Verification OTP sent to your phone. Please confirm to delete your account.')
+                     ->with('phone', $request->phone)
+                     ->with('user_id', $user->id);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Delete account error', ['message' => $e->getMessage()]);
+        return back()->with('error', 'Could not process your request. Please try again.');
+    }
+}
+
 }

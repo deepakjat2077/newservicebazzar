@@ -1108,6 +1108,9 @@ Route::get('geocode-address', 'SiteController@geocodeAddress')->name('geocode.ad
     | Example: /about-us, /privacy-policy
     | Isko sabse last me rakha hai.
     */
+    Route::get('/delete-account', 'SiteController@deleteAccount')->name('delete.account');
+    Route::post('/delete-account', 'SiteController@deleteAccountSubmit')->middleware('throttle:5,1')->name('delete.account.submit');
+
 Route::get('/{slug}', 'SiteController@handleSingleSlug')
     ->name('single.slug');
 
