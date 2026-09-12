@@ -1112,12 +1112,16 @@ Route::get('geocode-address', 'SiteController@geocodeAddress')->name('geocode.ad
     Route::post('/delete-account', 'SiteController@deleteAccountSubmit')->middleware('throttle:5,1')->name('delete.account.submit');
 
     // Bridge call (number masking) — pilot: Jaipur / IT Consultants listings only.
-    Route::post('/bridge-call', 'SiteController@bridgeCall')->middleware(['auth', 'throttle:10,1'])->name('bridge.call');
+    // No throttle: already gated behind auth + the category/location
+    // eligibility check in the controller, and Exotel's own trial whitelist
+    // bounds the blast radius further. A per-minute cap here only got in the
+    // way of repeated pilot testing.
+    Route::post('/bridge-call', 'SiteController@bridgeCall')->middleware(['auth'])->name('bridge.call');
 
     // Option B (masked outbound): customer dials the virtual number themselves.
     // 'prepare' records the caller->vendor mapping; Exotel then fetches the
     // destination from the public 'voice' webhook when the ExoPhone rings.
-    Route::post('/bridge-call/prepare', 'SiteController@prepareMaskedCall')->middleware(['auth', 'throttle:15,1'])->name('bridge.call.prepare');
+    Route::post('/bridge-call/prepare', 'SiteController@prepareMaskedCall')->middleware(['auth'])->name('bridge.call.prepare');
 
 Route::get('/{slug}', 'SiteController@handleSingleSlug')
     ->name('single.slug');
