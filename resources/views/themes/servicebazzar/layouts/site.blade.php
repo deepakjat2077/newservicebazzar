@@ -345,6 +345,9 @@ body.header-fixed {
 				font-size: 18px;
 				margin-bottom: 4px;
 			}
+			.mobile-action-item.active{
+				color: #0072ed;
+			}
 			.mobile-action-btn{
 				text-decoration: none;
 				/* #007bff put white text at 3.98:1 against it, just under the 4.5:1
@@ -1499,6 +1502,11 @@ window.addEventListener('pageshow', function () {
 	@include($themeView.'includes.footer')
 
 	<div class="mobile-bottom-action" id="mobileBottomAction">
+		<a href="{{ route('home') }}" class="mobile-action-item {{ request()->routeIs('home') ? 'active' : '' }}">
+			<i class="las la-home"></i>
+			<span>Home</span>
+		</a>
+
 		<a href="{{ route('blogs') }}" class="mobile-action-item">
 			<i class="las la-newspaper"></i>
 			<span>Blogs</span>
