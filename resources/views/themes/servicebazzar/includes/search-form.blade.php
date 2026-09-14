@@ -740,16 +740,29 @@
             // 👇 CURRENT LOCATION से suggestions fetch करें
             const lat = headerLatitudeInput ? headerLatitudeInput.value : "";
             const lng = headerLongitudeInput ? headerLongitudeInput.value : "";
-            
-            // 👇 LocalStorage से latest location लें
-            const currentCity = localStorage.getItem("jf_selected_location_name") || 
-                               localStorage.getItem("jf_city") || 
-                               "";
-            
-            const finalLat = lat || localStorage.getItem('jf_lat') || "";
-            const finalLng = lng || localStorage.getItem('jf_lng') || "";
 
-            const url = `{{ route('nearby.location.suggestions') }}?q=${encodeURIComponent(search || currentCity)}&latitude=${encodeURIComponent(finalLat)}&longitude=${encodeURIComponent(finalLng)}&_=${Date.now()}`;
+            /*
+             * `q` must stay empty when the box is empty — the backend
+             * (ListingController::nearbyLocationSuggestions) only returns
+             * "Trending Areas" (nearest-by-distance) when q === '' ; a
+             * non-empty q makes it run a plain text search instead. This
+             * used to fall back to the current city name here (e.g.
+             * "Jaipur"), which silently turned every empty-box open into a
+             * text search and meant Trending Areas never appeared in the
+             * header dropdown, even though the home page's own search box
+             * (home.js, same endpoint) always sends the literal empty
+             * string and shows Trending Areas correctly.
+             */
+            const finalLat = lat
+                || localStorage.getItem('jf_selected_lat')
+                || localStorage.getItem('jf_lat')
+                || "";
+            const finalLng = lng
+                || localStorage.getItem('jf_selected_lng')
+                || localStorage.getItem('jf_lng')
+                || "";
+
+            const url = `{{ route('nearby.location.suggestions') }}?q=${encodeURIComponent(search)}&latitude=${encodeURIComponent(finalLat)}&longitude=${encodeURIComponent(finalLng)}&_=${Date.now()}`;
 
             fetch(url, {
                 method: "GET",
@@ -778,10 +791,10 @@
             this.dataset.selectedLocation = "0";
             clearTimeout(headerLocationTimer);
             if (value.length < 1) {
-                const currentCity = localStorage.getItem("jf_selected_location_name") || 
-                                   localStorage.getItem("jf_city") || 
-                                   "";
-                headerFetchLocationSuggestions(currentCity);
+                // Empty box -> empty q, so the backend returns Trending
+                // Areas (nearest-by-distance) instead of text-searching
+                // the current city's own name.
+                headerFetchLocationSuggestions("");
                 return;
             }
             headerLocationTimer = setTimeout(() => {
@@ -798,10 +811,7 @@
             this.value = "";
             this.dataset.selectedLocation = "0";
 
-            const currentCity = localStorage.getItem("jf_selected_location_name") || 
-                               localStorage.getItem("jf_city") || 
-                               "";
-            headerFetchLocationSuggestions(currentCity);
+            headerFetchLocationSuggestions("");
         });
 
         // ---- Detect Location ----
@@ -809,10 +819,7 @@
             if (e.target.classList.contains("header-clear-recent-locations")) {
                 e.preventDefault();
                 localStorage.removeItem("service_bazzar_recent_locations");
-                const currentCity = localStorage.getItem("jf_selected_location_name") || 
-                                   localStorage.getItem("jf_city") || 
-                                   "";
-                headerFetchLocationSuggestions(currentCity);
+                headerFetchLocationSuggestions("");
                 return;
             }
 
