@@ -3875,8 +3875,16 @@ window.SB = {
 <!-- Panel -->
 <div class="category-popup" id="categoryPopup">
     <div class="popup-top">
-        <div class="d-flex align-items-center gap-3">
-            <label for="categoryPopupToggle" class="close-btn" tabindex="0">✕</label>
+        {{--
+            This theme ships Bootstrap 4.0 (public/assets/servicebazzar/css/
+            bootstrap.min.css), which has no `.gap-*` utility — that's a
+            Bootstrap 5 class and silently does nothing here, which is why
+            the close "✕" and "Popular Categories" sat with no space between
+            them. `mr-3` (Bootstrap 4's margin utility) on the close button
+            instead.
+        --}}
+        <div class="d-flex align-items-center">
+            <label for="categoryPopupToggle" class="close-btn mr-3" tabindex="0">✕</label>
             <h3 class="mb-0 hh-h5-size">Popular Categories</h3>
         </div>
 
