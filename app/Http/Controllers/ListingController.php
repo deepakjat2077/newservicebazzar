@@ -2981,6 +2981,11 @@ public function cityCategoryArea($city, $categoryArea)
     $category = null;
     $subcategory = null;
     $area = null;
+    // Set only when the area's own text match found nothing but a 5km
+    // radius search around the geocoded area did — see the "-in-" MISS
+    // branch below. When set, the listing query further down uses this
+    // instead of the text-based area/address/landmark LIKE filter.
+    $areaRadiusCenter = null;
 
     // Default: look categories/subcategories/listings up by the full slug.
     // Only the redirect case below should ever look up a *truncated* one —
@@ -3130,6 +3135,49 @@ public function cityCategoryArea($city, $categoryArea)
                         if ($areaHasListings) {
                             $category = $areaCategory;
                             $subcategory = $areaSubcategory;
+                        } else {
+                            /*
+                             * Nobody's area/address/landmark text says
+                             * "Vaishali Nagar", but that doesn't mean nobody
+                             * is actually there — a visitor picking a real
+                             * locality from the location search shouldn't
+                             * hit a flat 404 just because no listing typed
+                             * its address that exact way. Geocode the area
+                             * itself and, if anything in this category sits
+                             * within 5km of it, show that instead. See
+                             * $areaRadiusCenter below for where this feeds
+                             * into the actual listing query.
+                             */
+                            $areaCoords = app(SiteController::class)
+                                ->lookupCoordinates(trim($area).', '.$areaLocation->name);
+
+                            if ($areaCoords) {
+                                $nearbyExists = Listing::where('status', 1)
+                                    ->whereNotNull('latitude')->whereNotNull('longitude')
+                                    ->where('latitude', '!=', 0)->where('longitude', '!=', 0)
+                                    ->where(function ($q) use ($areaLocation) {
+                                        $q->where('location_id', $areaLocation->id)
+                                          ->orWhereRaw('LOWER(city) = ?', [strtolower($areaLocation->name)]);
+                                    })
+                                    ->when($areaCategory, fn ($q) => $q->where('category_id', $areaCategory->id))
+                                    ->when($areaSubcategory, function ($q) use ($areaSubcategory) {
+                                        $q->where(function ($qq) use ($areaSubcategory) {
+                                            $qq->whereJsonContains('subcategory_ids', (string) $areaSubcategory->id)
+                                               ->orWhereJsonContains('subcategory_ids', $areaSubcategory->id);
+                                        });
+                                    })
+                                    ->whereRaw(
+                                        '(6371 * acos(cos(radians(?)) * cos(radians(listings.latitude)) * cos(radians(listings.longitude) - radians(?)) + sin(radians(?)) * sin(radians(listings.latitude)))) <= 5',
+                                        [$areaCoords['lat'], $areaCoords['lng'], $areaCoords['lat']]
+                                    )
+                                    ->exists();
+
+                                if ($nearbyExists) {
+                                    $category = $areaCategory;
+                                    $subcategory = $areaSubcategory;
+                                    $areaRadiusCenter = $areaCoords;
+                                }
+                            }
                         }
                     }
                 }
@@ -3189,7 +3237,19 @@ public function cityCategoryArea($city, $categoryArea)
         ->withCount('ratings')
         ->withAvg('ratings', 'ratings');
 
-    if (!empty($area)) {
+    if ($areaRadiusCenter) {
+        // No listing's area/address/landmark text matched "$area" by name,
+        // but something in this category sits within 5km of the area's own
+        // geocoded location (checked above) — show those instead of a bare
+        // text match that would return nothing.
+        $baseQuery
+            ->whereNotNull('latitude')->whereNotNull('longitude')
+            ->where('latitude', '!=', 0)->where('longitude', '!=', 0)
+            ->whereRaw(
+                '(6371 * acos(cos(radians(?)) * cos(radians(listings.latitude)) * cos(radians(listings.longitude) - radians(?)) + sin(radians(?)) * sin(radians(listings.latitude)))) <= 5',
+                [$areaRadiusCenter['lat'], $areaRadiusCenter['lng'], $areaRadiusCenter['lat']]
+            );
+    } elseif (!empty($area)) {
         $areaWords = array_filter(explode(' ', strtolower($area)));
 
         $baseQuery->where(function ($q) use ($areaWords) {

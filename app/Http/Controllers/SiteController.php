@@ -2577,7 +2577,13 @@ public function geocodeAddress(Request $request)
  * local. So the keyed providers are tried FIRST when configured, and
  * Nominatim is only the no-key fallback.
  */
-private function lookupCoordinates(string $address): ?array
+/**
+ * Public (not private) so ListingController::cityCategoryArea() can reuse
+ * the same cached, multi-provider geocoding when it needs coordinates for
+ * an area that has no listing tagged with its exact name — see the
+ * 5km-radius fallback there.
+ */
+public function lookupCoordinates(string $address): ?array
 {
     $providers = [];
 
@@ -3399,15 +3405,25 @@ public function voiceConnect(\Illuminate\Http\Request $request)
         ->get('exotel_mask:' . $callerKey);
 
     \Illuminate\Support\Facades\Log::info('Exotel voiceConnect hit', [
-        'caller'  => $callerKey,
-        'vendor'  => $vendor,
-        'call_sid'=> $request->input('CallSid'),
+        'caller'   => $callerKey,
+        'vendor'   => $vendor,
+        'call_sid' => $request->input('CallSid'),
+        'params'   => $request->all(),
     ]);
 
-    // No mapping (expired, or a stray call) — hand back nothing so Exotel
-    // does not connect a random pair.
-    return response($vendor ?: '', 200)
-        ->header('Content-Type', 'text/plain');
+    // Exotel's "dynamic Connect params" URL expects a JSON body describing who
+    // to bridge to. `outgoing_phone_number` is the ExoPhone, so the vendor
+    // sees the virtual number, never the customer's. No mapping (expired / a
+    // stray call) => empty destinations, so Exotel connects nobody.
+    return response()->json([
+        'fetch_after_attempt'   => false,
+        'select_number'         => 'sequential',
+        'destination'           => [
+            'numbers' => $vendor ? [$vendor] : [],
+        ],
+        'outgoing_phone_number' => config('exotel.virtual_number'),
+        'record'                => (bool) config('exotel.recording'),
+    ]);
 }
 
 }
