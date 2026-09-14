@@ -159,8 +159,6 @@ public function exportEnquiries(Request $request)
             ],
             'date_from' => ['nullable', 'date'],
             'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
-            'year_from' => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099'],
-            'year_to'   => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099', 'gte:year_from'],
         ]);
 
         [$startDate, $endDate] = $this->resolveClickDateRange($request);
@@ -214,8 +212,6 @@ public function exportClicks(Request $request)
         ],
         'date_from' => ['nullable', 'date'],
         'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
-        'year_from' => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099'],
-        'year_to'   => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099', 'gte:year_from'],
     ]);
 
     [$startDate, $endDate, $fileLabel] = $this->resolveClickDateRange($request, true);
@@ -234,10 +230,14 @@ public function exportClicks(Request $request)
 
 /**
  * One place that decides which filter wins when more than one is filled
- * in — Date Range is the most specific, so it wins over Year Range, which
- * wins over the original Select Month. Returns UTC start/end Carbons (or
- * both null for "no filter") ready for whereBetween(), plus — only when
- * $withLabel is true — a filename-safe label describing what was applied.
+ * in — Date Range is the most specific, so it wins over the original Select
+ * Month. Returns UTC start/end Carbons (or both null for "no filter") ready
+ * for whereBetween(), plus — only when $withLabel is true — a filename-safe
+ * label describing what was applied.
+ *
+ * A Year Range branch lived here too (year_from/year_to, winning over Month)
+ * but is removed for now per admin request — see git history on this file
+ * and on resources/views/admin/enquiry/index2.blade.php to restore it.
  */
 private function resolveClickDateRange(Request $request, bool $withLabel = false): array
 {
@@ -247,10 +247,6 @@ private function resolveClickDateRange(Request $request, bool $withLabel = false
         $start = Carbon::parse($request->date_from, $tz)->startOfDay()->utc();
         $end = Carbon::parse($request->date_to, $tz)->endOfDay()->utc();
         $label = $request->date_from . '_to_' . $request->date_to;
-    } elseif ($request->filled('year_from') && $request->filled('year_to')) {
-        $start = Carbon::createFromDate((int) $request->year_from, 1, 1, $tz)->startOfYear()->utc();
-        $end = Carbon::createFromDate((int) $request->year_to, 1, 1, $tz)->endOfYear()->utc();
-        $label = $request->year_from . '_to_' . $request->year_to;
     } elseif ($request->filled('month')) {
         $start = Carbon::createFromFormat('Y-m', $request->month, $tz)->startOfMonth()->utc();
         $end = Carbon::createFromFormat('Y-m', $request->month, $tz)->endOfMonth()->utc();

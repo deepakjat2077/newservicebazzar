@@ -16,9 +16,9 @@
                     // Every filter type-switch link (All/Call/WhatsApp/Enquiry)
                     // must carry through whichever date filter is active —
                     // previously this only preserved 'month', so switching type
-                    // silently dropped a Date Range or Year Range filter.
+                    // silently dropped a Date Range filter.
                     $activeDateParams = request()->only([
-                        'month', 'date_from', 'date_to', 'year_from', 'year_to',
+                        'month', 'date_from', 'date_to',
                     ]);
                 @endphp
 
@@ -48,10 +48,15 @@
         <hr>
 
         {{--
-            Three ways to filter by date — Select Month (original), Date
-            Range, and Year Range. Only one is meant to be filled at a time;
-            if more than one is, the controller (resolveClickDateRange) picks
-            Date Range first, then Year Range, then Month.
+            Two ways to filter by date — Select Month (original) and Date
+            Range. Only one is meant to be filled at a time; if both are, the
+            controller (resolveClickDateRange) picks Date Range first, then
+            Month.
+
+            (Year Range was here too but is removed for now — re-add by
+            restoring the year_from/year_to branch in
+            EnquiryController::resolveClickDateRange plus its two inputs
+            here, see git history on this file.)
         --}}
         <form action="{{ route('admin.enquiry.clicks') }}"
               method="GET"
@@ -63,53 +68,45 @@
                        value="{{ request('type') }}">
             @endif
 
-            <div class="col-md-3 col-lg-2 mb-2">
+            <div class="col-sm-6 col-md-4 col-lg-3 mb-2">
                 <label for="month" class="form-label">
                     Select Month
                 </label>
 
+                {{--
+                    Defaults to the current month so the box never sits
+                    blank/dashed-out — this is display only: with no 'month'
+                    in the URL the page still shows all-time totals, exactly
+                    as before. Only submitting the form actually filters.
+                --}}
                 <input type="month"
                        name="month"
                        id="month"
                        class="form-control"
-                       value="{{ request('month') }}">
+                       value="{{ request('month', now('Asia/Kolkata')->format('Y-m')) }}">
             </div>
 
-            <div class="col-md-6 col-lg-2 mb-2">
+            <div class="col-sm-12 col-md-8 col-lg-5 mb-2">
                 <label class="form-label">Date Range</label>
-                <div class="d-flex gap-1">
-                    <input type="date"
-                           name="date_from"
-                           class="form-control"
-                           placeholder="From"
-                           value="{{ request('date_from') }}">
-                    <input type="date"
-                           name="date_to"
-                           class="form-control"
-                           placeholder="To"
-                           value="{{ request('date_to') }}">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <input type="date"
+                               name="date_from"
+                               class="form-control"
+                               aria-label="From date"
+                               value="{{ request('date_from') }}">
+                    </div>
+                    <div class="col-6">
+                        <input type="date"
+                               name="date_to"
+                               class="form-control"
+                               aria-label="To date"
+                               value="{{ request('date_to') }}">
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-6 col-lg-3 mb-2">
-                <label class="form-label">Year Range</label>
-                <div class="d-flex gap-1">
-                    <input type="number"
-                           name="year_from"
-                           class="form-control"
-                           placeholder="From (e.g. 2024)"
-                           min="2000" max="2099"
-                           value="{{ request('year_from') }}">
-                    <input type="number"
-                           name="year_to"
-                           class="form-control"
-                           placeholder="To (e.g. 2026)"
-                           min="2000" max="2099"
-                           value="{{ request('year_to') }}">
-                </div>
-            </div>
-
-            <div class="col-12 col-lg-5 mb-2">
+            <div class="col-12 col-lg-4 mb-2">
 
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-filter"></i>
@@ -123,7 +120,7 @@
                 </a>
 
                 <a href="{{ route('admin.enquiry.clicks.export', array_filter(request()->only([
-        'month', 'date_from', 'date_to', 'year_from', 'year_to',
+        'month', 'date_from', 'date_to',
     ]))) }}"
    class="btn btn-success">
 
