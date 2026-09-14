@@ -310,20 +310,46 @@ public function nearbyLocationSuggestions(Request $request)
     |--------------------------------------------------------------------------
     | Search city/location from locations table
     |--------------------------------------------------------------------------
+    |
+    | With an empty $search this used to grab the 5 highest-id Location rows
+    | — whichever cities happened to be added most recently, with zero
+    | regard for $latitude/$longitude — so opening "Trending Areas" for
+    | someone in Jaipur surfaced Indore, Navi Mumbai, Thane... entirely
+    | unrelated cities mixed in above the real (and correctly
+    | distance-sorted) Jaipur areas from the $areaQuery below. An empty
+    | search with coordinates now finds the one city nearest those
+    | coordinates instead (which resolves to Jaipur here); with no
+    | coordinates at all there is no city to sensibly guess, so none is
+    | returned rather than a random one.
     */
-    $matchedLocations = Location::where('status', 1)
-        ->when($search !== '', function ($q) use ($search) {
-            $q->where(function ($qq) use ($search) {
+    if ($search !== '') {
+        $matchedLocations = Location::where('status', 1)
+            ->where(function ($qq) use ($search) {
                 $qq->where('name', 'LIKE', $search . '%')
                    ->orWhere('slug', 'LIKE', \Str::slug($search) . '%');
-            });
-        })
-        ->when($search === '', function ($q) {
-            $q->orderBy('id', 'desc');
-        })
-        ->select('id', 'name', 'latitude', 'longitude')
-        ->limit(5)
-        ->get();
+            })
+            ->select('id', 'name', 'latitude', 'longitude')
+            ->limit(5)
+            ->get();
+    } elseif (!empty($latitude) && !empty($longitude)) {
+        // The one city nearest these coordinates — not select() after this,
+        // since that would drop the "distance" column the ORDER BY below
+        // needs (same trap the $areaQuery comment further down warns about).
+        $matchedLocations = Location::where('status', 1)
+            ->whereNotNull('latitude')->whereNotNull('longitude')
+            ->selectRaw('id, name, latitude, longitude, (6371 * acos(LEAST(1, GREATEST(-1,
+                cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?))
+                + sin(radians(?)) * sin(radians(latitude))
+            )))) AS distance', [$latitude, $longitude, $latitude])
+            ->orderBy('distance', 'asc')
+            ->limit(1)
+            ->get();
+    } else {
+        // No coordinates to find a nearest city with, and no search text
+        // either — nothing sensible to suggest here; the areas list below
+        // still falls back to its own "latest listings" order in this case.
+        $matchedLocations = collect();
+    }
 
     /*
     |--------------------------------------------------------------------------
