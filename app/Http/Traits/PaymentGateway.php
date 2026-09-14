@@ -252,15 +252,17 @@ trait PaymentGateway{
 
 
 	/**
-	 * Cashfree — Orders API + their hosted Checkout page.
+	 * Cashfree — Orders API + their Checkout JS SDK in "_modal" mode.
 	 *
-	 * Unlike Razorpay (a JS modal we drive ourselves), Cashfree's own
-	 * checkout page already renders every payment method (cards, UPI,
+	 * Cashfree's checkout already renders every payment method (cards, UPI,
 	 * netbanking, wallets, EMI) the way it does on their merchant demo and
-	 * on sites like JustDial — so there is no custom payment-method UI to
-	 * build here, only an Order to create and a session id to hand to their
-	 * SDK. See user.payment.cashfree for the redirect step, and
-	 * GatewayIpn::cashfreeIpn() for how the return is verified.
+	 * on sites like JustDial, so there is no custom payment-method UI to
+	 * build here — only an Order to create and a session id to hand to
+	 * their SDK. redirectTarget: "_modal" (set in the view) opens it as an
+	 * overlay on our own page instead of navigating the browser away to
+	 * Cashfree's domain, the same on-site feel Razorpay's own JS modal has.
+	 * See user.payment.cashfree for the modal step, and
+	 * GatewayIpn::cashfreeIpn() for how the payment is verified afterward.
 	 */
 	public function cashfree($payment, $methodCurrency, $method){
 		$credentials = $method->setting;
@@ -313,6 +315,10 @@ trait PaymentGateway{
 				'payment_session_id' => $response->json('payment_session_id'),
 				'mode' => $mode === 'PROD' ? 'production' : 'sandbox',
 				'amount' => round($payment->after_convert, 2),
+				// Needed by the view to know where to send the browser once
+				// the modal reports the payment attempt is done.
+				'order_id' => $payment->trx_number,
+				'ipn_url' => route('ipn.cashfree'),
 			],
 		];
 	}
