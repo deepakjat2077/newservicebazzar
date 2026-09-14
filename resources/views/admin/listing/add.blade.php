@@ -7,13 +7,6 @@
     .rrrr{
         color: red
     }
-
-    .area-manual-toggle{
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-        white-space: nowrap;
-    }
 </style>
 <div class="row">
     <div class="col-sm-12">
@@ -181,16 +174,39 @@
                             </div>
 
                             <div class="form-group">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <label class="mb-0">Area <span class="rrrr">*</span></label>
-                                    <a href="javascript:void(0)" id="areaManualToggle" class="area-manual-toggle">+ Add manually</a>
-                                </div>
-                                <select class="form-control" id="area" name="area">
-                                    <option value="">Select Area </option>
-                                    @if(old('area'))
-                                        <option value="{{ old('area') }}" selected>{{ old('area') }}</option>
-                                    @endif
-                                </select>
+                                <label class="mb-0">Area <span class="rrrr">*</span></label>
+
+                                {{--
+                                    Always a plain text input, never a
+                                    <select> — this used to swap between the
+                                    two (a dropdown of areas the pincode
+                                    lookup returned, or a free-text box via a
+                                    "+ Add manually" toggle), and every time
+                                    the pincode field fired its own lookup
+                                    again, that swap ran too and could
+                                    silently replace whatever the admin had
+                                    manually typed with a fresh dropdown —
+                                    the actual value survived (kept as a
+                                    selected option) but the field itself
+                                    switched under the admin mid-typing,
+                                    which is what made typing an Area feel
+                                    like "it won't accept it". A plain input
+                                    can't have this failure mode: typing
+                                    always just types. <datalist> below adds
+                                    the pincode's suggested areas as
+                                    optional autocomplete hints without ever
+                                    touching the input's own value.
+                                --}}
+                                <input type="text"
+                                       class="form-control"
+                                       id="area"
+                                       name="area"
+                                       list="areaSuggestions"
+                                       placeholder="Type or pick an area"
+                                       value="{{ old('area') }}"
+                                       autocomplete="off">
+                                <datalist id="areaSuggestions"></datalist>
+                                <small id="areaHelp" class="form-text text-muted d-none"></small>
                             </div>
 
                             <div class="form-group" style="position:relative;">
@@ -2817,96 +2833,41 @@ $(document)
 toggleOpen24Hours();
 
     /*
-     * The Area field switches between a dropdown and a plain text box.
+     * The Area field is always a plain text input (see the form markup) —
+     * it used to swap between a <select> (populated from the pincode's
+     * postal-directory lookup) and a free-text <input> via a
+     * "+ Add manually" toggle. Every fresh pincode lookup rebuilt whichever
+     * element was current, and while it did preserve whatever the admin had
+     * already typed (as a pre-selected option), the field itself kept
+     * switching under them mid-entry — which is what made typing an Area
+     * feel like it "wasn't being accepted". A plain input has no such
+     * failure mode: typing just types, always, into the same one element.
      *
-     * Wherever the postal directory knows the pincode, picking from its list
-     * keeps the spelling consistent across listings. Where it does not — and
-     * it is missing a lot of genuine pincodes — the admin has to be able to
-     * just type the area, otherwise the whole listing is unsaveable over one
-     * field. Both states write to the same `area` name, so the form and the
-     * controller behind it do not care which one is on screen.
+     * The pincode lookup still offers its area list — as <datalist>
+     * suggestions the browser shows while typing — without ever touching
+     * the input's own value, so an admin whose exact locality isn't in the
+     * postal directory (it is missing plenty of genuine ones) simply keeps
+     * typing past the suggestions.
      */
-    function areaField() {
-        return $('#area');
-    }
-
-    // Areas most recently fetched for the current pincode — kept so the
-    // "+ Add manually" toggle can restore the dropdown after switching to
-    // free text, without re-hitting the pincode API.
-    var lastFetchedAreas = [];
-
-    function replaceAreaField($replacement) {
-        var $current = areaField();
-        var value = ($current.val() || '').trim();
-
-        $replacement.attr('id', 'area').attr('name', 'area').addClass('form-control');
-        $current.replaceWith($replacement);
-
-        return value;
-    }
-
-    function setAreaAsDropdown(areas) {
-        var $select = $('<select>');
-        var previous = replaceAreaField($select);
-
-        $select.append('<option value="">Select Area</option>');
-
-        var matched = false;
+    function setAreaSuggestions(areas, message) {
+        var $list = $('#areaSuggestions').empty();
 
         (areas || []).forEach(function (area) {
             var name = String(area || '').trim();
 
-            if (!name) {
-                return;
+            if (name) {
+                $list.append($('<option>').attr('value', name));
             }
-
-            var selected = name.toLowerCase() === previous.toLowerCase();
-            matched = matched || selected;
-
-            $select.append(
-                $('<option>').attr('value', name).prop('selected', selected).text(name)
-            );
         });
 
-        // Something already typed that is not on the list is still the
-        // admin's answer — keep it rather than silently dropping it.
-        if (previous && !matched) {
-            $select.append($('<option>').attr('value', previous).prop('selected', true).text(previous));
-        }
-
-        $('#areaHelp').remove();
-    }
-
-    function setAreaAsFreeText(message) {
-        var $input = $('<input type="text" placeholder="Enter Area">');
-        var previous = replaceAreaField($input);
-
-        $input.val(previous);
-
-        $('#areaHelp').remove();
+        var $help = $('#areaHelp');
 
         if (message) {
-            $input.after(
-                $('<small class="form-text text-muted" id="areaHelp">').text(message)
-            );
+            $help.text(message).removeClass('d-none');
+        } else {
+            $help.addClass('d-none').text('');
         }
     }
-
-    // "+ Add manually" toggle — the dropdown only ever offers what the
-    // postal directory returned for the pincode, and plenty of real
-    // localities (e.g. "Noida Sector 9") never appear there. Lets the admin
-    // switch to a free-text box even when the dropdown did load options.
-    $('#areaManualToggle').on('click', function () {
-        var $toggle = $(this);
-
-        if (areaField().is('select')) {
-            setAreaAsFreeText();
-            $toggle.text('Choose from list');
-        } else {
-            setAreaAsDropdown(lastFetchedAreas);
-            $toggle.text('+ Add manually');
-        }
-    });
 
     // pincode -> city/state/area
     $('#pincode').on('keyup change', debounce(function () {
@@ -2915,14 +2876,13 @@ toggleOpen24Hours();
         if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
             $('#city').val('');
             $('#state').val('');
-            setAreaAsDropdown([]);
+            setAreaSuggestions([]);
             $('#latitude').val('');
             $('#longitude').val('');
             return;
         }
 
-        setAreaAsDropdown([]);
-        areaField().is('select') && areaField().html('<option value="">Loading...</option>');
+        setAreaSuggestions([]);
 
        fetch("/admin/pincode/" + pin)
             .then(response => response.json())
@@ -2954,8 +2914,7 @@ toggleOpen24Hours();
                 }
 
                 if (data && data.status && Array.isArray(data.areas) && data.areas.length > 0) {
-                    lastFetchedAreas = data.areas;
-                    setAreaAsDropdown(data.areas);
+                    setAreaSuggestions(data.areas);
 
                     let searchText = `${pin}, ${data.city || ''}, ${data.state || ''}, India`;
 
@@ -2978,10 +2937,10 @@ toggleOpen24Hours();
                     triggerAutoAiGenerate();
                 } else {
                     // The postal directory is missing plenty of real pincodes
-                    // (160043, Chandigarh Sector 44, among them). A dead
-                    // dropdown left the admin with no way to save a perfectly
-                    // good address, so the field becomes a text box instead.
-                    setAreaAsFreeText(data.source === 'unreachable'
+                    // (160043, Chandigarh Sector 44, among them). No
+                    // suggestions to offer, but the input was always typeable
+                    // anyway — just let the admin know why the list is empty.
+                    setAreaSuggestions([], data.source === 'unreachable'
                         ? 'Pincode service abhi reachable nahi — area type kar dijiye'
                         : 'Is pincode ka area list me nahi hai — type kar dijiye');
                 }
@@ -2991,7 +2950,7 @@ toggleOpen24Hours();
                 $('#longitude').val('');
                 $('#city').prop('readonly', false);
                 $('#state').prop('readonly', false);
-                setAreaAsFreeText('Area load nahi ho paya — type kar dijiye');
+                setAreaSuggestions([], 'Area suggestions load nahi ho paayi — type kar dijiye');
             });
     }, 500));
 
