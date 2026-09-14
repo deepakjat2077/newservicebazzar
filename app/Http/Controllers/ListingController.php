@@ -965,10 +965,16 @@ public function updatesection(Request $request, $id)
             return redirect()->route('admin.package.free.activate', $package->id);
         }
 
-        // Only show RazorPay for listing advertisement checkout
+        // Whitelisted to the gateways actually meant for this checkout —
+        // this used to be hardcoded to Razorpay only, which silently hid
+        // Cashfree once it was added. Not opened to every automatic
+        // gateway: several leftover demo rows (Paypal, Stripe, Flutterwave,
+        // Payeer, Paystack, Skrill, VougePay, Instamojo) sit enabled in the
+        // DB with no real credentials behind them, and would otherwise
+        // appear here as broken payment options.
         $methods = \App\Models\MethodCurrency::where('enable_status', 1)
             ->whereHas('paymentMethod', function($q) {
-                $q->where('act', 'razorpay');
+                $q->whereIn('act', ['razorpay', 'cashfree']);
             })
             ->with('paymentMethod')->orderBy('currency_name')->get();
 
@@ -3063,7 +3069,75 @@ public function cityCategoryArea($city, $categoryArea)
                 ], 301);
             }
 
-            abort(404);
+            // Area page: "/{city}/{category}-in-{area}" where {area} is a
+            // locality *inside* the city, not a Location of its own — e.g.
+            // "/jaipur/physiotherapists-in-jhotwara". No row holds the full
+            // slug, but the part before "-in-" ("physiotherapists") is a real
+            // category/subcategory and the render path below already filters
+            // listings by $area. Resolve the truncated service here so the
+            // page opens instead of 404ing.
+            //
+            // Deliberately bounded so it does NOT reopen the doorway/crawl
+            // trap the rest of this method guards against: it fires only on a
+            // full-slug MISS (genuine "-in-"-in-their-name subcategories were
+            // matched above and never reach here), only when the truncated
+            // part is itself a live category/subcategory, and only when at
+            // least one listing actually sits in that area. An invented
+            // "physiotherapists-in-<junk>" therefore still 404s rather than
+            // becoming an empty doorway page.
+            if (!empty($area) && !empty($maybeServiceSlug)) {
+                $areaCategory = Category::where('status', 1)
+                    ->where('slug', $maybeServiceSlug)
+                    ->first();
+
+                $areaSubcategory = $areaCategory
+                    ? null
+                    : Subcategory::where('status', 1)
+                        ->where('slug', $maybeServiceSlug)
+                        ->first();
+
+                if ($areaCategory || $areaSubcategory) {
+                    $areaLocation = Location::where('status', 1)
+                        ->where('slug', \Str::slug($city))
+                        ->first();
+
+                    if ($areaLocation) {
+                        $areaWords = array_filter(explode(' ', strtolower($area)));
+
+                        $areaHasListings = Listing::where('status', 1)
+                            ->where(function ($q) use ($areaLocation) {
+                                $q->where('location_id', $areaLocation->id)
+                                  ->orWhereRaw('LOWER(city) = ?', [strtolower($areaLocation->name)]);
+                            })
+                            ->when($areaCategory, fn ($q) => $q->where('category_id', $areaCategory->id))
+                            ->when($areaSubcategory, function ($q) use ($areaSubcategory) {
+                                $q->where(function ($qq) use ($areaSubcategory) {
+                                    $qq->whereJsonContains('subcategory_ids', (string) $areaSubcategory->id)
+                                       ->orWhereJsonContains('subcategory_ids', $areaSubcategory->id);
+                                });
+                            })
+                            ->where(function ($q) use ($areaWords) {
+                                foreach ($areaWords as $word) {
+                                    $q->where(function ($qq) use ($word) {
+                                        $qq->whereRaw('LOWER(listings.area) LIKE ?', ['%' . $word . '%'])
+                                           ->orWhereRaw('LOWER(listings.address) LIKE ?', ['%' . $word . '%'])
+                                           ->orWhereRaw('LOWER(listings.landmark) LIKE ?', ['%' . $word . '%']);
+                                    });
+                                }
+                            })
+                            ->exists();
+
+                        if ($areaHasListings) {
+                            $category = $areaCategory;
+                            $subcategory = $areaSubcategory;
+                        }
+                    }
+                }
+            }
+
+            if (!$category && !$subcategory) {
+                abort(404);
+            }
         }
     }
 
