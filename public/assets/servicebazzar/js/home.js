@@ -306,8 +306,13 @@ restoreDetectedLocationOnHome();
         this.dataset.selectedLocation = "0";
         clearTimeout(timer);
         if (value.length < 1) {
-            const currentCity = localStorage.getItem("jf_detected_city") || "";
-            fetchLocationSuggestions(currentCity);
+            // Empty box = trending, not "search for the city's own name" —
+            // passing the city name here made the backend run its
+            // full-text-match branch (returns every area whose location
+            // matches, uncapped) instead of the popularity-ranked top-7
+            // trending branch. Same bug/fix as headerFetchLocationSuggestions()
+            // in search-form.blade.php.
+            fetchLocationSuggestions("");
             return;
         }
         timer = setTimeout(() => {
@@ -324,8 +329,9 @@ restoreDetectedLocationOnHome();
         this.value = "";
         this.dataset.selectedLocation = "0";
 
-        const currentCity = localStorage.getItem("jf_detected_city") || "";
-        fetchLocationSuggestions(currentCity);
+        // Same reason as the "input" listener above — empty box means
+        // trending (top-7 by popularity), so this must be an empty search.
+        fetchLocationSuggestions("");
     });
 
     // ============================================================
@@ -336,8 +342,9 @@ restoreDetectedLocationOnHome();
         if (e.target.classList.contains("clear-recent-locations")) {
             e.preventDefault();
             localStorage.removeItem("service_bazzar_recent_locations");
-            const currentCity = localStorage.getItem("jf_detected_city") || localStorage.getItem("jf_selected_location_name") || "";
-            fetchLocationSuggestions(currentCity);
+            // Box is still empty after clearing "Recent" — trending, not a
+            // search for the city name (see the "input" listener above).
+            fetchLocationSuggestions("");
             return;
         }
 
