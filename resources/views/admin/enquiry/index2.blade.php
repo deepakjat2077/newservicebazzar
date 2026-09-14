@@ -55,9 +55,28 @@
                      filter params as those buttons so the export always
                      matches whatever the admin is currently looking at. --}}
                 <a href="{{ route('admin.enquiry.clicks.export', array_filter(array_merge($activeDateParams, ['type' => request('type')]))) }}"
-                   class="btn btn-success btn-sm mb-2">
+                   class="btn btn-success btn-sm mr-2 mb-2">
                     <i class="fas fa-file-excel"></i>
                     Export Excel
+                </a>
+
+                {{--
+                    Apply Filter / Reset moved up here too, same row as
+                    everything else. "Apply Filter" is a submit button living
+                    outside the <form> below (id="clicksFilterForm") — its
+                    form="" attribute is what still submits that form; this
+                    is standard HTML, not a hack, and works the same as if
+                    the button were physically inside the <form> tags.
+                --}}
+                <button type="submit" form="clicksFilterForm" class="btn btn-primary btn-sm mr-2 mb-2">
+                    <i class="fas fa-filter"></i>
+                    Apply Filter
+                </button>
+
+                <a href="{{ route('admin.enquiry.clicks') }}"
+                   class="btn btn-secondary btn-sm mb-2">
+                    <i class="fas fa-sync-alt"></i>
+                    Reset
                 </a>
 
             </div>
@@ -76,7 +95,8 @@
             EnquiryController::resolveClickDateRange plus its two inputs
             here, see git history on this file.)
         --}}
-        <form action="{{ route('admin.enquiry.clicks') }}"
+        <form id="clicksFilterForm"
+              action="{{ route('admin.enquiry.clicks') }}"
               method="GET"
               class="row align-items-end">
 
@@ -127,31 +147,6 @@
                 </div>
             </div>
 
-            {{--
-                Its own full-width row, not squeezed beside Month/Date Range
-                — two buttons still wrapped onto separate lines in a partial
-                column at most screen widths. flex-nowrap keeps them on one
-                line always; on a very narrow screen the row scrolls
-                horizontally rather than stacking. Export Excel moved up to
-                the All/Call/WhatsApp/Enquiry row above — it belongs with
-                the other buttons that read the data, not the ones that
-                change the filter.
-            --}}
-            <div class="col-12 mb-2">
-                <div class="d-flex flex-nowrap overflow-auto">
-
-                    <button type="submit" class="btn btn-primary text-nowrap mr-2">
-                        <i class="fas fa-filter"></i>
-                        Apply Filter
-                    </button>
-
-                    <a href="{{ route('admin.enquiry.clicks') }}"
-                       class="btn btn-secondary text-nowrap">
-                        <i class="fas fa-sync-alt"></i>
-                        Reset
-                    </a>
-                </div>
-            </div>
         </form>
 
     </div>
