@@ -375,10 +375,21 @@ public function nearbyLocationSuggestions(Request $request)
     */
     $cityNames = $matchedLocations->pluck('name')->filter()->values();
 
+    /*
+     * GROUP BY listings.area, not one row per listing. Jaipur alone has 92
+     * distinct area names — with the old per-listing query capped at 25
+     * rows (ordered by distance), the closest 25 *listings* very often
+     * landed in only a handful of those areas (several listings apiece),
+     * so only ever a handful of unique area names survived the later
+     * de-dup in PHP, nowhere near "every area in the city". Grouping in
+     * SQL means the cap below limits how many *distinct areas* come back,
+     * not how many listings get scanned before naming a few of them.
+     */
     $areaQuery = Listing::where('listings.status', 1)
         ->whereNotNull('listings.area')
         ->where('listings.area', '!=', '')
-        ->leftJoin('locations', 'locations.id', '=', 'listings.location_id');
+        ->leftJoin('locations', 'locations.id', '=', 'listings.location_id')
+        ->groupBy('listings.area');
 
     if ($search !== '') {
         if ($cityNames->count() > 0) {
@@ -395,11 +406,28 @@ public function nearbyLocationSuggestions(Request $request)
             });
         }
     } else {
+        // Scope to the resolved nearest city (Jaipur, here) — without
+        // this, a listing anywhere in the country whose lat/lng happens to
+        // be bad data (e.g. left at another city's default coordinates)
+        // could compute a small distance to $latitude/$longitude and show
+        // up as a Jaipur-adjacent area despite its own city/location_id
+        // saying Bangalore or Ghaziabad. Distance still decides the order
+        // within the city; this only decides which city's areas qualify
+        // at all.
+        if ($cityNames->count() > 0) {
+            $areaQuery->where(function ($q) use ($cityNames) {
+                foreach ($cityNames as $cityName) {
+                    $q->orWhere('locations.name', $cityName)
+                      ->orWhere('listings.city', $cityName);
+                }
+            });
+        }
+
         if (!empty($latitude) && !empty($longitude)) {
             $areaQuery->whereNotNull('listings.latitude')
                 ->whereNotNull('listings.longitude')
                 ->selectRaw("
-                    (
+                    MIN(
                         6371 * acos(
                             LEAST(1, GREATEST(-1,
                                 cos(radians(?))
@@ -413,25 +441,31 @@ public function nearbyLocationSuggestions(Request $request)
                 ", [$latitude, $longitude, $latitude])
                 ->orderBy('distance', 'asc');
         } else {
-            $areaQuery->orderBy('listings.id', 'desc');
+            $areaQuery->orderByRaw('MAX(listings.id) desc');
         }
     }
 
     // addSelect, not select: the lat/lng branch above adds a computed
     // `distance` column and orders by it, and a plain select() here would
     // replace that column list — leaving ORDER BY distance with no such
-    // column and the endpoint throwing 1054.
+    // column and the endpoint throwing 1054. Each non-grouped column below
+    // is wrapped in MIN() — one representative value per area group — so
+    // this satisfies ONLY_FULL_GROUP_BY instead of erroring under it.
     $areaQuery->addSelect(
         'listings.area',
-        'listings.city',
-        'listings.location_id',
-        'listings.latitude',
-        'listings.longitude',
-        'locations.name as main_city'
+        \Illuminate\Support\Facades\DB::raw('MIN(listings.city) as city'),
+        \Illuminate\Support\Facades\DB::raw('MIN(listings.location_id) as location_id'),
+        \Illuminate\Support\Facades\DB::raw('MIN(listings.latitude) as latitude'),
+        \Illuminate\Support\Facades\DB::raw('MIN(listings.longitude) as longitude'),
+        \Illuminate\Support\Facades\DB::raw('MIN(locations.name) as main_city')
     );
 
+    // Comfortably above the largest city's real area count (Jaipur alone
+    // has 92) now that the query is GROUP BY area — this was 25 when it
+    // still meant "25 listings", which is why "Trending Areas" used to
+    // stop after a handful of names.
     $areas = $areaQuery
-        ->limit(25)
+        ->limit(200)
         ->get()
         ->map(function ($item) {
             return [
@@ -450,7 +484,7 @@ public function nearbyLocationSuggestions(Request $request)
         ->filter(fn ($item) => is_array($item) && !empty($item['name']))
         ->unique(fn ($item) => strtolower($item['name'] . '|' . ($item['parent'] ?? '')))
         ->values()
-        ->take(30);
+        ->take(150);
 
     return response()->json($suggestions);
 }
