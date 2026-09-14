@@ -10,7 +10,15 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <h5 class="mb-2 mb-md-0">Listing Clicks</h5>
 
-            <div class="d-flex flex-wrap gap-2">
+            {{--
+                This admin theme ships Bootstrap 4.5 (see
+                public/assets/admin/css/bootstrap.min.css), which has no
+                `.gap-*` utility — that's a Bootstrap 5 class and silently
+                does nothing here, which is why these buttons were touching
+                with no space between them. `mr-2` (Bootstrap 4's margin
+                utility) on each one instead.
+            --}}
+            <div class="d-flex flex-wrap">
 
                 @php
                     // Every filter type-switch link (All/Call/WhatsApp/Enquiry)
@@ -23,22 +31,22 @@
                 @endphp
 
                 <a href="{{ route('admin.enquiry.clicks', array_filter($activeDateParams)) }}"
-                   class="btn btn-dark btn-sm {{ empty(request('type')) ? 'active' : '' }}">
+                   class="btn btn-dark btn-sm mr-2 mb-2 {{ empty(request('type')) ? 'active' : '' }}">
                     All ({{ $totalClickCount ?? ($callCount + $whatsappCount + $enquiryCount) }})
                 </a>
 
                 <a href="{{ route('admin.enquiry.clicks', array_filter(array_merge($activeDateParams, ['type' => 'call']))) }}"
-                   class="btn btn-success btn-sm {{ request('type') == 'call' ? 'active' : '' }}">
+                   class="btn btn-success btn-sm mr-2 mb-2 {{ request('type') == 'call' ? 'active' : '' }}">
                     Call ({{ $callCount }})
                 </a>
 
                 <a href="{{ route('admin.enquiry.clicks', array_filter(array_merge($activeDateParams, ['type' => 'whatsapp']))) }}"
-                   class="btn btn-primary btn-sm {{ request('type') == 'whatsapp' ? 'active' : '' }}">
+                   class="btn btn-primary btn-sm mr-2 mb-2 {{ request('type') == 'whatsapp' ? 'active' : '' }}">
                     WhatsApp ({{ $whatsappCount }})
                 </a>
 
                 <a href="{{ route('admin.enquiry.clicks', array_filter(array_merge($activeDateParams, ['type' => 'enquiry']))) }}"
-                   class="btn btn-warning btn-sm {{ request('type') == 'enquiry' ? 'active' : '' }}">
+                   class="btn btn-warning btn-sm mb-2 {{ request('type') == 'enquiry' ? 'active' : '' }}">
                     Enquiry ({{ $enquiryCount }})
                 </a>
 
@@ -86,9 +94,12 @@
                        value="{{ request('month', now('Asia/Kolkata')->format('Y-m')) }}">
             </div>
 
-            <div class="col-sm-12 col-md-8 col-lg-5 mb-2">
+            <div class="col-sm-12 col-md-8 col-lg-6 mb-2">
                 <label class="form-label">Date Range</label>
-                <div class="row g-2">
+                {{-- 'row' alone (no 'g-2', a Bootstrap 5-only gutter class)
+                     already spaces these two via Bootstrap 4's normal
+                     row/col padding. --}}
+                <div class="row">
                     <div class="col-6">
                         <input type="date"
                                name="date_from"
@@ -106,27 +117,36 @@
                 </div>
             </div>
 
-            <div class="col-12 col-lg-4 mb-2">
+            {{--
+                Its own full-width row, not squeezed beside Month/Date Range
+                — three buttons ("Apply Filter", "Reset", "Export Excel")
+                never fit in a partial column at most screen widths, which
+                is why they were wrapping onto separate lines. flex-nowrap
+                keeps them on one line always; on a very narrow screen the
+                row scrolls horizontally rather than stacking.
+            --}}
+            <div class="col-12 mb-2">
+                <div class="d-flex flex-nowrap overflow-auto">
 
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-filter"></i>
-                    Apply Filter
-                </button>
+                    <button type="submit" class="btn btn-primary text-nowrap mr-2">
+                        <i class="fas fa-filter"></i>
+                        Apply Filter
+                    </button>
 
-                <a href="{{ route('admin.enquiry.clicks') }}"
-                   class="btn btn-secondary">
-                    <i class="fas fa-sync-alt"></i>
-                    Reset
-                </a>
+                    <a href="{{ route('admin.enquiry.clicks') }}"
+                       class="btn btn-secondary text-nowrap mr-2">
+                        <i class="fas fa-sync-alt"></i>
+                        Reset
+                    </a>
 
-                <a href="{{ route('admin.enquiry.clicks.export', array_filter(request()->only([
+                    <a href="{{ route('admin.enquiry.clicks.export', array_filter(request()->only([
         'month', 'date_from', 'date_to',
     ]))) }}"
-   class="btn btn-success">
-
-    <i class="fas fa-file-excel"></i>
-    Export Excel
-</a>
+                       class="btn btn-success text-nowrap">
+                        <i class="fas fa-file-excel"></i>
+                        Export Excel
+                    </a>
+                </div>
             </div>
         </form>
 
