@@ -156,20 +156,20 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Plot No. / Shop No. / Floor <span class="rrrr">*</span></label>
+                                <label>Plot No. / Shop No. / Floor</label>
                                 <input type="text" name="plot_no" class="form-control "
                                        placeholder="Enter Plot No. / Shop No. / Floor" value="{{ old('plot_no') }}">
                             </div>
 
                             <div class="form-group">
-                                <label>Building Name / Market / Colony <span class="rrrr">*</span></label>
+                                <label>Building Name / Market / Colony</label>
                                 <input type="text" name="building_name" class="form-control "
                                        placeholder="Enter Building Name / Market / Colony" value="{{ old('building_name') }}">
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <label>Street / Road Name <span class="rrrr">*</span></label>
+                                    <label>Street / Road Name</label>
                                     <input type="text" name="street_name" class="form-control "
                                            placeholder="Enter Street / Road Name" value="{{ old('street_name') }}">
                                 </div>

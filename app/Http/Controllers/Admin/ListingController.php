@@ -867,9 +867,9 @@ public function store(Request $request)
 
         'pincode'                  => 'required|string|max:10',
         'established_year'         => 'required|string|max:10',
-        'plot_no'                  => 'required|string|max:255',
-        'building_name'            => 'required|string|max:255',
-        'street_name'              => 'required|string|max:255',
+        'plot_no'                  => 'nullable|string|max:255',
+        'building_name'            => 'nullable|string|max:255',
+        'street_name'              => 'nullable|string|max:255',
         'landmark'                 => 'nullable|string|max:255',
         'area'                     => 'required|string|max:255',
         'city'                     => 'nullable|string|max:255',
