@@ -2376,7 +2376,17 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
             for (let i = parts.length - 1; i >= 0; i--) {
                 if (englishLocationNames[parts[i]]) return englishLocationNames[parts[i]];
             }
-            city = parts.length ? parts[parts.length - 1] : city;
+            // No Hindi part matched — this is an ordinary "Area, City"
+            // string (the shape used everywhere in this app for a
+            // suggestion/recent search), not a Hindi geocoder result that
+            // needs translating. Return it exactly as given instead of
+            // collapsing to just the last comma-separated part, which used
+            // to silently drop "Vaishali Nagar" from "Vaishali Nagar,
+            // Jaipur" down to just "Jaipur" — this function is called on
+            // every location selection via cleanCity()/setCity(), so that
+            // collapse showed up as the header always snapping back to the
+            // bare city name no matter which area the admin actually picked.
+            return city;
         }
         return englishLocationNames[city] || city;
     };
