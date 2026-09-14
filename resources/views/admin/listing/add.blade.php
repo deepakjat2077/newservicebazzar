@@ -35,7 +35,7 @@
                        <div class="col-md-4">
 
     <div class="form-group">
-        <label>Business Image</label>
+        <label>Business Image <span class="rrrr">*</span></label>
         <div class="border p-3 rounded text-center">
             <img id="mainPreview"
                  src="{{ asset('assets/images/default.jpg') }}"
@@ -233,7 +233,7 @@
                             <h5 class="mb-3">Contact Details</h5>
 
                             <div class="form-group">
-                                <label>Contact Person</label>
+                                <label>Contact Person <span class="rrrr">*</span></label>
                                 <div class="phone-group">
                                     <select class="form-control country-code" name="contact_title">
                                         <option value="Mr" {{ old('contact_title') == 'Mr' ? 'selected' : '' }}>Mr</option>
@@ -251,6 +251,7 @@
 
                             <div class="form-group">
                                 <label>Mobile Number</label>
+                                <small class="text-muted d-block mb-1">At least one of Mobile / WhatsApp / Landline is required. A Mobile Number blocks Landline Number.</small>
                                 <div id="mobileNumbersWrapper">
                                     @php
                                         $mobileNumbers = old('mobile_numbers', ['']);
@@ -303,7 +304,7 @@
                                 <a href="javascript:void(0)" class="add-link" id="addWhatsappNumber">+ Add WhatsApp Number</a>
                             </div>
 
-                          <div class="form-group">
+                          <div class="form-group" id="landlineGroup">
     <label>Landline Number</label>
 
     <div id="landlineNumbersWrapper">
@@ -315,9 +316,11 @@
             <input type="text"
                    class="form-control"
                    name="landline_numbers[]"
+                   id="landlineNumberInput"
                    placeholder="Landline Number">
         </div>
     </div>
+    <small class="text-danger d-none" id="landlineBlockedHint">Remove the Mobile Number to add a Landline Number.</small>
 
     <a href="javascript:void(0)"
        class="add-link"
@@ -327,7 +330,7 @@
 </div>
 
                             <div class="form-group">
-                                <label>Email</label>
+                                <label>Email <span class="rrrr">*</span></label>
                                 <div id="emailsWrapper">
                                     @php
                                         $extraEmails = old('extra_emails', ['']);
@@ -371,7 +374,7 @@
                             </div>
 
                             <div class="form-group smart-picker mt-4" id="subcategoryPicker">
-                                <label>Sub Categories
+                                <label>Sub Categories <span class="rrrr">*</span>
                                     <button type="button" class="btn btn-sm btn-outline-primary ms-2" id="selectAllSubcategoriesBtn" style="display:none;">
                                         <i class="fas fa-check-double"></i> Select All
                                     </button>
@@ -394,7 +397,7 @@
 
                        <div class="col-md-12 mt-2 mb-4">
     <div class="bg__dark p-2 text-white d-flex align-items-center justify-content-between">
-        <h5 class="mb-0">Extra Images</h5>
+        <h5 class="mb-0">Extra Images <span class="rrrr">*</span> <small class="fw-normal">(min. 2)</small></h5>
 
         <button type="button" class="btn btn-success text-white addImage">
             <i class="las la-plus"></i> Add New
@@ -452,7 +455,7 @@
 
                        <div class="col-md-12">
     <hr>
-    <h5 class="mb-3">Business Timings</h5>
+    <h5 class="mb-3">Business Timings <span class="rrrr">*</span></h5>
 </div>
 
 <div class="col-md-12">
@@ -2579,6 +2582,31 @@ $(document).on('click', '.imageRemove', function () {
     $('#addLandlineNumber').on('click', function () {
         $('#landlineNumbersWrapper').append(makePhoneRow('landline'));
     });
+
+    /*
+     * A Mobile Number blocks Landline Number — enforced authoritatively on
+     * the server (store() rejects both being filled), this is just the
+     * live UX: the moment a Mobile Number is typed, the Landline group is
+     * disabled and cleared so the admin never fills in a combination the
+     * server will reject anyway. Delegated because mobile rows are added
+     * dynamically (see makePhoneRow/addMobileNumber above).
+     */
+    function toggleLandlineForMobile() {
+        const hasMobile = $('input[name="mobile_numbers[]"]').toArray()
+            .some(function (el) { return $(el).val().trim() !== ''; });
+
+        $('#landlineNumbersWrapper input[name="landline_numbers[]"]').prop('disabled', hasMobile);
+        $('#landlineNumbersWrapper select[name="landline_country_code[]"]').prop('disabled', hasMobile);
+        $('#addLandlineNumber').toggleClass('disabled', hasMobile).css('pointer-events', hasMobile ? 'none' : '');
+        $('#landlineBlockedHint').toggleClass('d-none', !hasMobile);
+
+        if (hasMobile) {
+            $('#landlineNumbersWrapper input[name="landline_numbers[]"]').val('');
+        }
+    }
+
+    $(document).on('input', 'input[name="mobile_numbers[]"]', toggleLandlineForMobile);
+    toggleLandlineForMobile();
 
     $('#addAnotherEmail').on('click', function () {
         $('#emailsWrapper').append(makeEmailRow());

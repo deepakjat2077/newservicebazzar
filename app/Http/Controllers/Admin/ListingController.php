@@ -848,8 +848,9 @@ public function store(Request $request)
     ]);
     
     $rules = [
-        'images'                   => 'nullable|array',
-        'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp',
+        // Extra Images — at least 2 required for a new listing.
+        'images'                   => 'required|array|min:2',
+        'images.*'                 => 'required|image|mimes:jpg,jpeg,png,webp',
 
         'question'                 => 'nullable|array',
         'question.*'               => 'nullable|string|max:255',
@@ -864,20 +865,27 @@ public function store(Request $request)
         'meta_keywords'            => 'nullable|string|max:1000',
         'meta_description'         => 'nullable|string|max:1000',
 
-        'pincode'                  => 'nullable|string|max:10',
-        'plot_no'                  => 'nullable|string|max:255',
-        'building_name'            => 'nullable|string|max:255',
-        'street_name'              => 'nullable|string|max:255',
+        'pincode'                  => 'required|string|max:10',
+        'established_year'         => 'required|string|max:10',
+        'plot_no'                  => 'required|string|max:255',
+        'building_name'            => 'required|string|max:255',
+        'street_name'              => 'required|string|max:255',
         'landmark'                 => 'nullable|string|max:255',
-        'area'                     => 'nullable|string|max:255',
+        'area'                     => 'required|string|max:255',
         'city'                     => 'nullable|string|max:255',
         'state'                    => 'nullable|string|max:255',
         'latitude'                 => 'nullable|numeric',
         'longitude'                => 'nullable|numeric',
 
         'contact_title'            => 'nullable|string|max:50',
-        'contact_person'           => 'nullable|string|max:255',
+        'contact_person'           => 'required|string|max:255',
 
+        // Numbers themselves stay nullable here — "at least one of the three
+        // groups", "mobile blocks landline", and "must be a real Indian
+        // number" are cross-field rules, handled below via ->after() where
+        // every value can be seen at once (a per-field rule sees only that
+        // one field, e.g. mobile_numbers.0 can't know what landline_numbers
+        // holds).
         'mobile_country_code'      => 'nullable|array',
         'mobile_country_code.*'    => 'nullable|string|max:10',
         'mobile_numbers'           => 'nullable|array',
@@ -893,11 +901,17 @@ public function store(Request $request)
         'landline_numbers'         => 'nullable|array',
         'landline_numbers.*'       => 'nullable|string|max:20',
 
-        'extra_emails'             => 'nullable|array',
+        // Email — at least one required (checked in ->after() below since
+        // "at least one populated slot in the array" isn't a per-item rule).
+        'extra_emails'             => 'required|array',
         'extra_emails.*'           => 'nullable|email|max:255',
 
+        // Business Timings — at least one day, or Open 24 Hours, checked
+        // below (a plain 'required' here would reject "Open 24 Hours" with
+        // no day ticked, which is a valid answer).
         'business_days'            => 'nullable|array',
         'business_days.*'          => 'nullable|string|max:20',
+        'open_24_hours'            => 'nullable|string',
 
         'open_time'                => 'nullable|array',
         'open_time.*'              => 'nullable|string|max:50',
@@ -905,20 +919,75 @@ public function store(Request $request)
         'close_time'               => 'nullable|array',
         'close_time.*'             => 'nullable|string|max:50',
 
-        'location_id'              => 'nullable|exists:locations,id',
+        'location_id'              => 'required|exists:locations,id',
         'user_id'                  => 'nullable|exists:users,id',
         // listings.category_id is NOT NULL and every one of the 10,515 rows
         // has a real category, so 'nullable' only meant an empty pick reached
         // MySQL as '' and failed the save with a 500 instead of telling the
         // admin which field was missing.
         'category_id'              => 'required|exists:categories,id',
-        'subcategory_ids'          => 'nullable|array',
+        'subcategory_ids'          => 'required|array|min:1',
         'subcategory_ids.*'        => 'nullable|exists:subcategories,id',
 
-        'thumb'                    => 'nullable|image|mimes:jpg,jpeg,png,webp',
+        // Business Image — required for a new listing.
+        'thumb'                    => 'required|image|mimes:jpg,jpeg,png,webp',
     ];
 
-    $request->validate($rules);
+    $validator = Validator::make($request->all(), $rules);
+
+    $validator->after(function ($validator) use ($request) {
+        $mobiles   = array_values(array_filter((array) $request->input('mobile_numbers', []), fn ($v) => filled($v)));
+        $whatsapps = array_values(array_filter((array) $request->input('whatsapp_numbers', []), fn ($v) => filled($v)));
+        $landlines = array_values(array_filter((array) $request->input('landline_numbers', []), fn ($v) => filled($v)));
+
+        // At least one of Mobile / WhatsApp / Landline is required.
+        if (!$mobiles && !$whatsapps && !$landlines) {
+            $validator->errors()->add(
+                'mobile_numbers',
+                'Please provide at least one contact number — Mobile, WhatsApp or Landline.'
+            );
+        }
+
+        // A Mobile number blocks Landline — they can't both be filled.
+        if ($mobiles && $landlines) {
+            $validator->errors()->add(
+                'landline_numbers',
+                'Landline Number cannot be added when a Mobile Number is already set. Remove one to continue.'
+            );
+        }
+
+        // Each provided number is checked against the shape a real Indian
+        // number can take, same as the app's own signup/enquiry forms do.
+        $indianMobile = new \App\Rules\IndianMobile();
+        $indianLandline = new \App\Rules\IndianLandline();
+
+        foreach ($mobiles as $i => $number) {
+            $indianMobile->validate("mobile_numbers.$i", $number, fn ($message) => $validator->errors()->add('mobile_numbers', "Mobile Number: $message"));
+        }
+
+        foreach ($whatsapps as $i => $number) {
+            $indianMobile->validate("whatsapp_numbers.$i", $number, fn ($message) => $validator->errors()->add('whatsapp_numbers', "WhatsApp Number: $message"));
+        }
+
+        foreach ($landlines as $i => $number) {
+            $indianLandline->validate("landline_numbers.$i", $number, fn ($message) => $validator->errors()->add('landline_numbers', $message));
+        }
+
+        // Email — at least one non-empty address in the array.
+        $emails = array_values(array_filter((array) $request->input('extra_emails', []), fn ($v) => filled($v)));
+        if (!$emails) {
+            $validator->errors()->add('extra_emails', 'Please provide at least one email address.');
+        }
+
+        // Business Timings — either specific days are picked, or the
+        // business is marked Open 24 Hours.
+        $days = array_values(array_filter((array) $request->input('business_days', []), fn ($v) => filled($v)));
+        if (!$days && !$request->filled('open_24_hours')) {
+            $validator->errors()->add('business_days', 'Please select Business Timings — pick at least one day or mark Open 24 Hours.');
+        }
+    });
+
+    $validator->validate();
     $lockKey = 'listing_submit_' . auth()->guard('admin')->id();
 
 if (!cache()->add($lockKey, true, 15)) {
