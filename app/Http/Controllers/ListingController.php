@@ -423,26 +423,14 @@ public function nearbyLocationSuggestions(Request $request)
             });
         }
 
-        if (!empty($latitude) && !empty($longitude)) {
-            $areaQuery->whereNotNull('listings.latitude')
-                ->whereNotNull('listings.longitude')
-                ->selectRaw("
-                    MIN(
-                        6371 * acos(
-                            LEAST(1, GREATEST(-1,
-                                cos(radians(?))
-                                * cos(radians(listings.latitude))
-                                * cos(radians(listings.longitude) - radians(?))
-                                + sin(radians(?))
-                                * sin(radians(listings.latitude))
-                            ))
-                        )
-                    ) AS distance
-                ", [$latitude, $longitude, $latitude])
-                ->orderBy('distance', 'asc');
-        } else {
-            $areaQuery->orderByRaw('MAX(listings.id) desc');
-        }
+        // "Trending" means the areas people actually have the most
+        // business in — Mansarovar, Vaishali Nagar, Vidhyadhar Nagar,
+        // Jagatpura... — not merely whichever area sits nearest the
+        // visitor's coordinates (that already has its own purpose: sorting
+        // -in-{area} listing pages). Rank by how many listings sit in each
+        // area and keep only the top ones; a listing's own lat/lng is no
+        // longer part of this ordering, coordinates or not.
+        $areaQuery->orderByRaw('COUNT(*) desc');
     }
 
     // addSelect, not select: the lat/lng branch above adds a computed
@@ -460,12 +448,15 @@ public function nearbyLocationSuggestions(Request $request)
         \Illuminate\Support\Facades\DB::raw('MIN(locations.name) as main_city')
     );
 
-    // Comfortably above the largest city's real area count (Jaipur alone
-    // has 92) now that the query is GROUP BY area — this was 25 when it
-    // still meant "25 listings", which is why "Trending Areas" used to
-    // stop after a handful of names.
+    // Trending (no search text) shows only the handful of genuinely
+    // popular areas — Mansarovar, Vaishali Nagar, Vidhyadhar Nagar,
+    // Jagatpura... ranked above by listing count — not every area the
+    // city has. Active search (typing a city/area name) still returns a
+    // wide set so a real match anywhere in that city can be found.
+    $areaLimit = $search === '' ? 7 : 200;
+
     $areas = $areaQuery
-        ->limit(200)
+        ->limit($areaLimit)
         ->get()
         ->map(function ($item) {
             return [
