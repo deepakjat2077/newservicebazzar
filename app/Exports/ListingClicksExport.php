@@ -10,11 +10,19 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class ListingClicksExport implements WithMultipleSheets
 {
-    protected ?string $month;
+    protected ?Carbon $startDate;
+    protected ?Carbon $endDate;
 
-    public function __construct(?string $month = null)
+    /**
+     * Both null means "no date filter, export everything" — the caller
+     * (EnquiryController::resolveClickDateRange) already resolved whichever
+     * of Select Month / Date Range / Year Range the admin picked into this
+     * one UTC range, so this class only ever needs to know the two ends.
+     */
+    public function __construct(?Carbon $startDate = null, ?Carbon $endDate = null)
     {
-        $this->month = $month;
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
     }
 
     public function sheets(): array
@@ -448,26 +456,10 @@ class ListingClicksExport implements WithMultipleSheets
     {
         $query = ListingClick::query();
 
-        if (!empty($this->month)) {
-            $startDate = Carbon::createFromFormat(
-                'Y-m',
-                $this->month,
-                'Asia/Kolkata'
-            )
-                ->startOfMonth()
-                ->utc();
-
-            $endDate = Carbon::createFromFormat(
-                'Y-m',
-                $this->month,
-                'Asia/Kolkata'
-            )
-                ->endOfMonth()
-                ->utc();
-
+        if ($this->startDate && $this->endDate) {
             $query->whereBetween('created_at', [
-                $startDate,
-                $endDate,
+                $this->startDate,
+                $this->endDate,
             ]);
         }
 

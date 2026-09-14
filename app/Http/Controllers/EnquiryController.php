@@ -157,11 +157,17 @@ public function exportEnquiries(Request $request)
                 'nullable',
                 'date_format:Y-m',
             ],
+            'date_from' => ['nullable', 'date'],
+            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+            'year_from' => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099'],
+            'year_to'   => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099', 'gte:year_from'],
         ]);
+
+        [$startDate, $endDate] = $this->resolveClickDateRange($request);
 
         $query = ListingClick::query()->latest();
 
-        $this->applyClickMonthFilter($query, $request->month);
+        $this->applyClickDateRange($query, $startDate, $endDate);
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
@@ -170,32 +176,17 @@ public function exportEnquiries(Request $request)
         $clicks = $query->paginate(15);
 
         /*
-         * Month-wise counts.
+         * Filtered counts, per type.
          */
         $callQuery = ListingClick::where('type', 'call');
         $whatsappQuery = ListingClick::where('type', 'whatsapp');
         $enquiryQuery = ListingClick::where('type', 'enquiry');
         $totalQuery = ListingClick::query();
 
-        $this->applyClickMonthFilter(
-            $callQuery,
-            $request->month
-        );
-
-        $this->applyClickMonthFilter(
-            $whatsappQuery,
-            $request->month
-        );
-
-        $this->applyClickMonthFilter(
-            $enquiryQuery,
-            $request->month
-        );
-
-        $this->applyClickMonthFilter(
-            $totalQuery,
-            $request->month
-        );
+        $this->applyClickDateRange($callQuery, $startDate, $endDate);
+        $this->applyClickDateRange($whatsappQuery, $startDate, $endDate);
+        $this->applyClickDateRange($enquiryQuery, $startDate, $endDate);
+        $this->applyClickDateRange($totalQuery, $startDate, $endDate);
 
         $callCount = $callQuery->count();
         $whatsappCount = $whatsappQuery->count();
@@ -216,26 +207,69 @@ public function exportEnquiries(Request $request)
 
 public function exportClicks(Request $request)
 {
-    $validated = $request->validate([
+    $request->validate([
         'month' => [
             'nullable',
             'date_format:Y-m',
         ],
+        'date_from' => ['nullable', 'date'],
+        'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+        'year_from' => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099'],
+        'year_to'   => ['nullable', 'digits:4', 'integer', 'min:2000', 'max:2099', 'gte:year_from'],
     ]);
 
-    $month = $validated['month'] ?? null;
-    $fileMonth = $month ?: 'all-months';
+    [$startDate, $endDate, $fileLabel] = $this->resolveClickDateRange($request, true);
 
     $fileName = 'listing-clicks-report-' .
-        $fileMonth .
+        $fileLabel .
         '-' .
         now('Asia/Kolkata')->format('Ymd-His') .
         '.xlsx';
 
     return Excel::download(
-        new ListingClicksExport($month),
+        new ListingClicksExport($startDate, $endDate),
         $fileName
     );
+}
+
+/**
+ * One place that decides which filter wins when more than one is filled
+ * in — Date Range is the most specific, so it wins over Year Range, which
+ * wins over the original Select Month. Returns UTC start/end Carbons (or
+ * both null for "no filter") ready for whereBetween(), plus — only when
+ * $withLabel is true — a filename-safe label describing what was applied.
+ */
+private function resolveClickDateRange(Request $request, bool $withLabel = false): array
+{
+    $tz = 'Asia/Kolkata';
+
+    if ($request->filled('date_from') && $request->filled('date_to')) {
+        $start = Carbon::parse($request->date_from, $tz)->startOfDay()->utc();
+        $end = Carbon::parse($request->date_to, $tz)->endOfDay()->utc();
+        $label = $request->date_from . '_to_' . $request->date_to;
+    } elseif ($request->filled('year_from') && $request->filled('year_to')) {
+        $start = Carbon::createFromDate((int) $request->year_from, 1, 1, $tz)->startOfYear()->utc();
+        $end = Carbon::createFromDate((int) $request->year_to, 1, 1, $tz)->endOfYear()->utc();
+        $label = $request->year_from . '_to_' . $request->year_to;
+    } elseif ($request->filled('month')) {
+        $start = Carbon::createFromFormat('Y-m', $request->month, $tz)->startOfMonth()->utc();
+        $end = Carbon::createFromFormat('Y-m', $request->month, $tz)->endOfMonth()->utc();
+        $label = $request->month;
+    } else {
+        $start = null;
+        $end = null;
+        $label = 'all-time';
+    }
+
+    return $withLabel ? [$start, $end, $label] : [$start, $end];
+}
+
+/** Applies a resolved [start, end] range (either may be null = no filter). */
+private function applyClickDateRange($query, ?Carbon $start, ?Carbon $end): void
+{
+    if ($start && $end) {
+        $query->whereBetween('created_at', [$start, $end]);
+    }
 }
     private function applyEnquiryMonthFilter(
         $query,
@@ -263,29 +297,4 @@ public function exportClicks(Request $request)
         ]);
     }
 
-    private function applyClickMonthFilter(
-        $query,
-        ?string $month
-    ): void {
-        if (empty($month)) {
-            return;
-        }
-
-        $startDate = Carbon::createFromFormat(
-            'Y-m',
-            $month,
-            'Asia/Kolkata'
-        )->startOfMonth()->utc();
-
-        $endDate = Carbon::createFromFormat(
-            'Y-m',
-            $month,
-            'Asia/Kolkata'
-        )->endOfMonth()->utc();
-
-        $query->whereBetween('created_at', [
-            $startDate,
-            $endDate,
-        ]);
-    }
 }

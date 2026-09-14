@@ -12,33 +12,32 @@
 
             <div class="d-flex flex-wrap gap-2">
 
-                <a href="{{ route('admin.enquiry.clicks', array_filter([
-                        'month' => request('month')
-                    ])) }}"
+                @php
+                    // Every filter type-switch link (All/Call/WhatsApp/Enquiry)
+                    // must carry through whichever date filter is active —
+                    // previously this only preserved 'month', so switching type
+                    // silently dropped a Date Range or Year Range filter.
+                    $activeDateParams = request()->only([
+                        'month', 'date_from', 'date_to', 'year_from', 'year_to',
+                    ]);
+                @endphp
+
+                <a href="{{ route('admin.enquiry.clicks', array_filter($activeDateParams)) }}"
                    class="btn btn-dark btn-sm {{ empty(request('type')) ? 'active' : '' }}">
                     All ({{ $totalClickCount ?? ($callCount + $whatsappCount + $enquiryCount) }})
                 </a>
 
-                <a href="{{ route('admin.enquiry.clicks', array_filter([
-                        'type' => 'call',
-                        'month' => request('month')
-                    ])) }}"
+                <a href="{{ route('admin.enquiry.clicks', array_filter(array_merge($activeDateParams, ['type' => 'call']))) }}"
                    class="btn btn-success btn-sm {{ request('type') == 'call' ? 'active' : '' }}">
                     Call ({{ $callCount }})
                 </a>
 
-                <a href="{{ route('admin.enquiry.clicks', array_filter([
-                        'type' => 'whatsapp',
-                        'month' => request('month')
-                    ])) }}"
+                <a href="{{ route('admin.enquiry.clicks', array_filter(array_merge($activeDateParams, ['type' => 'whatsapp']))) }}"
                    class="btn btn-primary btn-sm {{ request('type') == 'whatsapp' ? 'active' : '' }}">
                     WhatsApp ({{ $whatsappCount }})
                 </a>
 
-                <a href="{{ route('admin.enquiry.clicks', array_filter([
-                        'type' => 'enquiry',
-                        'month' => request('month')
-                    ])) }}"
+                <a href="{{ route('admin.enquiry.clicks', array_filter(array_merge($activeDateParams, ['type' => 'enquiry']))) }}"
                    class="btn btn-warning btn-sm {{ request('type') == 'enquiry' ? 'active' : '' }}">
                     Enquiry ({{ $enquiryCount }})
                 </a>
@@ -48,7 +47,12 @@
 
         <hr>
 
-        {{-- Month Filter and Excel Export --}}
+        {{--
+            Three ways to filter by date — Select Month (original), Date
+            Range, and Year Range. Only one is meant to be filled at a time;
+            if more than one is, the controller (resolveClickDateRange) picks
+            Date Range first, then Year Range, then Month.
+        --}}
         <form action="{{ route('admin.enquiry.clicks') }}"
               method="GET"
               class="row align-items-end">
@@ -59,7 +63,7 @@
                        value="{{ request('type') }}">
             @endif
 
-            <div class="col-md-4 col-lg-3 mb-2">
+            <div class="col-md-3 col-lg-2 mb-2">
                 <label for="month" class="form-label">
                     Select Month
                 </label>
@@ -71,7 +75,41 @@
                        value="{{ request('month') }}">
             </div>
 
-            <div class="col-md-8 col-lg-9 mb-2">
+            <div class="col-md-6 col-lg-2 mb-2">
+                <label class="form-label">Date Range</label>
+                <div class="d-flex gap-1">
+                    <input type="date"
+                           name="date_from"
+                           class="form-control"
+                           placeholder="From"
+                           value="{{ request('date_from') }}">
+                    <input type="date"
+                           name="date_to"
+                           class="form-control"
+                           placeholder="To"
+                           value="{{ request('date_to') }}">
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3 mb-2">
+                <label class="form-label">Year Range</label>
+                <div class="d-flex gap-1">
+                    <input type="number"
+                           name="year_from"
+                           class="form-control"
+                           placeholder="From (e.g. 2024)"
+                           min="2000" max="2099"
+                           value="{{ request('year_from') }}">
+                    <input type="number"
+                           name="year_to"
+                           class="form-control"
+                           placeholder="To (e.g. 2026)"
+                           min="2000" max="2099"
+                           value="{{ request('year_to') }}">
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-5 mb-2">
 
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-filter"></i>
@@ -84,9 +122,9 @@
                     Reset
                 </a>
 
-                <a href="{{ route('admin.enquiry.clicks.export', array_filter([
-        'month' => request('month')
-    ])) }}"
+                <a href="{{ route('admin.enquiry.clicks.export', array_filter(request()->only([
+        'month', 'date_from', 'date_to', 'year_from', 'year_to',
+    ]))) }}"
    class="btn btn-success">
 
     <i class="fas fa-file-excel"></i>
