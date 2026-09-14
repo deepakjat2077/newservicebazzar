@@ -3256,16 +3256,19 @@ public function cityCategoryArea($city, $categoryArea)
                 ->lookupCoordinates(trim($area).', '.$locationData->name);
         }
 
-        $baseQuery->where(function ($q) use ($areaWords, $areaRadiusCenter) {
-            $q->where(function ($qq) use ($areaWords) {
-                foreach ($areaWords as $word) {
-                    $qq->where(function ($qqq) use ($word) {
-                        $qqq->whereRaw("LOWER(listings.area) LIKE ?", ['%' . $word . '%'])
-                            ->orWhereRaw("LOWER(listings.address) LIKE ?", ['%' . $word . '%'])
-                            ->orWhereRaw("LOWER(listings.landmark) LIKE ?", ['%' . $word . '%']);
-                    });
-                }
-            });
+        // Built once, reused for both the WHERE (does this row qualify at
+        // all) and a SELECT flag (did it qualify by NAME, so text matches
+        // can be ranked ahead of radius-only ones — see the ORDER BY below).
+        $textMatchSql = [];
+        $textMatchBindings = [];
+        foreach ($areaWords as $word) {
+            $textMatchSql[] = "(LOWER(listings.area) LIKE ? OR LOWER(listings.address) LIKE ? OR LOWER(listings.landmark) LIKE ?)";
+            $textMatchBindings = array_merge($textMatchBindings, ['%'.$word.'%', '%'.$word.'%', '%'.$word.'%']);
+        }
+        $textMatchSql = implode(' AND ', $textMatchSql);
+
+        $baseQuery->where(function ($q) use ($textMatchSql, $textMatchBindings, $areaRadiusCenter) {
+            $q->whereRaw($textMatchSql, $textMatchBindings);
 
             if ($areaRadiusCenter) {
                 $q->orWhere(function ($qq) use ($areaRadiusCenter) {
@@ -3278,6 +3281,22 @@ public function cityCategoryArea($city, $categoryArea)
                 });
             }
         });
+
+        /*
+         * A listing that actually says "Jhotwara" in its own address is a
+         * better answer to "packers-and-movers-in-jhotwara" than one that
+         * only happens to sit within 5km of it — this used to sort purely
+         * by top_rank/id, so a radius-only match with a newer id/higher
+         * top_rank could outrank a genuine Jhotwara listing. Named matches
+         * now always come first; top_rank/id still decides ties within
+         * each group, same as before.
+         */
+        // Additive (addSelect under the hood) — withCount()/withAvg() above
+        // already put listings.* + their aggregate subqueries on this
+        // query, so this only appends the one new computed column.
+        $baseQuery
+            ->selectRaw('CASE WHEN '.$textMatchSql.' THEN 1 ELSE 0 END AS is_named_area_match', $textMatchBindings)
+            ->orderByDesc('is_named_area_match');
     }
 
     $listings = $baseQuery
