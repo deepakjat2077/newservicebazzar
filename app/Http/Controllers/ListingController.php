@@ -3237,27 +3237,44 @@ public function cityCategoryArea($city, $categoryArea)
         ->withCount('ratings')
         ->withAvg('ratings', 'ratings');
 
-    if ($areaRadiusCenter) {
-        // No listing's area/address/landmark text matched "$area" by name,
-        // but something in this category sits within 5km of the area's own
-        // geocoded location (checked above) — show those instead of a bare
-        // text match that would return nothing.
-        $baseQuery
-            ->whereNotNull('latitude')->whereNotNull('longitude')
-            ->where('latitude', '!=', 0)->where('longitude', '!=', 0)
-            ->whereRaw(
-                '(6371 * acos(cos(radians(?)) * cos(radians(listings.latitude)) * cos(radians(listings.longitude) - radians(?)) + sin(radians(?)) * sin(radians(listings.latitude)))) <= 5',
-                [$areaRadiusCenter['lat'], $areaRadiusCenter['lng'], $areaRadiusCenter['lat']]
-            );
-    } elseif (!empty($area)) {
+    if (!empty($area)) {
         $areaWords = array_filter(explode(' ', strtolower($area)));
 
-        $baseQuery->where(function ($q) use ($areaWords) {
-            foreach ($areaWords as $word) {
-                $q->where(function ($qq) use ($word) {
-                    $qq->whereRaw("LOWER(listings.area) LIKE ?", ['%' . $word . '%'])
-                       ->orWhereRaw("LOWER(listings.address) LIKE ?", ['%' . $word . '%'])
-                       ->orWhereRaw("LOWER(listings.landmark) LIKE ?", ['%' . $word . '%']);
+        /*
+         * Geocode lazily if the "-in-" MISS branch above didn't already do
+         * it (that one only runs when the text match found literally
+         * nothing). Here the radius signal is wanted even when text DID
+         * find something: a listing whose address happens to mention this
+         * area's name by coincidence (e.g. "Hathoj ... near Jhotwara" —
+         * its own area is Hathoj, not Jhotwara) shouldn't be the only
+         * thing shown on /jaipur/packers-and-movers-in-jhotwara while a
+         * listing that's genuinely nearby but never typed "Jhotwara" gets
+         * left out. Combined with OR below: either signal is enough.
+         */
+        if (!$areaRadiusCenter) {
+            $areaRadiusCenter = app(SiteController::class)
+                ->lookupCoordinates(trim($area).', '.$locationData->name);
+        }
+
+        $baseQuery->where(function ($q) use ($areaWords, $areaRadiusCenter) {
+            $q->where(function ($qq) use ($areaWords) {
+                foreach ($areaWords as $word) {
+                    $qq->where(function ($qqq) use ($word) {
+                        $qqq->whereRaw("LOWER(listings.area) LIKE ?", ['%' . $word . '%'])
+                            ->orWhereRaw("LOWER(listings.address) LIKE ?", ['%' . $word . '%'])
+                            ->orWhereRaw("LOWER(listings.landmark) LIKE ?", ['%' . $word . '%']);
+                    });
+                }
+            });
+
+            if ($areaRadiusCenter) {
+                $q->orWhere(function ($qq) use ($areaRadiusCenter) {
+                    $qq->whereNotNull('latitude')->whereNotNull('longitude')
+                       ->where('latitude', '!=', 0)->where('longitude', '!=', 0)
+                       ->whereRaw(
+                           '(6371 * acos(cos(radians(?)) * cos(radians(listings.latitude)) * cos(radians(listings.longitude) - radians(?)) + sin(radians(?)) * sin(radians(listings.latitude)))) <= 5',
+                           [$areaRadiusCenter['lat'], $areaRadiusCenter['lng'], $areaRadiusCenter['lat']]
+                       );
                 });
             }
         });
