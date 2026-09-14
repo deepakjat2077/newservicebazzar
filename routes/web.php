@@ -1083,6 +1083,25 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/free-listing', 'SiteController@freelisting')->name('free.listing');
     Route::post('/free-listing-store', 'SiteController@freeListingStore')->middleware('throttle:10,1')->name('free.listing.store');
 
+    // Same Gemini-backed content generator the admin "Add Listing" form
+    // uses for Meta Title/Keywords/Description + Listing Details — reused
+    // here so a listing self-submitted from /free-listing gets exactly the
+    // same auto-filled content, under the same conditions (name + city +
+    // category present), instead of duplicating that logic. This route
+    // exists only because Admin\ListingController::aiGenerate() otherwise
+    // sits behind the 'admin' guard: a regular signed-in website user is
+    // never an admin, so listing_form.blade.php's fetch to that route used
+    // to get silently redirected to the admin login page instead of JSON —
+    // response.ok still read true after the redirect completed, but
+    // response.json() then threw on the login page's HTML, which the catch
+    // block swallowed, leaving every meta/details field blank. 'auth' (the
+    // default 'web' guard, same one freelisting() itself requires) plus a
+    // throttle keeps this from being hit by a logged-out script while still
+    // costing nothing extra to reuse the identical controller method.
+    Route::post('/free-listing-ai-generate', [\App\Http\Controllers\Admin\ListingController::class, 'aiGenerate'])
+        ->middleware(['auth', 'throttle:15,1'])
+        ->name('free.listing.ai.generate');
+
 
     /*
     |--------------------------------------------------------------------------

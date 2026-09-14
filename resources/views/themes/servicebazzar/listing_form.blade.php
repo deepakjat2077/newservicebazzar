@@ -3200,7 +3200,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const response = await fetch(
-                "{{ route('admin.listing.ai.generate') }}",
+                "{{ route('free.listing.ai.generate') }}",
                 {
                     method: 'POST',
                     headers: {
