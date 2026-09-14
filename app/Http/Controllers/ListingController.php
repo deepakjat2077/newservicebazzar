@@ -3229,6 +3229,51 @@ public function cityCategoryArea($city, $categoryArea)
                                     $areaRadiusCenter = $areaCoords;
                                 }
                             }
+
+                            /*
+                             * Still nothing for THIS category — either
+                             * geocoding the area failed outright (no
+                             * LocationIQ/Google key configured and
+                             * Nominatim didn't recognise a small locality
+                             * like "Morija"), or geocoding worked but
+                             * nothing in this category sits within 5km.
+                             * Neither means the area itself is fake: other
+                             * categories' listings already carry this
+                             * exact area name (checked with no category
+                             * filter at all), so a real visitor picked a
+                             * real locality — this category just hasn't
+                             * been listed there yet. Render the normal
+                             * page instead of a 404; $baseQuery below will
+                             * naturally return zero rows for it, which is
+                             * exactly what the "🚀 Coming Soon" empty
+                             * state in ajax-listings.blade.php is for
+                             * (see e.g. /sikar/packers-and-movers). An
+                             * invented area that no listing anywhere has
+                             * ever used still 404s below — this check is
+                             * what tells the two apart.
+                             */
+                            if (!$category && !$subcategory) {
+                                $areaIsReal = Listing::where('status', 1)
+                                    ->where(function ($q) use ($areaLocation) {
+                                        $q->where('location_id', $areaLocation->id)
+                                          ->orWhereRaw('LOWER(city) = ?', [strtolower($areaLocation->name)]);
+                                    })
+                                    ->where(function ($q) use ($areaWords) {
+                                        foreach ($areaWords as $word) {
+                                            $q->where(function ($qq) use ($word) {
+                                                $qq->whereRaw('LOWER(listings.area) LIKE ?', ['%' . $word . '%'])
+                                                   ->orWhereRaw('LOWER(listings.address) LIKE ?', ['%' . $word . '%'])
+                                                   ->orWhereRaw('LOWER(listings.landmark) LIKE ?', ['%' . $word . '%']);
+                                            });
+                                        }
+                                    })
+                                    ->exists();
+
+                                if ($areaIsReal) {
+                                    $category = $areaCategory;
+                                    $subcategory = $areaSubcategory;
+                                }
+                            }
                         }
                     }
                 }
