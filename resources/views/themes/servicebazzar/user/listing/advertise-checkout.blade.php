@@ -141,6 +141,7 @@
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
 <style>
 .sbco-wrap{background:#f4f6fb;padding:24px 0 64px;min-height:70vh;}
@@ -205,80 +206,129 @@ document.addEventListener('DOMContentLoaded', function() {
         var selectedMethod = form.querySelector('input[name="method"]:checked');
         var methodLabel = selectedMethod ? selectedMethod.closest('.sbco-method').querySelector('.sbco-method-text strong').textContent : '';
 
-        // Check if RazorPay is selected
-        if (methodLabel.includes('RazorPay') || methodLabel.includes('Razorpay')) {
-            e.preventDefault();
+        var isRazorpay = methodLabel.includes('RazorPay') || methodLabel.includes('Razorpay');
+        var isCashfree = methodLabel.includes('Cashfree') || methodLabel.includes('CashFree');
 
-            // Show loading state
-            var payButton = form.querySelector('.sbco-pay');
-            var originalText = payButton.innerHTML;
-            payButton.disabled = true;
-            payButton.innerHTML = '<i class="las la-spinner la-spin"></i> Processing...';
-
-            // Submit via AJAX
-            var formData = new FormData(form);
-
-            fetch('{{ route("user.deposit.submit") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.payment) {
-                    // Open Razorpay modal with payment data
-                    var options = {
-                        key: data.payment.key,
-                        amount: data.payment.amount,
-                        currency: data.payment.currency,
-                        order_id: data.payment.order_id,
-                        name: data.payment.user_name,
-                        description: '{{ $package->name }} Package',
-                        image: '{{ asset("assets/images/logo/logo.png") }}',
-                        prefill: {
-                            name: data.payment.user_name,
-                            email: data.payment.user_email,
-                            contact: data.payment.user_phone
-                        },
-                        theme: {
-                            color: '#1a73e8'
-                        },
-                        handler: function(response) {
-                            // Submit payment to IPN handler
-                            var ipnForm = document.getElementById('razorpay_form_inline');
-                            ipnForm.querySelector('#razorpay_payment_id_inline').value = response.razorpay_payment_id;
-                            ipnForm.querySelector('#razorpay_order_id_inline').value = response.razorpay_order_id;
-                            ipnForm.querySelector('#razorpay_signature_inline').value = response.razorpay_signature;
-                            ipnForm.action = '{{ route("ipn.razorpay") }}';
-                            ipnForm.submit();
-                        },
-                        modal: {
-                            ondismiss: function() {
-                                // Restore button on cancel
-                                payButton.disabled = false;
-                                payButton.innerHTML = originalText;
-                            }
-                        }
-                    };
-
-                    var rzp = new Razorpay(options);
-                    rzp.open();
-                } else {
-                    alert(data.error || 'Error processing payment. Please try again.');
-                    payButton.disabled = false;
-                    payButton.innerHTML = originalText;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error processing payment. Please try again.');
-                payButton.disabled = false;
-                payButton.innerHTML = originalText;
-            });
+        // Neither gateway's modal — submit the form normally (this is also
+        // where a manual/offline method still ends up going through
+        // /user/deposit/confirm as before).
+        if (!isRazorpay && !isCashfree) {
+            return;
         }
-        // For other payment methods, submit normally
+
+        e.preventDefault();
+
+        var payButton = form.querySelector('.sbco-pay');
+        var originalText = payButton.innerHTML;
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="las la-spinner la-spin"></i> Processing...';
+
+        function restoreButton() {
+            payButton.disabled = false;
+            payButton.innerHTML = originalText;
+        }
+
+        var formData = new FormData(form);
+
+        fetch('{{ route("user.deposit.submit") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.error || 'Error processing payment. Please try again.');
+                restoreButton();
+                return;
+            }
+
+            if (isRazorpay && data.payment) {
+                // Open Razorpay modal with payment data
+                var options = {
+                    key: data.payment.key,
+                    amount: data.payment.amount,
+                    currency: data.payment.currency,
+                    order_id: data.payment.order_id,
+                    name: data.payment.user_name,
+                    description: '{{ $package->name }} Package',
+                    image: '{{ asset("assets/images/logo/logo.png") }}',
+                    prefill: {
+                        name: data.payment.user_name,
+                        email: data.payment.user_email,
+                        contact: data.payment.user_phone
+                    },
+                    theme: {
+                        color: '#1a73e8'
+                    },
+                    handler: function(response) {
+                        // Submit payment to IPN handler
+                        var ipnForm = document.getElementById('razorpay_form_inline');
+                        ipnForm.querySelector('#razorpay_payment_id_inline').value = response.razorpay_payment_id;
+                        ipnForm.querySelector('#razorpay_order_id_inline').value = response.razorpay_order_id;
+                        ipnForm.querySelector('#razorpay_signature_inline').value = response.razorpay_signature;
+                        ipnForm.action = '{{ route("ipn.razorpay") }}';
+                        ipnForm.submit();
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            // Restore button on cancel
+                            restoreButton();
+                        }
+                    }
+                };
+
+                var rzp = new Razorpay(options);
+                rzp.open();
+                return;
+            }
+
+            if (isCashfree && data.cashfree) {
+                var cf = data.cashfree;
+                var cashfree = Cashfree({ mode: cf.mode }); // "sandbox" or "production"
+
+                /*
+                 * "_modal" keeps the buyer on this checkout page — Cashfree's
+                 * own checkout (cards/UPI/netbanking/wallets/EMI) opens as an
+                 * overlay instead of navigating away to their domain, the
+                 * same on-page feel the Razorpay branch above has.
+                 */
+                cashfree.checkout({
+                    paymentSessionId: cf.payment_session_id,
+                    redirectTarget: '_modal'
+                }).then(function (result) {
+                    if (result.paymentDetails) {
+                        /*
+                         * An attempt finished (success OR failure — Cashfree
+                         * does not say which here). Never trust that alone:
+                         * send the browser to ipn/cashfree, which re-fetches
+                         * the order from Cashfree server-to-server with the
+                         * secret key and only then marks it paid.
+                         */
+                        window.location.href = cf.ipn_url + '?order_id=' + encodeURIComponent(cf.order_id);
+                        return;
+                    }
+
+                    if (result.error) {
+                        // Buyer closed the modal before paying.
+                        console.log(result.error);
+                    }
+
+                    restoreButton();
+                });
+                return;
+            }
+
+            alert('Error processing payment. Please try again.');
+            restoreButton();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error processing payment. Please try again.');
+            restoreButton();
+        });
     });
 });
 </script>

@@ -79,7 +79,13 @@ class DepositController extends Controller
 
     	session()->put('transaction',$trx_number);
 
-    	// For AJAX requests from checkout page, return JSON with Razorpay details
+    	// For AJAX requests from the checkout page, return the gateway's own
+    	// order details so its JS SDK can open its modal right there on that
+    	// page — the same reason the Razorpay branch below exists at all.
+    	// Without this, a gateway just falls through to the plain redirect at
+    	// the bottom of this method, which is fine on its own but takes the
+    	// buyer to a separate /user/deposit/confirm page instead of staying
+    	// on the checkout page they were already looking at.
     	if ($request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
     		// Create Razorpay order for checkout modal
     		if ($method->paymentMethod->act === 'razorpay') {
@@ -114,6 +120,24 @@ class DepositController extends Controller
     			} catch (\Exception $e) {
     				return response()->json(['success' => false, 'error' => 'Failed to create order'], 500);
     			}
+    		}
+
+    		// Create Cashfree order for the checkout page's own modal — reuses
+    		// PaymentGateway::cashfree() (the same one depositConfirm() calls
+    		// for a non-AJAX submit) so the order-creation logic lives in one
+    		// place. $method here is a MethodCurrency row, matching that
+    		// trait method's ($payment, $methodCurrency, $paymentMethod) shape.
+    		if ($method->paymentMethod->act === 'cashfree') {
+    			$result = $this->cashfree($payment, $method, $method->paymentMethod);
+
+    			if (!empty($result['error'])) {
+    				return response()->json(['success' => false, 'error' => $result['error']], 500);
+    			}
+
+    			return response()->json([
+    				'success' => true,
+    				'cashfree' => $result['value'],
+    			]);
     		}
     	}
 
