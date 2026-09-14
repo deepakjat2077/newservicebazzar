@@ -12,17 +12,21 @@ class ListingClicksExport implements WithMultipleSheets
 {
     protected ?Carbon $startDate;
     protected ?Carbon $endDate;
+    protected ?string $type;
 
     /**
-     * Both null means "no date filter, export everything" — the caller
-     * (EnquiryController::resolveClickDateRange) already resolved whichever
-     * of Select Month / Date Range / Year Range the admin picked into this
-     * one UTC range, so this class only ever needs to know the two ends.
+     * $startDate/$endDate both null means "no date filter, export
+     * everything" — the caller (EnquiryController::resolveClickDateRange)
+     * already resolved whichever of Select Month / Date Range the admin
+     * picked into this one UTC range, so this class only ever needs to know
+     * the two ends. $type (call/whatsapp/enquiry) mirrors the page's own
+     * All/Call/WhatsApp/Enquiry switch — null exports all three.
      */
-    public function __construct(?Carbon $startDate = null, ?Carbon $endDate = null)
+    public function __construct(?Carbon $startDate = null, ?Carbon $endDate = null, ?string $type = null)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->type = $type;
     }
 
     public function sheets(): array
@@ -461,6 +465,10 @@ class ListingClicksExport implements WithMultipleSheets
                 $this->startDate,
                 $this->endDate,
             ]);
+        }
+
+        if ($this->type) {
+            $query->where('type', $this->type);
         }
 
         return $query;

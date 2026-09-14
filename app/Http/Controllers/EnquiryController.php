@@ -206,6 +206,10 @@ public function exportEnquiries(Request $request)
 public function exportClicks(Request $request)
 {
     $request->validate([
+        'type' => [
+            'nullable',
+            Rule::in(['call', 'whatsapp', 'enquiry']),
+        ],
         'month' => [
             'nullable',
             'date_format:Y-m',
@@ -216,6 +220,12 @@ public function exportClicks(Request $request)
 
     [$startDate, $endDate, $fileLabel] = $this->resolveClickDateRange($request, true);
 
+    // Export button now sits alongside the All/Call/WhatsApp/Enquiry type
+    // switches, so it exports whichever one the admin currently has
+    // selected rather than always exporting everything.
+    $type = $request->filled('type') ? $request->type : null;
+    $fileLabel = $type ? $type . '-' . $fileLabel : $fileLabel;
+
     $fileName = 'listing-clicks-report-' .
         $fileLabel .
         '-' .
@@ -223,7 +233,7 @@ public function exportClicks(Request $request)
         '.xlsx';
 
     return Excel::download(
-        new ListingClicksExport($startDate, $endDate),
+        new ListingClicksExport($startDate, $endDate, $type),
         $fileName
     );
 }

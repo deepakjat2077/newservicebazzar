@@ -46,8 +46,18 @@
                 </a>
 
                 <a href="{{ route('admin.enquiry.clicks', array_filter(array_merge($activeDateParams, ['type' => 'enquiry']))) }}"
-                   class="btn btn-warning btn-sm mb-2 {{ request('type') == 'enquiry' ? 'active' : '' }}">
+                   class="btn btn-warning btn-sm mr-2 mb-2 {{ request('type') == 'enquiry' ? 'active' : '' }}">
                     Enquiry ({{ $enquiryCount }})
+                </a>
+
+                {{-- Moved up here, alongside All/Call/WhatsApp/Enquiry, out
+                     of the filter form below — carries the same type + date
+                     filter params as those buttons so the export always
+                     matches whatever the admin is currently looking at. --}}
+                <a href="{{ route('admin.enquiry.clicks.export', array_filter(array_merge($activeDateParams, ['type' => request('type')]))) }}"
+                   class="btn btn-success btn-sm mb-2">
+                    <i class="fas fa-file-excel"></i>
+                    Export Excel
                 </a>
 
             </div>
@@ -119,11 +129,13 @@
 
             {{--
                 Its own full-width row, not squeezed beside Month/Date Range
-                — three buttons ("Apply Filter", "Reset", "Export Excel")
-                never fit in a partial column at most screen widths, which
-                is why they were wrapping onto separate lines. flex-nowrap
-                keeps them on one line always; on a very narrow screen the
-                row scrolls horizontally rather than stacking.
+                — two buttons still wrapped onto separate lines in a partial
+                column at most screen widths. flex-nowrap keeps them on one
+                line always; on a very narrow screen the row scrolls
+                horizontally rather than stacking. Export Excel moved up to
+                the All/Call/WhatsApp/Enquiry row above — it belongs with
+                the other buttons that read the data, not the ones that
+                change the filter.
             --}}
             <div class="col-12 mb-2">
                 <div class="d-flex flex-nowrap overflow-auto">
@@ -134,17 +146,9 @@
                     </button>
 
                     <a href="{{ route('admin.enquiry.clicks') }}"
-                       class="btn btn-secondary text-nowrap mr-2">
+                       class="btn btn-secondary text-nowrap">
                         <i class="fas fa-sync-alt"></i>
                         Reset
-                    </a>
-
-                    <a href="{{ route('admin.enquiry.clicks.export', array_filter(request()->only([
-        'month', 'date_from', 'date_to',
-    ]))) }}"
-                       class="btn btn-success text-nowrap">
-                        <i class="fas fa-file-excel"></i>
-                        Export Excel
                     </a>
                 </div>
             </div>
