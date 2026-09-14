@@ -5,6 +5,8 @@ namespace App\Http\Traits;
 use App\Http\Libs\PayTM;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Razorpay\Api\Api;
 
 trait PaymentGateway{
@@ -248,6 +250,72 @@ trait PaymentGateway{
 		return $data;
 	}
 
+
+	/**
+	 * Cashfree — Orders API + their hosted Checkout page.
+	 *
+	 * Unlike Razorpay (a JS modal we drive ourselves), Cashfree's own
+	 * checkout page already renders every payment method (cards, UPI,
+	 * netbanking, wallets, EMI) the way it does on their merchant demo and
+	 * on sites like JustDial — so there is no custom payment-method UI to
+	 * build here, only an Order to create and a session id to hand to their
+	 * SDK. See user.payment.cashfree for the redirect step, and
+	 * GatewayIpn::cashfreeIpn() for how the return is verified.
+	 */
+	public function cashfree($payment, $methodCurrency, $method){
+		$credentials = $method->setting;
+		$mode = strtoupper($credentials->mode ?? 'TEST');
+		$baseUrl = $mode === 'PROD'
+			? 'https://api.cashfree.com/pg'
+			: 'https://sandbox.cashfree.com/pg';
+
+		$user = Auth::user();
+
+		$response = Http::withHeaders([
+			'x-client-id' => $credentials->app_id,
+			'x-client-secret' => $credentials->secret_key,
+			'x-api-version' => '2023-08-01',
+			'Content-Type' => 'application/json',
+		])->post($baseUrl.'/orders', [
+			'order_id' => $payment->trx_number,
+			'order_amount' => round($payment->after_convert, 2),
+			'order_currency' => $methodCurrency->currency,
+			'customer_details' => [
+				// Cashfree requires a customer_id even though the checkout
+				// itself takes the payer's own card/UPI/bank details — this
+				// is only our internal reference, not shown to the payer.
+				'customer_id' => 'user_'.$payment->user_id,
+				'customer_name' => $user->fullname() ?: $user->username,
+				'customer_email' => $user->email ?: 'no-email@'.request()->getHost(),
+				'customer_phone' => \App\Support\MobileNumber::national($user->mobile ?: '9999999999'),
+			],
+			'order_meta' => [
+				// {order_id} is a Cashfree template token they substitute
+				// themselves — not Laravel/Blade interpolation.
+				'return_url' => route('ipn.cashfree').'?order_id={order_id}',
+			],
+		]);
+
+		if (!$response->successful() || !$response->json('payment_session_id')) {
+			Log::error('Cashfree order creation failed', [
+				'trx' => $payment->trx_number,
+				'status' => $response->status(),
+				'body' => $response->body(),
+			]);
+
+			return ['error' => 'Could not start the Cashfree payment. Please try again.'];
+		}
+
+		return [
+			'redirect' => false,
+			'view' => 'user.payment.cashfree',
+			'value' => [
+				'payment_session_id' => $response->json('payment_session_id'),
+				'mode' => $mode === 'PROD' ? 'production' : 'sandbox',
+				'amount' => round($payment->after_convert, 2),
+			],
+		];
+	}
 
 	//Manual gateway
 	public function manualGateway($payment, $methodCurrency, $method){

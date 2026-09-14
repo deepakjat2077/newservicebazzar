@@ -912,6 +912,11 @@ Route::post('/set-location-session', function (Illuminate\Http\Request $request)
     Route::post('ipn/paystack', 'DepositController@paystackIpn')->name('ipn.paystack');
     Route::post('ipn/instamojo', 'DepositController@instamojoIpn')->name('ipn.instamojo');
     Route::post('ipn/razorpay', 'DepositController@razorpayIpn')->name('ipn.razorpay');
+    // GET: Cashfree's hosted checkout returns the browser here via a plain
+    // redirect (not a JS-driven form POST like Razorpay's modal), carrying
+    // only ?order_id — cashfreeIpn() re-verifies that server-to-server
+    // before trusting it.
+    Route::get('ipn/cashfree', 'DepositController@cashfreeIpn')->name('ipn.cashfree');
     Route::post('ipn/vougepay', 'DepositController@vougepayIpn')->name('ipn.vougepay');
     Route::post('ipn/manual', 'DepositController@manualIpn')->name('ipn.manual');
 

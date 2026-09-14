@@ -8,6 +8,8 @@ use App\Models\PaymentMethod;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Stripe\Charge;
 use Stripe\Stripe;
 use Stripe\Token;
@@ -418,6 +420,57 @@ trait GatewayIpn{
             }
         } else {
             $alert = ['danger', "Invalid Request - Signature mismatch"];
+        }
+
+        return redirect()->route($this->redirect())->withAlert($alert);
+    }
+
+    /**
+     * Cashfree return — the browser lands here after their hosted checkout,
+     * carrying only ?order_id (our own trx_number; Cashfree substituted it
+     * into the return_url template). That query param is not signed and
+     * came straight from the payer's browser, so it is never trusted by
+     * itself: this fetches the order back from Cashfree server-to-server
+     * with our secret key and only marks the payment successful if THAT
+     * response says order_status is PAID.
+     */
+    public function cashfreeIpn(Request $request){
+        $orderId = $request->query('order_id') ?: $request->input('order_id');
+
+        $data = $orderId ? Payment::where('trx_number', $orderId)->orderBy('id', 'DESC')->first() : null;
+
+        if (!$data) {
+            $alert = ['danger', 'Invalid Request'];
+            return redirect()->route($this->redirect())->withAlert($alert);
+        }
+
+        $method_currency = $data->method_currency;
+        $method = $method_currency->paymentMethod;
+        $credentials = $method->setting;
+        $mode = strtoupper($credentials->mode ?? 'TEST');
+        $baseUrl = $mode === 'PROD'
+            ? 'https://api.cashfree.com/pg'
+            : 'https://sandbox.cashfree.com/pg';
+
+        $response = Http::withHeaders([
+            'x-client-id' => $credentials->app_id,
+            'x-client-secret' => $credentials->secret_key,
+            'x-api-version' => '2023-08-01',
+        ])->get($baseUrl.'/orders/'.$orderId);
+
+        if ($response->successful() && $response->json('order_status') === 'PAID') {
+            if ((int) $data->status === 0) {
+                $this->paymentSuccess($data);
+                $alert = ['success', 'Transaction successful'];
+            } else {
+                $alert = ['success', 'Payment already processed'];
+            }
+        } else {
+            Log::info('Cashfree order not paid on return', [
+                'trx' => $orderId,
+                'status' => $response->json('order_status'),
+            ]);
+            $alert = ['danger', 'Payment not completed'];
         }
 
         return redirect()->route($this->redirect())->withAlert($alert);
