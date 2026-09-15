@@ -2240,7 +2240,7 @@ if (formScrollBox && window.innerWidth >= 992) {
     </style>
     <script>
         const categories = @json($categories);
-        const subcategories = @json($subcategories);
+        let subcategories = [];  // Will be populated via AJAX when category is selected
 
         let selectedCategory = null;
         let selectedSubcategories = [];
@@ -2301,8 +2301,20 @@ if (formScrollBox && window.innerWidth >= 992) {
                 categorySearchResults.style.display = 'none';
 
                 renderSelectedCategory();
-               
                 renderHiddenInputs();
+
+                // Fetch subcategories for this category via AJAX
+                // (instead of loading all 700+ subcategories inline on page load)
+                fetch(`/admin/subcategories/by-category/${id}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        subcategories = data;
+                        // Re-render any subcategory suggestions if they exist
+                        if (typeof renderSuggestedSubcategories === 'function') {
+                            renderSuggestedSubcategories();
+                        }
+                    })
+                    .catch(err => console.error('Failed to load subcategories:', err));
             }
 
             if (e.target.classList.contains('suggested-tag')) {

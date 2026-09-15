@@ -2428,7 +2428,11 @@ public function linkDetails($slug)
     $categories = Category::where('status', 1)->get();
     $locations  = activeLocations();
 
-    $subcategories = Subcategory::where('status', 1)->get();
+    // Don't load subcategories here — they're 700+ rows now (after bulk-adding
+    // 279 jewellery + 162 travel + 176 CA + 115 mehndi). Loading them inline
+    // as @json($subcategories) balloons the page to 50KB+ of JSON, slowing
+    // initial page load and JS parsing. Instead, they'll be fetched via AJAX
+    // when the user selects a category (see listing_form.blade.php line ~2350).
 
     // Logged-in with at least one business already: land on "Select Your
     // Business" instead of straight into the form, so re-visiting this page
@@ -2438,7 +2442,7 @@ public function linkDetails($slug)
         : collect();
 
     return view($this->theme.'listing_form',
-        compact('categories','locations','subcategories','existingListings')
+        compact('categories','locations','existingListings')
     );
 }
 
