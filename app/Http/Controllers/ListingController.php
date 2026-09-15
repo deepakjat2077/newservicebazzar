@@ -2105,7 +2105,9 @@ public function updatesection(Request $request, $id)
 
         $request->validate([
             'images' => 'required|array',
-            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+            // Image type/mime validation removed per user request — allowing any file type.
+            // Size limit (5MB) remains for security.
+            'images.*' => 'max:5120',
         ]);
 
         $this->addExtraImage($request, $listing);
