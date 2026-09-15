@@ -16,17 +16,12 @@ return [
     |
     */
 
-    // GD's WebP encoder is measurably slower than Imagick's for the same
-    // quality target — benchmarked on this server against a real 5712x4284
-    // phone photo (decode + scaleDown(2000) + WebP@82, matching
-    // App\Support\Images\WebpImage exactly): GD averaged 4.77s, Imagick
-    // 1.92s, roughly 2.5x. Every image an admin uploads on "Add Listing"
-    // (thumb + each of the gallery photos, one at a time — see
-    // WebpImage::store()) runs this exact conversion synchronously before
-    // the save can complete, so on a listing with several large photos this
-    // was a large share of "the page just sits there." Imagick is
-    // confirmed present and enabled on both app servers (php -m).
-    'driver' => \Intervention\Image\Drivers\Imagick\Driver::class,
+    // Switched back to GD from Imagick due to image corruption on
+    // business-photos gallery uploads. While Imagick is ~2.5x faster
+    // at WebP encoding (1.92s vs 4.77s), it was causing corrupted
+    // image files in the user upload path. GD is slower but produces
+    // valid images. TODO: investigate Imagick corruption root cause.
+    'driver' => \Intervention\Image\Drivers\Gd\Driver::class,
 
     /*
     |--------------------------------------------------------------------------
