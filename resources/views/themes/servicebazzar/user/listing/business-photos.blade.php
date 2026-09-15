@@ -33,7 +33,7 @@
         <div class="sb-gallery-actions">
             <form action="{{ route('user.listing.business-photos.upload', $listing->id) }}" method="post" enctype="multipart/form-data" id="sbUploadPhotosForm">
                 @csrf
-                <label class="sb-gallery-tile">
+                <label class="sb-gallery-tile" id="sbUploadPhotosBtn">
                     <input type="file" name="images[]" id="sbPhotosInput" accept="image/*" multiple hidden>
                     <i class="fas fa-camera"></i>
                     <span>Upload Photos</span>
@@ -293,8 +293,73 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 
     var photosInput = document.getElementById('sbPhotosInput');
+    var uploadForm  = document.getElementById('sbUploadPhotosForm');
+
+    // Shrink each picked photo in the browser BEFORE uploading. Phone cameras
+    // produce 5-12MB images; sending those raw over mobile data is what made
+    // uploads slow. Downscaling the longest side to 1600px and re-encoding as
+    // JPEG@0.85 typically drops a photo to 200-500KB — several times faster to
+    // upload and less for the server to convert — with no visible quality loss
+    // at gallery size. Anything we can't decode (odd format, decode error) is
+    // sent as-is, so nothing is ever blocked from uploading.
+    var SB_MAX_SIDE = 1600;
+    var SB_JPEG_QUALITY = 0.85;
+
+    function sbCompressImage(file){
+        return new Promise(function(resolve){
+            // Only bother with raster images that are actually large.
+            if (!file.type || file.type.indexOf('image/') !== 0
+                || file.type === 'image/gif' || file.size < 600 * 1024){
+                return resolve(file);
+            }
+            var url = URL.createObjectURL(file);
+            var img = new Image();
+            img.onload = function(){
+                URL.revokeObjectURL(url);
+                var w = img.naturalWidth, h = img.naturalHeight;
+                if (!w || !h){ return resolve(file); }
+                if (w <= SB_MAX_SIDE && h <= SB_MAX_SIDE && file.size < 1024 * 1024){
+                    return resolve(file); // already small enough
+                }
+                var scale = Math.min(1, SB_MAX_SIDE / Math.max(w, h));
+                var cw = Math.round(w * scale), ch = Math.round(h * scale);
+                try {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = cw; canvas.height = ch;
+                    canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+                    canvas.toBlob(function(blob){
+                        if (!blob || blob.size >= file.size){ return resolve(file); }
+                        var newName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+                        resolve(new File([blob], newName, { type: 'image/jpeg', lastModified: Date.now() }));
+                    }, 'image/jpeg', SB_JPEG_QUALITY);
+                } catch (e){ resolve(file); }
+            };
+            img.onerror = function(){ URL.revokeObjectURL(url); resolve(file); };
+            img.src = url;
+        });
+    }
+
     photosInput.addEventListener('change', function(){
-        if (photosInput.files.length) document.getElementById('sbUploadPhotosForm').submit();
+        if (!photosInput.files.length) return;
+
+        var uploadBtn = document.getElementById('sbUploadPhotosBtn');
+        if (uploadBtn){ uploadBtn.style.pointerEvents = 'none'; uploadBtn.style.opacity = '0.6'; }
+        var label = uploadBtn ? uploadBtn.querySelector('span') : null;
+        var originalLabel = label ? label.textContent : '';
+        if (label){ label.textContent = 'Preparing…'; }
+
+        var jobs = Array.prototype.map.call(photosInput.files, sbCompressImage);
+        Promise.all(jobs).then(function(files){
+            var dt = new DataTransfer();
+            files.forEach(function(f){ dt.items.add(f); });
+            photosInput.files = dt.files;
+            if (label){ label.textContent = 'Uploading…'; }
+            uploadForm.submit();
+        }).catch(function(){
+            if (label){ label.textContent = originalLabel; }
+            if (uploadBtn){ uploadBtn.style.pointerEvents = ''; uploadBtn.style.opacity = ''; }
+            uploadForm.submit(); // never block the upload on a compression error
+        });
     });
 
     document.querySelectorAll('[data-photo-menu]').forEach(function(btn){
