@@ -2105,9 +2105,8 @@ public function updatesection(Request $request, $id)
 
         $request->validate([
             'images' => 'required|array',
-            // Image type/mime validation removed per user request — allowing any file type.
-            // Size limit (5MB) remains for security.
-            'images.*' => 'max:5120',
+            // Validation relaxed — still checks it's an image but accepts various formats
+            'images.*' => 'image|max:5120',
         ]);
 
         $this->addExtraImage($request, $listing);
@@ -2948,25 +2947,18 @@ public function verifyReviewOtp(Request $request)
 
     protected function addExtraImage($request,$listing){
         if ($request->images) {
-            foreach ($request->images as $key => $file) {
+            foreach ($request->images as $key => $image) {
                 try {
-                    $imageName = null;
+                    $imageData = [
+                        'file'=>$image,
+                        'path'=>'assets/images/listing/extra/',
+                        'size'=>'730x484',
+                        'prevFile'=>null,
+                    ];
+                    $imageName = $this->uploadFile('image',$imageData);
 
-                    // Only process as image (with resize) if it's actually an image file
-                    $mimeType = $file->getMimeType();
-                    if (str_starts_with($mimeType, 'image/')) {
-                        $imageData = [
-                            'file' => $file,
-                            'path' => 'assets/images/listing/extra/',
-                            'size' => '730x484',
-                            'prevFile' => null,
-                        ];
-                        $imageName = $this->uploadFile('image', $imageData);
-                    } else {
-                        // For non-image files, just store them as-is without processing
-                        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                        $file->move(public_path('assets/images/listing/extra/'), $fileName);
-                        $imageName = 'assets/images/listing/extra/' . $fileName;
+                    if (!$imageName) {
+                        throw new Exception('Failed to process image');
                     }
 
                     $extraImage = new ExtraImage();
@@ -2974,9 +2966,8 @@ public function verifyReviewOtp(Request $request)
                     $extraImage->image = $imageName;
                     $extraImage->save();
                 } catch (Exception $e) {
-                    \Log::error('Extra image upload failed: ' . $e->getMessage());
-                    $alert = ['danger', 'Failed to upload file: ' . $e->getMessage()];
-                    return back()->withAlert($alert);
+                    \Log::error('Extra image upload failed: ' . $e->getMessage(), ['image' => $image->getClientOriginalName()]);
+                    return back()->withAlert(['danger', 'Image upload failed. Please try again.']);
                 }
             }
         }
