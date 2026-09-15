@@ -16,12 +16,15 @@ return [
     |
     */
 
-    // Switched back to GD from Imagick due to image corruption on
-    // business-photos gallery uploads. While Imagick is ~2.5x faster
-    // at WebP encoding (1.92s vs 4.77s), it was causing corrupted
-    // image files in the user upload path. GD is slower but produces
-    // valid images. TODO: investigate Imagick corruption root cause.
-    'driver' => \Intervention\Image\Drivers\Gd\Driver::class,
+    // Imagick is ~2.5x faster than GD at WebP encoding (1.92s vs 4.77s,
+    // benchmarked on a real 5712x4284 phone photo), which matters because
+    // every gallery photo runs this conversion synchronously on upload.
+    // NOTE: a brief switch back to GD was made when business-photos uploads
+    // looked "corrupted", but the real cause was a forced resize(730x484)
+    // that stretched images regardless of driver (fixed in
+    // ListingController::addExtraImage) — Imagick itself was producing valid
+    // files, so it's restored here for the speed.
+    'driver' => \Intervention\Image\Drivers\Imagick\Driver::class,
 
     /*
     |--------------------------------------------------------------------------

@@ -2949,10 +2949,16 @@ public function verifyReviewOtp(Request $request)
         if ($request->images) {
             foreach ($request->images as $key => $image) {
                 try {
+                    // No fixed 'size' here: WebpImage::store() with an exact
+                    // width x height calls resize(), which FORCES those exact
+                    // dimensions and stretches the image, ignoring aspect ratio.
+                    // A tall portrait photo/receipt was being squished into a
+                    // 730x484 landscape box, wrecking it. With no size given,
+                    // WebpImage uses scaleDown(MAX) instead — aspect ratio kept,
+                    // only oversized images shrunk, quality preserved.
                     $imageData = [
                         'file'=>$image,
                         'path'=>'assets/images/listing/extra/',
-                        'size'=>'730x484',
                         'prevFile'=>null,
                     ];
                     $imageName = $this->uploadFile('image',$imageData);
