@@ -180,6 +180,30 @@ AI will auto-generate:
                                     </div>
                                 </div>
                                 <small class="text-muted d-block mt-1">Select multiple to assign all at once</small>
+
+                                {{--
+                                    "All" against a category with hundreds of subcategories (289 here)
+                                    turns every one into a selected tag — checking each name one by one
+                                    by eye is impractical, and Select2's own type-to-search only searches
+                                    the closed dropdown's unselected options, not the tags already picked.
+                                    This box filters those already-selected tags directly, live, by name.
+                                --}}
+                                <input type="text" id="subcategorySearchBox" class="form-control form-control-sm mt-2"
+                                       placeholder="🔎 Search selected subcategories by name...">
+
+                                {{--
+                                    Many subcategories here are location-flavored programmatic-SEO
+                                    variants ("Affordable physiotherapy in Jaipur", "...in Chandigarh")
+                                    mixed in among generic ones (Acupuncture, Aerobics). This isolates
+                                    just the ones that carry any known location's name, without having
+                                    to type which city — useful for reviewing/cleaning those up as a set.
+                                --}}
+                                <div class="form-check mt-1">
+                                    <input type="checkbox" class="form-check-input" id="subcategoryLocationOnly">
+                                    <label class="form-check-label" for="subcategoryLocationOnly">
+                                        Show only location-named subcategories
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
                                 <button type="button" class="btn btn-primary btn-block" id="loadListingsBtn">
@@ -322,6 +346,51 @@ $(document).ready(function(){
     // Update count when location changes
     $('#filterLocation').on('change', function(){
         updateListingCount();
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Filter the already-SELECTED subcategory tags (not the closed dropdown's
+    | option list — Select2 already has its own search for that when you
+    | click into the box). Both filters combine: a tag must pass whichever
+    | of the two is active to stay visible.
+    |--------------------------------------------------------------------------
+    */
+    const knownLocationNames = @json($locations->pluck('name')->filter()->values());
+
+    function choiceLabel($choice) {
+        // The rendered tag is "<span class="select2-selection__choice__remove">×</span>Name" —
+        // strip the remove button before reading the text so it never matches user input.
+        return $choice.clone().children().remove().end().text().trim();
+    }
+
+    function isLocationNamed(name) {
+        const lower = name.toLowerCase();
+        return knownLocationNames.some(loc => loc && lower.includes(String(loc).toLowerCase()));
+    }
+
+    function applySubcategoryTagFilters() {
+        const term = $('#subcategorySearchBox').val().trim().toLowerCase();
+        const locationOnly = $('#subcategoryLocationOnly').is(':checked');
+
+        $('#assignSubcategory').next('.select2-container')
+            .find('.select2-selection__choice')
+            .each(function () {
+                const $choice = $(this);
+                const name = choiceLabel($choice);
+                const matchesSearch = !term || name.toLowerCase().includes(term);
+                const matchesLocation = !locationOnly || isLocationNamed(name);
+                $choice.toggle(matchesSearch && matchesLocation);
+            });
+    }
+
+    $('#subcategorySearchBox').on('input', applySubcategoryTagFilters);
+    $('#subcategoryLocationOnly').on('change', applySubcategoryTagFilters);
+
+    // Re-apply whenever the selection changes (e.g. after "All", or a fresh
+    // category load resets the tags) so a filter typed earlier keeps working.
+    $('#assignSubcategory').on('change', function () {
+        setTimeout(applySubcategoryTagFilters, 0);
     });
 
     // Select All button
