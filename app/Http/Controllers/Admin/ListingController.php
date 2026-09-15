@@ -2359,10 +2359,19 @@ public function usedSubcategories(Request $request)
             $query->where('location_id', $locationId);
         }
 
+        // 100 was cutting off every category above that size — Physiotherapists
+        // alone has 318 active listings, so a bulk assignment against it (or
+        // Car Hire at 273, Packers And Movers at 266, ...) silently only ever
+        // touched its first 100 by name, with no indication on screen that
+        // more existed. 1000 comfortably covers the largest category today
+        // with room to grow, while still bounding the one path here with no
+        // required filter (category_id/location_id are both optional server
+        // -side, even though the page's own "Load Listings" button won't fire
+        // without a category selected).
         $listings = $query->select('id', 'name', 'category_id', 'location_id', 'user_id', 'subcategory_ids')
             ->with(['category:id,name', 'location:id,name', 'user:id,username'])
             ->orderBy('name')
-            ->limit(100)
+            ->limit(1000)
             ->get()
             ->map(function($listing) {
                 return [
