@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\subcategory;
+use App\Models\Subcategory;
 
 /**
  * Writes seo_title / seo_keywords / seo_description for a subcategory.
@@ -189,7 +189,7 @@ PROMPT;
             return static::$examples;
         }
 
-        $rows = subcategory::whereNotNull('seo_keywords')
+        $rows = Subcategory::whereNotNull('seo_keywords')
             ->where('seo_keywords', '<>', '')
             ->whereNotNull('seo_description')
             ->where('seo_description', '<>', '')

@@ -421,6 +421,7 @@ public function quickStore(Request $request)
         $created = 0;
         $skipped = 0;
         $errors = [];
+        $createdIds = [];
 
         foreach ($names as $name) {
             // Check if already exists
@@ -432,8 +433,13 @@ public function quickStore(Request $request)
             }
 
             try {
-                // Generate SEO
-                $seo = $seoWriter->generate($name, $category->name);
+                // Fallback SEO only — deterministic, no network call. The AI
+                // version is generated afterwards by a queued job (see below).
+                // This is what stopped the whole submit from 504-ing: it used
+                // to call the Gemini API once per new name, synchronously, so a
+                // paste of a few hundred names ran ~1.2s x N well past PHP-FPM's
+                // 45s terminate timeout and Cloudflare's ~100s edge timeout.
+                $seo = $seoWriter->fallback($name, $category->name);
 
                 // Create subcategory
                 $slug = Str::slug($name);
@@ -446,7 +452,7 @@ public function quickStore(Request $request)
                     $count++;
                 }
 
-                Subcategory::create([
+                $subcategory = Subcategory::create([
                     'category_id' => $categoryId,
                     'name' => $name,
                     'slug' => $slug,
@@ -462,9 +468,20 @@ public function quickStore(Request $request)
                     'status' => 1,
                 ]);
 
+                $createdIds[] = $subcategory->id;
                 $created++;
             } catch (\Exception $e) {
                 $errors[] = "$name: " . $e->getMessage();
+            }
+        }
+
+        // Hand the AI SEO off to the queue, in small batches so each job
+        // finishes inside the worker's timeout. The rows already have valid
+        // fallback SEO, so nothing is broken while these run — the AI just
+        // upgrades the keywords/description shortly after.
+        if (!empty($createdIds) && $seoWriter->isConfigured()) {
+            foreach (array_chunk($createdIds, 25) as $chunk) {
+                \App\Jobs\BackfillSubcategorySeo::dispatch($chunk);
             }
         }
 
@@ -472,8 +489,11 @@ public function quickStore(Request $request)
         if ($skipped > 0) {
             $message .= ", $skipped skipped (already exist)";
         }
+        if (!empty($createdIds) && $seoWriter->isConfigured()) {
+            $message .= ". AI SEO is being generated in the background and will appear in a few minutes.";
+        }
         if (!empty($errors)) {
-            $message .= ", " . count($errors) . " errors";
+            $message .= " " . count($errors) . " errors.";
         }
 
         return back()
