@@ -6,13 +6,16 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
- * A landline number in the Indian STD-code shape.
+ * A landline number in the Indian STD-code shape, or a toll-free number.
  *
- * Unlike a mobile number, a landline carries a 2-4 digit STD/area code plus
- * a 6-8 digit local number, so it never starts 6-9 the way a mobile does and
- * its total length varies by city (e.g. 0141-2345678 for Jaipur is 4+7,
- * 011-23456789 for Delhi is 3+8). This only checks the shape a real Indian
- * landline can take, the same spirit as IndianMobile for mobiles.
+ * Standard landline: 2-4 digit STD/area code plus a 6-8 digit local number
+ * (e.g. 0141-2345678 for Jaipur is 4+7, 011-23456789 for Delhi is 3+8).
+ *
+ * Toll-free numbers: 1800 or 1860 prefix followed by 4+4 digit subscriber
+ * number (e.g. 1800-270-1280 is 4+4+4).
+ *
+ * This only checks the shape a real Indian landline or toll-free can take,
+ * the same spirit as IndianMobile for mobiles.
  */
 class IndianLandline implements ValidationRule
 {
@@ -29,23 +32,29 @@ class IndianLandline implements ValidationRule
             $digits = substr($digits, 1);
         }
 
-        // STD code (2-4 digits) + local number (6-8 digits) = 8-10 digits
-        // total once the trunk/country prefix is stripped.
-        if (strlen($digits) < 8 || strlen($digits) > 10) {
-            $fail('Please enter a valid Indian landline number (with STD code).');
-
-            return;
-        }
-
         if (!ctype_digit($digits)) {
-            $fail('Please enter a valid Indian landline number.');
+            $fail('Please enter a valid Indian landline or toll-free number.');
 
             return;
         }
 
-        // Every digit the same, or a straight keypad run — not a real line.
+        // Accept standard landlines (8-10 digits after stripping trunk/country code)
+        // OR toll-free numbers (11 digits: 1800/1860 + 8 more digits).
+        $isTollFree = str_starts_with($digits, '1800') || str_starts_with($digits, '1860');
+        $isStandardLandline = strlen($digits) >= 8 && strlen($digits) <= 10;
+
+        if (!$isTollFree && !$isStandardLandline) {
+            $msg = $isTollFree
+                ? 'Toll-free numbers must be 1800-XXXX-XXXX or 1860-XXXX-XXXX format.'
+                : 'Please enter a valid Indian landline number (with STD code).';
+            $fail($msg);
+
+            return;
+        }
+
+        // Every digit the same, or a straight keypad run — not a real number.
         if (preg_match('/^(\d)\1+$/', $digits) || $digits === substr('0123456789', 0, strlen($digits)) || $digits === substr('9876543210', 0, strlen($digits))) {
-            $fail('Please enter a real landline number.');
+            $fail('Please enter a real landline or toll-free number.');
         }
     }
 }
