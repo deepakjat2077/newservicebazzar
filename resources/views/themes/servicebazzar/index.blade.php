@@ -3695,6 +3695,31 @@ window.SB = {
 </section>
 
 <section class="featured pt-4 pb-4">
+    {{--
+        Slick FOUC guard: until slick.js runs and adds .slick-initialized, the
+        raw .listing-area cards stack full-width one under another — the big
+        stretched flash the user sees on load. Lay them out as a clipped 3-up
+        row (2-up on tablet, 1 on phone) beforehand so the pre-init state
+        already matches the finished slider instead of exploding vertically.
+    --}}
+    <style>
+        .featured-listing-slider:not(.slick-initialized){
+            display:flex; flex-wrap:nowrap; overflow:hidden; gap:16px;
+        }
+        .featured-listing-slider:not(.slick-initialized) > .listing-area{
+            flex:0 0 calc((100% - 32px) / 3); max-width:calc((100% - 32px) / 3);
+        }
+        @media (max-width:992px){
+            .featured-listing-slider:not(.slick-initialized) > .listing-area{
+                flex:0 0 calc((100% - 16px) / 2); max-width:calc((100% - 16px) / 2);
+            }
+        }
+        @media (max-width:576px){
+            .featured-listing-slider:not(.slick-initialized) > .listing-area{
+                flex:0 0 100%; max-width:100%;
+            }
+        }
+    </style>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
