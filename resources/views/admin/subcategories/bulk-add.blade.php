@@ -322,7 +322,10 @@ $(document).ready(function(){
             return;
         }
 
-        $.get('/admin/listings/count', {
+        // Route is admin/listing/count (singular) — the plural URL that used
+        // to be here 404'd on every category/location change, so the "X
+        // listings match your filters" alert never once showed on this page.
+        $.get('{{ route("admin.listing.count") }}', {
             category_id: categoryId,
             location_id: locationId
         }, function(data) {
