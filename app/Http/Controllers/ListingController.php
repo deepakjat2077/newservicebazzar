@@ -2948,23 +2948,36 @@ public function verifyReviewOtp(Request $request)
 
     protected function addExtraImage($request,$listing){
         if ($request->images) {
-            foreach ($request->images as $key => $image) {
+            foreach ($request->images as $key => $file) {
                 try {
-                    $imageData = [
-                        'file'=>$image,
-                        'path'=>'assets/images/listing/extra/',
-                        'size'=>'730x484',
-                        'prevFile'=>null,
-                    ];
-                    $image = $this->uploadFile('image',$imageData);
+                    $imageName = null;
+
+                    // Only process as image (with resize) if it's actually an image file
+                    $mimeType = $file->getMimeType();
+                    if (str_starts_with($mimeType, 'image/')) {
+                        $imageData = [
+                            'file' => $file,
+                            'path' => 'assets/images/listing/extra/',
+                            'size' => '730x484',
+                            'prevFile' => null,
+                        ];
+                        $imageName = $this->uploadFile('image', $imageData);
+                    } else {
+                        // For non-image files, just store them as-is without processing
+                        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(public_path('assets/images/listing/extra/'), $fileName);
+                        $imageName = 'assets/images/listing/extra/' . $fileName;
+                    }
+
+                    $extraImage = new ExtraImage();
+                    $extraImage->listing_id = $listing->id;
+                    $extraImage->image = $imageName;
+                    $extraImage->save();
                 } catch (Exception $e) {
-                    $alert = ['danger','Something wrong'];
+                    \Log::error('Extra image upload failed: ' . $e->getMessage());
+                    $alert = ['danger', 'Failed to upload file: ' . $e->getMessage()];
                     return back()->withAlert($alert);
                 }
-                $extraImage = new ExtraImage();
-                $extraImage->listing_id = $listing->id;
-                $extraImage->image = $image;
-                $extraImage->save();
             }
         }
     }
