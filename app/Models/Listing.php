@@ -318,6 +318,64 @@ public static function forgetSubcategoryLookup(): void
     }
 
     /**
+     * Deterministic meta keywords for a listing.
+     *
+     * 6-10 keywords, comma-separated, lowercase. First keyword is the name,
+     * then category, city/area, and generic service variants.
+     */
+    public static function buildMetaKeywords($name, $area, $city, $categoryName = null): string
+    {
+        $name = trim((string) $name);
+        $cat  = trim((string) ($categoryName ?? ''));
+        $area = trim((string) ($area ?? ''));
+        $city = trim((string) ($city ?? ''));
+
+        $kw = [
+            strtolower($name),
+            $cat !== '' ? strtolower($cat) : null,
+            $area !== '' ? strtolower($area) : null,
+            $city !== '' ? strtolower($city) : null,
+            strtolower($name) . ' near me',
+            'best ' . strtolower($name),
+            $cat !== '' ? strtolower($cat) . ' near me' : null,
+        ];
+
+        $clean = array_filter(array_map('trim', $kw));
+        $unique = array_unique($clean);
+        $final = array_slice($unique, 0, 10);
+
+        return implode(', ', $final);
+    }
+
+    /**
+     * Deterministic listing content/details, ~200 chars min.
+     *
+     * A professional paragraph for the listing's details field when none exists,
+     * describing the service and inviting contact.
+     */
+    public static function buildContent($name, $area, $city, $categoryName = null): string
+    {
+        $name = trim((string) $name);
+        $cat  = trim((string) ($categoryName ?? ''));
+        $area = trim((string) ($area ?? ''));
+        $city = trim((string) ($city ?? ''));
+
+        $place = ($area !== '' && strcasecmp($area, $city) !== 0)
+            ? ($city !== '' ? $area . ', ' . $city : $area)
+            : $city;
+
+        $service = $cat !== '' ? $cat : 'service';
+        $intro = $name . ' provides professional ' . strtolower($service)
+            . ($place !== '' ? ' in ' . $place : '') . '.';
+
+        $body = 'With years of experience and a commitment to excellence, we deliver high-quality solutions tailored to your needs. '
+            . 'Our team of skilled professionals is dedicated to ensuring customer satisfaction at every step. '
+            . 'Contact us today to learn more about our services and how we can help you.';
+
+        return '<p><strong>' . htmlspecialchars($name) . ':</strong> ' . htmlspecialchars($intro) . ' ' . $body . '</p>';
+    }
+
+    /**
      * A deterministic meta description for a listing, 80-160 chars.
      *
      * Used to fill the blank meta_description that otherwise shows up in the
@@ -393,14 +451,15 @@ public static function forgetSubcategoryLookup(): void
             $listing->meta_title = $chosen;
         });
 
-        // Fill a missing meta description and cap an over-long one, so the
-        // audit's "Description missing" / "Description too long" rows can't
+        // Fill missing SEO fields and cap over-long values so the audit's
+        // "Description missing", "Keywords missing", "No content" rows can't
         // appear for new or re-saved listings.
         static::saving(function ($listing) {
-            $desc = trim((string) ($listing->meta_description ?? ''));
+            $categoryName = $listing->category_id ? optional($listing->category)->name : null;
 
+            // Meta description: fill blank or cap over-long.
+            $desc = trim((string) ($listing->meta_description ?? ''));
             if ($desc === '') {
-                $categoryName = $listing->category_id ? optional($listing->category)->name : null;
                 $listing->meta_description = static::buildMetaDescription(
                     $listing->name,
                     $listing->area,
@@ -409,6 +468,28 @@ public static function forgetSubcategoryLookup(): void
                 );
             } elseif (mb_strlen($desc) > 160) {
                 $listing->meta_description = sb_clamp_meta_description($desc, 160);
+            }
+
+            // Meta keywords: fill blank.
+            $kw = trim((string) ($listing->meta_keywords ?? ''));
+            if ($kw === '') {
+                $listing->meta_keywords = static::buildMetaKeywords(
+                    $listing->name,
+                    $listing->area,
+                    $listing->city,
+                    $categoryName
+                );
+            }
+
+            // Details (content): fill blank.
+            $content = trim((string) ($listing->details ?? ''));
+            if ($content === '') {
+                $listing->details = static::buildContent(
+                    $listing->name,
+                    $listing->area,
+                    $listing->city,
+                    $categoryName
+                );
             }
         });
 
