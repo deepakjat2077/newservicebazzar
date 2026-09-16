@@ -283,6 +283,9 @@ $listing->landmark      = $request->landmark;
 
     $listing->save();
 
+// AI copy is written after the redirect, not before the save — see the job.
+\App\Jobs\GenerateListingAiContent::dispatch($listing->id);
+
 $count = Listing::where('status', 0)->count();
 
 event(new AdminNotification('listing', $count));
