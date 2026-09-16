@@ -114,14 +114,16 @@ return Application::configure(basePath: dirname(__DIR__))
             '^localhost$',
             '^127\.0\.0\.1$',
             '^\[::1\]$',
-            // The Hetzner load balancer health-checks each app server over the
-            // private network and sends its IP as the Host, which this
-            // middleware answered with a 400. nginx was made to fake a 200 for
-            // the checker's User-Agent instead, and that is what kept a hung
-            // app server marked healthy through the 2026-09-16 outage. Trusting
-            // the private subnet lets the check reach PHP and mean something;
-            // no public request can arrive carrying a 10.0.0.x Host.
-            '^10\.0\.0\.\d+$',
+            // The Hetzner load balancer health-checks each app server with an
+            // IP in the Host header — its own public address, not only the
+            // private one — and this middleware answered that with a 400. nginx
+            // was made to fake a 200 for the checker's User-Agent instead, and
+            // that is what kept a hung app server marked healthy through the
+            // 2026-09-16 outage. Any bare IP is trusted so the check reaches
+            // PHP and means something; a real visitor always arrives with the
+            // domain, and the balancer's address can change without warning.
+            '^\d{1,3}(\.\d{1,3}){3}$',
+            '^\[?[0-9a-fA-F:]+\]?$',
         ], subdomains: true);
 
         $middleware->web(append: [
