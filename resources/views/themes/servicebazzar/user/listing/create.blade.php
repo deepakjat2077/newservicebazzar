@@ -346,10 +346,6 @@
                                         flex-wrap: wrap;
                                     }
 
-                                    .country-code {
-                                        width: 100%;
-                                    }
-
                                     .wizard-actions {
                                         flex-direction: column;
                                     }
@@ -485,7 +481,7 @@
                                         <label class="form-label">Mobile Number</label>
                                         <div class="phone-group mobile-number-item">
                                             <select class="form-select country-code" name="mobile_country_code[]">
-                                                <option value="+91">🇮🇳 +91</option>
+                                                <option value="+91">+91</option>
                                             </select>
                                             <input type="text" class="form-control" name="mobile_numbers[]"
                                                 placeholder="Mobile Number">
@@ -498,7 +494,7 @@
                                         <label class="form-label">WhatsApp Number</label>
                                         <div class="phone-group whatsapp-number-item">
                                             <select class="form-select country-code" name="whatsapp_country_code[]">
-                                                <option value="+91">🇮🇳 +91</option>
+                                                <option value="+91">+91</option>
                                             </select>
                                             <input type="text" class="form-control whatsapp-input"
                                                 name="whatsapp_numbers[]" placeholder="WhatsApp Number">
@@ -519,7 +515,7 @@
                                         <label class="form-label">Landline Number</label>
                                         <div class="phone-group landline-number-item">
                                             <select class="form-select country-code" name="landline_country_code[]">
-                                                <option value="+91">🇮🇳 +91</option>
+                                                <option value="+91">+91</option>
                                             </select>
                                             <input type="text" class="form-control" name="landline_numbers[]"
                                                 placeholder="Landline Number">
@@ -812,7 +808,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return `
             <div class="phone-group ${wrapperClass}">
                 <select class="form-select country-code" name="${name}_country_code[]">
-                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+91">+91</option>
                 </select>
                 <input type="text" class="form-control" name="${name}_numbers[]" placeholder="${name.replace('_', ' ')}">
                 <button type="button" class="input-remove remove-row">×</button>

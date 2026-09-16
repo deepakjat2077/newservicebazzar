@@ -174,7 +174,7 @@
                                                 @foreach($mobileNumbers as $i => $mobile)
                                                     <div class="phone-group mobile-number-item">
                                                         <select class="form-control country-code" name="mobile_country_code[]">
-                                                            <option value="+91" {{ ($mobileCodes[$i] ?? '+91') == '+91' ? 'selected' : '' }}>🇮🇳 +91</option>
+                                                            <option value="+91" {{ ($mobileCodes[$i] ?? '+91') == '+91' ? 'selected' : '' }}>+91</option>
                                                         </select>
                                                         <input type="text" class="form-control" name="mobile_numbers[]" value="{{ $mobile }}" placeholder="@lang('Mobile Number')">
                                                         @if($i > 0)
@@ -185,7 +185,7 @@
                                             @else
                                                 <div class="phone-group mobile-number-item">
                                                     <select class="form-control country-code" name="mobile_country_code[]">
-                                                        <option value="+91">🇮🇳 +91</option>
+                                                        <option value="+91">+91</option>
                                                     </select>
                                                     <input type="text" class="form-control" name="mobile_numbers[]" placeholder="@lang('Mobile Number')">
                                                 </div>
@@ -209,7 +209,7 @@
                                                 @foreach($whatsappNumbers as $i => $whatsapp)
                                                     <div class="phone-group whatsapp-number-item">
                                                         <select class="form-control country-code" name="whatsapp_country_code[]">
-                                                            <option value="+91" {{ ($whatsappCodes[$i] ?? '+91') == '+91' ? 'selected' : '' }}>🇮🇳 +91</option>
+                                                            <option value="+91" {{ ($whatsappCodes[$i] ?? '+91') == '+91' ? 'selected' : '' }}>+91</option>
                                                         </select>
                                                         <input type="text" class="form-control whatsapp-input" name="whatsapp_numbers[]" value="{{ $whatsapp }}" placeholder="@lang('WhatsApp Number')">
                                                         @if($i > 0)
@@ -220,7 +220,7 @@
                                             @else
                                                 <div class="phone-group whatsapp-number-item">
                                                     <select class="form-control country-code" name="whatsapp_country_code[]">
-                                                        <option value="+91">🇮🇳 +91</option>
+                                                        <option value="+91">+91</option>
                                                     </select>
                                                     <input type="text" class="form-control whatsapp-input" name="whatsapp_numbers[]" placeholder="@lang('WhatsApp Number')">
                                                 </div>
@@ -252,7 +252,7 @@
                                                 @foreach($landlineNumbers as $i => $landline)
                                                     <div class="phone-group landline-number-item">
                                                         <select class="form-control country-code" name="landline_country_code[]">
-                                                            <option value="+91" {{ ($landlineCodes[$i] ?? '+91') == '+91' ? 'selected' : '' }}>🇮🇳 +91</option>
+                                                            <option value="+91" {{ ($landlineCodes[$i] ?? '+91') == '+91' ? 'selected' : '' }}>+91</option>
                                                         </select>
                                                         <input type="text" class="form-control" name="landline_numbers[]" value="{{ $landline }}" placeholder="@lang('Landline Number')">
                                                         @if($i > 0)
@@ -263,7 +263,7 @@
                                             @else
                                                 <div class="phone-group landline-number-item">
                                                     <select class="form-control country-code" name="landline_country_code[]">
-                                                        <option value="+91">🇮🇳 +91</option>
+                                                        <option value="+91">+91</option>
                                                     </select>
                                                     <input type="text" class="form-control" name="landline_numbers[]" placeholder="@lang('Landline Number')">
                                                 </div>
@@ -626,9 +626,6 @@
         .phone-group{
             flex-wrap:wrap;
         }
-        .country-code{
-            width:100%;
-        }
     }
 </style>
 @endpush
@@ -661,7 +658,7 @@
         return `
             <div class="phone-group ${wrapperClass}">
                 <select class="form-control country-code" name="${type}_country_code[]">
-                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+91">+91</option>
                 </select>
                 <input type="text" class="form-control" name="${type}_numbers[]" placeholder="${type.replace('_',' ')} Number">
                 <button type="button" class="input-remove remove-row">×</button>
