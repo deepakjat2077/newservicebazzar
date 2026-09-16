@@ -111,11 +111,59 @@
 
 
                                 #area,
-select[name="location_id"]{
+#locationSearch{
     height: 48px;
     line-height: 48px;
     padding-top: 0;
     padding-bottom: 0;
+}
+
+/* Submitted field — kept in the DOM for the pincode auto-fill and the
+   wizard's payload, but the search combobox is what the user sees. */
+.sb-loc-native{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sb-loc-picker{
+    position: relative;
+}
+
+.sb-loc-options{
+    position: absolute;
+    z-index: 1060;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+}
+
+.sb-loc-options li{
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.sb-loc-options li.is-active,
+.sb-loc-options li[aria-selected="true"]{
+    background: #e7f1ff;
+}
+
+.sb-loc-empty{
+    color: #6c757d;
+    cursor: default;
 }
 
 .area-manual-toggle{
@@ -569,8 +617,23 @@ select[name="location_id"]{
                                     </div>
 
 <div class="mb-3">
-    <label class="form-label">Location</label>
-    <select class="form-control" name="location_id"  id="location_id" required>
+    <label class="form-label" for="locationSearch">Location</label>
+
+    {{--
+        Ye list ~100 cities ki hai, isliye native dropdown me scroll karke
+        dhoondhna padta tha. Search wala combobox sirf ek face hai — asli
+        field neeche wala <select> hi hai, jo submit hota hai aur jise
+        pincode auto-fill set karta hai. required visible input par hai:
+        chhupe hue field par hota to browser submit block kar deta.
+    --}}
+    <div class="sb-loc-picker" id="locationPicker">
+        <input type="text" class="form-control" id="locationSearch" required
+            placeholder="Search your city" autocomplete="off" role="combobox"
+            aria-expanded="false" aria-controls="locationOptions" aria-autocomplete="list">
+        <ul class="sb-loc-options d-none" id="locationOptions" role="listbox"></ul>
+    </div>
+
+    <select class="sb-loc-native" name="location_id" id="location_id" tabindex="-1" aria-hidden="true">
         <option value="">Select Location</option>
 
         @foreach($locations as $location)
@@ -581,6 +644,139 @@ select[name="location_id"]{
 
     </select>
 </div>
+
+<script>
+(function () {
+    const picker = document.getElementById('locationPicker');
+    const input  = document.getElementById('locationSearch');
+    const list   = document.getElementById('locationOptions');
+    const select = document.getElementById('location_id');
+
+    if (!picker || !input || !list || !select) {
+        return;
+    }
+
+    const options = Array.from(select.options).filter(o => o.value);
+    let active = -1;
+
+    const norm = v => String(v).toLowerCase().trim();
+    const items = () => Array.from(list.querySelectorAll('li[data-value]'));
+
+    function open() {
+        list.classList.remove('d-none');
+        input.setAttribute('aria-expanded', 'true');
+    }
+
+    function close() {
+        list.classList.add('d-none');
+        input.setAttribute('aria-expanded', 'false');
+        active = -1;
+    }
+
+    function render(query) {
+        const q = norm(query);
+        const matches = options.filter(o => norm(o.textContent).includes(q));
+
+        list.innerHTML = '';
+        active = -1;
+
+        if (!matches.length) {
+            const empty = document.createElement('li');
+            empty.className = 'sb-loc-empty';
+            empty.textContent = 'No city found';
+            list.appendChild(empty);
+        } else {
+            matches.forEach(function (o) {
+                const li = document.createElement('li');
+                li.textContent = o.textContent.trim();
+                li.dataset.value = o.value;
+                li.setAttribute('role', 'option');
+                li.setAttribute('aria-selected', String(o.value === select.value));
+                list.appendChild(li);
+            });
+        }
+
+        open();
+    }
+
+    function highlight(index) {
+        const all = items();
+        if (!all.length) {
+            return;
+        }
+
+        active = (index + all.length) % all.length;
+        all.forEach((li, i) => li.classList.toggle('is-active', i === active));
+        all[active].scrollIntoView({ block: 'nearest' });
+    }
+
+    // The input only ever shows what the select holds, so text typed and then
+    // abandoned can't be mistaken for a choice.
+    function syncFromSelect() {
+        const chosen = select.selectedOptions[0];
+        input.value = chosen && chosen.value ? chosen.textContent.trim() : '';
+    }
+
+    function choose(li) {
+        if (!li || !li.dataset.value) {
+            return;
+        }
+
+        select.value = li.dataset.value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        syncFromSelect();
+        close();
+    }
+
+    input.addEventListener('focus', () => render(''));
+
+    input.addEventListener('input', function () {
+        select.value = '';
+        render(input.value);
+    });
+
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            list.classList.contains('d-none') ? render(input.value) : highlight(active + 1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlight(active - 1);
+        } else if (e.key === 'Enter' && !list.classList.contains('d-none')) {
+            const all = items();
+            if (all.length) {
+                e.preventDefault();
+                choose(all[active > -1 ? active : 0]);
+            }
+        } else if (e.key === 'Escape') {
+            close();
+            syncFromSelect();
+        }
+    });
+
+    // mousedown, not click: the input's blur would otherwise close the list
+    // before the click lands.
+    list.addEventListener('mousedown', function (e) {
+        const li = e.target.closest('li[data-value]');
+        if (li) {
+            e.preventDefault();
+            choose(li);
+        }
+    });
+
+    input.addEventListener('blur', () => setTimeout(syncFromSelect, 0));
+
+    document.addEventListener('click', function (e) {
+        if (!picker.contains(e.target)) {
+            close();
+            syncFromSelect();
+        }
+    });
+
+    select.addEventListener('change', syncFromSelect);
+    syncFromSelect();
+})();
+</script>
 
 
                                     <div class="row">
@@ -1583,6 +1779,12 @@ const pin = match[1];
                         Array.from(locationSelect.options).some(function (option) {
                             if (option.textContent.toLowerCase().trim() === city) {
                                 locationSelect.value = option.value;
+                                // The search box mirrors this field, and it
+                                // only hears about a value set in code if the
+                                // event is raised by hand.
+                                locationSelect.dispatchEvent(
+                                    new Event('change', { bubbles: true })
+                                );
                                 return true;
                             }
 

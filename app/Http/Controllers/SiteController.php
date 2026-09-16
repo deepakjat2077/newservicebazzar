@@ -2426,7 +2426,9 @@ public function linkDetails($slug)
     }
 
     $categories = Category::where('status', 1)->get();
-    $locations  = activeLocations();
+    // The shared helper orders newest-first, which reads as random in a
+    // 100-entry picker; this one is searched by name, so sort by name.
+    $locations  = activeLocations()->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values();
 
     // Don't load subcategories here — they're 700+ rows now (after bulk-adding
     // 279 jewellery + 162 travel + 176 CA + 115 mehndi). Loading them inline
