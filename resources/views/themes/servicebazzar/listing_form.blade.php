@@ -541,11 +541,6 @@
                                 id="multiStepForm">
                                 @csrf
 
-
-                            
-
-</div>
-
                                 <div class="step-progress mb-4">
                                     <div class="step-dot active" data-step-dot="1"></div>
                                     <div class="step-dot" data-step-dot="2"></div>
