@@ -251,8 +251,14 @@ public static function forgetSubcategoryLookup(): void
         }
 
         if (mb_strlen($title) > self::META_TITLE_MAX) {
-            $alt = $city !== '' ? $name . ' in ' . $city : $name;
-            $title = mb_strlen($alt) <= self::META_TITLE_MAX ? $alt : rtrim(mb_substr($title, 0, self::META_TITLE_MAX));
+            // Drop the place before the name: the audit wants the whole name in
+            // the title, and reads the city from the description too.
+            foreach ([$city !== '' ? $name . ' in ' . $city : $name, $name] as $alt) {
+                if (mb_strlen($alt) <= self::META_TITLE_MAX) {
+                    return $alt;
+                }
+            }
+            $title = rtrim(mb_substr($name, 0, self::META_TITLE_MAX));
         }
 
         return $title;
