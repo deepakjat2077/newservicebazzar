@@ -112,7 +112,9 @@ PROMPT;
         };
 
         $keywords = $clean($data['seo_keywords'] ?? '', 500);
-        $description = $clean($data['seo_description'] ?? '', 500);
+        // The model is asked for 120-160 chars but often overshoots; clamp so
+        // it can't land in the SEO audit's "Description too long" (>160) bucket.
+        $description = sb_clamp_meta_description($clean($data['seo_description'] ?? '', 500), 160);
 
         if ($keywords === '' || $description === '') {
             return $fallback + ['generated' => false, 'message' => 'AI answer was incomplete; used default SEO.'];
@@ -162,14 +164,19 @@ PROMPT;
         // final value is unique across the table.
         $title = Subcategory::buildSeoTitle($name, $categoryName);
 
+        // Built from the raw $name, not $subject: "GST Compliance" and "GST
+        // Compliance Services" both normalise to the same $subject and so got
+        // the identical description that filled the audit's "Description
+        // duplicate" bucket — the raw name keeps them distinct. Clamped to 160.
+        $description = sb_clamp_meta_description(
+            'Get professional ' . $name . ' from verified providers. Compare options, check contact details and choose the right one near you.',
+            160
+        );
+
         return [
             'seo_title' => mb_substr($title, 0, 255),
             'seo_keywords' => mb_substr($keywords, 0, 500),
-            'seo_description' => mb_substr(
-                'Get professional ' . $subject . ' from verified providers. Compare options, check contact details and choose the right one near you.',
-                0,
-                500
-            ),
+            'seo_description' => $description,
         ];
     }
 

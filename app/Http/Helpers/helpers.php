@@ -28,6 +28,51 @@ function menuActive($routename)
 }
 
 /**
+ * Trim an SEO/meta description to at most $max characters without cutting a
+ * word in half. Collapses whitespace, breaks on the last space before the
+ * limit, drops a dangling comma/dash and (when there's room) ends on a full
+ * stop. Keeps generated descriptions under the SEO audit's 160-char ceiling.
+ */
+function sb_clamp_meta_description(?string $text, int $max = 160): string
+{
+    $text = trim(preg_replace('/\s+/', ' ', (string) $text));
+
+    if ($text === '' || mb_strlen($text) <= $max) {
+        return $text;
+    }
+
+    $cut = mb_substr($text, 0, $max);
+    $floor = (int) ($max * 0.6);
+
+    // Prefer ending on a clause boundary (a comma or a full stop) so the trim
+    // reads as a complete phrase rather than a dangling "…tailored to your".
+    $best = false;
+    foreach (['. ', '? ', '! ', ', '] as $sep) {
+        $pos = mb_strrpos($cut, $sep);
+        if ($pos !== false && $pos > $floor && $pos > (int) $best) {
+            $best = $pos;
+        }
+    }
+
+    if ($best !== false) {
+        $cut = mb_substr($cut, 0, $best);
+    } else {
+        $space = mb_strrpos($cut, ' ');
+        if ($space !== false && $space > $floor) {
+            $cut = mb_substr($cut, 0, $space);
+        }
+    }
+
+    $cut = rtrim($cut, " ,;:-–—");
+
+    if (!preg_match('/[.!?]$/u', $cut) && mb_strlen($cut) < $max) {
+        $cut .= '.';
+    }
+
+    return $cut;
+}
+
+/**
  * Normalise a page/listing SEO title so the brand is consistent and never the
  * part Google truncates.
  *

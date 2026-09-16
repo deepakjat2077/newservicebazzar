@@ -116,6 +116,14 @@ class Subcategory extends Model
 
             $sub->seo_title = $chosen;
         });
+
+        // Never store a description past the 160-char audit ceiling.
+        static::saving(function ($sub) {
+            $desc = trim((string) ($sub->seo_description ?? ''));
+            if ($desc !== '' && mb_strlen($desc) > 160) {
+                $sub->seo_description = sb_clamp_meta_description($desc, 160);
+            }
+        });
     }
 
     use HasFactory;

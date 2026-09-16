@@ -317,6 +317,33 @@ public static function forgetSubcategoryLookup(): void
         return array_values(array_unique($ok));
     }
 
+    /**
+     * A deterministic meta description for a listing, 80-160 chars.
+     *
+     * Used to fill the blank meta_description that otherwise shows up in the
+     * SEO audit's "Description missing" bucket. Carries the name, category and
+     * place so it reads as real local-business copy, and is clamped to 160.
+     */
+    public static function buildMetaDescription($name, $area, $city, $categoryName = null): string
+    {
+        $name = trim((string) $name);
+        $cat  = trim((string) $categoryName);
+        $area = trim((string) $area);
+        $city = trim((string) $city);
+
+        $place = ($area !== '' && strcasecmp($area, $city) !== 0)
+            ? ($city !== '' ? $area . ', ' . $city : $area)
+            : $city;
+
+        $lead = $cat !== ''
+            ? $name . ' is a ' . $cat . ($place !== '' ? ' in ' . $place : '')
+            : $name . ($place !== '' ? ' in ' . $place : '');
+
+        $desc = $lead . '. View contact details, address, timings and reviews, and connect directly on ' . self::META_BRAND . '.';
+
+        return sb_clamp_meta_description($desc, 160);
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -364,6 +391,25 @@ public static function forgetSubcategoryLookup(): void
             }
 
             $listing->meta_title = $chosen;
+        });
+
+        // Fill a missing meta description and cap an over-long one, so the
+        // audit's "Description missing" / "Description too long" rows can't
+        // appear for new or re-saved listings.
+        static::saving(function ($listing) {
+            $desc = trim((string) ($listing->meta_description ?? ''));
+
+            if ($desc === '') {
+                $categoryName = $listing->category_id ? optional($listing->category)->name : null;
+                $listing->meta_description = static::buildMetaDescription(
+                    $listing->name,
+                    $listing->area,
+                    $listing->city,
+                    $categoryName
+                );
+            } elseif (mb_strlen($desc) > 160) {
+                $listing->meta_description = sb_clamp_meta_description($desc, 160);
+            }
         });
 
         static::updating(function ($listing) {
