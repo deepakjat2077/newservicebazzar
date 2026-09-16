@@ -138,8 +138,9 @@
                                 }
 
                                 .country-code {
-                                    width: 95px;
-                                    min-width: 95px;
+                                    width: auto;
+                                    min-width: 0;
+                                    flex: 0 0 auto;
                                 }
 
                                 .input-remove {

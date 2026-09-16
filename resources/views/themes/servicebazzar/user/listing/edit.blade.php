@@ -546,8 +546,9 @@
         margin-bottom:12px;
     }
     .country-code{
-        width:100px;
-        min-width:100px;
+        width:auto;
+        min-width:0;
+        flex:0 0 auto;
     }
     .input-remove{
         width:42px;

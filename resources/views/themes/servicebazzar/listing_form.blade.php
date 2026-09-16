@@ -279,9 +279,14 @@
                                     margin-bottom: 12px;
                                 }
 
+                                /* Native select hai — koi .form-select styling theme me nahi.
+                                   Fixed width dene par "Mr" baayen aur browser ka arrow dayen
+                                   kinare chipak jata tha, beech me khaali patti. Content jitni
+                                   chaudai me dono paas rehte hain. */
                                 .country-code {
-                                    width: 95px;
-                                    min-width: 95px;
+                                    width: auto;
+                                    min-width: 0;
+                                    flex: 0 0 auto;
                                 }
 
                                 .input-remove {
