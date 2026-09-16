@@ -285,8 +285,10 @@
                                    chaudai me dono paas rehte hain. */
                                 .country-code {
                                     width: auto;
-                                    min-width: 0;
+                                    min-width: 72px;
                                     flex: 0 0 auto;
+                                    padding-left: 10px;
+                                    padding-right: 6px;
                                 }
 
                                 .input-remove {
