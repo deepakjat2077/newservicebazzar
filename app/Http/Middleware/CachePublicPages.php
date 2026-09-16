@@ -38,6 +38,14 @@ class CachePublicPages
     protected const TTL_MINUTES = 30;
 
     /**
+     * How long past its 30 minutes a page is still worth serving while one
+     * request rebuilds it. Nothing invalidates this cache when a listing
+     * changes, so TTL_MINUTES stays where it is — a new listing must not wait
+     * hours to appear. This only covers the moment of expiry.
+     */
+    protected const STALE_MINUTES = 60;
+
+    /**
      * How many uncached public pages may render at the same time.
      *
      * A per-IP rate limit does not bound this: the crawlers walking the
@@ -135,13 +143,34 @@ class CachePublicPages
 
         $key = 'page:' . sha1($request->getHost() . '|' . $request->path());
 
-        if (($cached = $this->store()->get($key)) !== null) {
-            return response($this->withCurrentToken($cached))
-                ->header('Content-Type', 'text/html; charset=UTF-8')
-                ->header('X-Page-Cache', 'HIT');
+        $cached = $this->store()->get($key);
+        $stale = null;
+
+        if ($cached !== null) {
+            // Entries written before this became an array are still plain HTML.
+            $html = is_array($cached) ? ($cached['html'] ?? '') : $cached;
+            $freshUntil = is_array($cached) ? ($cached['fresh_until'] ?? 0) : PHP_INT_MAX;
+
+            if ($freshUntil > time()) {
+                return response($this->withCurrentToken($html))
+                    ->header('Content-Type', 'text/html; charset=UTF-8')
+                    ->header('X-Page-Cache', 'HIT');
+            }
+
+            // Past its freshness but still held: usable while someone rebuilds it.
+            $stale = $html;
         }
 
         $slot = $this->acquireRenderSlot();
+
+        // A page going stale used to send every request that arrived for it into
+        // its own render at the same moment. One request rebuilds it; the rest
+        // get the copy we already have, which is at most STALE_MINUTES old.
+        if (!$slot && $stale !== null) {
+            return response($this->withCurrentToken($stale))
+                ->header('Content-Type', 'text/html; charset=UTF-8')
+                ->header('X-Page-Cache', 'STALE');
+        }
 
         if (!$slot) {
             // All slots were busy for an instant, but a slot only ever holds
@@ -168,8 +197,11 @@ class CachePublicPages
             if ($this->isStorable($response)) {
                 $this->store()->put(
                     $key,
-                    $this->withPlaceholderToken($response->getContent()),
-                    now()->addMinutes(self::TTL_MINUTES)
+                    [
+                        'html' => $this->withPlaceholderToken($response->getContent()),
+                        'fresh_until' => now()->addMinutes(self::TTL_MINUTES)->getTimestamp(),
+                    ],
+                    now()->addMinutes(self::TTL_MINUTES + self::STALE_MINUTES)
                 );
             }
         } finally {
