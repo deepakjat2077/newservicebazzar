@@ -56,6 +56,13 @@ class CachePublicPages
      */
     protected const MAX_CONCURRENT_RENDERS = 6;
 
+    /**
+     * How many uncached (query-string) renders may run at once. Kept small and
+     * separate: this is the traffic shape that emptied the worker pool twice,
+     * and nothing past this limit is worth a worker.
+     */
+    protected const MAX_CONCURRENT_UNCACHED_RENDERS = 4;
+
     /** Longest a slot may stay held if a request dies without releasing it. */
     protected const RENDER_SLOT_TTL_SECONDS = 30;
 
@@ -91,8 +98,39 @@ class CachePublicPages
 
     public function handle(Request $request, Closure $next)
     {
-        if (!$this->shouldConsider($request)) {
+        if (!$this->isPublicPage($request)) {
             return $next($request);
+        }
+
+        // A query string keeps a page out of the cache, so every one of these
+        // is a full render — and that is the shape the scraper swarms use
+        // (?filter=, ?rating=, ?sort=). Left unguarded they take a worker each
+        // until the pool is gone and the whole site 504s, which is what the
+        // 2026-09-13 and 2026-09-16 outages were. They get the same six render
+        // slots as everyone else, but no waiting and no unslotted fallback: if
+        // all six are busy this is refused outright. Refusing costs nothing,
+        // and it holds whatever parameter name the next swarm invents.
+        if ($request->query() !== []) {
+            // Their own pool, not the shared one: the six main slots are busy
+            // almost continuously on a live site, so drawing from those would
+            // refuse real visitors clicking a filter. Four concurrent renders
+            // is far more than human filter traffic ever asks for and far less
+            // than it takes to empty the worker pool.
+            $slot = $this->acquireRenderSlot(
+                'page-query-render-slot:',
+                self::MAX_CONCURRENT_UNCACHED_RENDERS
+            );
+
+            if (!$slot) {
+                return response('Too Many Requests', 429)
+                    ->header('Retry-After', '30');
+            }
+
+            try {
+                return $next($request);
+            } finally {
+                $slot->release();
+            }
         }
 
         $key = 'page:' . sha1($request->getHost() . '|' . $request->path());
@@ -165,10 +203,12 @@ class CachePublicPages
      * counter incremented by a request that then dies never comes back down
      * and would wedge the site shut, whereas a lock simply expires.
      */
-    protected function acquireRenderSlot()
-    {
-        for ($slot = 1; $slot <= self::MAX_CONCURRENT_RENDERS; $slot++) {
-            $lock = $this->store()->lock('page-render-slot:' . $slot, self::RENDER_SLOT_TTL_SECONDS);
+    protected function acquireRenderSlot(
+        string $prefix = 'page-render-slot:',
+        int $count = self::MAX_CONCURRENT_RENDERS
+    ) {
+        for ($slot = 1; $slot <= $count; $slot++) {
+            $lock = $this->store()->lock($prefix . $slot, self::RENDER_SLOT_TTL_SECONDS);
 
             if ($lock->get()) {
                 return $lock;
@@ -200,16 +240,27 @@ class CachePublicPages
         return null;
     }
 
-    /** Is this a request whose response could be shared with anyone else? */
-    protected function shouldConsider(Request $request): bool
+    /**
+     * A guest-facing HTML page — cacheable or not.
+     *
+     * Kept apart from shouldConsider() because the query-string variants fail
+     * only that one extra test, and they are precisely the renders that need
+     * guarding.
+     */
+    protected function isPublicPage(Request $request): bool
     {
         return $request->isMethod('GET')
-            && $request->query() === []
             && !$request->ajax()
             && !$request->expectsJson()
             && !auth()->check()
             && !auth()->guard('admin')->check()
             && !$request->is(self::NEVER_CACHE);
+    }
+
+    /** Is this a request whose response could be shared with anyone else? */
+    protected function shouldConsider(Request $request): bool
+    {
+        return $this->isPublicPage($request) && $request->query() === [];
     }
 
     /** Only a plain, complete HTML page is worth keeping. */
