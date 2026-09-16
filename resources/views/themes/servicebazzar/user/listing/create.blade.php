@@ -85,6 +85,28 @@
                                     box-shadow: none !important;
                                 }
 
+                                /* Bootstrap 4 me .form-label / .form-select hain hi nahi —
+                                   label select se chipak jata tha aur select native dikhta tha. */
+                                .form-label {
+                                    display: block;
+                                    margin-bottom: 6px;
+                                }
+
+                                .form-select {
+                                    width: 100%;
+                                    padding: 0 34px 0 12px;
+                                    border: 1px solid #ced4da;
+                                    color: #212529;
+                                    background-color: #fff;
+                                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+                                    background-repeat: no-repeat;
+                                    background-position: right 12px center;
+                                    background-size: 14px 10px;
+                                    -webkit-appearance: none;
+                                    -moz-appearance: none;
+                                    appearance: none;
+                                }
+
                                 textarea.form-control {
                                     height: auto;
                                 }
@@ -139,10 +161,11 @@
 
                                 .country-code {
                                     width: auto;
-                                    min-width: 72px;
+                                    min-width: 84px;
                                     flex: 0 0 auto;
-                                    padding-left: 10px;
-                                    padding-right: 6px;
+                                    padding-left: 12px;
+                                    padding-right: 28px;
+                                    background-position: right 9px center;
                                 }
 
                                 .input-remove {

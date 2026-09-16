@@ -227,6 +227,30 @@
                                     box-shadow: none !important;
                                 }
 
+                                /* Theme Bootstrap 4 par hai, jisme .form-label aur .form-select
+                                   dono hain hi nahi. Isliye label select ke saath ek hi line me
+                                   chipak jata tha aur select browser ka apna native box dikhta
+                                   tha — paas wale input se alag. Dono yahan khud define kiye. */
+                                .form-label {
+                                    display: block;
+                                    margin-bottom: 6px;
+                                }
+
+                                .form-select {
+                                    width: 100%;
+                                    padding: 0 34px 0 12px;
+                                    border: 1px solid #ced4da;
+                                    color: #212529;
+                                    background-color: #fff;
+                                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+                                    background-repeat: no-repeat;
+                                    background-position: right 12px center;
+                                    background-size: 14px 10px;
+                                    -webkit-appearance: none;
+                                    -moz-appearance: none;
+                                    appearance: none;
+                                }
+
                                 textarea.form-control {
                                     height: auto;
                                 }
@@ -285,10 +309,11 @@
                                    chaudai me dono paas rehte hain. */
                                 .country-code {
                                     width: auto;
-                                    min-width: 72px;
+                                    min-width: 84px;
                                     flex: 0 0 auto;
-                                    padding-left: 10px;
-                                    padding-right: 6px;
+                                    padding-left: 12px;
+                                    padding-right: 28px;
+                                    background-position: right 9px center;
                                 }
 
                                 .input-remove {
@@ -1163,10 +1188,54 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+        rememberStep(step);
+
         window.scrollTo({
             top: 0,
             behavior: "smooth"
         });
+    }
+
+    /* =====================================================
+       REFRESH PAR WAHIN RAHO
+       Page reload hone par wizard hamesha step 1 se shuru ho jata tha, chahe
+       user chauthe step par ho. Step number tab tak yaad rehta hai jab tak
+       tab khula hai; listing submit hote hi bhula diya jata hai.
+    ===================================================== */
+
+    const STEP_KEY = "sbListingWizardStep";
+
+    function rememberStep(step) {
+        try {
+            sessionStorage.setItem(STEP_KEY, String(step));
+        } catch (e) {
+            /* private mode me storage band ho sakta hai */
+        }
+    }
+
+    function forgetStep() {
+        try {
+            sessionStorage.removeItem(STEP_KEY);
+        } catch (e) {}
+    }
+
+    function restoreStep() {
+        // Jinke paas pehle se business hai unhe "Select Your Business" milta
+        // hai; form chhupa ho to usme kood kar jaana galat hoga.
+        const formCol = document.getElementById("sbNewBusinessFormCol");
+        if (formCol && formCol.classList.contains("d-none")) {
+            return;
+        }
+
+        let saved = 0;
+        try {
+            saved = parseInt(sessionStorage.getItem(STEP_KEY) || "0", 10);
+        } catch (e) {}
+
+        if (saved > 1 && saved <= totalSteps) {
+            currentStep = saved;
+            showStep(currentStep);
+        }
     }
 
 
@@ -1700,6 +1769,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    const wizardForm = document.getElementById("multiStepForm");
+    if (wizardForm) {
+        wizardForm.addEventListener("submit", forgetStep);
+    }
+
+    restoreStep();
 
 
     /* =====================================================

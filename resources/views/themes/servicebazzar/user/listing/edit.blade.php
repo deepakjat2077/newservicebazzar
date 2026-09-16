@@ -547,10 +547,16 @@
     }
     .country-code{
         width:auto;
-        min-width:72px;
+        min-width:84px;
         flex:0 0 auto;
-        padding-left:10px;
-        padding-right:6px;
+        padding:0 28px 0 12px;
+        background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat:no-repeat;
+        background-position:right 9px center;
+        background-size:14px 10px;
+        -webkit-appearance:none;
+        -moz-appearance:none;
+        appearance:none;
     }
     .input-remove{
         width:42px;
