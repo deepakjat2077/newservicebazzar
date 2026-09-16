@@ -201,12 +201,115 @@ public static function forgetSubcategoryLookup(): void
         return $query;
     }
 
+    /** Google truncates titles past ~60 chars; under 30 reads as thin. */
+    public const META_TITLE_MIN = 30;
+    public const META_TITLE_MAX = 60;
+    public const META_BRAND     = 'Service Bazzar';
+
+    /**
+     * Build an SEO meta title from a listing's own fields.
+     *
+     * Shape: "{Name} in {Area}, {City}". That already carries the business
+     * name and the city (what local-search SEO needs) and, because the area
+     * is in it, is long enough and distinct enough to clear the "too short"
+     * and "duplicated on another page" audit rules that the older bare
+     * "{Name} in {City}" titles kept tripping.
+     *
+     * When name+area+city is still under 30 chars the category is folded in
+     * ("{Name} - {Category} in {Place}"); $forceCategory does that up front,
+     * which is how the save hook and the backfill break a title that would
+     * otherwise duplicate another listing's. Anything over 60 falls back to
+     * "{Name} in {City}", then a hard trim as a last resort.
+     */
+    public static function buildMetaTitle($name, $area, $city, $categoryName = null, bool $forceCategory = false): string
+    {
+        $name = trim((string) $name);
+        $area = trim((string) $area);
+        $city = trim((string) $city);
+        $cat  = trim((string) $categoryName);
+
+        $place = '';
+        if ($area !== '' && strcasecmp($area, $city) !== 0) {
+            $place = $area . ($city !== '' ? ', ' . $city : '');
+        } elseif ($city !== '') {
+            $place = $city;
+        }
+
+        $base = $place !== '' ? $name . ' in ' . $place : $name;
+
+        if ($forceCategory && $cat !== '') {
+            $withCat = $name . ' - ' . $cat . ($place !== '' ? ' in ' . $place : '');
+            $title = mb_strlen($withCat) <= self::META_TITLE_MAX ? $withCat : $base;
+        } else {
+            $title = $base;
+            if (mb_strlen($title) < self::META_TITLE_MIN && $cat !== '') {
+                $withCat = $name . ' - ' . $cat . ($place !== '' ? ' in ' . $place : '');
+                if (mb_strlen($withCat) <= self::META_TITLE_MAX) {
+                    $title = $withCat;
+                }
+            }
+        }
+
+        if (mb_strlen($title) > self::META_TITLE_MAX) {
+            $alt = $city !== '' ? $name . ' in ' . $city : $name;
+            $title = mb_strlen($alt) <= self::META_TITLE_MAX ? $alt : rtrim(mb_substr($title, 0, self::META_TITLE_MAX));
+        }
+
+        return $title;
+    }
+
+    /** Append " | Service Bazzar" when a title is still under the minimum. */
+    public static function padMetaBrand($title): string
+    {
+        $title = trim((string) $title);
+        $withBrand = $title . ' | ' . self::META_BRAND;
+
+        return mb_strlen($withBrand) <= self::META_TITLE_MAX ? $withBrand : $title;
+    }
+
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($listing) {
             $listing->slug = static::generateSlug($listing->name);
+        });
+
+        // Guarantee every listing carries a healthy meta title, so the SEO
+        // audit's "Title short" / "Title duplicate" rows can't keep appearing
+        // for new or re-saved listings. A title that is already 30-60 chars is
+        // left untouched — that's an admin- or AI-authored one we shouldn't
+        // second-guess; only a missing, too-short or too-long one is rebuilt.
+        static::saving(function ($listing) {
+            $current = trim((string) ($listing->meta_title ?? ''));
+            $len = mb_strlen($current);
+
+            if ($current !== '' && $len >= self::META_TITLE_MIN && $len <= self::META_TITLE_MAX) {
+                return;
+            }
+
+            $categoryName = $listing->category_id ? optional($listing->category)->name : null;
+
+            $title = static::buildMetaTitle($listing->name, $listing->area, $listing->city, $categoryName);
+
+            $clashes = function ($candidate) use ($listing) {
+                return static::where('meta_title', $candidate)
+                    ->when($listing->id, fn ($q) => $q->where('id', '!=', $listing->id))
+                    ->exists();
+            };
+
+            if ($clashes($title)) {
+                $alt = static::buildMetaTitle($listing->name, $listing->area, $listing->city, $categoryName, true);
+                if ($alt !== $title && !$clashes($alt)) {
+                    $title = $alt;
+                }
+            }
+
+            if (mb_strlen($title) < self::META_TITLE_MIN) {
+                $title = static::padMetaBrand($title);
+            }
+
+            $listing->meta_title = $title;
         });
 
         static::updating(function ($listing) {
