@@ -1,8 +1,10 @@
-@extends($theme . 'layouts.app')
-
-@section('title', 'Delete Account - ' . ($setting->site_name ?? 'Service Bazzar'))
+@extends($themeView.'layouts.site')
 
 @section('content')
+@php
+    $seoTitle = 'Delete Account - ' . ($setting->site_name ?? 'Service Bazzar');
+    $seoDescription = 'Request to delete your Service Bazzar account and all associated data.';
+@endphp
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
