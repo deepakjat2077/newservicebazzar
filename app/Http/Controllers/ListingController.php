@@ -283,8 +283,12 @@ $listing->landmark      = $request->landmark;
 
     $listing->save();
 
-// AI copy is written after the redirect, not before the save — see the job.
-\App\Jobs\GenerateListingAiContent::dispatch($listing->id);
+// After the response, not on the queue: the queue workers on this host fail to
+// unserialize this job (an identical worker started by hand runs it fine, which
+// is unexplained), and a listing quietly missing its AI copy is worse than
+// holding one PHP process for the few seconds the call takes. Listings are
+// created a handful of times a day, so that cost is not felt.
+\App\Jobs\GenerateListingAiContent::dispatchAfterResponse($listing->id);
 
 $count = Listing::where('status', 0)->count();
 
