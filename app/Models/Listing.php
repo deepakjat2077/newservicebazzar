@@ -426,6 +426,23 @@ public static function forgetSubcategoryLookup(): void
             $len = mb_strlen($current);
             $healthy = $current !== '' && $len >= self::META_TITLE_MIN && $len <= self::META_TITLE_MAX;
 
+            $norm = fn ($v) => mb_strtolower(preg_replace('/\s+/', ' ', trim((string) $v)));
+
+            // The audit also wants the whole name in the title and the city in
+            // the title or the description, so a title missing either is not
+            // healthy however well-sized it is. A name that can't fit under the
+            // 60-char cap is exempt — no candidate could satisfy it.
+            $name = trim((string) ($listing->name ?? ''));
+            if ($healthy && $name !== '' && mb_strlen($name) <= self::META_TITLE_MAX) {
+                $healthy = str_contains($norm($current), $norm($name));
+            }
+
+            $city = trim((string) ($listing->city ?? ''));
+            if ($healthy && $city !== '') {
+                $haystack = $current . ' ' . trim((string) ($listing->meta_description ?? ''));
+                $healthy = str_contains($norm($haystack), $norm($city));
+            }
+
             $clashes = function ($candidate) use ($listing) {
                 return static::where('meta_title', $candidate)
                     ->when($listing->id, fn ($q) => $q->where('id', '!=', $listing->id))
@@ -474,6 +491,18 @@ public static function forgetSubcategoryLookup(): void
                 );
             } elseif (mb_strlen($desc) > 160) {
                 $listing->meta_description = sb_clamp_meta_description($desc, 160);
+            }
+
+            // A long business name can leave no room for the city in the title,
+            // so the description has to carry it — that's where the audit looks
+            // when the title falls short. Existing copy is kept, just shortened
+            // enough to fit the city on the end.
+            $city = trim((string) ($listing->city ?? ''));
+            $desc = trim((string) ($listing->meta_description ?? ''));
+            $norm = fn ($v) => mb_strtolower(preg_replace('/\s+/', ' ', trim((string) $v)));
+            if ($city !== '' && !str_contains($norm($listing->meta_title . ' ' . $desc), $norm($city))) {
+                $suffix = ' Located in ' . $city . '.';
+                $listing->meta_description = sb_clamp_meta_description($desc, 160 - mb_strlen($suffix)) . $suffix;
             }
 
             // Meta keywords: fill blank.

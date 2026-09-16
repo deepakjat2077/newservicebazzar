@@ -93,6 +93,15 @@ class Subcategory extends Model
             $len = mb_strlen($current);
             $healthy = $current !== '' && $len >= self::SEO_TITLE_MIN && $len <= self::SEO_TITLE_MAX;
 
+            // The audit also wants the whole name in the title, so a title
+            // missing it is not healthy however well-sized it is. A name that
+            // can't fit under the 60-char cap is exempt.
+            $name = trim((string) ($sub->name ?? ''));
+            if ($healthy && $name !== '' && mb_strlen($name) <= self::SEO_TITLE_MAX) {
+                $norm = fn ($v) => mb_strtolower(preg_replace('/\s+/', ' ', trim((string) $v)));
+                $healthy = str_contains($norm($current), $norm($name));
+            }
+
             $collides = function ($title) use ($sub) {
                 return static::where('seo_title', $title)
                     ->when($sub->id, fn ($q) => $q->where('id', '!=', $sub->id))
