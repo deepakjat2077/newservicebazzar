@@ -102,6 +102,9 @@ class CachePublicPages
         'geocode-address', 'search-locations',
         'set-location-session', 'set-category-session',
         'sitemap.xml', 'sitemap-*', 'up',
+        // The load balancer's health check. It must reach PHP to be worth
+        // anything, but it must not take a render slot to get there.
+        'health',
     ];
 
     public function handle(Request $request, Closure $next)
