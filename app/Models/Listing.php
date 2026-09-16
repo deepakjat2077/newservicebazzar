@@ -267,6 +267,56 @@ public static function forgetSubcategoryLookup(): void
         return mb_strlen($withBrand) <= self::META_TITLE_MAX ? $withBrand : $title;
     }
 
+    /**
+     * Meta-title candidates for a listing, best first — the ladder the save
+     * hook walks to land a title that is both 30-60 chars and unique.
+     *
+     * Two listings of the same business (same name+area+city+category) can't be
+     * told apart by the base title, so the ladder falls through to the building,
+     * the street, and finally brand-suffixed forms — each a distinct string —
+     * until one is free. Only in-range forms are returned.
+     */
+    public static function metaTitleCandidates($name, $area, $city, $categoryName = null, $building = null, $street = null): array
+    {
+        $N   = trim((string) $name);
+        $C   = trim((string) $city);
+        $cat = trim((string) $categoryName);
+        $B   = trim((string) $building);
+        $S   = trim((string) $street);
+
+        $raw = [
+            self::buildMetaTitle($N, $area, $C, $cat),
+            self::buildMetaTitle($N, $area, $C, $cat, true),
+            $B !== '' ? self::buildMetaTitle($N, $B, $C, $cat) : null,
+            $S !== '' ? self::buildMetaTitle($N, $S, $C, $cat) : null,
+            self::buildMetaTitle($N, $area, $C, $cat) . ' | ' . self::META_BRAND,
+            ($C !== '' ? "{$N} in {$C}" : $N) . ' | ' . self::META_BRAND,
+            $N . ' | ' . self::META_BRAND,
+            $cat !== '' ? $N . ' - ' . $cat : null,
+        ];
+
+        $ok = [];
+        foreach ($raw as $c) {
+            if ($c === null) {
+                continue;
+            }
+            $len = mb_strlen($c);
+            if ($len >= self::META_TITLE_MIN && $len <= self::META_TITLE_MAX) {
+                $ok[] = $c;
+            }
+        }
+
+        if ($ok === []) {
+            $base = self::buildMetaTitle($N, $area, $C, $cat);
+            if (mb_strlen($base) < self::META_TITLE_MIN) {
+                $base = self::padMetaBrand($base);
+            }
+            $ok[] = $base;
+        }
+
+        return array_values(array_unique($ok));
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -283,14 +333,7 @@ public static function forgetSubcategoryLookup(): void
         static::saving(function ($listing) {
             $current = trim((string) ($listing->meta_title ?? ''));
             $len = mb_strlen($current);
-
-            if ($current !== '' && $len >= self::META_TITLE_MIN && $len <= self::META_TITLE_MAX) {
-                return;
-            }
-
-            $categoryName = $listing->category_id ? optional($listing->category)->name : null;
-
-            $title = static::buildMetaTitle($listing->name, $listing->area, $listing->city, $categoryName);
+            $healthy = $current !== '' && $len >= self::META_TITLE_MIN && $len <= self::META_TITLE_MAX;
 
             $clashes = function ($candidate) use ($listing) {
                 return static::where('meta_title', $candidate)
@@ -298,18 +341,29 @@ public static function forgetSubcategoryLookup(): void
                     ->exists();
             };
 
-            if ($clashes($title)) {
-                $alt = static::buildMetaTitle($listing->name, $listing->area, $listing->city, $categoryName, true);
-                if ($alt !== $title && !$clashes($alt)) {
-                    $title = $alt;
+            if ($healthy && !$clashes($current)) {
+                return;
+            }
+
+            $categoryName = $listing->category_id ? optional($listing->category)->name : null;
+            $candidates = static::metaTitleCandidates(
+                $listing->name,
+                $listing->area,
+                $listing->city,
+                $categoryName,
+                $listing->building_name,
+                $listing->street_name
+            );
+
+            $chosen = $candidates[0];
+            foreach ($candidates as $c) {
+                if (!$clashes($c)) {
+                    $chosen = $c;
+                    break;
                 }
             }
 
-            if (mb_strlen($title) < self::META_TITLE_MIN) {
-                $title = static::padMetaBrand($title);
-            }
-
-            $listing->meta_title = $title;
+            $listing->meta_title = $chosen;
         });
 
         static::updating(function ($listing) {
