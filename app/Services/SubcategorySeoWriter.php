@@ -153,15 +153,14 @@ PROMPT;
             return strtolower(trim($word));
         })->unique()->implode(', ');
 
-        // The name alone is the right title when it's already long enough —
-        // but most subcategory names are well under Google's ~30-char floor
-        // ("Hotels", "Spa", "GST"), and shipping those as-is is exactly what
-        // filled the SEO audit's "Title short" bucket with thousands of rows.
-        // Pad only when needed, never touch a name that's already long enough.
-        $title = mb_strlen($name) >= 30 ? $name : "Best {$subject} | ServiceBazzar";
-        if (mb_strlen($title) > 60) {
-            $title = mb_strlen($subject) >= 30 && mb_strlen($subject) <= 60 ? $subject : $name;
-        }
+        // The title is built from the raw name (see Subcategory::buildSeoTitle):
+        // the name alone when it's already 30-60 chars, otherwise a branded
+        // form like "Best {name} | ServiceBazzar". Building from the raw name
+        // rather than a " Services"-normalised subject is what stops near-
+        // identical names ("GST Compliance" vs "GST Compliance Services") from
+        // producing the same title; the model's saving hook then guarantees the
+        // final value is unique across the table.
+        $title = Subcategory::buildSeoTitle($name, $categoryName);
 
         return [
             'seo_title' => mb_substr($title, 0, 255),
