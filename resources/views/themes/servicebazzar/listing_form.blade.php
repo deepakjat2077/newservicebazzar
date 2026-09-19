@@ -110,7 +110,6 @@
 }                 
 
 
-                                #areaManual,
 .sb-picker-input{
     height: 48px;
     line-height: 48px;
@@ -166,12 +165,6 @@
     cursor: default;
 }
 
-.area-manual-toggle{
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    white-space: nowrap;
-}
 
                                 .listing-card {
                                     border-radius: 18px;
@@ -307,6 +300,14 @@
                                    Fixed width dene par "Mr" baayen aur browser ka arrow dayen
                                    kinare chipak jata tha, beech me khaali patti. Content jitni
                                    chaudai me dono paas rehte hain. */
+                                /* Sirf India (+91) — dropdown jaisa na dikhe, warna lagta hai
+                                   doosre desh bhi chune ja sakte hain. */
+                                select[name$="_country_code[]"] {
+                                    pointer-events: none;
+                                    background-image: none;
+                                    padding-right: 12px !important;
+                                }
+
                                 .country-code {
                                     width: auto;
                                     min-width: 84px;
@@ -596,25 +597,12 @@
 
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <label class="form-label mb-0">Area</label>
-                                                <a href="javascript:void(0)" id="areaManualToggle" class="area-manual-toggle">+ Add manually</a>
-                                            </div>
+                                            <label class="form-label">Area</label>
 
                                             <select class="form-control" id="area" name="area" required>
                                                 <option value="">Select Area</option>
                                             </select>
 
-                                            {{--
-                                                Pincode API (India Post) sirf uske apne registered post-office
-                                                names deta hai — kai localities (e.g. "Noida Sector 9") usme
-                                                list nahi hoti. Ye text input tab dikhta hai jab user "Add
-                                                manually" par click kare; select ki jagah lekar wahi
-                                                name="area" bhejta hai, taaki backend me koi change na karna
-                                                pade.
-                                            --}}
-                                            <input type="text" class="form-control d-none" id="areaManual"
-                                                name="area" placeholder="Enter your area / sector name" disabled>
                                         </div>
 
                                     </div>
@@ -638,7 +626,7 @@
     Area (~post-office list) aur Location (~100 cities) dono lambi lists hain
     jinme type karke dhoondhne ka koi tareeka nahi tha. Ye script har aise
     select ke aage ek search box laga deti hai; select khud DOM me rehta hai
-    aur wahi submit hota hai, isliye pincode auto-fill, "Add manually" toggle
+    aur wahi submit hota hai, isliye pincode auto-fill
     aur wizard ka payload — sab pehle jaisa chalta hai.
 --}}
 <script>
@@ -1753,61 +1741,6 @@ document.addEventListener("DOMContentLoaded", function () {
     restoreStep();
 
 
-    /* =====================================================
-       AREA - ADD MANUALLY
-       ===================================================== */
-
-    (function () {
-        const toggleLink = document.getElementById("areaManualToggle");
-        const areaSelect = document.getElementById("area");
-        const areaManual = document.getElementById("areaManual");
-
-        if (!toggleLink || !areaSelect || !areaManual) {
-            return;
-        }
-
-        let manualMode = false;
-
-        toggleLink.addEventListener("click", function () {
-            manualMode = !manualMode;
-
-            if (manualMode) {
-                // Manual input le raha hai area ka charge — select ko disable
-                // karna zaroori hai, warna dono name="area" ek saath submit
-                // ho jayenge aur select ki khaali value manual value ko
-                // overwrite kar degi.
-                areaSelect.classList.add("d-none");
-                areaSelect.disabled = true;
-
-                // Select ke aage lagi search box bhi hatni chahiye, warna
-                // manual input ke upar ek adhoora area field khada rehta hai.
-                if (areaSelect.sbPicker) {
-                    areaSelect.sbPicker.setActive(false);
-                }
-
-                areaManual.classList.remove("d-none");
-                areaManual.disabled = false;
-                areaManual.required = true;
-                areaManual.focus();
-
-                toggleLink.textContent = "Choose from list";
-            } else {
-                areaManual.classList.add("d-none");
-                areaManual.disabled = true;
-                areaManual.required = false;
-                areaManual.value = "";
-
-                areaSelect.classList.remove("d-none");
-                areaSelect.disabled = false;
-
-                if (areaSelect.sbPicker) {
-                    areaSelect.sbPicker.setActive(true);
-                }
-
-                toggleLink.textContent = "+ Add manually";
-            }
-        });
-    })();
 
     /* =====================================================
        PINCODE
@@ -1964,7 +1897,7 @@ const pin = match[1];
                     console.warn("Area not found for pincode " + pin, data);
                 } else {
                     console.warn("Invalid response for pincode " + pin);
-                    alert("Area not found for this pincode. Please use Add manually.");
+                    alert("Area not found for this pincode. Please check the pincode.");
                 }
 
             } catch (error) {
@@ -1972,7 +1905,7 @@ const pin = match[1];
                     "Error fetching pincode data:",
                     error
                 );
-                alert("Unable to fetch area data. Please use Add manually.");
+                alert("Unable to fetch area data. Please try again.");
             }
         });
     }
