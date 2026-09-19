@@ -879,8 +879,8 @@ sbSearchableSelect(document.getElementById('location_id'), {
                                             <select class="form-select country-code" name="mobile_country_code[]">
                                                 <option value="+91">+91</option>
                                             </select>
-                                            <input type="text" class="form-control" name="mobile_numbers[]"
-                                                placeholder="Mobile Number" required >
+                                            <input type="tel" class="form-control" name="mobile_numbers[]"
+                                                placeholder="Mobile Number" inputmode="numeric" maxlength="10" required >
                                         </div>
                                     </div>
                                     <a href="javascript:void(0)" class="add-link" id="addMobileNumber">+ Add Another
@@ -892,8 +892,8 @@ sbSearchableSelect(document.getElementById('location_id'), {
                                             <select class="form-select country-code" name="whatsapp_country_code[]">
                                                 <option value="+91">+91</option>
                                             </select>
-                                            <input type="text" class="form-control whatsapp-input"
-                                                name="whatsapp_numbers[]" placeholder="WhatsApp Number">
+                                            <input type="tel" class="form-control whatsapp-input"
+                                                name="whatsapp_numbers[]" placeholder="WhatsApp Number" inputmode="numeric" maxlength="10">
                                         </div>
                                     </div>
 
@@ -913,8 +913,8 @@ sbSearchableSelect(document.getElementById('location_id'), {
                                             <select class="form-select country-code" name="landline_country_code[]">
                                                 <option value="+91">+91</option>
                                             </select>
-                                            <input type="text" class="form-control" name="landline_numbers[]"
-                                                placeholder="Landline Number">
+                                            <input type="tel" class="form-control" name="landline_numbers[]"
+                                                placeholder="Landline Number" inputmode="numeric" maxlength="11">
                                         </div>
                                     </div>
 
@@ -1926,10 +1926,12 @@ const pin = match[1];
                 </select>
 
                 <input
-                    type="text"
+                    type="tel"
                     class="form-control"
                     name="${name}_numbers[]"
                     placeholder="${name.replace("_", " ")}"
+                    inputmode="numeric"
+                    maxlength="${name === "landline" ? 11 : 10}"
                 >
 
                 <button
@@ -1983,6 +1985,21 @@ const pin = match[1];
             }
         });
     }
+
+
+    // maxlength stops typing past the limit but not letters or a pasted
+    // "+91 98765-43210", so keep digits only and trim to the field's max.
+    document.addEventListener("input", function (e) {
+        const field = e.target;
+        if (!field.matches || !field.matches('input[name$="_numbers[]"]')) {
+            return;
+        }
+        const max = parseInt(field.getAttribute("maxlength"), 10) || 10;
+        const digits = field.value.replace(/\D/g, "").slice(-max);
+        if (digits !== field.value) {
+            field.value = digits;
+        }
+    });
 
 
     const addLandlineButton =
