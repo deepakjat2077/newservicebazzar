@@ -1500,7 +1500,7 @@ public function updatesection(Request $request, $id)
         ]);
 
         $newAddress = trim($request->address);
-        $changed = $newAddress !== trim((string) $listing->address);
+        $changed = $newAddress !== $listing->displayAddress();
 
         if ($changed) {
             $listing->pending_address = $newAddress;
@@ -2601,7 +2601,7 @@ public function update(Request $request, $id)
 
     if (
         $request->filled('address') &&
-        trim((string) $request->address) !== trim((string) $listing->address)
+        trim((string) $request->address) !== $listing->displayAddress()
     ) {
         $listing->pending_address = trim((string) $request->address);
         $listing->address_approval_status = 'pending';

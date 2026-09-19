@@ -108,7 +108,7 @@ class BusinessEditController extends Controller
         $request->validate(['address' => 'required|string|max:1000']);
 
         $new = trim($request->address);
-        $changed = $new !== trim((string) $l->address);
+        $changed = $new !== $l->displayAddress();
 
         if ($changed) {
             $l->pending_address = $new;

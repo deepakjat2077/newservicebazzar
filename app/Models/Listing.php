@@ -207,6 +207,25 @@ public static function forgetSubcategoryLookup(): void
     public const META_BRAND     = 'Service Bazzar';
 
     /**
+     * The listing's address as one line. Many listings never had `address`
+     * filled — only the component fields — so reading `address` alone showed
+     * them as having no address at all.
+     */
+    public function displayAddress(): string
+    {
+        $address = trim((string) $this->address);
+
+        if ($address !== '') {
+            return $address;
+        }
+
+        return collect([
+            $this->plot_no, $this->building_name, $this->street_name, $this->landmark,
+            $this->area, $this->city, $this->state, $this->pincode,
+        ])->map(fn ($part) => trim((string) $part))->filter()->implode(', ');
+    }
+
+    /**
      * Build an SEO meta title from a listing's own fields.
      *
      * Shape: "{Name} in {Area}, {City}". That already carries the business

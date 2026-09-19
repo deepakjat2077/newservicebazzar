@@ -98,7 +98,7 @@
                         <div class="col-md-6 mb-3">
                             <label><strong>@lang('Current Address')</strong></label>
                             <div class="border rounded p-2" style="min-height: 70px;">
-                                {{ $listing->address ?? '-' }}
+                                {{ $listing->displayAddress() ?: '-' }}
                             </div>
                         </div>
 

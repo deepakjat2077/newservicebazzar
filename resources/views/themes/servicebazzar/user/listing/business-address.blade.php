@@ -3,23 +3,7 @@
 @section('title', 'Business Address — '.$listing->name)
 
 @php
-    // Mirror the public detail page: some listings store a single `address`,
-    // others only have the separate component fields (plot_no, building_name,
-    // street_name, landmark, area, city, state, pincode). Prefill the box with
-    // whichever the listing actually has, so an existing address isn't shown
-    // as blank.
-    $composedAddress = collect([
-        $listing->plot_no ?? null,
-        $listing->building_name ?? null,
-        $listing->street_name ?? null,
-        $listing->landmark ?? null,
-        $listing->area ?? null,
-        $listing->city ?? null,
-        $listing->state ?? null,
-        $listing->pincode ?? null,
-    ])->filter()->implode(', ');
-
-    $prefillAddress = $listing->pending_address ?: ($listing->address ?: $composedAddress);
+    $prefillAddress = $listing->pending_address ?: $listing->displayAddress();
 @endphp
 
 <section class="pt-30 pb-80">
