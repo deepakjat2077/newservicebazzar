@@ -17,13 +17,24 @@ class DepositController extends Controller
     {
     	$deposits = Payment::where('status','!=',0)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod','listing')->paginate(20);
     	$title = 'All Deposits';
-    	return view('admin.deposit.index',compact('deposits','title'));
+    	$salesOrders = $this->paidSalesOrders();
+    	return view('admin.deposit.index',compact('deposits','title','salesOrders'));
     }
 
     public function approved(){
         $deposits = Payment::where('status',1)->orderBy('id','desc')->with('user','method_currency','method_currency.paymentMethod','listing')->paginate(20);
         $title = 'Approved Deposits';
-        return view('admin.deposit.index',compact('deposits','title'));
+        $salesOrders = $this->paidSalesOrders();
+        return view('admin.deposit.index',compact('deposits','title','salesOrders'));
+    }
+
+    /** Payments taken through Sales Genio order links live in sales_orders, not payments. */
+    protected function paidSalesOrders()
+    {
+        return \App\Models\SalesOrder::where('status', \App\Models\SalesOrder::PAID)
+            ->with(['listing:id,name,city', 'items:id,sales_order_id,name,plan', 'salesUser'])
+            ->latest('paid_at')
+            ->paginate(20, ['*'], 'orders_page');
     }
 
     public function pending(){

@@ -1,7 +1,56 @@
 @extends('admin.layouts.master')
 @section('content')
 @section('title',$title)
-<div class="row">
+<style>
+	.dep-list .table th, .dep-list .table td{ white-space:normal; vertical-align:middle; }
+	.dep-list .dep-muted{ color:#868e96; font-size:12px; }
+</style>
+@if(isset($salesOrders) && $salesOrders->count())
+<div class="row dep-list">
+	<div class="col-md-12">
+		<div class="card mb-4">
+			<div class="card-header"><h6 class="mb-0">@lang('Sales Genio payments')</h6></div>
+			<div class="card-body p-0">
+				<div class="table-responsive">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>@lang('Order')</th>
+								<th>@lang('Business')</th>
+								<th>@lang('Sales person')</th>
+								<th>@lang('Packages')</th>
+								<th>@lang('Amount')</th>
+								<th>@lang('Paid on')</th>
+								<th>@lang('Invoice')</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach($salesOrders as $order)
+							<tr>
+								<td>#{{ $order->id }}<br><span class="dep-muted">{{ ucfirst((string) $order->gateway) }}</span></td>
+								<td>{{ $order->listing->name ?? '—' }}@if(!empty($order->listing->city))<br><span class="dep-muted">{{ $order->listing->city }}</span>@endif</td>
+								<td>{{ $order->salesUser->name ?? $order->salesUser->username ?? '—' }}</td>
+								<td>{{ $order->items->pluck('name')->implode(', ') }}</td>
+								<td><b>{{ numberFormat($order->total) }} {{ $setting->site_currency }}</b><br><span class="dep-muted">@lang('incl. GST') {{ numberFormat($order->gst) }}</span></td>
+								<td>{{ $order->paid_at?->format('d M Y') }}<br><span class="dep-muted">{{ $order->paid_at?->format('h:i A') }}</span></td>
+								<td>
+									@if($order->invoice_no)<span class="dep-muted">{{ $order->invoice_no }}</span><br>@endif
+									<a href="{{ route('sales.order.invoice', $order->token) }}" target="_blank" rel="noopener" class="btn btn-success btn-sm"><i class="fas fa-file-invoice"></i> PDF</a>
+								</td>
+							</tr>
+							@endforeach
+						</tbody>
+					</table>
+				</div>
+			</div>
+			@if($salesOrders->hasPages())
+			<div class="card-footer">{{ $salesOrders->links() }}</div>
+			@endif
+		</div>
+	</div>
+</div>
+@endif
+<div class="row dep-list">
 	<div class="col-md-12">
 		<div class="card">
 			<div class="card-body p-0">
