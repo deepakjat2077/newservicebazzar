@@ -60,6 +60,18 @@ class UserController extends Controller
 
     public function dashboard(){
         $user = auth()->user();
+
+        // The user's own public profile is their home page now. Same handle the
+        // header's profile link uses; a user with no name to build one from
+        // keeps the old dashboard rather than hitting a broken URL.
+        $handle = \Illuminate\Support\Str::slug($user->first_name . '-' . $user->last_name);
+        if ($handle === '' && preg_match('/^[a-z0-9_-]+$/', (string) $user->username)) {
+            $handle = $user->username;
+        }
+        if ($handle !== '') {
+            return redirect()->route('user.profile.view', ['username' => $handle]);
+        }
+
         $data['user'] = $user;
     	return view($this->theme.'user.dashboard',$data);
     }
