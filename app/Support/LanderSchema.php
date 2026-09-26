@@ -44,6 +44,21 @@ class LanderSchema
                 $weighted    += $avg * $count;
             }
         }
+        // Only listings an admin marked Verified = Yes may be called verified. A
+        // paginator holds one page, so its count would understate: say nothing then.
+        $partial = $listings instanceof \Illuminate\Contracts\Pagination\Paginator
+            && method_exists($listings, 'total') && $listings->total() > $listings->count();
+        $verifiedCount = null;
+        if (!$partial) {
+            $verifiedCount = 0;
+            foreach ($listings as $listing) {
+                if ((int) ($listing->verified ?? 0) === 1) {
+                    $verifiedCount++;
+                }
+            }
+        }
+        $data['landerVerified'] = $verifiedCount;
+
         $aggregate = $reviewTotal > 0
             ? ['ratingValue' => $weighted / $reviewTotal, 'reviewCount' => $reviewTotal]
             : [];
@@ -66,6 +81,12 @@ class LanderSchema
         $faqSource = str_ireplace('servicebazzar.com/jaipur', 'servicebazzar.com/' . $citySlug, $item->description ?? '');
         $faqSource = str_ireplace('Jaipur', $cityName ?: 'Jaipur', $faqSource);
         $data['schemaFaqs'] = FaqExtractor::fromHtml($faqSource);
+
+        $data['landerFacts'] = LanderFacts::build($item, $cityName, $listings, $providerCount);
+
+        if (!empty($data['landerFacts']['faqs'])) {
+            $data['schemaFaqs'] = array_merge($data['landerFacts']['faqs'], $data['schemaFaqs']);
+        }
 
         // ItemList of the providers on the page, each a LocalBusiness.
         $items = [];
@@ -102,35 +123,24 @@ class LanderSchema
 
             // Some category names already end with the city ("affordable taxi
             // service Jaipur") — don't append " in Jaipur" again.
-            $inCity = Str::endsWith(mb_strtolower($name), mb_strtolower($cityName))
+            $inCity = Str::contains(mb_strtolower($name), mb_strtolower(trim(Str::afterLast($cityName, ','))))
                 ? $name
                 : $name . ' in ' . $cityName;
 
-            $countLabel = $providerCount > 0 ? "{$providerCount} Verified " : '';
-
-            // Build the title, then shorten progressively so long category
-            // names don't blow past Google's ~60-char limit: drop the brand,
-            // then the "N verified" prefix. We deliberately do NOT hard-cut
-            // with an ellipsis: chopping the HTML title mid-phrase ("... in
-            // Jai…") loses keywords and the brand and reads as broken, whereas
-            // Google already truncates cleanly in the SERP on its own. A long
-            // category name simply keeps its full "{name} in {city}" title.
-            $full = trim($countLabel . $inCity) . ' | ' . $siteName;
-            if (mb_strlen($full) > 60) {
-                $full = trim($countLabel . $inCity);
-            }
+            // No listing count in the title: "Packers And Movers in Jaipur | Service
+            // Bazzar". Drop the brand only when the title would pass ~60 chars.
+            $full = $inCity . ' | ' . $siteName;
             if (mb_strlen($full) > 60) {
                 $full = $inCity;
             }
             $data['seoTitle'] = $full;
 
-            $countPhrase = $providerCount > 0 ? "{$providerCount} Verified" : 'Verified';
             $seed = ($item->id ?? $item->name) . ':' . $cityName;
             $data['seoDescription'] = seoTextVariant($seed, [
-                "Find {$countPhrase} {$item->name} in {$cityName}. Compare ratings, prices & contact details, and book trusted local providers on {$siteName}.",
-                "Looking for {$item->name} in {$cityName}? Explore {$countPhrase} providers, compare prices and check reviews on {$siteName}.",
-                "Discover {$countPhrase} {$item->name} in {$cityName} — compare ratings and connect with providers directly on {$siteName}.",
-                "{$cityName} {$item->name}: browse {$countPhrase} listings, compare prices and reviews, and get in touch on {$siteName}.",
+                "Find {$inCity}. Compare ratings, prices & contact details, and book trusted local providers on {$siteName}.",
+                "Looking for {$inCity}? Explore providers, compare prices and check reviews on {$siteName}.",
+                "Discover {$inCity} — compare ratings and connect with providers directly on {$siteName}.",
+                "{$cityName} {$item->name}: browse listings, compare prices and reviews, and get in touch on {$siteName}.",
             ]);
         }
     }

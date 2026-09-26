@@ -268,10 +268,10 @@ if (!empty($currentLocationFromUrl)) {
     $siteName = $this->setting->site_name ?? config('app.name', 'Website');
     $data['seoTitle'] = "Best Local Businesses in {$currentLocationFromUrl->name} | {$siteName}";
     $data['seoDescription'] = seoTextVariant((string) $currentLocationFromUrl->id, [
-        "Find top-rated businesses, services and shops in {$currentLocationFromUrl->name}. Browse verified listings, reviews, contact details and more on {$siteName}.",
-        "Looking for reliable businesses in {$currentLocationFromUrl->name}? Explore verified listings with reviews and contact details on {$siteName}.",
-        "Discover trusted local businesses and services in {$currentLocationFromUrl->name}. Compare verified listings and check reviews on {$siteName}.",
-        "{$currentLocationFromUrl->name}'s local business directory — verified listings, genuine reviews and contact details, all on {$siteName}.",
+        "Find top-rated businesses, services and shops in {$currentLocationFromUrl->name}. Browse business listings, reviews, contact details and more on {$siteName}.",
+        "Looking for reliable businesses in {$currentLocationFromUrl->name}? Explore business listings with reviews and contact details on {$siteName}.",
+        "Discover trusted local businesses and services in {$currentLocationFromUrl->name}. Compare listings and check reviews on {$siteName}.",
+        "{$currentLocationFromUrl->name}'s local business directory — business listings, genuine reviews and contact details, all on {$siteName}.",
     ]);
     $data['seoUrl'] = url('/' . $currentLocationFromUrl->slug);
 
@@ -1056,8 +1056,8 @@ public function requestQuoteStore(Request $request)
         // fell back to a bare "Listings | ServiceBazzar" (too short). Give it
         // a full, descriptive title + meta description.
         $siteName = $this->setting->site_name ?? config('app.name');
-        $data['seoTitle'] = 'Verified Local Business Listings in India | ' . $siteName;
-        $data['seoDescription'] = 'Browse verified local businesses across India on ' . $siteName
+        $data['seoTitle'] = 'Local Business Listings in India | ' . $siteName;
+        $data['seoDescription'] = 'Browse local businesses across India on ' . $siteName
             . ' — services, healthcare, repairs, restaurants and professionals. Compare ratings, prices and contact them directly, free.';
 
         return view($this->theme.'listings.all', $data);
@@ -1597,10 +1597,10 @@ $data['listing'] = $data['listings']->first();
         $siteName = $this->setting->site_name ?? config('app.name', 'Website');
         $data['seoTitle'] = "Best Local Businesses in {$location->name} | {$siteName}";
         $data['seoDescription'] = seoTextVariant((string) $location->id, [
-            "Find top-rated businesses, services and shops in {$location->name}. Browse verified listings, reviews, contact details and more on {$siteName}.",
-            "Looking for reliable businesses in {$location->name}? Explore verified listings with reviews and contact details on {$siteName}.",
-            "Discover trusted local businesses and services in {$location->name}. Compare verified listings and check reviews on {$siteName}.",
-            "{$location->name}'s local business directory — verified listings, genuine reviews and contact details, all on {$siteName}.",
+            "Find top-rated businesses, services and shops in {$location->name}. Browse business listings, reviews, contact details and more on {$siteName}.",
+            "Looking for reliable businesses in {$location->name}? Explore business listings with reviews and contact details on {$siteName}.",
+            "Discover trusted local businesses and services in {$location->name}. Compare listings and check reviews on {$siteName}.",
+            "{$location->name}'s local business directory — business listings, genuine reviews and contact details, all on {$siteName}.",
         ]);
         $data['seoUrl'] = route('listings.location', ['slug' => $location->slug]);
 
@@ -1635,6 +1635,15 @@ $data['listing'] = $data['listings']->first();
 
 public function listingsDetails(Request $request, $category, $slug)
 {
+    // A slug that lost its "-<n>" when the listing was renamed: no row carries
+    // it any more, but the plain one is live. Point the old URL there.
+    if (preg_match('/^(.+)-\d+$/', $slug, $m) && !Listing::where('slug', $slug)->exists()) {
+        $renamed = Listing::where('status', 1)->where('slug', $m[1])->with('category:id,slug')->first();
+        if ($renamed && !empty($renamed->category->slug)) {
+            return redirect()->route('listings.details', ['category' => $renamed->category->slug, 'slug' => $renamed->slug], 301);
+        }
+    }
+
     $data['listing'] = Listing::notExpired()
         ->where('status', 1)
         ->where('slug', $slug)

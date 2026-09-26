@@ -1054,7 +1054,10 @@ Local Businesses & Trusted Services Near You
 .main-banner-box img{
     width: 100%;
     height: 100%;
-    object-fit: fill;
+    /* The box is 2:1 and the banners are 2.25:1, so "fill" was stretching
+       every one of them out of shape. Cover keeps the proportions and trims
+       the edges instead. */
+    object-fit: cover;
 }
 
 .mini-service-card{
@@ -2786,7 +2789,7 @@ label.popup-overlay {
     }
 
     .jd-rating-badge {
-        background: #1bbf73;
+        background: #12874f;
         color: #fff;
         font-size: 12px;
         font-weight: 600;
@@ -3471,7 +3474,7 @@ window.SB = {
                                         {{-- Desktop banner — WebP with fallback --}}
                                         <picture class="desktop-banner-img">
                                             <source srcset="{{ loadImageWebp($desktopSrc) }}" type="image/webp">
-                                            <img width="1200" height="400"
+                                            <img width="1200" height="534"
                                                 src="{{ loadImage($desktopSrc) }}"
                                                 loading="{{ $loadPriority }}"
                                                 fetchpriority="{{ $fetchPriority }}"
@@ -3483,7 +3486,7 @@ window.SB = {
                                         {{-- Mobile banner — WebP with fallback --}}
                                         <picture class="mobile-banner-img">
                                             <source srcset="{{ loadImageWebp($mobileSrc) }}" type="image/webp">
-                                            <img width="1200" height="400"
+                                            <img width="1200" height="534"
                                                 src="{{ loadImage($mobileSrc) }}"
                                                 loading="{{ $loadPriority }}"
                                                 fetchpriority="{{ $fetchPriority }}"
@@ -3564,9 +3567,11 @@ window.SB = {
                    data-slug="{{ $categoryItem->slug }}"
                    style="background-color: {{ $bgColor }}; display:block; height:100%;">
 
+                    {{-- The category name is right below in .mini-card-title, so
+                         repeating it in alt makes a screen reader say it twice. --}}
                     <img width="300" height="200" src="{{ loadImage('assets/images/category/'.$categoryItem->image) }}"
                          loading="lazy"
-                         alt="{{ $categoryItem->name }}">
+                         alt="">
 
                     <div class="mini-card-title">
                         {{ $categoryItem->name }}
@@ -4097,10 +4102,11 @@ window.SB = {
                                class="trend-card-link dynamic-category-link"
                                data-slug="{{ $category->slug }}">
 
+                                {{-- Name is announced by the <h3> in the overlay. --}}
                                 <img width="300" height="200" src="{{ asset('assets/images/category/' . $category->image) }}"
                                      loading="lazy"
                                      onerror="this.hidden=true;"
-                                    alt="{{ $category->name }}">
+                                    alt="">
 
                                 <div class="trend-card-overlay">
                                     <div>
@@ -4148,7 +4154,10 @@ window.SB = {
                 <div class="trending-scroll" >
                     @foreach($locations as $location)
                         <div class="trend-card-item">
-                      <a href="javascript:void(0)"
+                      {{-- A real URL so the link is crawlable and can be opened
+                           in a new tab; the click handler still preventDefaults
+                           and keeps the on-page behaviour. --}}
+                      <a href="{{ url($location->slug) }}"
    class="trend-card-link select-home-location"
    data-location-name="{{ $location->name }}"
    data-location-slug="{{ $location->slug }}">
@@ -4170,7 +4179,7 @@ window.SB = {
                     @endforeach
                 </div>
 
-                <button class="trend-nav next-btn" type="button" >
+                <button class="trend-nav next-btn" type="button" aria-label="Scroll right">
                         <i class="las la-angle-right"></i>
                     </button>
 
@@ -4472,6 +4481,25 @@ WhatsApp
 </div>
 </section> --}}
 
+  <style>
+    /*
+     * The dots were a 12x2px tap target — far under the 24x24 minimum, and
+     * almost impossible to hit with a thumb. The bar still looks the same;
+     * the button is padded out around it and the padding takes the taps.
+     */
+    .category-banner-slider .carousel-indicators [data-bs-target] {
+        width: 26px;
+        height: 24px;
+        padding: 11px 0;
+        margin-left: 5px;
+        margin-right: 5px;
+        background-clip: content-box;
+        border-top: 0;
+        border-bottom: 0;
+        box-sizing: border-box;
+    }
+  </style>
+
   <section class="category-banner-slider m-1">
     <div id="categoryBannerCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000">
 
@@ -4497,7 +4525,7 @@ WhatsApp
                                         srcset="{{ asset('assets/images/category/hbb/' . $hbb->mobile_banner) }}">
                             @endif
 
-                            <img width="1200" height="400" src="{{ asset('assets/images/category/hbb/' . $hbb->desktop_banner) }}"
+                            <img width="1200" height="534" src="{{ asset('assets/images/category/hbb/' . $hbb->desktop_banner) }}"
                                  class="d-block w-100 category-banner-img"
                              loading="lazy"    alt="{{ $hbb->title ?? 'Banner' }}">
                         </picture>
@@ -4684,8 +4712,8 @@ WhatsApp
 </p>
 
         @guest
-<a href="javascript:void(0);"
-   onclick="openSbAuthPopup()"
+<a href="{{ route('free.listing') }}"
+   onclick="event.preventDefault(); openSbAuthPopup();"
    class="buyer-btn">
     List your Business for FREE
 </a>

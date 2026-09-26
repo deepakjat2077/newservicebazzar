@@ -393,24 +393,50 @@ a {
 
     </style>
 
-    @if(isset($banners) && $banners->count() > 0)
+    @php
+        // Bought rotational banners ride in the same top carousel as the
+        // admin's own banners, so paid ads get the prime slot.
+        $adSlides = $adBannerSlides ?? collect();
+        $bannerCount = (isset($banners) ? $banners->count() : 0) + $adSlides->count();
+    @endphp
+
+    @if($bannerCount > 0)
+        <style>
+        .category-banner-slider .carousel-item a{position:relative;display:block;}
+        .category-banner-ad{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.88);color:#333;font-size:10px;
+            font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:4px;line-height:1.6;}
+        </style>
         <section class="category-banner-slider">
             <div id="categoryBannerCarousel" class="carousel slide" data-bs-ride="carousel">
 
                 {{-- Indicators --}}
                 <div class="carousel-indicators">
-                    @foreach($banners as $key => $banner)
+                    @for($key = 0; $key < $bannerCount; $key++)
                         <button type="button" data-bs-target="#categoryBannerCarousel" data-bs-slide-to="{{ $key }}"
                             class="{{ $key == 0 ? 'active' : '' }}" aria-current="{{ $key == 0 ? 'true' : 'false' }}"
                             aria-label="Slide {{ $key + 1 }}">
                         </button>
-                    @endforeach
+                    @endfor
                 </div>
 
                 {{-- Slides --}}
                 <div class="carousel-inner">
-                    @foreach($banners as $key => $banner)
+                    @foreach($adSlides as $key => $ad)
                         <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
+                            <a href="{{ $ad->listingUrl() ?: '#' }}">
+                                <picture>
+                                    @if($ad->mobileImageUrl())
+                                        <source media="(max-width: 767px)" srcset="{{ $ad->mobileImageUrl() }}">
+                                    @endif
+                                    <img src="{{ $ad->imageUrl() }}" class="d-block w-100 category-banner-img" alt="{{ $ad->title }}">
+                                </picture>
+                                <span class="category-banner-ad">Ad</span>
+                            </a>
+                        </div>
+                    @endforeach
+
+                    @foreach($banners ?? [] as $key => $banner)
+                        <div class="carousel-item {{ ($adSlides->count() + $key) == 0 ? 'active' : '' }}">
                             <a href="{{ $banner->link ?? '#' }}" target="_blank">
                                 <picture>
                                     @if(!empty($banner->mobile_banner))
@@ -446,11 +472,21 @@ a {
         $citySegment = request()->segment(1);
         $categorySegment = request()->segment(2);
 
+        // /listings and /listings/... are not a city.
+        if ($citySegment === 'listings') {
+            $citySegment = null;
+            $categorySegment = null;
+        }
+
         if ($citySegment) {
             $locationText = ucwords(str_replace('-', ' ', $citySegment));
         }
 
-        if ($categorySegment && str_contains($categorySegment, '-in-')) {
+        // Only an area when the slug isn't itself the category/subcategory
+        // shown ("packers-and-movers-in-south-delhi" is a subcategory's name).
+        $shownSlug = $selectedSubcategory->slug ?? $selectedCategory->slug ?? null;
+
+        if ($categorySegment && str_contains($categorySegment, '-in-') && $categorySegment !== $shownSlug) {
             $parts = explode('-in-', $categorySegment, 2);
 
             $areaText = ucwords(str_replace('-', ' ', $parts[1]));
@@ -481,7 +517,12 @@ a {
 
         @if(!empty($locationText))
 
-            <a href="{{ route('home') }}" class="breadcrumb-location-link">
+            @php
+                // The place crumb should open that place's own page.
+                $crumbCity = trim((string) (optional($locationData ?? null)->name ?? explode(',', $locationText)[count(explode(',', $locationText)) - 1]));
+                $crumbUrl = $crumbCity !== '' ? url(\Illuminate\Support\Str::slug($crumbCity)) : route('home');
+            @endphp
+            <a href="{{ $crumbUrl }}" class="breadcrumb-location-link">
                 {{ $locationText }}
             </a>
 
@@ -1590,6 +1631,17 @@ a {
         ? $locationText
         : 'Jaipur';
 
+    /*
+     * What the H1 says. On an area page $locationText is "Vaishali Nagar,
+     * Jaipur" and the heading should say exactly that — the <title> already
+     * does. $dynamicLocation itself keeps only the city below, because it is
+     * also used to build slugs and to rewrite the city name inside the copy,
+     * and an area in either of those would be wrong.
+     */
+    // No city in context (/listings, /listings/subcategory/...): the page is
+    // nationwide, not the 'Jaipur' fallback used for slugs and copy below.
+    $headingPlace = !empty($locationText) ? $dynamicLocation : 'India';
+
     if (str_contains($dynamicLocation, ',')) {
         $parts = explode(',', $dynamicLocation);
         $dynamicLocation = trim(end($parts));
@@ -1631,6 +1683,11 @@ a {
     ) {
         $headingWithServices = $headingName . ' Services';
     } elseif (preg_match('/\b(service|services)\s*$/i', $headingName)) {
+        $headingWithServices = $headingName;
+    } elseif (!$headingCategory && strcasecmp($headingName, 'Listings') === 0) {
+        $headingWithServices = 'Local Business Listings';
+    } elseif (preg_match('/\bnear me$/i', $headingName) || preg_match('/s$/i', $headingName) || preg_match('/\sin\s/i', $headingName)) {
+        // "... near me" is not a noun to pluralise ("near mes").
         $headingWithServices = $headingName;
     } else {
         $headingWithServices = \Illuminate\Support\Str::plural($headingName);
@@ -1727,7 +1784,13 @@ a {
                      hugs the preceding output so the space before "in" comes
                      from the template, not from Blade indentation. --}}
                 <h1 class="listing-main-title">
-                    {{ $headingWithServices }}@if(!empty($dynamicLocation)) in {{ $dynamicLocation }}@endif
+                    @php
+                        $headingWithServices = \Illuminate\Support\Str::ucfirst($headingWithServices);
+                        $headingCity = trim(\Illuminate\Support\Str::afterLast($headingPlace ?? '', ','));
+                        $headingShowPlace = !empty($headingPlace)
+                            && !($headingCity !== '' && stripos($headingWithServices, $headingCity) !== false);
+                    @endphp
+                    {{ $headingWithServices }}@if($headingShowPlace) in {{ $headingPlace }}@endif
                 </h1>
 
             </div>
@@ -1738,16 +1801,43 @@ a {
         <p class="lander-answer-tldr">
             @if($landerHasCity)
                 {{ $seoSiteName }} lists
-                @if($landerProviders > 0) {{ $landerProviders }} verified @else verified @endif
-                {{ $landerServiceName }} in {{ $landerCityName }}. Compare providers by rating, price
+                @php
+                    $tldrVerified = ($landerVerified ?? 0) > 0
+                        ? ($landerVerified === $landerProviders ? ', all verified' : ', ' . $landerVerified . ' of them verified')
+                        : '';
+                @endphp
+                @if($landerProviders > 0) {{ $landerProviders }} @endif
+                {{ \Illuminate\Support\Str::ucfirst($landerServiceName) }}@if(stripos($landerServiceName, (string) $landerCityName) === false) in {{ $landerCityName }}@endif{{ $tldrVerified }}. Compare providers by rating, price
                 and location, read genuine customer reviews, and contact them directly — {{ $seoSiteName }}
                 is free to use and you pay only the professional at their listed rate.
             @else
-                {{ $seoSiteName }} lists verified {{ $landerServiceName }} across India. Compare providers
+                {{ $seoSiteName }} lists {{ $landerServiceName }} across India. Compare providers
                 by rating, price and location, read genuine customer reviews, and contact them directly —
                 {{ $seoSiteName }} is free to use and you pay only the professional at their listed rate.
             @endif
         </p>
+
+        @if(!empty($landerFacts))
+            <section class="lander-facts">
+                <h2>{{ $landerFacts['service'] }} in {{ $landerFacts['place'] }}: at a glance</h2>
+                <ul class="lander-facts-stats">
+                    <li><b>{{ $landerFacts['providers'] }}</b><span>listed</span></li>
+                    @if($landerFacts['verified'] > 0)<li><b>{{ $landerFacts['verified'] }}</b><span>verified</span></li>@endif
+                    @if($landerFacts['avgRating'] !== null)<li><b>{{ $landerFacts['avgRating'] }}&#9733;</b><span>avg from {{ $landerFacts['reviews'] }} reviews</span></li>@endif
+                </ul>
+                @if(!empty($landerFacts['top']['url']))
+                    <p class="lander-facts-top">Top rated: <a href="{{ $landerFacts['top']['url'] }}">{{ $landerFacts['top']['name'] }}</a> ({{ $landerFacts['top']['rating'] }}/5, {{ $landerFacts['top']['reviews'] }} reviews)</p>
+                @endif
+                <div class="lander-facts-faq">
+                    @foreach($landerFacts['faqs'] as $faq)
+                        <details @if($loop->first) open @endif>
+                            <summary><h3>{{ $faq['question'] }}</h3></summary>
+                            <p>{{ $faq['answer'] }}</p>
+                        </details>
+                    @endforeach
+                </div>
+            </section>
+        @endif
 
         @if(!empty(trim(strip_tags($cleanDescription))))
             <div class="category-content-body rich-content">
@@ -1800,6 +1890,18 @@ a {
     line-height: 1.55;
     color: #1a1a1a;
 }
+
+.lander-facts { margin: 4px 0 18px; }
+.lander-facts h2 { font-size: 18px; margin: 0 0 10px; }
+.lander-facts-stats { list-style: none; padding: 0; margin: 0 0 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+.lander-facts-stats li { flex: 1 1 110px; background: #f6f8fb; border-radius: 8px; padding: 8px 12px; }
+.lander-facts-stats b { display: block; font-size: 18px; color: #1a1a1a; }
+.lander-facts-stats span { font-size: 12.5px; color: #64748b; }
+.lander-facts-top { font-size: 14px; margin: 0 0 10px; }
+.lander-facts-faq details { border-bottom: 1px solid #eef0f3; padding: 8px 0; }
+.lander-facts-faq summary { cursor: pointer; list-style: revert; }
+.lander-facts-faq summary h3 { display: inline; font-size: 15px; font-weight: 600; margin: 0; }
+.lander-facts-faq p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: #334155; }
 
 .lander-nearby-cities {
     margin: 20px 0 8px;
@@ -2057,7 +2159,14 @@ a {
 
 @endif
 
-@if(isset($popularCities) && $popularCities->count() > 0)
+{{-- City-specific categories ("Back Massage Chandigarh") must not be linked under other cities: /pune/back-massage-chandigarh only 301s back, and 34 of them per page is what fills Search Console with "Page with redirect". --}}
+@php
+    $popularCityLinks = isset($popularCities)
+        ? $popularCities->reject(fn ($c) => landerMentionsForeignCity($selectedSubcategory->name ?? $selectedCategory->name ?? $categoryText ?? null, $c->name))->values()
+        : collect();
+@endphp
+
+@if($popularCityLinks->count() > 0)
 
     @php
         $categoryName = $selectedSubcategory->name
@@ -2078,7 +2187,7 @@ a {
 
             <div class="featured-links-list">
 
-                @foreach($popularCities as $city)
+                @foreach($popularCityLinks as $city)
 
                     <a href="{{ url($city->slug . '/' . $categorySlug) }}">
                         {{ $categoryName }} in {{ $city->name }}

@@ -31,7 +31,7 @@
                   @foreach($payments as $payment)
                   <tr>
                     <td>#{{ $payment->trx_number }}</td>
-                    <td>{{ __($payment->package->name) }}</td>
+                    <td>{{ __($payment->purchaseName()) }}</td>
                     <td>{{ $payment->method_currency->paymentMethod->name }}</td>
                     <td>{{ numberFormat($payment->amount) }} {{ $setting->site_currency }}</td>
                     <td>

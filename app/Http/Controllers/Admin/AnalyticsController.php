@@ -12,7 +12,9 @@ use App\Models\Location;
 use App\Models\PageView;
 use App\Models\Visitor;
 use App\Models\VisitorSession;
+use App\Support\Tracking\SourceReport;
 use App\Support\Tracking\TrafficFilter;
+use App\Support\Tracking\UrlReport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -83,6 +85,32 @@ class AnalyticsController extends Controller
         return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($from, $to) {
             return $this->buildStats($from, $to);
         });
+    }
+
+    public function sources(Request $request)
+    {
+        [$from, $to, $range] = $this->resolveRange($request);
+        $group = $request->get('group') === 'campaign' ? 'campaign' : 'source';
+
+        $stamp = Cache::get(self::SWEEP_STAMP_KEY, 0);
+        $key = 'analytics:sources:' . $stamp . ':' . $group . ':' . $range . ':' . $from->timestamp . ':' . $to->timestamp;
+        $report = Cache::remember($key, now()->addMinutes(5), fn () => SourceReport::build($from, $to, $group));
+
+        $urlInput = trim((string) $request->get('url'));
+        $urlPrefix = $request->boolean('prefix');
+        $urlTarget = UrlReport::normalize($urlInput);
+        $urlReport = $urlTarget ? UrlReport::build($from, $to, $urlTarget['path'], $urlPrefix) : null;
+
+        return view('admin.analytics.sources', $report + [
+            'urlInput' => $urlInput,
+            'urlPrefix' => $urlPrefix,
+            'urlTarget' => $urlTarget,
+            'urlReport' => $urlReport,
+            'range' => $range,
+            'group' => $group,
+            'fromDate' => $from->toDateString(),
+            'toDate' => $to->toDateString(),
+        ]);
     }
 
     public function index(Request $request)

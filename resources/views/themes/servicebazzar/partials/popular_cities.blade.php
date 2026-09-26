@@ -39,7 +39,7 @@
     </button>
 
     {{-- Desktop heading; hidden on mobile via CSS --}}
-    <h5 class="popular-title">Popular Cities</h5>
+    <h2 class="popular-title">Popular Cities</h2>
 
     <div class="popular-city-list" id="popularCityListMobile">
         @foreach($popularCitiesWithListings as $location)

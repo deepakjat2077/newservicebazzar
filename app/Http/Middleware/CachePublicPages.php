@@ -94,6 +94,11 @@ class CachePublicPages
         'admin', 'admin/*',
         'user', 'user/*',
         'dashboard', 'dashboard/*',
+        // Sales Genio is one rep's own work — queues, customers, their own
+        // profile. None of it may be held in a cache keyed only by URL.
+        'sales_genio', 'sales_genio/*',
+        // The customer's payment link, which shows what they bought.
+        'order-pay', 'order-pay/*', 'p/*',
         'login', 'register', 'logout',
         'password/*', 'my-profile', 'messages',
         'free-listing', 'listing-form',
@@ -289,6 +294,11 @@ class CachePublicPages
             && !$request->expectsJson()
             && !auth()->check()
             && !auth()->guard('admin')->check()
+            // Sales Genio has its own guard. Without this the page a signed-in
+            // rep rendered was stored under a key that is just the URL, so the
+            // next person to open that URL — another rep, or a stranger — was
+            // served their copy of it.
+            && !auth()->guard('sales')->check()
             && !$request->is(self::NEVER_CACHE);
     }
 

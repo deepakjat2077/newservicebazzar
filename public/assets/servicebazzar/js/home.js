@@ -1448,7 +1448,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!navigator.geolocation) return;
 
-    navigator.geolocation.getCurrentPosition(
+    /*
+     * Ask the browser what it already decided before touching geolocation.
+     *
+     * This used to call getCurrentPosition straight away, which threw a
+     * permission prompt at everyone the moment the page opened. Most people
+     * dismiss that, and Chrome on Android then refuses to ask again — so the
+     * "Detect my location" button stopped working too. Lighthouse flags it as
+     * geolocation-on-start for the same reason.
+     */
+    async function sbLocateWhenAllowed() {
+        try {
+            if (!navigator.permissions || !navigator.permissions.query) return false;
+            const status = await navigator.permissions.query({ name: "geolocation" });
+            return status.state === "granted";
+        } catch (e) {
+            return false;
+        }
+    }
+
+    sbLocateWhenAllowed().then(function (allowed) {
+        if (!allowed) return;
+
+        navigator.geolocation.getCurrentPosition(
         async function (position) {
 
             const lat = position.coords.latitude;
@@ -1518,7 +1540,8 @@ localStorage.setItem("jf_lng", lng);
             timeout: 10000,
             maximumAge: 300000
         }
-    );
+        );
+    });
 
 });
 

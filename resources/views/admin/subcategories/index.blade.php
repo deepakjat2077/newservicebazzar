@@ -101,11 +101,15 @@
     </button>
 
     <!-- Hidden Form -->
-    <form id="delete-form-{{ $category->id }}" 
-          action="{{ route('admin.subcategories.delete', $category->id) }}" 
+    <form id="delete-form-{{ $category->id }}"
+          action="{{ route('admin.subcategories.delete', $category->id) }}"
           method="POST" style="display:none;">
         @csrf
         @method('DELETE')
+        <input type="hidden" name="page" value="{{ request('page', 1) }}">
+        @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
+        @if(request('category_id'))<input type="hidden" name="category_id" value="{{ request('category_id') }}">@endif
+        @if(request('location_id'))<input type="hidden" name="location_id" value="{{ request('location_id') }}">@endif
     </form>
 
     @endif

@@ -85,8 +85,13 @@ class SeoAuditController extends Controller
             ->values()
             ->all();
 
+        // Only published pages are audited: an SEO audit reflects what search
+        // engines actually index, and status = 0 rows are drafts/hidden pages
+        // that never reach Google, so flagging them is a false positive.
+
         // ---- Listings -----------------------------------------------------
         $listings = DB::table('listings')
+            ->where('status', 1)
             ->select([
                 'id', 'name', 'slug', 'meta_title', 'meta_keywords', 'meta_description',
                 'details', 'thumb', 'city', 'category_id', 'faq', 'status',
@@ -112,6 +117,7 @@ class SeoAuditController extends Controller
 
         // ---- Categories ---------------------------------------------------
         $categories = DB::table('categories')
+            ->where('status', 1)
             ->select(['id', 'name', 'slug', 'seo_title', 'seo_keywords', 'seo_description', 'description', 'image', 'status'])
             ->get();
 
@@ -132,6 +138,7 @@ class SeoAuditController extends Controller
 
         // ---- Subcategories -------------------------------------------------
         $subcategories = DB::table('subcategories')
+            ->where('status', 1)
             ->select(['id', 'name', 'slug', 'seo_title', 'seo_keywords', 'seo_description', 'description', 'image', 'status'])
             ->get();
 
@@ -152,6 +159,7 @@ class SeoAuditController extends Controller
 
         // ---- Locations -----------------------------------------------------
         $locations = DB::table('locations')
+            ->where('status', 1)
             ->select(['id', 'name', 'slug', 'image', 'status'])
             ->get();
 

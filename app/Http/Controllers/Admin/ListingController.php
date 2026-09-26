@@ -716,7 +716,7 @@ $listing->business_categories = $businessCategories;
     }
 
     protected function buildListingQuery(Request $request){
-        $query = Listing::with('user','location','category')->orderBy('id','desc');
+        $query = Listing::with('user','location','category','salesUser')->orderBy('id','desc');
         if ($request->filled('q')) {
             $term = $request->q;
             $query->where(function ($sub) use ($term) {

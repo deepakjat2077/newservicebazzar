@@ -28,9 +28,21 @@
 
                 @adminCan('analytics.view')
                 <li class="sidebar-menu-item">
-                    <a href="{{ route('admin.analytics.index') }}" class="{{ menuActive('admin.analytics*')[0] }}">
+                    <a href="{{ route('admin.analytics.index') }}" class="{{ menuActive(['admin.analytics.index', 'admin.analytics.export.*'])[0] }}">
                         <i class="fas fa-chart-line"></i>
                         <span class="sidebar-menu-title">@lang('Analytics')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.analytics.sources') }}" class="{{ menuActive('admin.analytics.sources')[0] }}">
+                        <i class="fas fa-bullseye"></i>
+                        <span class="sidebar-menu-title">@lang('Traffic Sources')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.analytics.campaigns') }}" class="{{ menuActive('admin.analytics.campaigns*')[0] }}">
+                        <i class="fas fa-link"></i>
+                        <span class="sidebar-menu-title">@lang('Campaign Links')</span>
                     </a>
                 </li>
                 @endadminCan
@@ -323,6 +335,21 @@
 </li>
 @endif
 
+@adminCan('banner.manage')
+<li class="sidebar-menu-item">
+    <a href="{{ route('admin.showcase.index') }}" class="{{ menuActive('admin.showcase*')[0] }}">
+        <i class="las la-star"></i>
+        <span class="sidebar-menu-title">@lang('Get Listed Showcase')</span>
+    </a>
+</li>
+<li class="sidebar-menu-item">
+    <a href="{{ route('admin.success-stories.index') }}" class="{{ menuActive('admin.success-stories*')[0] }}">
+        <i class="las la-quote-right"></i>
+        <span class="sidebar-menu-title">@lang('Success Stories')</span>
+    </a>
+</li>
+@endif
+
  @adminCan('category.manage')
                 <li class="sidebar-menu-item">
     <a href="{{ route('admin.categoryHeading.index') }}" class="{{ menuActive('admin.categoryHeading*')[0] }}">
@@ -515,6 +542,25 @@
                 </li>
 
                   @endif
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.sales_users.index') }}" class="{{ menuActive('admin.sales_users*')[0] }}">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="sidebar-menu-title">@lang('Sales Genio Users')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.sales_kyc.index') }}" class="{{ menuActive('admin.sales_kyc*')[0] }}">
+                        <i class="fas fa-id-card"></i>
+                        <span class="sidebar-menu-title">@lang('Sales KYC')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.sales_dispositions.index') }}" class="{{ menuActive('admin.sales_dispositions*')[0] }}">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span class="sidebar-menu-title">@lang('Sales Dispositions')</span>
+                    </a>
+                </li>
+
                       @adminCan('setting.manage')
                 <li class="text-white nav-section">@lang('Settings')</li>
                 <li class="sidebar-menu-item">
@@ -558,6 +604,13 @@
                         class="{{ menuActive('admin.setting.email.index')[0] }}">
                         <i class="fas fa-envelope-open"></i>
                         <span class="sidebar-menu-title">@lang('Email Setting')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.setting.invoice') }}"
+                        class="{{ menuActive('admin.setting.invoice')[0] }}">
+                        <i class="fas fa-file-invoice"></i>
+                        <span class="sidebar-menu-title">@lang('Invoice Setting')</span>
                     </a>
                 </li>
                 <li class="sidebar-menu-item">

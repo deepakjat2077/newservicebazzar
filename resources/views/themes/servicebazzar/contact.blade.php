@@ -61,21 +61,36 @@
         height: 100%;
         background: rgba(16,28,52,0.55);
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        text-align: center;
+        padding: 0 15px;
+    }
+
+    .page-header h1 {
+        color: #fff;
+        font-size: 40px;
+        font-weight: 800;
+        margin: 0 0 8px;
+        letter-spacing:.5px;
     }
 
     .page-header h2 {
         color: #fff;
-        font-size: 32px;
-        font-weight: 800;
+        font-size: 20px;
+        font-weight: 600;
         margin: 0;
+        opacity: .95;
         letter-spacing:.5px;
     }
     .sks{
-        align-items: center;
-        justify-content: center;
-        display: contents;
+        text-align: center;
+    }
+
+    @media (max-width:575px){
+        .page-header h1 { font-size: 28px; }
+        .page-header h2 { font-size: 16px; }
     }
 
     /* ============================== GET IN TOUCH ============================== */
@@ -228,6 +243,12 @@
         border-radius:10px;
         margin-bottom:8px;
         transition:background .2s ease, transform .2s ease;
+        text-decoration:none;
+        color:inherit;
+    }
+
+    a.git-info-row{
+        cursor:pointer;
     }
 
     .git-info-row:hover{
@@ -406,15 +427,23 @@
                     <div class="git-info-underline"></div>
 
                     @foreach($contacts as $contact)
-                        <div class="git-info-row">
+                        @php
+                            $ctitle = $contact->content->title ?? '';
+                            $cval   = trim($contact->content->content ?? '');
+                            $isPhone = stripos($ctitle, 'phone') !== false || stripos($ctitle, 'mobile') !== false || stripos($ctitle, 'call') !== false;
+                            $isEmail = stripos($ctitle, 'email') !== false || stripos($ctitle, 'mail') !== false;
+                            $telHref = '+' . ltrim(preg_replace('/[^0-9]/', '', $cval), '0');
+                            $rowHref = $isPhone ? 'tel:' . $telHref : ($isEmail ? 'mailto:' . $cval : null);
+                        @endphp
+                        <{{ $rowHref ? 'a' : 'div' }} class="git-info-row"@if($rowHref) href="{{ $rowHref }}"@endif>
                             <div class="git-info-icon">
                                 @php echo $contact->content->icon @endphp
                             </div>
                             <div class="git-info-content">
-                                <h5>{{ __($contact->content->title) }}</h5>
-                                <p>{{ __($contact->content->content) }}</p>
+                                <h5>{{ __($ctitle) }}</h5>
+                                <p>{{ __($cval) }}</p>
                             </div>
-                        </div>
+                        </{{ $rowHref ? 'a' : 'div' }}>
                     @endforeach
                 </div>
             </div>

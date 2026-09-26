@@ -435,7 +435,8 @@ $(document).ready(function(){
     function loadListings(categoryId, locationId, subcategoryId) {
         $.ajax({
             url: '{{ route("admin.listing.bulk.getListings") }}',
-            type: 'GET',
+            type: 'POST',
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             data: {
                 category_id: categoryId,
                 location_id: locationId,
@@ -445,7 +446,8 @@ $(document).ready(function(){
                 renderListingsTable(response.listings);
             },
             error: function(xhr) {
-                Swal.fire('Error', 'Failed to load listings', 'error');
+                const detail = xhr.status ? (xhr.status + ' ' + xhr.statusText) : 'Network error';
+                Swal.fire('Error', 'Failed to load listings (' + detail + ')', 'error');
             }
         });
     }

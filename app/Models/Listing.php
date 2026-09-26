@@ -22,6 +22,7 @@ class Listing extends Model
         'whatsapp_numbers'       => 'array',
         'landline_country_code'  => 'array',
         'landline_numbers'       => 'array',
+        'toll_free_numbers'      => 'array',
         'extra_emails'           => 'array',
         'extra_websites'         => 'array',
         'social_links'           => 'array',
@@ -33,6 +34,7 @@ class Listing extends Model
         'business_categories'    => 'array',
         'subcategory_ids'        => 'array',
         'photos'                 => 'array',
+        'videos'                 => 'array',
     ];
 
     /**
@@ -160,6 +162,38 @@ public static function forgetSubcategoryLookup(): void
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function salesUser()
+    {
+        return $this->belongsTo(SalesUser::class, 'sales_user_id');
+    }
+
+    /**
+     * Best position this listing has paid for in one category + city + area,
+     * as a sortable column (1 = Top 1, 999 = none). A position bought for one
+     * area must not lift the listing anywhere else.
+     */
+    public function scopeWithPaidPosition($query, $categoryId, ?string $city, ?string $area)
+    {
+        if (!$categoryId || !$city || !$area) {
+            return $query->selectRaw('999 as paid_position');
+        }
+
+        return $query->selectRaw("(
+            SELECT COALESCE(MIN(CAST(REPLACE(s.tier, 'Top ', '') AS UNSIGNED)), 999)
+            FROM listing_position_slots s
+            WHERE s.listing_id = listings.id
+              AND s.category_id = ?
+              AND s.city = ?
+              AND (s.pincode = ? OR s.area = ?)
+              AND s.expires_at > NOW()
+        ) as paid_position", [$categoryId, $city, $area, $area]);
+    }
+
+    public function kycDocuments()
+    {
+        return $this->hasMany(ListingKycDocument::class, 'listing_id');
     }
 
     public function category()

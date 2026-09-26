@@ -36,7 +36,9 @@ class RecordAnalyticsEvent implements ShouldQueue
     {
         $d = $this->data;
 
-        if (TrafficFilter::isBotPayload($d)) {
+        // Server-side conversions (payment IPN) carry no browser headers, so the
+        // header-based bot check would always reject them.
+        if (empty($d['trusted']) && TrafficFilter::isBotPayload($d)) {
             return;
         }
 

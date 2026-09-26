@@ -54,6 +54,8 @@
     font-weight: 600;
     margin-bottom: 12px;
     color: #333;
+    /* It is an <h2> now; keep the old line-height rather than the browser's. */
+    line-height: 1.2;
 }
 
 .popular-category-tabs {

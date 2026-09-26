@@ -17,6 +17,8 @@ use App\Http\Middleware\NoStoreAdminPages;
 use App\Http\Middleware\RedirectIfAdmin;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RedirectIfNotAdmin;
+use App\Http\Middleware\SalesSessionGuard;
+use App\Http\Middleware\RedirectIfNotSalesUser;
 use App\Http\Middleware\RedirectTrailingSlash;
 use App\Http\Middleware\ForceLowercaseLanderUrl;
 use App\Http\Middleware\SecurityHeaders;
@@ -60,6 +62,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Hourly rather than daily: the size cap only helps if it is checked
         // while a runaway file is still growing, not the morning after.
         $schedule->command('logs:prune')->hourly();
+
+        // New live listings go to IndexNow (Bing and partners) within the hour.
+        $schedule->command('seo:indexnow')->hourly()->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
@@ -73,6 +78,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle' => ThrottleRequestsForHumans::class,
 
             'admin' => RedirectIfNotAdmin::class,
+            'sales.auth' => RedirectIfNotSalesUser::class,
+            'sales.session' => SalesSessionGuard::class,
             'admin.guest' => RedirectIfAdmin::class,
             'permission' => AdminPermission::class,
             'shielded' => DecodeShieldedPayload::class,

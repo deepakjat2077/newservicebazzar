@@ -43,6 +43,7 @@ class Setting extends Model
     	'mail'=>'object',
     	'recaptcha'=>'object',
     	'gupshup'=>'object',
+    	'invoice'=>'object',
     	'social_login'=>'object',
     	'push_notification'=>'object',
     ];

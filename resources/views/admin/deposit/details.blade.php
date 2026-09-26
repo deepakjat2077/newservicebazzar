@@ -43,7 +43,8 @@
 						    </tr>
 						    <tr>
 						      <th>@lang('Conversion Rate')</th>
-						      <td>{{ numberFormat($deposit->after_charge) }} {{ $setting->site_currency }}</td>
+						      {{-- This printed after_charge, a copy-paste of the row above. --}}
+						      <td>{{ numberFormat($deposit->rate ?? 1) }}</td>
 						    </tr>
 						    <tr>
 						      <th>@lang('After Convert')</th>
@@ -51,8 +52,50 @@
 						    </tr>
 						    <tr>
 						      <th>@lang('Listing')</th>
-						      <td>{{ @$deposit->listing->name ?? 'Account Package' }}</td>
+						      <td>
+						      	@if($deposit->listing)
+						      		<a href="{{ route('admin.listing.details', $deposit->listing->id) }}" target="_blank">
+						      			{{ $deposit->listing->name }}
+						      		</a>
+						      	@else
+						      		@lang('Account Package')
+						      	@endif
+						      </td>
 						    </tr>
+						    <tr>
+						      <th>@lang('Purchased')</th>
+						      <td>{{ $deposit->purchaseName() }}</td>
+						    </tr>
+						    @if($deposit->purchaseExpiry())
+						    <tr>
+						      <th>@lang('Valid Till')</th>
+						      <td>
+						      	{{ $deposit->purchaseExpiry()->format('d M Y') }}
+						      	<small class="text-muted">
+						      		({{ $deposit->purchaseExpiry()->isPast()
+						      			? __('expired')
+						      			: (int) now()->diffInDays($deposit->purchaseExpiry()) . ' ' . __('days left') }})
+						      	</small>
+						      </td>
+						    </tr>
+						    @endif
+						    <tr>
+						      <th>@lang('Paid On')</th>
+						      <td>{{ $deposit->created_at?->format('d M Y, h:i A') }}</td>
+						    </tr>
+						    <tr>
+						      <th>@lang('Status')</th>
+						      <td>
+						      	@if($deposit->status == 1)
+						      		<span class="badge badge-success">@lang('Success')</span>
+						      	@elseif($deposit->status == 2)
+						      		<span class="badge badge-primary">@lang('Pending')</span>
+						      	@else
+						      		<span class="badge badge-danger">@lang('Rejected')</span>
+						      	@endif
+						      </td>
+						    </tr>
+						  </tbody>
 						</table>
 					</div>
 					@if($deposit->method_currency->is_manual)

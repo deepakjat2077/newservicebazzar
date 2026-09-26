@@ -15,6 +15,8 @@
 	                      @endif
 	                      <th scope="col">@lang('Method')</th>
 	                      <th scope="col">@lang('Amount')</th>
+	                      <th scope="col">@lang('Purchased')</th>
+	                      <th scope="col">@lang('Date')</th>
 		                      <th scope="col">@lang('Listing')</th>
 	                      @if(request()->routeIs('admin.deposit.all'))
 	                      <th scope="col">@lang('Status')</th>
@@ -31,6 +33,18 @@
 							@endif
 							<td>{{ $deposit->method_currency->paymentMethod->name }}</td>
 							<td>{{ numberFormat($deposit->amount) }} {{ $setting->site_currency }}</td>
+							<td>
+								{{ $deposit->purchaseName() }}
+								@if($deposit->purchaseExpiry())
+									<br><small class="text-muted">
+										@lang('Valid till') {{ $deposit->purchaseExpiry()->format('d M Y') }}
+									</small>
+								@endif
+							</td>
+							<td>
+								{{ $deposit->created_at?->format('d M Y') }}
+								<br><small class="text-muted">{{ $deposit->created_at?->format('h:i A') }}</small>
+							</td>
 							<td>{{ @$deposit->listing->name ?? 'Account Package' }}</td>
 							@if(request()->routeIs('admin.deposit.all'))
 							<td>

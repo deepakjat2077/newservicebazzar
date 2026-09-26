@@ -111,6 +111,11 @@ return [
     // WhatsApp OTP template
     'otp_template_id' => env('GUPSHUP_OTP_TEMPLATE_ID'),
 
+    // Sales payment link (sb_payment_link): 4 variables — customer name,
+    // business name, amount incl. GST, order number — plus the order token
+    // as the dynamic button suffix.
+    'payment_template_id' => env('GUPSHUP_PAYMENT_TEMPLATE_ID'),
+
     // Enquiry-forwarding template (servicebazzar_enquiry): 7 variables —
     // contact person, listing name, customer name, customer phone, location,
     // category, enquiry date. Built by WhatsappSender::enquiryParams().

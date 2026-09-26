@@ -92,8 +92,21 @@ Route::middleware('user.api.optional')->group(function () {
     Route::get('categories/find', [BrowseController::class, 'searchCategories']);
     Route::get('categories/find/{term}', [BrowseController::class, 'searchCategories']);
     Route::get('categories/{slug}/subcategories', [BrowseController::class, 'subcategories']);
+    Route::get('categories/{slug}/filters', [BrowseController::class, 'filters']);
+    // GET and POST: the app POSTs the filters in the body so the filter=/rating=/
+    // sort= query string never trips Cloudflare's scraper rule.
+    Route::match(['get', 'post'], 'categories/{slug}/listings', [BrowseController::class, 'categoryListings']);
     Route::get('locations/find',  [BrowseController::class, 'searchLocations']);
     Route::get('locations/find/{term}', [BrowseController::class, 'searchLocations']);
+
+    // The areas inside a city, for the second step of the search box.
+    Route::get('locations/{city}/areas', [BrowseController::class, 'areas']);
+
+    // Subcategories with live businesses in a city/area, most-listed first.
+    Route::get('locations/{city}/subcategories', [BrowseController::class, 'citySubcategories']);
+
+    // The website's search dropdown: categories, subcategories and businesses.
+    Route::get('suggest', [BrowseController::class, 'suggest']);
 
     // Backward compatibility - keep old search routes too
     Route::get('search', [BrowseController::class, 'search']);
@@ -112,11 +125,22 @@ Route::middleware('user.api.optional')->group(function () {
     // Homepage banner carousel, the same rows the admin's Banner Section edits.
     Route::get('banners',       [ContentController::class, 'banners']);
 
-    // News feed (= blog posts) and premium plans.
-    Route::get('news',          [ContentController::class, 'news']);
-    Route::get('news/{slug}',   [ContentController::class, 'newsDetail']);
+    // Premium plans.
     Route::get('plans',         [ContentController::class, 'plans']);
+
+    // The pages behind the website's SERVICES menu.
+    Route::get('services',          [ContentController::class, 'services']);
+    Route::get('services/{slug}',   [ContentController::class, 'serviceDetail']);
+
+    // "Get Listed / Grow Your Business" screen: admin-picked showcase listings
+    // + client success stories (Admin > Get Listed Showcase / Success Stories).
+    Route::get('get-listed',    [ContentController::class, 'getListed']);
 });
+
+// News feed (= blog posts) — fully public, no token/auth at all. The blog
+// content is the same for everyone, so these sit outside user.api.optional.
+Route::get('news',        [ContentController::class, 'news']);
+Route::get('news/{slug}', [ContentController::class, 'newsDetail']);
 
 
 /*
@@ -271,4 +295,20 @@ Route::post('/exotel/callback', [ExotelController::class, 'callback'])->name('ap
 // number to bridge to. No auth/CSRF (Exotel is the caller); GET+POST since the
 // applet may use either. Lives here (api.php) so it is exempt from web CSRF.
 Route::match(['get', 'post'], '/exotel/voice', [\App\Http\Controllers\SiteController::class, 'voiceConnect'])->name('api.exotel.voice');
+
+/*
+|--------------------------------------------------------------------------
+| City + category listings — JSON twin of the website URL /{city}/{category}.
+|--------------------------------------------------------------------------
+| e.g. GET /api/jaipur/packers-and-movers?sort=rating&filter=trust
+|
+| {location}/{category} is a two-segment catch-all, so it MUST stay the very
+| last route in this file: every specific /api/... route above is registered
+| first and wins, and only an unmatched two-segment path falls through here.
+| {category} must resolve to a real category slug or the endpoint 404s.
+*/
+Route::match(['get', 'post'], '{location}/{category}', [BrowseController::class, 'cityCategoryListings'])
+    ->where('location', '[A-Za-z0-9\-]+')
+    ->where('category', '[A-Za-z0-9\-]+')
+    ->middleware('user.api.optional');
     

@@ -579,6 +579,30 @@ trait GatewayIpn{
 			$locked->save();
 
 			$user = $locked->user;
+
+			// A sales package (SB Verified, banner, Top position…) is recorded
+			// against the listing it was bought for, with its own expiry.
+			if ($user && $locked->sales_package_id && $locked->listing_id) {
+				$owns = \App\Models\Listing::where('id', $locked->listing_id)
+					->where('user_id', $user->id)->exists();
+
+				if ($owns) {
+					$package = \App\Models\CertificatePackage::find($locked->sales_package_id);
+					$listing = \App\Models\Listing::find($locked->listing_id);
+
+					if ($package && $listing) {
+						\App\Support\SalesPerks::activate($listing, $package, [
+							'label'    => $locked->sales_plan ?: 'Plan',
+							'price'    => $locked->amount,
+							'days'     => (int) ($locked->sales_days ?: 365),
+							'city'     => $locked->sales_city,
+							'area'     => $locked->sales_area,
+							'position' => null,
+						], $locked);
+					}
+				}
+			}
+
 			if ($user && $locked->package) {
 				$expiry = now()->addDays($locked->package->validity);
 

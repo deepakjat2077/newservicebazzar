@@ -36,10 +36,32 @@ class DepositController extends Controller
     public function depositSubmit(Request $request){
     	$request->validate([
     		'method'=>'required',
-    		'package_id'=>'required|integer',
+    		'package_id'=>'required_without:sales_package_id|nullable|integer',
+    		'sales_package_id'=>'nullable|integer',
     		'listing_id'=>'nullable|integer',
     	]);
-        $package = Package::where('status',1)->where('id',$request->package_id)->firstOrFail();
+
+    	// A sales package (SB Verified, banner, Top position…) instead of a
+    	// legacy plan: the price comes from the package's own plan / city-area
+    	// row, resolved here rather than trusted from the form.
+    	$salesPackage = null;
+    	$salesChoice = null;
+    	if ($request->filled('sales_package_id')) {
+    		$salesPackage = \App\Models\CertificatePackage::where('status',1)
+    			->findOrFail($request->sales_package_id);
+    		$salesChoice = $salesPackage->resolveChoice([
+    			'plan' => $request->input('plan'),
+    			'tier' => $request->input('tier'),
+    			'city' => $request->input('city', ''),
+    			'area' => $request->input('area', ''),
+    		]);
+    		if (!$salesChoice || $salesChoice['price'] <= 0) {
+    			$alert = ['danger','Please pick a plan for this package.'];
+    			return back()->withAlert($alert);
+    		}
+    	}
+
+        $package = $salesPackage ? null : Package::where('status',1)->where('id',$request->package_id)->firstOrFail();
     	$method = MethodCurrency::where('enable_status',1)->where('id',$request->method)->firstOrFail();
 
     	// When the purchase is for a specific business (bought from the listing's
@@ -51,7 +73,7 @@ class DepositController extends Controller
     		$listingId = \App\Models\Listing::where('id',$request->listing_id)
     			->where('user_id',auth()->id())->value('id');
     	}
-    	$amount = $package->price;
+    	$amount = $salesChoice ? $salesChoice['price'] : $package->price;
     	if ($amount < $method->minimum || $amount > $method->maximum) {
     		$alert = ['danger','Please follow the minimum and maximum limit'];
     		return back()->withAlert($alert);
@@ -64,7 +86,12 @@ class DepositController extends Controller
 
     	$payment = Payment::create([
     		'user_id'=>auth()->user()->id,
-            'package_id'=>$package->id,
+            'package_id'=>$package?->id,
+            'sales_package_id'=>$salesPackage?->id,
+            'sales_plan'=>$salesChoice['label'] ?? null,
+            'sales_days'=>$salesChoice['days'] ?? null,
+            'sales_city'=>$salesChoice['city'] ?? null,
+            'sales_area'=>$salesChoice['area'] ?? null,
             'listing_id'=>$listingId,
     		'method_currency_id'=>$method->id,
     		'trx_number'=>$trx_number,

@@ -15,9 +15,11 @@
             <i class="fas fa-plus"></i>
         </span>
     </button>
-    <h5 class="popular-title">
+    {{-- Section heading: h5 straight after the page h1 skips levels. The size
+         comes from .popular-title, so the tag can be correct. --}}
+    <h2 class="popular-title">
         Popular Categories
-    </h5>
+    </h2>
 
 
     {{-- Desktop tabs --}}

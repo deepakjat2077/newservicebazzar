@@ -984,7 +984,7 @@
     }
 
     .jd-rating-badge {
-        background: #1bbf73;
+        background: #12874f;
         color: #fff;
         font-size: 13px;
         font-weight: 600;
@@ -2959,6 +2959,9 @@
             width:100%;
             height:100%;
             object-fit:cover;
+            /* Shop-front photos are usually portrait with the signboard at the
+               top — crop from the top so the name isn't the bit we cut off. */
+            object-position:center top;
         }
 
         .listing-title{
@@ -3119,6 +3122,7 @@
             width:100%;
             height:100%;
             object-fit:cover;   /* 🔥 important for cover image */
+            object-position:center top;
         }
 
             .star-btn{
@@ -5101,6 +5105,38 @@
 
             <div class="media-content-box">
 
+                @php
+                    // Certificates this business has bought and still holds.
+                    $sbCertificates = \App\Models\ListingSalesPackage::where('listing_id', $listing->id)
+                        ->whereNotNull('asset')->where('expires_at', '>', now())
+                        ->with('package')->latest()->get();
+                @endphp
+
+                @if($sbCertificates->isNotEmpty())
+                <div class="content-section mb-4" id="certificatesSection">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="media-title mb-0">Certificates</h4>
+                    </div>
+                    <div class="sbcert-public">
+                        @foreach($sbCertificates as $cert)
+                            <figure>
+                                <a href="{{ $cert->assetUrl() }}" target="_blank" rel="noopener">
+                                    <img src="{{ $cert->assetUrl() }}" alt="{{ $cert->package->name ?? 'Certificate' }} — {{ $listing->name }}" loading="lazy">
+                                </a>
+                                <figcaption>{{ $cert->package->name ?? 'Certificate' }} · valid till {{ $cert->expires_at->format('d M Y') }}</figcaption>
+                            </figure>
+                        @endforeach
+                    </div>
+                    <style>
+                    .sbcert-public{display:flex;gap:14px;flex-wrap:wrap;}
+                    .sbcert-public figure{margin:0;}
+                    .sbcert-public img{height:115px;width:auto;max-width:100%;object-fit:contain;
+                        border:1px solid #e6e9f2;border-radius:10px;background:#fff;display:block;cursor:zoom-in;}
+                    .sbcert-public figcaption{margin-top:6px;font-size:11.5px;color:#6b7285;max-width:170px;line-height:1.35;}
+                    </style>
+                </div>
+                @endif
+
                 <div class="content-section mb-4" id="photosSection">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h4 class="media-title mb-0">Photos</h4>
@@ -5115,10 +5151,28 @@
                 ->where(fn ($q) => $q->where('type', 'gallery')->orWhereNull('type')->orWhere('type', ''))
                 ->latest()
                 ->get();
+
+            // The cover photo belongs in the gallery too — it's usually the
+            // shop front, and it was the one picture missing from here.
+            $sbCoverInGallery = !empty($listing->thumb)
+                && !in_array($listing->thumb, $listing->photos ?? [], true);
         @endphp
         <div id="photos_view">
             <div class="photo-category-slider">
-                @if(!empty($listing->photos) || $sbGalleryExtra->isNotEmpty())
+                @if($sbCoverInGallery || !empty($listing->photos) || $sbGalleryExtra->isNotEmpty() || !empty($listing->videos))
+                    @if($sbCoverInGallery)
+                        <div class="photo-card">
+                            <div class="photo-thumb">
+                                <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}"
+                                    class="listing-photo-click"
+                                    data-src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}"
+                                    alt="{{ $listing->name }} Photo"
+                                    loading="lazy"
+                                    data-track="gallery_click"
+                                    data-listing-id="{{ $listing->id }}">
+                            </div>
+                        </div>
+                    @endif
                     @foreach($listing->photos ?? [] as $photo)
                         <div class="photo-card">
                         <div class="photo-thumb">
@@ -5145,11 +5199,41 @@
     </div>
                         </div>
                     @endforeach
+                    @foreach($listing->videos ?? [] as $video)
+                        <div class="photo-card">
+                            <div class="photo-thumb" style="position:relative;cursor:pointer;"
+                                 onclick="sbPlayListingVideo('{{ asset('assets/images/listing/videos/'.$video) }}')">
+                                <video src="{{ asset('assets/images/listing/videos/'.$video) }}#t=0.1"
+                                       muted preload="metadata"
+                                       style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></video>
+                                <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;text-shadow:0 2px 8px rgba(0,0,0,.6);">
+                                    <i class="las la-play-circle"></i>
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
                 @else
                     <p>No photos available.</p>
                 @endif
             </div>
         </div>
+
+        {{-- Video player overlay (Sales Genio uploaded videos) --}}
+        <div id="sbVideoOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:none;align-items:center;justify-content:center;"
+             onclick="if(event.target.id==='sbVideoOverlay')sbCloseListingVideo()">
+            <button type="button" onclick="sbCloseListingVideo()" style="position:absolute;top:18px;right:22px;color:#fff;font-size:28px;background:none;border:none;cursor:pointer;">&times;</button>
+            <video id="sbVideoPlayer" controls playsinline style="max-width:92vw;max-height:82vh;border-radius:8px;"></video>
+        </div>
+        <script>
+            function sbPlayListingVideo(url){
+                var ov=document.getElementById('sbVideoOverlay'), vp=document.getElementById('sbVideoPlayer');
+                vp.src=url; ov.style.display='flex'; vp.play().catch(function(){});
+            }
+            function sbCloseListingVideo(){
+                var ov=document.getElementById('sbVideoOverlay'), vp=document.getElementById('sbVideoPlayer');
+                vp.pause(); vp.removeAttribute('src'); vp.load(); ov.style.display='none';
+            }
+        </script>
 
         {{-- EDIT MODE --}}
         @auth

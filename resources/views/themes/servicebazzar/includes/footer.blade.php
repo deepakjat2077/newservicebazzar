@@ -42,9 +42,12 @@
 <div class="social-follow-section py-4 bg-white border-top border-bottom">
     <div class="container">
         <div class="d-flex align-items-center follow-us-row">
-            <h5 class="mb-0 text-dark follow-title">
+            {{-- h5 after an h2 skips two levels, which screen readers report as
+                 a missing section. The look comes from .follow-title, not the
+                 tag, so the level can be correct. --}}
+            <h3 class="mb-0 text-dark follow-title">
                 Follow us on
-            </h5>
+            </h3>
 
             <div class="d-flex align-items-center social-icons">
                 @foreach($socialSites as $social)
@@ -164,15 +167,15 @@
                     <div class="footer-widget">
                         {{-- The logo image is hidden by CSS on small screens, which leaves this link
                              in the tab order with no name at all. --}}
-                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" width="150" height="45" class="site-logo" alt="logo"></a>
+                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" width="150" height="33" class="site-logo" alt="logo"></a>
                         <p>{{ __($footer->content->description) }}</p>
                      
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <div class="footer-widget">
-                        <div class="widget-title" aria-expanded="false">
-                            <h5>@lang('Site Link')</h5>
+                        <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
+                            <h4 class="h5">@lang('Site Link')</h4>
                             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
                         </div>
                         <div class="widget-body">
@@ -190,8 +193,8 @@
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <div class="footer-widget">
-                        <div class="widget-title" aria-expanded="false">
-                            <h5>@lang('Useful Links')</h5>
+                        <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
+                            <h4 class="h5">@lang('Useful Links')</h4>
                             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
                         </div>
                         <div class="widget-body">
@@ -206,8 +209,8 @@
                 
                 <div class="col-lg-2 col-md-6">
     <div class="footer-widget">
-        <div class="widget-title" aria-expanded="false">
-            <h5>@lang('Services')</h5>
+        <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
+            <h4 class="h5">@lang('Services')</h4>
             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
         </div>
         <div class="widget-body">
@@ -234,8 +237,8 @@
              <div class="col-lg-3 col-md-6">
     <div class="footer-widget">
 
-        <div class="widget-title" aria-expanded="false">
-            <h5>@lang('Contact Info')</h5>
+        <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
+            <h4 class="h5">@lang('Contact Info')</h4>
             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
         </div>
 

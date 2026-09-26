@@ -20,7 +20,7 @@ use Illuminate\Console\Command;
 class PruneLogs extends Command
 {
     protected $signature = 'logs:prune
-                            {--hours=24 : Delete log files last modified longer ago than this}
+                            {--hours=168 : Delete log files last modified longer ago than this}
                             {--max-mb=100 : Delete any log file larger than this, regardless of age}
                             {--dry-run : List what would go without deleting it}';
 

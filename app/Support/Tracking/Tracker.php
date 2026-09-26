@@ -32,6 +32,9 @@ class Tracker
                 'event_category' => 'conversion',
                 'event_type' => $eventType,
                 'url' => $request->fullUrl(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'accept_language' => $request->header('Accept-Language'),
             ], $extra));
         } catch (\Throwable $e) {
             Log::warning('Conversion tracking failed', ['event' => $eventType, 'error' => $e->getMessage()]);
@@ -63,6 +66,7 @@ class Tracker
                 'user_id' => $userId,
                 'event_category' => 'conversion',
                 'event_type' => $eventType,
+                'trusted' => true,
             ], $extra))->afterCommit();
         } catch (\Throwable $e) {
             Log::warning('Server-side conversion tracking failed', ['event' => $eventType, 'error' => $e->getMessage()]);

@@ -31,3 +31,6 @@ Schedule::command('analytics:prune-bots --keep-days=1')
     ->dailyAt('03:15')
     ->withoutOverlapping()
     ->runInBackground();
+
+// Badges bought through a sales package last only as long as the plan.
+Schedule::command('sales:expire-perks')->hourly();

@@ -42,11 +42,11 @@
 										</tr>
 										<tr>
 											<th>@lang('Package Name')</th>
-											<td>{{ __($payment->package->name) }}</td>
+											<td>{{ __($payment->purchaseName()) }}</td>
 										</tr>
 										<tr>
 											<th>@lang('Package Expire Date')</th>
-											<td>{{ $payment->created_at->addDays($payment->package->validity)->format('Y-m-d h:i A') }}</td>
+											<td>{{ optional($payment->purchaseExpiry())->format('Y-m-d h:i A') ?? '—' }}</td>
 										</tr>
 									</tbody>
 								</table>

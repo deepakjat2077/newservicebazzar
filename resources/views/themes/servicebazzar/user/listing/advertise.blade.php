@@ -86,6 +86,92 @@
       @endforelse
     </div>
 
+
+    {{-- certificates earned for this listing --}}
+    @if($certificates->isNotEmpty())
+      <div class="sbcert-list">
+        @foreach($certificates as $cert)
+          <div class="sbcert-row">
+            <img src="{{ $cert->assetUrl() }}" alt="{{ $cert->package->name ?? 'Certificate' }}">
+            <div class="sbcert-info">
+              <strong>{{ $cert->package->name ?? 'Certificate' }}</strong>
+              <span>Valid till {{ $cert->expires_at->format('d M Y, h:i A') }}</span>
+              <span class="sbcert-where">Shown on your public business page, and you can print or share this copy.</span>
+              <a href="{{ $cert->assetUrl() }}" download class="sbcert-btn"><i class="las la-download"></i> Download</a>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    @endif
+
+    {{-- banners bought for this listing --}}
+    @if($adBanners->isNotEmpty())
+      <div class="sbab-list">
+        @foreach($adBanners as $ad)
+          <div class="sbab-row {{ $ad->status == 0 ? 'is-pending' : '' }}">
+            <div class="sbab-row__info">
+              <strong>{{ $ad->package->name ?? 'Banner' }}</strong>
+              <span>{{ $ad->area ? $ad->area.', ' : '' }}{{ $ad->city }} · till {{ $ad->expires_at->format('d M Y, h:i A') }} ({{ $ad->timeLeft() }})</span>
+            </div>
+            @if($ad->status == 0)
+              <a href="{{ route('user.listing.ad.banner.edit', $ad->id) }}" class="sbab-row__btn">Add banner details</a>
+            @else
+              <a href="{{ route('user.listing.ad.banner.edit', $ad->id) }}" class="sbab-row__btn is-ghost">View / edit banner</a>
+            @endif
+          </div>
+        @endforeach
+      </div>
+    @endif
+
+    {{-- sales packages: SB Verified, banners, website combos, Top positions --}}
+    @if($salesPackages->isNotEmpty())
+      <h2 class="sbadv-section-title">More ways to grow {{ $listing->name }}</h2>
+
+      @if(session('success'))
+        <div class="sbadv-flash"><i class="las la-check-circle"></i> {{ session('success') }}</div>
+      @endif
+
+      <div class="sbpk-grid">
+        @foreach($salesPackages as $sp)
+          @php
+            $sbPlans = $sp->planList();
+            $sbImages = $sp->imageUrls();
+            $sbTree = $sp->needsLocation() ? $sp->positionPriceTree() : [];
+            $sbFrom = $sp->needsLocation()
+              ? collect($sbTree)->flatten(1)->flatten()->min()
+              : collect($sbPlans)->min('price');
+          @endphp
+          <div class="sbpk-card" id="sbpk{{ $sp->id }}">
+            @if($sbImages)
+              <div class="sbpk-img"><img src="{{ $sbImages[0] }}" alt="{{ $sp->name }}" loading="lazy"></div>
+            @endif
+            <div class="sbpk-body">
+              <h3>{{ $sp->name }}</h3>
+              @if($sbFrom)<div class="sbpk-from">Starts at <strong>{{ $sym }}{{ numberFormat($sbFrom) }}</strong></div>@endif
+
+              <ul class="sbpk-benefits">
+                @foreach(array_slice($sp->benefitList(), 0, 4) as $benefit)
+                  <li><i class="las la-check-circle"></i> {{ $benefit }}</li>
+                @endforeach
+              </ul>
+
+              @foreach($sp->highlightList() as $hl)
+                <span class="sbpk-chip">{{ $hl }}</span>
+              @endforeach
+
+              @php $active = $activeSales->get($sp->id); @endphp
+              @if($active)
+                <div class="sbpk-active"><i class="las la-check-circle"></i> Active — {{ $active->plan }}, till {{ $active->expires_at->format('d M Y, h:i A') }}</div>
+              @endif
+              <a href="{{ route('user.listing.advertise.sales.select', ['id' => $listing->id, 'pkg' => $sp->id]) }}" class="sbadv-buy sbpk-btn {{ $active ? 'is-renew' : '' }}">
+                @if($active) Renew / Change Plan @else Buy Now <i class="las la-arrow-right"></i> @endif
+              </a>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    @endif
+
     {{-- feature highlights (informational) --}}
     <h2 class="sbadv-section-title">Why advertise on {{ $setting->site_name ?? 'Service Bazzar' }}?</h2>
     <div class="sbadv-features">
@@ -175,6 +261,57 @@
 .sbadv-noplan{grid-column:1/-1;text-align:center;color:#7a8296;background:#fff;border:1px solid #e6e9f2;border-radius:16px;padding:48px;}
 .sbadv-noplan i{font-size:46px;display:block;margin-bottom:10px;color:#c3c8d6;}
 
+
+.sbadv-flash{background:#eafaf1;border:1px solid #bde5cd;color:#1f7a45;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;}
+.sbpk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-bottom:44px;}
+.sbpk-card{background:#fff;border:1px solid #e6e9f2;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 1px 3px rgba(16,24,40,.05);transition:.18s;}
+.sbpk-card:hover{box-shadow:0 8px 26px rgba(26,115,232,.12);transform:translateY(-3px);}
+.sbpk-img{background:#f7f9fc;border-bottom:1px solid #eef0f6;padding:14px;text-align:center;}
+.sbpk-img img{max-height:210px;max-width:100%;object-fit:contain;}
+.sbpk-body{padding:20px 22px 22px;display:flex;flex-direction:column;flex:1;}
+.sbpk-body h3{font-size:19px;font-weight:800;color:#12203f;margin:0 0 6px;}
+.sbpk-from{font-size:14px;color:#5b6478;margin-bottom:14px;}
+.sbpk-from strong{color:#1a73e8;font-size:18px;}
+.sbpk-benefits{list-style:none;padding:0;margin:0 0 12px;display:flex;flex-direction:column;gap:9px;}
+.sbpk-benefits li{display:flex;gap:9px;font-size:13.5px;color:#37415a;line-height:1.4;}
+.sbpk-benefits i{color:#1f9d55;font-size:17px;flex-shrink:0;}
+.sbpk-chip{display:inline-block;background:#eef4fb;color:#1c6fb8;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600;margin:0 6px 8px 0;}
+.sbpk-form{margin-top:auto;}
+.sbpk-card .sbpk-btn{margin-top:auto;text-decoration:none;}
+.sbpk-plan-title{font-size:13px;font-weight:700;color:#5b6478;margin:12px 0 8px;}
+.sbpk-poswrap{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.sbpk-select{flex:1;min-width:130px;border:1px solid #dfe3ec;border-radius:8px;padding:8px 10px;font-size:13px;color:#37415a;background:#fff;}
+.sbpk-plans{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.sbpk-plan{position:relative;flex:1;min-width:92px;border:1px solid #e6e9f2;background:#f8f9fc;border-radius:10px;padding:10px 12px;cursor:pointer;margin:0;}
+.sbpk-plan input{position:absolute;opacity:0;}
+.sbpk-plan.is-on{border-color:#1a73e8;background:#eef6fd;}
+.sbpk-plan-label{display:block;font-size:12.5px;color:#6b7285;margin-bottom:4px;}
+.sbpk-plan.is-on .sbpk-plan-label{color:#1a73e8;}
+.sbpk-plan-price{display:block;font-size:17px;font-weight:800;color:#12203f;}
+.sbpk-btn{margin-top:4px;}
+.sbpk-btn.is-renew{background:#fff;color:#1a73e8;border:1px solid #1a73e8;}
+.sbpk-active{background:#eafaf1;border:1px solid #bde5cd;color:#1f7a45;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:10px;display:flex;gap:8px;align-items:center;}
+.sbpk-note{display:block;text-align:center;color:#8a92a6;font-size:12px;margin-top:8px;}
+.sbpk-noprice{color:#b4461f;font-size:13px;margin:0 0 10px;}
+.sbcert-list{margin-bottom:22px;display:flex;flex-direction:column;gap:12px;}
+.sbcert-row{display:flex;gap:18px;align-items:center;background:#fff;border:1px solid #e6e9f2;border-radius:14px;padding:16px 18px;flex-wrap:wrap;}
+.sbcert-row img{height:120px;width:auto;max-width:100%;object-fit:contain;border:1px solid #e6e9f2;border-radius:10px;background:#fff;}
+.sbcert-info{flex:1;min-width:220px;display:flex;flex-direction:column;gap:4px;}
+.sbcert-info strong{color:#12203f;font-size:16px;}
+.sbcert-info span{color:#6b7285;font-size:13px;}
+.sbcert-where{color:#1f7a45 !important;}
+.sbcert-btn{align-self:flex-start;margin-top:8px;background:#fff;border:1px solid #1a73e8;color:#1a73e8;border-radius:9px;
+  padding:8px 16px;font-size:13.5px;font-weight:700;text-decoration:none;}
+.sbab-list{margin-bottom:26px;display:flex;flex-direction:column;gap:10px;}
+.sbab-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  background:#fff;border:1px solid #e6e9f2;border-radius:14px;padding:16px 18px;}
+.sbab-row.is-pending{border-color:#f0c36d;background:#fffaf0;}
+.sbab-row__info strong{display:block;color:#12203f;font-size:15px;}
+.sbab-row__info span{color:#6b7285;font-size:13px;}
+.sbab-row__btn{background:#1a73e8;color:#fff;border-radius:9px;padding:10px 18px;font-size:14px;font-weight:700;text-decoration:none;}
+.sbab-row__btn.is-ghost{background:#fff;color:#1a73e8;border:1px solid #1a73e8;}
+.sbpk-btn:disabled{opacity:.5;cursor:not-allowed;}
 .sbadv-section-title{font-size:22px;font-weight:800;color:#12203f;margin:0 0 20px;}
 .sbadv-features{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:44px;}
 .sbadv-feature{display:flex;gap:14px;background:#fff;border:1px solid #e6e9f2;border-radius:14px;padding:18px;}
@@ -197,5 +334,10 @@
   .sbadv-hero h1{font-size:21px;}
 }
 </style>
+
+<script>
+(function(){
+})();
+</script>
 
 @endsection

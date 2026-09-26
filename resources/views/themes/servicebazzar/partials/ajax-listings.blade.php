@@ -237,6 +237,31 @@
 
 @endphp
 
+@php
+    // Link a card's area straight to that area's page for this category, so
+    // "Vidhyadhar Nagar, Jaipur" opens the Vidhyadhar Nagar list, not the city.
+    $areaFallbackCategory = $selectedCategory ?? null;
+    $areaFallbackSubcategory = $selectedSubcategory ?? null;
+
+    $areaPageUrl = function ($listing) use ($areaFallbackCategory, $areaFallbackSubcategory) {
+        $categorySlug = optional($listing->category)->slug
+            ?? optional($areaFallbackCategory)->slug
+            ?? optional($areaFallbackSubcategory)->slug;
+
+        if (!$categorySlug || !$listing->area || !$listing->city) {
+            return null;
+        }
+
+        // The listing's own `city` can be a district or sub-region ("Gautam
+        // Buddha Nagar", "West Delhi"); /{that}/... only 301s to the real
+        // city page, so link the location's slug directly.
+        $citySlug = optional($listing->location)->slug ?: \Illuminate\Support\Str::slug($listing->city);
+
+        return url($citySlug . '/'
+            . $categorySlug . '-in-' . \Illuminate\Support\Str::slug($listing->area));
+    };
+@endphp
+
 {{-- ================= FIXED TOP RANK LISTINGS ================= --}}
 @forelse($fixedListings as $listing)
     @php
@@ -462,8 +487,14 @@
 
                     <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
                         @if(!empty($locationName))
+                            @php $areaUrl = $areaPageUrl($listing); @endphp
                             <span>
-                                <i class="las la-map-marker"></i> {{ $locationName }}
+                                <i class="las la-map-marker"></i>
+                                @if($areaUrl)
+                                    <a href="{{ $areaUrl }}" class="listing-area-link">{{ $locationName }}</a>
+                                @else
+                                    {{ $locationName }}
+                                @endif
                             </span>
                         @else
                             <span>&nbsp;</span>
@@ -726,9 +757,14 @@
                     </div>
 
                     <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
+                        @php $areaUrl = $areaPageUrl($listing); @endphp
                         <span>
                             <i class="las la-map-marker"></i>
-                            {{ optional($listing->location)->name }}
+                            @if($areaUrl)
+                                <a href="{{ $areaUrl }}" class="listing-area-link">{{ $listing->area ? $listing->area.', '.$listing->city : optional($listing->location)->name }}</a>
+                            @else
+                                {{ optional($listing->location)->name }}
+                            @endif
                         </span>
 
                         @if(!empty($listing->established_year))
@@ -1089,16 +1125,15 @@
         @endif
     </span>
 @endif --}}
-                                  <span>
+                                  @php $areaUrl = $areaPageUrl($listing); @endphp
+<span>
     <i class="las la-map-marker"></i>
-
-    {{ collect([
-       
-      
-        $listing->area,
-        optional($listing->location)->name
-    ])->filter()->implode(', ') }}
-
+    @php $areaLabel = collect([$listing->area, optional($listing->location)->name])->filter()->implode(', '); @endphp
+    @if($areaUrl)
+        <a href="{{ $areaUrl }}" class="listing-area-link">{{ $areaLabel }}</a>
+    @else
+        {{ $areaLabel }}
+    @endif
 </span>
                                     @if(!empty($listing->established_year))
                                         @php
@@ -1376,7 +1411,7 @@
 }
 
 .jd-rating-badge {
-    background: #1bbf73;
+    background: #12874f;
     color: #fff;
     font-size: 13px;
     font-weight: 600;
@@ -1819,6 +1854,8 @@
         margin-bottom: 5px !important;
     }
 
+    .listing-area-link{color:inherit;text-decoration:none;}
+    .listing-area-link:hover{color:#1a73e8;text-decoration:underline;}
     .listing-location {
         display: flex;
         flex-wrap: wrap;

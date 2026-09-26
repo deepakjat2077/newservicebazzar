@@ -163,6 +163,8 @@ class BusinessController extends Controller
             'thumb'               => 'nullable|image|mimes:jpg,jpeg,png,webp',
             'photos'              => 'nullable|array',
             'photos.*'            => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'images'              => 'nullable|array',
+            'images.*'            => 'nullable|image|mimes:jpg,jpeg,png,webp',
 
             'details'             => 'nullable|string',
         ]);
@@ -200,14 +202,29 @@ class BusinessController extends Controller
             $file->move(public_path('assets/images/listing/thumb'), $thumb);
         }
 
+        // Which file fields the app actually sent — names only, never content.
+        \Illuminate\Support\Facades\Log::info('API business store files', ['fields' => array_keys($request->allFiles())]);
+
+        // The photo-upload endpoint takes images[]; accept that name here too.
+        $galleryFiles = array_merge(
+            array_values(array_filter((array) $request->file('photos', []))),
+            array_values(array_filter((array) $request->file('images', [])))
+        );
+
         $uploadedPhotos = [];
-        if ($request->hasFile('photos')) {
-            foreach ($request->file('photos') as $photo) {
-                if ($photo) {
-                    $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
-                    $photo->move(public_path('assets/images/listing/photos'), $filename);
-                    $uploadedPhotos[] = $filename;
-                }
+        foreach ($galleryFiles as $photo) {
+            if ($photo && $photo->isValid()) {
+                $filename = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
+                $photo->move(public_path('assets/images/listing/photos'), $filename);
+                $uploadedPhotos[] = $filename;
+            }
+        }
+
+        // No separate main image: the first photo becomes it.
+        if (!$thumb && $uploadedPhotos) {
+            $candidate = $uploadedPhotos[0];
+            if (@copy(public_path('assets/images/listing/photos/' . $candidate), public_path('assets/images/listing/thumb/' . $candidate))) {
+                $thumb = $candidate;
             }
         }
 

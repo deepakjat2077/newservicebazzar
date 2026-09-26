@@ -90,7 +90,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             // Number of daily files kept. 1 = today only; the previous day's
             // file is deleted as soon as today's is created.
-            'days' => env('LOG_DAILY_DAYS', 1),
+            'days' => env('LOG_DAILY_DAYS', 7),
             'replace_placeholders' => true,
         ],
 
@@ -105,7 +105,7 @@ return [
             'name' => 'slow',
             'path' => storage_path('logs/slow-requests.log'),
             'level' => 'debug',
-            'days' => env('LOG_DAILY_DAYS', 1),
+            'days' => env('LOG_DAILY_DAYS', 7),
         ],
 
         'slack' => [

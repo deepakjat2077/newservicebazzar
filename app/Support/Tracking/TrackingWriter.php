@@ -187,7 +187,7 @@ class TrackingWriter
             'results_count' => $d['results_count'] ?? null,
             'url' => $d['url'] ?? null,
             'meta' => $d['meta'] ?? null,
-            'is_bot' => TrafficFilter::isBotPayload($d),
+            'is_bot' => empty($d['trusted']) && TrafficFilter::isBotPayload($d),
             'user_agent' => $d['user_agent'] ?? null,
         ]);
 

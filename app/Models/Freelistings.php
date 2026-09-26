@@ -9,9 +9,12 @@ class Freelistings extends Model
     protected $fillable = [
         'user_id',
         'business_name',
+        'contact_person',
         'pincode',
-          'mobile', 
-    'email',  
+        'mobile',
+        'landline',
+        'email',
+        'website',
         'plot_no',
         'building_name',
         'street_name',
@@ -20,6 +23,8 @@ class Freelistings extends Model
         'city',
         'state',
         'status',
+        'source',
+        'sales_user_id',
     ];
 
     public function user()

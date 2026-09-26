@@ -86,6 +86,14 @@ class WhatsappSender
         return $id !== '' ? $id : null;
     }
 
+    /** The approved sales payment-link template. */
+    public function paymentTemplateId(): ?string
+    {
+        $id = trim((string) config('services.gupshup.payment_template_id'));
+
+        return $id !== '' ? $id : null;
+    }
+
     public function enquiryTemplateId(): ?string
     {
         $id = trim((string) config('services.gupshup.enquiry_template_id'));

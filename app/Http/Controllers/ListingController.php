@@ -1003,7 +1003,111 @@ public function updatesection(Request $request, $id)
         $methods = \App\Models\MethodCurrency::where('enable_status', 1)
             ->with('paymentMethod')->orderBy('currency_name')->get();
 
-        return view($this->theme.'user.listing.advertise', compact('listing', 'packages', 'methods'));
+        // Sales packages (SB Verified, banners, website combos, Top positions).
+        // These are not wired into the payment gateway — the buyer asks for a
+        // callback and the sales team closes them.
+        $salesPackages = \App\Models\CertificatePackage::where('status', 1)->orderBy('id')->get();
+
+        // What this listing already owns, so a bought package shows its expiry
+        // instead of another Buy button.
+        $activeSales = \App\Models\ListingSalesPackage::where('listing_id', $listing->id)
+            ->where('expires_at', '>', now())
+            ->get()->keyBy('certificate_package_id');
+
+        // Certificates earned for this listing.
+        $certificates = \App\Models\ListingSalesPackage::where('listing_id', $listing->id)
+            ->whereNotNull('asset')->where('expires_at', '>', now())
+            ->with('package')->latest()->get();
+
+        // Banners bought for this listing — pending ones need their details.
+        $adBanners = \App\Models\ListingAdBanner::where('listing_id', $listing->id)
+            ->where('expires_at', '>', now())
+            ->with('package')->latest()->get();
+
+        return view($this->theme.'user.listing.advertise', compact('listing', 'packages', 'methods', 'salesPackages', 'activeSales', 'adBanners', 'certificates'));
+    }
+
+    /**
+     * Step between "Buy Now" and checkout: the package's own page, where the
+     * buyer picks the city/area (when it is priced that way) and the plan.
+     */
+    public function advertiseSalesSelect($id, $pkg)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $package = \App\Models\CertificatePackage::where('status', 1)->findOrFail($pkg);
+
+        $active = \App\Models\ListingSalesPackage::where('listing_id', $listing->id)
+            ->where('certificate_package_id', $package->id)
+            ->where('expires_at', '>', now())->latest()->first();
+
+        // Every city the site runs in. Prices come from the package's own plans
+        // unless the admin set a different price for that city/area.
+        $cities = collect();
+        if ($package->needsLocation()) {
+            $cities = \App\Models\Location::where('status', 1)->orderBy('name')->pluck('name');
+            if ($cities->isEmpty()) {
+                $cities = Listing::query()->whereNotNull('city')->where('city', '!=', '')
+                    ->distinct()->orderBy('city')->pluck('city');
+            }
+            // Cities that only exist as a priced row still belong in the list.
+            $cities = $cities->merge($package->positionPrices()->distinct()->pluck('city'))
+                ->filter()->unique()->sort()->values();
+        }
+
+        return view($this->theme.'user.listing.advertise-sales-select', compact('listing', 'package', 'active', 'cities'));
+    }
+
+    /** Areas of a city, for the city/area pickers on the package page. */
+    public function advertiseAreas(Request $request)
+    {
+        $areas = Listing::query()
+            ->where('city', $request->query('city'))
+            ->whereNotNull('area')->where('area', '!=', '')
+            ->distinct()->orderBy('area')->limit(300)->pluck('area');
+
+        return response()->json($areas);
+    }
+
+    /**
+     * Checkout for a sales package (SB Verified, banners, Top positions…).
+     * Mirrors advertiseCheckout(), but the price comes from the chosen plan —
+     * or, for position-priced packages, from the city/area/position row.
+     * Always resolved from the DB, never from the submitted form.
+     */
+    public function advertiseSalesCheckout(Request $request, $id, $pkg)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $package = \App\Models\CertificatePackage::where('status', 1)->findOrFail($pkg);
+
+        $choice = $package->resolveChoice([
+            'plan' => $request->query('plan'),
+            'tier' => $request->query('tier'),
+            'city' => $request->query('city', ''),
+            'area' => $request->query('area', ''),
+        ]);
+
+        if (!$choice) {
+            return redirect()->route('user.listing.advertise', $listing->id)
+                ->withAlert(['danger', 'Please pick a plan for this package.']);
+        }
+
+        // A free plan has nothing to pay for — switch it on right away.
+        if ($choice['price'] <= 0) {
+            \App\Support\SalesPerks::activate($listing, $package, $choice);
+
+            return redirect()->route('user.listing.advertise', $listing->id)
+                ->with('success', $package->name . ' is now active for ' . $choice['days']
+                    . ' day' . ($choice['days'] > 1 ? 's' : '') . ' — till '
+                    . now()->addDays($choice['days'])->format('d M Y, h:i A') . '.');
+        }
+
+        $methods = \App\Models\MethodCurrency::where('enable_status', 1)
+            ->whereHas('paymentMethod', fn ($q) => $q->whereIn('act', ['razorpay', 'cashfree']))
+            ->with('paymentMethod')->orderBy('currency_name')->get();
+
+        return view($this->theme.'user.listing.advertise-sales-checkout', compact('listing', 'package', 'choice', 'methods'));
     }
 
     /**
@@ -2986,6 +3090,32 @@ public function verifyReviewOtp(Request $request)
         }
     }
 
+/**
+ * The live category/subcategory slug hiding inside an unresolvable one:
+ * without a trailing "-<n>", or without its last "-in-<area>" parts. Null if
+ * nothing real is in there.
+ */
+private function recoverServiceSlug(string $slug): ?string
+{
+    $isLive = fn ($s) => $s !== '' && (Category::where('status', 1)->where('slug', $s)->exists()
+        || Subcategory::where('status', 1)->where('slug', $s)->exists());
+
+    $stripped = preg_replace('/-\d+$/', '', $slug);
+    if ($stripped !== $slug && $isLive($stripped)) {
+        return $stripped;
+    }
+
+    $parts = explode('-in-', $stripped);
+    for ($i = count($parts) - 1; $i >= 1; $i--) {
+        $base = implode('-in-', array_slice($parts, 0, $i));
+        if ($isLive($base)) {
+            return $base;
+        }
+    }
+
+    return null;
+}
+
 public function cityCategoryArea($city, $categoryArea)
 {
     // This route is an unconstrained two-segment catch-all, so it absorbs the
@@ -3027,6 +3157,40 @@ public function cityCategoryArea($city, $categoryArea)
         // and check that against the same known-location list.
         if (!$realCitySlug && preg_match('/^(.*)-\d+$/', $citySlug, $m) && in_array($m[1], $locationSlugs, true)) {
             $realCitySlug = $m[1];
+        }
+
+        // District names listings carry instead of their city ("Gautam Buddha
+        // Nagar" -> Noida, "Kanchipuram" -> Chennai), as a whole segment or
+        // the end of an "area-district" one. Learned from the listings.
+        if (!$realCitySlug) {
+            $aliases = \Illuminate\Support\Facades\Cache::remember('route:city_aliases:v1', 3600, function () use ($locationSlugs) {
+                $best = [];
+                $rows = \Illuminate\Support\Facades\DB::table('listings')
+                    ->join('locations', 'locations.id', '=', 'listings.location_id')
+                    ->where('listings.status', 1)->where('locations.status', 1)
+                    ->whereNotNull('listings.city')->where('listings.city', '!=', '')
+                    ->selectRaw('listings.city AS city, locations.slug AS loc, COUNT(*) AS n')
+                    ->groupBy('listings.city', 'locations.slug')
+                    ->get();
+                foreach ($rows as $r) {
+                    $alias = \Str::slug($r->city);
+                    if ($alias === '' || in_array($alias, $locationSlugs, true) || $r->n < 3) {
+                        continue;
+                    }
+                    if (!isset($best[$alias]) || $r->n > $best[$alias][1]) {
+                        $best[$alias] = [$r->loc, $r->n];
+                    }
+                }
+
+                return array_map(fn ($v) => $v[0], $best);
+            });
+
+            foreach ($aliases as $alias => $locSlug) {
+                if ($citySlug === $alias || \Str::endsWith($citySlug, '-' . $alias)) {
+                    $realCitySlug = $locSlug;
+                    break;
+                }
+            }
         }
 
         if ($realCitySlug) {
@@ -3094,6 +3258,13 @@ public function cityCategoryArea($city, $categoryArea)
             ->first();
     }
 
+    // The whole slug is a real category/subcategory, so any "-in-..." in it is
+    // part of its name ("best-resort-in-pune-for-group-outing"), not an area.
+    // Filtering listings by that text was leaving such pages empty.
+    if ($category || $subcategory) {
+        $area = null;
+    }
+
     if (!$category && !$subcategory) {
         // Old keyword-stuffed subcategory slug (audit #42)? Send it to the
         // renamed/merged one with a 301 before trying anything more
@@ -3101,6 +3272,24 @@ public function cityCategoryArea($city, $categoryArea)
         $retired = retiredSubcategorySlugs();
         if (isset($retired[$serviceSlug])) {
             return redirect('/' . $city . '/' . $retired[$serviceSlug], 301);
+        }
+
+        // "/jaipur/packers-and-movers-in-south-delhi-in-jagatpura": a place-
+        // specific subcategory carried into another place by the location
+        // picker. Keep the new area, drop the old place from the category.
+        if (substr_count($serviceSlug, '-in-') >= 2) {
+            $head = \Str::beforeLast($serviceSlug, '-in-');
+            $tailArea = \Str::afterLast($serviceSlug, '-in-');
+            $base = \Str::before($serviceSlug, '-in-');
+
+            $isLive = fn ($slug) => Category::where('status', 1)->where('slug', $slug)->exists()
+                || Subcategory::where('status', 1)->where('slug', $slug)->exists();
+
+            if ($isLive($head) && $isLive($base)) {
+                $target = $tailArea === \Str::slug($city) ? $base : $base . '-in-' . $tailArea;
+
+                return redirect('/' . \Str::slug($city) . '/' . $target, 301);
+            }
         }
 
         // Mirror image of the dedup redirect above: plenty of subcategories
@@ -3299,6 +3488,19 @@ public function cityCategoryArea($city, $categoryArea)
             }
 
             if (!$category && !$subcategory) {
+                // Before 404ing, recover the real service from the two slug
+                // shapes Search Console reports most: a stale "-1" suffix
+                // ("packers-and-movers-1") and an area with nothing in it
+                // ("ac-repair-services-in-mathikere"). Send those to the city page.
+                $fallbackSlug = $this->recoverServiceSlug($serviceSlug);
+                $cityLocation = $fallbackSlug
+                    ? Location::where('status', 1)->where('slug', \Str::slug($city))->first()
+                    : null;
+
+                if ($cityLocation) {
+                    return redirect('/' . $cityLocation->slug . '/' . $fallbackSlug, 301);
+                }
+
                 abort(404);
             }
         }
@@ -3414,11 +3616,43 @@ public function cityCategoryArea($city, $categoryArea)
             ->orderByDesc('is_named_area_match');
     }
 
+    // A position paid for in THIS area outranks everything else on this page.
+    $paidCategoryId = $category ? $category->id : ($subcategory->category_id ?? null);
+
     $listings = $baseQuery
+        ->withPaidPosition($paidCategoryId, $city, $area)
+        ->orderBy('paid_position', 'asc')
         ->orderByRaw('CASE WHEN top_rank IS NULL THEN 1 ELSE 0 END')
         ->orderBy('top_rank', 'asc')
         ->orderBy('id', 'desc')
         ->get();
+
+    // An area with nothing in it (not even within the 5km radius) is a dead
+    // end for the visitor. If the city has this category, show that instead
+    // of an empty page. 302, not 301: the area may gain listings later.
+    if (!empty($area) && $listings->isEmpty()) {
+        $cityPath = '/' . $citySlug . '/' . $selectedItem->slug;
+
+        if ($cityPath !== '/' . ltrim(request()->path(), '/')) {
+            $cityHasListings = Listing::where('status', 1)
+                ->where(function ($q) use ($locationData) {
+                    $q->where('location_id', $locationData->id)
+                      ->orWhereRaw('LOWER(city) = ?', [strtolower($locationData->name)]);
+                })
+                ->when($category, fn ($q) => $q->where('category_id', $category->id))
+                ->when($subcategory, function ($q) use ($subcategory) {
+                    $q->where(function ($qq) use ($subcategory) {
+                        $qq->whereJsonContains('subcategory_ids', (string) $subcategory->id)
+                           ->orWhereJsonContains('subcategory_ids', $subcategory->id);
+                    });
+                })
+                ->exists();
+
+            if ($cityHasListings) {
+                return redirect($cityPath, 302);
+            }
+        }
+    }
 
 $currentCategoryId = $category
     ? $category->id
@@ -3546,6 +3780,26 @@ $data['banners'] = $bannersQuery->orderBy('sort_order', 'asc')->latest()->get();
 $data['title'] = $selectedItem->name . ' in ' . $locationText;
 $data['location'] = $locationData;
 $data['locationText'] = $locationText;
+// The category on its own, with no "-in-<area>" on the end. The header reads
+// it so that changing city/area can reopen this same category there instead
+// of leaving the visitor on the old city's results.
+// A subcategory can be place-specific ("packers-and-movers-in-south-delhi");
+// carried into another city or area that produces /indore/...-in-south-delhi-in-
+// sukhliya, which 404s. Use the plain category when it exists.
+$sbRawSlug = $selectedItem->slug ?? null;
+$sbBaseSlug = $sbRawSlug;
+
+if ($sbRawSlug && str_contains($sbRawSlug, '-in-')) {
+    $candidate = \Illuminate\Support\Str::before($sbRawSlug, '-in-');
+
+    if ($candidate !== '' && (\App\Models\Category::where('slug', $candidate)->exists()
+        || \App\Models\Subcategory::where('slug', $candidate)->exists())) {
+        $sbBaseSlug = $candidate;
+    }
+}
+
+$data['sbCategorySlug'] = $sbBaseSlug;
+$data['sbCategoryRawSlug'] = $sbRawSlug;
 $data['relatedSubcategories'] = $relatedSubcategories;
 $data['categoryLocalities'] = $categoryLocalities;
 
@@ -3585,10 +3839,16 @@ $data['listing'] = $listings->first() ?? (object) [
 
     // Service / FAQPage / ItemList JSON-LD + city-keyed title & description,
     // all derived from what this page already renders. See LanderSchema.
+    // On an area page the title must name the area, not just the city —
+    // someone searching "CA in Vidhyadhar Nagar" should see that in the SERP.
+    $seoPlace = $area
+        ? \Illuminate\Support\Str::title(trim($area)) . ', ' . $locationData->name
+        : $locationData->name;
+
     \App\Support\LanderSchema::attach(
         $data,
         $selectedItem,
-        $locationData->name,
+        $seoPlace,
         $listings,
         $listings->count(),
         $this->setting->site_name ?? config('app.name')

@@ -234,7 +234,13 @@ class SubcategoriesController extends Controller
         $subcategory->delete();
 
         $alert = ['success', 'Subcategory deleted successfully'];
-        return redirect()->route('admin.subcategories.index')->withAlert($alert);
+        $params = array_filter([
+            'page'        => request('page', 1),
+            'q'           => request('q'),
+            'category_id' => request('category_id'),
+            'location_id' => request('location_id'),
+        ]);
+        return redirect()->route('admin.subcategories.index', $params)->withAlert($alert);
 
     } catch (\Exception $e) {
         $alert = ['danger', $e->getMessage()];

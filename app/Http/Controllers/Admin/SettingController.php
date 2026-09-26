@@ -258,6 +258,82 @@ class SettingController extends Controller
     }
 
     /**
+     * The company details printed on every tax invoice — legal name, address,
+     * GSTIN, CIN, PAN and the contact line. Kept here rather than in
+     * config/invoice.php so they can be corrected without a deploy;
+     * AppServiceProvider pushes whatever is saved into config('invoice.*').
+     */
+    public function invoice()
+    {
+        return view('admin.setting.invoice');
+    }
+
+    public function invoiceUpdate(Request $request)
+    {
+        $request->validate([
+            'legal_name' => 'required|string|max:191',
+            'trade_name' => 'nullable|string|max:191',
+            'address'    => 'nullable|string|max:400',
+            'city'       => 'nullable|string|max:100',
+            'state'      => 'nullable|string|max:100',
+            'state_code' => 'nullable|string|max:4',
+            'pincode'    => 'nullable|string|max:10',
+            // 22AAAAA0000A1Z5 — 15 characters, and a wrong one makes every
+            // invoice issued against it invalid.
+            'gstin'      => ['nullable', 'string', 'regex:/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i'],
+            'cin'        => ['nullable', 'string', 'max:25'],
+            'pan'        => ['nullable', 'string', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/i'],
+            'phone'      => 'nullable|string|max:60',
+            'email'      => 'nullable|email|max:191',
+            'website'    => 'nullable|string|max:191',
+            'sac'        => 'nullable|string|max:12',
+            'gst_rate'   => 'nullable|numeric|min:0|max:100',
+            'bank_name'  => 'nullable|string|max:120',
+            'bank_account' => 'nullable|string|max:40',
+            'bank_ifsc'  => 'nullable|string|max:20',
+            'bank_branch' => 'nullable|string|max:120',
+            'terms'      => 'nullable|string|max:2000',
+        ], [
+            'gstin.regex' => 'That does not look like a valid GSTIN (15 characters, e.g. 08AAAAA0000A1Z5).',
+            'pan.regex'   => 'That does not look like a valid PAN (10 characters, e.g. AAAAA0000A).',
+        ]);
+
+        $setting = Setting::first();
+
+        $text = fn ($field) => trim((string) $request->input($field)) ?: null;
+        $upper = fn ($field) => ($v = trim((string) $request->input($field))) ? strtoupper($v) : null;
+
+        $setting->invoice = [
+            'legal_name' => trim($request->legal_name),
+            'trade_name' => $text('trade_name'),
+            'address'    => $text('address'),
+            'city'       => $text('city'),
+            'state'      => $text('state'),
+            'state_code' => $text('state_code'),
+            'pincode'    => $text('pincode'),
+            'gstin'      => $upper('gstin'),
+            'cin'        => $upper('cin'),
+            'pan'        => $upper('pan'),
+            'phone'      => $text('phone'),
+            'email'      => $text('email'),
+            'website'    => $text('website'),
+            'sac'        => $text('sac'),
+            'gst_rate'   => $request->filled('gst_rate') ? (float) $request->gst_rate : null,
+            'bank_name'    => $text('bank_name'),
+            'bank_account' => $text('bank_account'),
+            'bank_ifsc'    => $upper('bank_ifsc'),
+            'bank_branch'  => $text('bank_branch'),
+            // One term per line.
+            'terms'      => collect(preg_split('/\r\n|\r|\n/', (string) $request->terms))
+                                ->map(fn ($l) => trim($l))->filter()->values()->all(),
+        ];
+
+        $setting->save();
+
+        return back()->withAlert(['success', 'Invoice details updated successfully']);
+    }
+
+    /**
      * Firebase (FCM) push notification credentials for the mobile app —
      * managed here instead of .env, same pattern as gupshup above. The admin
      * pastes the Firebase service-account JSON (Firebase Console > Project

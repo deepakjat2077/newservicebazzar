@@ -59,6 +59,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->stripPublicPrefixFromUrls();
 
+        $this->shareAdBanners();
+
         try {
 
             /*
@@ -87,20 +89,64 @@ class AppServiceProvider extends ServiceProvider
 
                 view()->share($viewShare);
 
-                if ($setting->email_config) {
-                    $email = $setting->email_config;
+                /*
+                 * SMTP credentials live on the settings row (Setting > Email),
+                 * not in .env.
+                 *
+                 * This used to read $setting->email_config — a property that
+                 * does not exist on the model, so it was always null and the
+                 * block never ran. With no MAIL_MAILER in .env either, the
+                 * mailer stayed on the 'log' driver and nothing the site tried
+                 * to send ever left the server. The column is 'mail', and its
+                 * keys are host/port/encryption/username/password/email_from.
+                 */
+                if ($setting->mail) {
+                    $email = $setting->mail;
 
                     config([
                         'mail.default' => 'smtp',
                         'mail.mailers.smtp.transport' => 'smtp',
                         'mail.mailers.smtp.host' => $email->host ?? 'smtp.gmail.com',
                         'mail.mailers.smtp.port' => $email->port ?? 587,
-                        'mail.mailers.smtp.encryption' => strtolower($email->enc ?? 'tls'),
+                        'mail.mailers.smtp.encryption' => strtolower($email->encryption ?? $email->enc ?? 'tls'),
                         'mail.mailers.smtp.username' => $email->username ?? null,
                         'mail.mailers.smtp.password' => $email->password ?? null,
                         'mail.from.address' => $email->email_from ?? ($email->username ?? null),
-                        'mail.from.name' => config('app.name'),
+                        'mail.from.name' => $setting->site_name ?: config('app.name'),
                     ]);
+                }
+
+                /*
+                 * Company details for the tax invoice, set in Setting >
+                 * Invoice. Only non-empty values override, so a field left
+                 * blank falls back to whatever config/invoice.php holds.
+                 */
+                if ($setting->invoice) {
+                    $inv = (array) $setting->invoice;
+
+                    foreach (['legal_name', 'trade_name', 'address', 'city', 'state', 'state_code',
+                              'pincode', 'gstin', 'cin', 'pan', 'phone', 'email', 'website'] as $key) {
+                        if (filled($inv[$key] ?? null)) {
+                            config(['invoice.company.' . $key => $inv[$key]]);
+                        }
+                    }
+
+                    foreach (['name' => 'bank_name', 'account' => 'bank_account',
+                              'ifsc' => 'bank_ifsc', 'branch' => 'bank_branch'] as $key => $field) {
+                        config(['invoice.bank.' . $key => $inv[$field] ?? null]);
+                    }
+
+                    if (filled($inv['sac'] ?? null)) {
+                        config(['invoice.sac' => $inv['sac']]);
+                    }
+
+                    if (filled($inv['gst_rate'] ?? null)) {
+                        config(['invoice.gst_rate' => (float) $inv['gst_rate']]);
+                    }
+
+                    if (!empty($inv['terms'])) {
+                        config(['invoice.terms' => (array) $inv['terms']]);
+                    }
                 }
 
                 /*
@@ -119,6 +165,7 @@ class AppServiceProvider extends ServiceProvider
                     $keys = [
                         'api_key', 'app_name', 'source',
                         'template_id', 'otp_template_id', 'enquiry_template_id',
+                        'payment_template_id',
                         'webhook_secret',
                     ];
 
@@ -312,5 +359,54 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Paginator::useBootstrap();
+    }
+
+    /**
+     * Rotational banners for the search-result pages: whichever live banners
+     * were bought for the city (and area) the visitor is looking at.
+     */
+    private function shareAdBanners(): void
+    {
+        \Illuminate\Support\Facades\View::composer(
+            ['themes.*.listings.all', 'themes.*.listings.cat_loc'],
+            function ($view) {
+                $data = $view->getData();
+
+                $place = $data['locationText'] ?? $data['selected_location'] ?? '';
+                $parts = array_values(array_filter(array_map('trim', explode(',', (string) $place))));
+
+                if (!$parts) {
+                    $view->with('adBannerSlides', collect());
+                    return;
+                }
+
+                $city = end($parts);
+                $area = count($parts) > 1 ? $parts[0] : null;
+
+                // Only ads from the category being browsed — a hotel's banner
+                // has no business on an IT Consultants page.
+                $categoryId = optional($data['selectedCategory'] ?? null)->id;
+
+                if (!$categoryId) {
+                    $view->with('adBannerSlides', collect());
+                    return;
+                }
+
+                $slides = \App\Models\ListingAdBanner::query()
+                    ->where('category_id', $categoryId)
+                    ->where('status', \App\Models\ListingAdBanner::LIVE)
+                    ->whereNotNull('image')
+                    ->where('starts_at', '<=', now())
+                    ->where('expires_at', '>', now())
+                    ->where('city', $city)
+                    ->when($area, fn ($q) => $q->where(fn ($w) => $w->where('area', $area)->orWhere('area', '')->orWhereNull('area')))
+                    ->with('listing')
+                    ->inRandomOrder()
+                    ->limit(5)
+                    ->get();
+
+                $view->with('adBannerSlides', $slides);
+            }
+        );
     }
 }

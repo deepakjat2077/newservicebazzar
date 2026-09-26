@@ -10,7 +10,8 @@ class PackageController extends Controller
 {
     public function index(){
     	$packages = Package::get();
-    	return view('admin.package.index',compact('packages'));
+    	$certificates = \App\Models\CertificatePackage::latest()->get();
+    	return view('admin.package.index',compact('packages','certificates'));
     }
 
     public function store(Request $request){

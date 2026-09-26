@@ -1203,7 +1203,21 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 		var currentRoute = @json(request()->route() ? request()->route()->getName() : '');
 	</script>
 </head>
-<body class="{{ request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug') ? 'home-page' : '' }}"
+@php
+    $sbIsHomeLike = request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug');
+
+    /*
+     * The mobile header has two shapes, and which one a page uses was decided
+     * in JavaScript at the very end of a long script. So the phone painted the
+     * plain header first and swapped in the search bar a moment later — a
+     * visible jump on every page. The class is written here instead, so the
+     * right header is there in the first paint. Every rule that reads it sits
+     * inside @media (max-width:767px), so this changes nothing on desktop.
+     */
+    $sbBodyClass = trim(($sbIsHomeLike ? 'home-page' : '')
+        . (request()->routeIs('home') ? '' : ' mobile-yt-search-open'));
+@endphp
+<body class="{{ $sbBodyClass }}"
     data-page-name="{{ $pageName ?? request()->path() }}"
     @if(!empty($trackListingId)) data-listing-id="{{ $trackListingId }}" @endif
     @if(!empty($trackCategoryId)) data-category-id="{{ $trackCategoryId }}" @endif
@@ -1383,12 +1397,22 @@ window.addEventListener('pageshow', function () {
         Services
     </a>
 
+<style>
+    /* The caret beside "Services" was a 14px-wide tap target. Widening the
+       padding gives it the 24px minimum; the arrow itself is unchanged. */
+    #servicesDropdown.dropdown-toggle-split {
+        padding-left: 10px;
+        padding-right: 10px;
+        min-width: 26px;
+    }
+</style>
     <a class="nav-link dropdown-toggle dropdown-toggle-split"
        href="#"
        id="servicesDropdown"
        role="button"
        data-bs-toggle="dropdown"
-       aria-expanded="false">
+       aria-expanded="false"
+       aria-label="Open the services menu">
     </a>
 
     <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
@@ -1418,8 +1442,8 @@ window.addEventListener('pageshow', function () {
 
 							<li class="nav-item">
     @guest
-        <a href="javascript:void(0);"
-           onclick="openSbAuthPopup()"
+        <a href="{{ route('free.listing') }}"
+           onclick="event.preventDefault(); openSbAuthPopup();"
            class="nav-link">
             <i class="fa-solid fa-arrow-trend-up me-1"></i>
             @lang('Free Listing')
@@ -1440,7 +1464,10 @@ window.addEventListener('pageshow', function () {
 </li>
 							@guest
 								<li class="nav-item">
-						<a href="javascript:void(0);" onclick="openSbAuthPopup()" class="nav-link nav-btn">
+						{{-- Real destination so the link is crawlable and can be
+						     opened in a new tab; the popup still handles a click. --}}
+						<a href="{{ route('user.login') }}"
+						   onclick="event.preventDefault(); openSbAuthPopup();" class="nav-link nav-btn">
     Login / Sign Up
 </a>
 								</li>
@@ -1518,7 +1545,8 @@ window.addEventListener('pageshow', function () {
 		</a>
 
 		@guest
-			<a href="javascript:void(0);" onclick="openSbAuthPopup()" class="mobile-action-btn">
+			<a href="{{ route('free.listing') }}"
+			   onclick="event.preventDefault(); openSbAuthPopup();" class="mobile-action-btn">
 				Free Listing
 			</a>
 		@else
@@ -2463,6 +2491,8 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
                 localStorage.setItem("jf_detected_city", city);
                 localStorage.setItem("jf_lat", lat);
                 localStorage.setItem("jf_lng", lng);
+                // When, so a stale city is not shown days later.
+                localStorage.setItem("jf_detected_at", String(Date.now()));
             }
 
             // ❌ yaha jf_city set nahi karna
@@ -2523,6 +2553,86 @@ if (isListingDetailsPage) {
     }
 } else {
     loadCityFromStorage();
+    sbAutoDetectCity();
+}
+
+/**
+ * Fills the location box by itself when the visitor has already granted
+ * location access — until now nothing detected on its own, the city only
+ * appeared after someone tapped "Detect my location".
+ *
+ * It never asks for permission on load. A prompt nobody asked for is
+ * usually dismissed, and Chrome on Android blocks repeat prompts after
+ * that, which would break the button as well. So it only acts when the
+ * browser already holds a granted permission.
+ */
+async function sbAutoDetectCity() {
+    // Something was picked for this visit already — leave it alone.
+    if (sessionSelectedLocation) return;
+    if (!navigator.geolocation) return;
+
+    // A city found earlier today shows at once, with no wait for GPS.
+    try {
+        const cached = localStorage.getItem("jf_detected_city");
+        const when   = parseInt(localStorage.getItem("jf_detected_at") || "0", 10);
+
+        // Anyone who detected before the timestamp was added has a city but no
+        // date against it. Trust it once and stamp it, rather than ignoring it.
+        if (cached && !when) {
+            localStorage.setItem("jf_detected_at", String(Date.now()));
+            setCity(cached, false);
+        } else if (cached && (Date.now() - when) < 12 * 60 * 60 * 1000) {
+            setCity(cached, false);
+        }
+    } catch (e) {}
+
+    let granted = false;
+
+    try {
+        if (navigator.permissions && navigator.permissions.query) {
+            const status = await navigator.permissions.query({ name: "geolocation" });
+            granted = status.state === "granted";
+        }
+    } catch (e) {
+        // Older browsers have no Permissions API; stay quiet rather than prompt.
+    }
+
+    if (!granted) return;
+
+    navigator.geolocation.getCurrentPosition(async function (pos) {
+        const city = await sbCityFromCoords(pos.coords.latitude, pos.coords.longitude);
+
+        if (city) {
+            setCity(city, true, pos.coords.latitude, pos.coords.longitude);
+        }
+    }, function () {
+        // Nothing to say on a silent attempt.
+    }, {
+        enableHighAccuracy: false,
+        // Without a timeout this can hang for ever on a phone indoors.
+        timeout: 10000,
+        maximumAge: 10 * 60 * 1000,
+    });
+}
+
+/** Coordinates to a city name. Returns "" when it cannot be worked out. */
+async function sbCityFromCoords(lat, lng) {
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lng}`
+        );
+
+        if (!res.ok) return "";
+
+        const data = await res.json();
+        const a = data.address || {};
+
+        return window.normalizeEnglishLocationName(
+            a.city || a.town || a.village || a.state_district || a.county || a.district || a.state || ""
+        );
+    } catch (e) {
+        return "";
+    }
 }
 
    
@@ -2671,15 +2781,36 @@ if (isListingDetailsPage) {
     function fetchLocations(query, dropdown) {
         const baseCity = getCurrentBaseCity();
         const finalQuery = query && query.trim() !== "" ? query.trim() : baseCity;
+
+        // A phone on mobile data drops a request now and then. This used to
+        // close the whole list on any failure, which left the panel open with
+        // nothing in it — not even "Detect Location" — and no way forward.
+        const giveUp = setTimeout(function () { controller.abort(); }, 8000);
+        const controller = new AbortController();
+
         fetch(`{{ route('nearby.location.suggestions') }}?q=${encodeURIComponent(finalQuery)}&base_city=${encodeURIComponent(baseCity)}&_=${Date.now()}`, {
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 "Accept": "application/json"
-            }
+            },
+            signal: controller.signal
         })
-        .then(function (res) { return res.json(); })
-        .then(function (data) { renderJdLocationList(data, dropdown); })
-        .catch(function (err) { console.log(err); closeDropdown(dropdown); });
+        .then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+        })
+        .then(function (data) {
+            clearTimeout(giveUp);
+            renderJdLocationList(Array.isArray(data) ? data : [], dropdown);
+        })
+        .catch(function (err) {
+            clearTimeout(giveUp);
+            console.log(err);
+            // Fall back to what we can build without the server: Detect
+            // Location, and whatever the visitor searched for before.
+            renderJdLocationList([], dropdown);
+            dropdown.classList.add("show");
+        });
     }
 
   function attachLocationInput(input, dropdown) {
@@ -2749,12 +2880,11 @@ if (isListingDetailsPage) {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${lat}&lon=${lng}`);
-                const data = await res.json();
-                const address = data.address || {};
-                const city = window.normalizeEnglishLocationName(
-                    address.city || address.town || address.village || address.state_district || address.county || address.district || address.state || ""
-                );
+                const city = await sbCityFromCoords(lat, lng);
+                if (spinner) spinner.style.display = "none";
+                if (!city) {
+                    showDetectPopup("Could not work out your city. Please pick it from the list.");
+                }
                 if (city) {
     setCity(city, true, lat, lng);
 
@@ -2792,7 +2922,10 @@ if (isHomePage && isMobile()) {
 
     if (mobileCatInput && mobileCatInput.value.trim() !== "") {
         const citySlug = slugify(city);
-        const catSlug  = slugify(mobileCatInput.value.trim());
+        let catSlug  = slugify(mobileCatInput.value.trim());
+
+        // Still the category this page is on: drop its own place ("...-in-south-delhi").
+        if (catSlug === @json($sbCategoryRawSlug ?? '') && @json($sbCategorySlug ?? '')) catSlug = @json($sbCategorySlug ?? '');
 
         if (citySlug && catSlug) {
             window.location.href = "/" + citySlug + "/" + catSlug;
@@ -2810,11 +2943,20 @@ if (isHomePage && isMobile()) {
             closeDropdown(headerDropdown);
             closeDropdown(jdDropdown);
         }, function (error) {
+            if (spinner) spinner.style.display = "none";
             showDetectPopup(
-                "Please allow location access to detect your city.",
+                error && error.code === error.TIMEOUT
+                    ? "Could not get a location fix. Please try again."
+                    : "Please allow location access to detect your city.",
                 error && error.code === error.PERMISSION_DENIED
             );
             if (activeInput) activeInput.value = "";
+        }, {
+            enableHighAccuracy: false,
+            // The default is no timeout at all, which leaves the spinner
+            // turning for ever when a phone cannot get a fix indoors.
+            timeout: 15000,
+            maximumAge: 5 * 60 * 1000,
         });
     }
 
@@ -2905,7 +3047,10 @@ if (isListingDetailsPage) {
     }
 
     const citySlug = slugify(city);
-    const catSlug  = slugify(mobileCatInput.value.trim());
+    let catSlug  = slugify(mobileCatInput.value.trim());
+
+    // Still the category this page is on: drop its own place ("...-in-south-delhi").
+    if (catSlug === @json($sbCategoryRawSlug ?? '') && @json($sbCategorySlug ?? '')) catSlug = @json($sbCategorySlug ?? '');
 
     if (citySlug && catSlug) {
         let finalUrl = "/" + citySlug + "/" + catSlug;
@@ -2924,25 +3069,50 @@ document.body.style.removeProperty("overflow");
 
 const isHomePage = @json(request()->routeIs('home'));
 
-if (isHomePage && isMobile()) {
-    document.body.classList.add("mobile-yt-search-open");
+// Already on a category's results — reopen the same category in the place
+// just picked. Without this the label changed but the listings underneath
+// stayed on the old city, and nothing told the visitor why.
+const sbCategorySlug = @json($sbCategorySlug ?? '');
 
-    const ytSearchBox = document.getElementById("youtubeMobileSearch");
-    if (ytSearchBox) {
-        ytSearchBox.style.removeProperty("display");
+if (!isHomePage && sbCategorySlug) {
+    // "Vaishali Nagar, Jaipur" -> area + city; a bare name is the city.
+    const picked = value.trim();
+    const bits = picked.includes(",") ? picked.split(",") : [];
+    const pickedArea = bits.length ? bits[0].trim() : "";
+    const pickedCity = bits.length ? bits[1].trim() : picked;
+
+    const target = sbCategoryUrl(sbCategorySlug, { city: pickedCity, area: pickedArea });
+
+    if (target && target !== window.location.origin + window.location.pathname) {
+        window.location.href = target;
+        return;
     }
-
-    const ytInput = document.getElementById("ytMobileSearchInput");
-
-    setTimeout(function () {
-        if (ytInput) {
-            ytInput.focus();
-            ytInput.click();
-        }
-    }, 150);
 }
-else {
-    document.body.classList.remove("mobile-yt-search-open");
+
+const ytSearchBox = document.getElementById("youtubeMobileSearch");
+if (ytSearchBox) {
+    ytSearchBox.style.removeProperty("display");
+}
+
+if (isHomePage) {
+    // The home page opens its search itself; keep that behaviour on mobile.
+    if (isMobile()) {
+        document.body.classList.add("mobile-yt-search-open");
+
+        const ytInput = document.getElementById("ytMobileSearchInput");
+
+        setTimeout(function () {
+            if (ytInput) {
+                ytInput.focus();
+                ytInput.click();
+            }
+        }, 150);
+    }
+} else {
+    // Every other page shows the search box by default (see the page-load
+    // rule above). Removing the class here was what made the category search
+    // vanish as soon as the visitor changed location.
+    document.body.classList.add("mobile-yt-search-open");
 }
 
 const jdStripNow = document.getElementById("jdMobileLocationStrip");
@@ -4340,6 +4510,13 @@ document.addEventListener("DOMContentLoaded", function () {
     margin-top:16px;
     color:#000;
     font-size:13px;
+    /* It is a <button> now, so undo the chrome a button brings with it. */
+    width:100%;
+    background:none;
+    border:0;
+    padding:0;
+    cursor:pointer;
+    font-family:inherit;
 }
 .sb-error{
     color:red;
@@ -4453,7 +4630,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
                 <button type="submit" class="sb-btn" id="sbSendBtn">Continue</button>
             </form>
-            <a href="javascript:void(0)" id="sbMaybeLater" class="sb-later">Maybe Later</a>
+            <button type="button" id="sbMaybeLater" class="sb-later">Maybe Later</button>
         </div>
         <div id="sbStepOtp" style="display:none;">
             <div class="sb-auth-head">

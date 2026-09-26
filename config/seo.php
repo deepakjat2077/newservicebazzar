@@ -45,4 +45,17 @@ return [
 
     'default_city' => env('SEO_DEFAULT_CITY', 'jaipur'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | IndexNow key
+    |--------------------------------------------------------------------------
+    |
+    | Tells Bing (and through it Copilot, DuckDuckGo and ChatGPT search) about
+    | new listings straight away instead of waiting for a crawl. The same key
+    | must be served at /{key}.txt — see public/. Google does not use IndexNow.
+    |
+    */
+
+    'indexnow_key' => env('INDEXNOW_KEY', 'e236d936ea6569bdc12b209d3088cb3d'),
+
 ];

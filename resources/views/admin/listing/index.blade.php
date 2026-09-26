@@ -61,13 +61,22 @@
                                          optional — so this relation is null
                                          for those rows and reading through it
                                          took the whole page down. --}}
-                                    <td>{{ optional($listing->user)->username ?? __('Admin') }}</td>
+                                    <td>
+                                        @if($listing->sales_user_id)
+                                            {{ optional($listing->salesUser)->name ?? __('Sales User') }}
+                                            <span class="badge badge-info">Sales Genio</span>
+                                        @else
+                                            {{ optional($listing->user)->username ?? __('Admin') }}
+                                        @endif
+                                    </td>
                                     <td>{{ __($listing->category->name ?? 'N/A') }}</td>
                                     <td>
                                         @if($listing->status == 0)
                                             <span class="badge badge-warning">@lang('Pending')</span>
                                         @elseif($listing->status == 1)
                                             <span class="badge badge-success">@lang('Approve')</span>
+                                        @elseif($listing->status == 3)
+                                            <span class="badge badge-secondary">@lang('Inactive')</span>
                                         @else
                                             <span class="badge badge-danger">@lang('Rejected')</span>
                                         @endif

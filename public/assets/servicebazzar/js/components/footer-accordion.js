@@ -28,9 +28,20 @@
         var body = widget ? widget.querySelector(".widget-body") : null;
         if (!body) return;
 
-        title.addEventListener("click", function () {
+        function toggle() {
             var isOpen = body.classList.toggle("mobile-open");
             setToggleState(title, isOpen);
+        }
+
+        title.addEventListener("click", toggle);
+
+        // These headings carry role="button", so they have to answer the keys
+        // a real button answers.
+        title.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                e.preventDefault();
+                toggle();
+            }
         });
     }
 
