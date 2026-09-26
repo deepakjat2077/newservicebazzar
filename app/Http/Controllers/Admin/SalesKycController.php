@@ -37,6 +37,41 @@ class SalesKycController extends Controller
         return view('admin.sales_kyc.show', compact('listing', 'docs', 'types'));
     }
 
+    /** Read the number off a PAN/GST scan with AI and check it. */
+    public function aiRead($id, $docId)
+    {
+        $doc = ListingKycDocument::where('listing_id', $id)->findOrFail($docId);
+        $result = \App\Support\KycReader::run($doc);
+
+        if (empty($result['ok'])) {
+            return back()->withAlert(['error', $result['message'] ?? 'Could not read the document.']);
+        }
+
+        return back()->withAlert(['success', !empty($result['filled'])
+            ? 'Number read and saved: ' . $result['number']
+            : 'Document read. Check the result below.']);
+    }
+
+    /** Save (or correct) the number for every file of this document type. */
+    public function saveNumber(Request $request, $id, $docId)
+    {
+        $doc = ListingKycDocument::where('listing_id', $id)->findOrFail($docId);
+        $number = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $request->input('doc_number'))) ?: null;
+
+        $ok = match ($doc->doc_type) {
+            'pan' => !$number || \App\Support\KycReader::validPan($number),
+            'gst' => !$number || \App\Support\KycReader::validGstin($number),
+            default => true,
+        };
+        if (!$ok) {
+            return back()->withAlert(['error', 'That ' . strtoupper($doc->doc_type) . ' number is not valid.']);
+        }
+
+        ListingKycDocument::where('listing_id', $id)->where('doc_type', $doc->doc_type)->update(['doc_number' => $number]);
+
+        return back()->withAlert(['success', $number ? 'Number saved.' : 'Number cleared.']);
+    }
+
     public function updateStatus(Request $request, $id, $docId)
     {
         $request->validate(['status' => 'required|in:approved,rejected,in_review']);

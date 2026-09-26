@@ -588,6 +588,8 @@ Route::delete('home-content-sections/delete/{id}', 'HomeContentSectionController
             Route::get('/',                          'SalesKycController@index')->name('index');
             Route::get('/{id}',                      'SalesKycController@show')->name('show');
             Route::post('/{id}/doc/{docId}/status',  'SalesKycController@updateStatus')->name('status');
+            Route::post('/{id}/doc/{docId}/ai-read', 'SalesKycController@aiRead')->name('ai_read');
+            Route::post('/{id}/doc/{docId}/number',  'SalesKycController@saveNumber')->name('number');
         });
 
         // Sales Genio — disposition monitoring

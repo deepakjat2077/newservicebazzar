@@ -2206,6 +2206,12 @@ class SalesGenioController extends Controller
             $saved[] = ['id' => $doc->id, 'url' => asset($doc->path)];
         }
 
+        // Read the PAN/GSTIN off the scan once the response has gone out.
+        if (in_array($request->doc_type, \App\Support\KycReader::TYPES, true) && isset($doc)) {
+            $readDoc = $doc;
+            app()->terminating(fn () => \App\Support\KycReader::run($readDoc->fresh() ?? $readDoc));
+        }
+
         return response()->json(['status' => true, 'saved' => $saved]);
     }
 
