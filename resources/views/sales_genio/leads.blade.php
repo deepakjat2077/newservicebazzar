@@ -31,6 +31,10 @@
   .sg-chip.is-amber{background:#fff7e8;color:#96660d;}
   .sg-call{background:#1f9d55;color:#fff;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:700;text-decoration:none;}
   .sg-open{border:1px solid #1a73e8;color:#1a73e8;border-radius:8px;padding:6px 13px;font-size:13px;font-weight:700;text-decoration:none;}
+  .sg-mail{border:1px solid #6741d9;background:#fff;color:#6741d9;border-radius:8px;padding:6px 13px;font-size:13px;font-weight:700;cursor:pointer;}
+  .sg-mail:disabled{opacity:.6;cursor:wait;}
+  .sg-mail-msg{font-size:12px;margin-top:6px;white-space:normal;max-width:260px;}
+  .sg-mail-msg.ok{color:#1f9d55;} .sg-mail-msg.err{color:#e03131;}
   .sg-cityflag{background:#eef4fd;color:#1a73e8;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:700;margin:0 6px;}
   .sg-cityflag a{color:#1a73e8;text-decoration:underline;margin-left:6px;}
   .sg-due{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
@@ -171,6 +175,11 @@
             <td data-label="Action" class="sg-actions" style="white-space:nowrap;">
               @if($biz->mobile)<a href="tel:{{ $biz->mobile }}" class="sg-call"><i class="fas fa-phone"></i> Call</a>@endif
               <a href="{{ route('sales_genio.business.profile', $biz->id) }}" class="sg-open">Open</a>
+              @if($tab === 'deal-closed')
+                <a href="{{ route('sales.order.invoice', $row->token) }}" target="_blank" rel="noopener" class="sg-open">Invoice</a>
+                <button type="button" class="sg-mail" data-url="{{ route('sales_genio.business.order.invoice.mail', [$biz->id, $row->id]) }}" title="{{ $row->invoice_sent_at ? 'Last sent '.$row->invoice_sent_at->format('d M, h:i A').' to '.$row->invoice_email : 'Not sent yet' }}"><i class="fas fa-envelope"></i> Mail</button>
+                <div class="sg-mail-msg"></div>
+              @endif
             </td>
           </tr>
         @empty
@@ -191,5 +200,28 @@
   </div>
 </div>
 
+<script>
+document.querySelectorAll('.sg-mail').forEach(function (btn) {
+  var msg = btn.parentNode.querySelector('.sg-mail-msg');
+  function send(email) {
+    btn.disabled = true; msg.className = 'sg-mail-msg'; msg.textContent = 'Sending…';
+    fetch(btn.dataset.url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+      body: JSON.stringify({email: email || ''})
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      btn.disabled = false;
+      if (d.need_email) {
+        var e = prompt('This business has no email. Send the invoice to:');
+        if (e) { send(e.trim()); } else { msg.className = 'sg-mail-msg err'; msg.textContent = d.message; }
+        return;
+      }
+      msg.className = 'sg-mail-msg ' + (d.status ? 'ok' : 'err');
+      msg.textContent = d.message || (d.status ? 'Sent.' : 'Could not send.');
+    }).catch(function () { btn.disabled = false; msg.className = 'sg-mail-msg err'; msg.textContent = 'Could not send. Check the connection.'; });
+  }
+  btn.addEventListener('click', function () { send(''); });
+});
+</script>
 </body>
 </html>

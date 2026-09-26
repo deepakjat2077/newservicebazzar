@@ -313,7 +313,7 @@ class Invoice
      * stops if the invoice has already gone out, and never throws, because a
      * mail problem must not disturb a payment that has already succeeded.
      */
-    public static function send(SalesOrder $order, bool $force = false): bool
+    public static function send(SalesOrder $order, bool $force = false, ?string $toEmail = null): bool
     {
         if (!$order->isPaid()) {
             return false;
@@ -325,8 +325,9 @@ class Invoice
 
         $order->loadMissing('listing');
 
-        $to = collect([$order->listing->email ?? null])
-            ->merge((array) ($order->listing->extra_emails ?? []))
+        // An address typed by the rep replaces the listing's own for this send.
+        $to = collect($toEmail ? [$toEmail] : [$order->listing->email ?? null])
+            ->merge($toEmail ? [] : (array) ($order->listing->extra_emails ?? []))
             ->map(fn ($e) => trim((string) $e))
             ->filter(fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL))
             ->unique()

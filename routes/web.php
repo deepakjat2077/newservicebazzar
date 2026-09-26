@@ -1169,6 +1169,7 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
             Route::post('/business/{id}/cart/order',     [\App\Http\Controllers\SalesGenioController::class, 'generateOrder'])->name('business.cart.order');
             Route::get('/business/{id}/order/{order}',   [\App\Http\Controllers\SalesGenioController::class, 'showOrder'])->name('business.order');
             Route::post('/business/{id}/order/{order}/whatsapp', [\App\Http\Controllers\SalesGenioController::class, 'sendOrderWhatsapp'])->name('business.order.whatsapp');
+            Route::post('/business/{id}/order/{order}/invoice-mail', [\App\Http\Controllers\SalesGenioController::class, 'mailOrderInvoice'])->name('business.order.invoice.mail');
             Route::post('/business/{id}/cart/clear',     [\App\Http\Controllers\SalesGenioController::class, 'clearCart'])->name('business.cart.clear');
             Route::post('/business/{id}/campaign/cart',   [\App\Http\Controllers\SalesGenioController::class, 'addCampaignCart'])->name('business.campaign.cart');
             Route::post('/business/{id}/campaign/cart/remove', [\App\Http\Controllers\SalesGenioController::class, 'removeCampaignCart'])->name('business.campaign.cart.remove');

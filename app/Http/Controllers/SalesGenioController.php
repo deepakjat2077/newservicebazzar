@@ -1328,6 +1328,32 @@ class SalesGenioController extends Controller
     }
 
     /** Sends the approved payment-link template through Gupshup. */
+    /** Emails the tax invoice of a paid order again (JSON, for the Deal Closed list). */
+    public function mailOrderInvoice(Request $request, $id, $order)
+    {
+        $business = \App\Models\Listing::findOrFail($id);
+        $order = \App\Models\SalesOrder::where('listing_id', $business->id)->findOrFail($order);
+
+        if (!$order->isPaid()) {
+            return response()->json(['status' => false, 'message' => 'The invoice is sent only after payment.'], 422);
+        }
+
+        $email = trim((string) $request->input('email'));
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['status' => false, 'message' => 'That email address is not valid.'], 422);
+        }
+
+        if ($email === '' && !filter_var((string) $business->email, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['status' => false, 'need_email' => true, 'message' => 'This business has no email address.'], 422);
+        }
+
+        $sent = \App\Support\Invoice::send($order, true, $email ?: null);
+
+        return response()->json($sent
+            ? ['status' => true, 'message' => 'Invoice sent to ' . $order->fresh()->invoice_email]
+            : ['status' => false, 'message' => 'Could not send the invoice. Please try again.'], $sent ? 200 : 500);
+    }
+
     public function sendOrderWhatsapp(Request $request, $id, $order)
     {
         $business = \App\Models\Listing::findOrFail($id);
