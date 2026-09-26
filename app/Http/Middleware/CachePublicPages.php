@@ -34,6 +34,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class CachePublicPages
 {
+    private const MARKETING_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid'];
+
     /** How long a rendered page stays usable. */
     protected const TTL_MINUTES = 30;
 
@@ -126,7 +128,7 @@ class CachePublicPages
         // slots as everyone else, but no waiting and no unslotted fallback: if
         // all six are busy this is refused outright. Refusing costs nothing,
         // and it holds whatever parameter name the next swarm invents.
-        if ($request->query() !== []) {
+        if (!$this->hasOnlyMarketingQuery($request)) {
             // Their own pool, not the shared one: the six main slots are busy
             // almost continuously on a live site, so drawing from those would
             // refuse real visitors clicking a filter. Four concurrent renders
@@ -202,7 +204,11 @@ class CachePublicPages
         try {
             $response = $next($request);
 
-            if ($this->isStorable($response)) {
+            // A campaign-tagged render is stored only if the tags didn't end up
+            // in the markup (e.g. carried into pagination links), since the
+            // copy is served to every visitor.
+            if ($this->isStorable($response)
+                && ($request->query() === [] || !str_contains((string) $response->getContent(), 'utm_'))) {
                 $this->store()->put(
                     $key,
                     [
@@ -305,7 +311,18 @@ class CachePublicPages
     /** Is this a request whose response could be shared with anyone else? */
     protected function shouldConsider(Request $request): bool
     {
-        return $this->isPublicPage($request) && $request->query() === [];
+        return $this->isPublicPage($request) && $this->hasOnlyMarketingQuery($request);
+    }
+
+    /**
+     * No query string, or only ad/campaign tags. Those don't change the page
+     * (tracking.js reads them from the address bar), so a Campaign Links URL
+     * is served from the cache like the plain one instead of queuing for the
+     * four query-string render slots and getting a 429 in a busy moment.
+     */
+    protected function hasOnlyMarketingQuery(Request $request): bool
+    {
+        return array_diff(array_keys($request->query()), self::MARKETING_PARAMS) === [];
     }
 
     /** Only a plain, complete HTML page is worth keeping. */
