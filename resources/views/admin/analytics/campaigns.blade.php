@@ -10,13 +10,24 @@
     .cl-new{ background:#ebfbee; border:1px solid #b2f2bb; border-radius:8px; padding:12px 14px; margin-bottom:16px; }
     .cl-copyrow{ display:flex; gap:8px; }
     .cl-copyrow input{ flex:1; font-family:monospace; font-size:12.5px; background:#fff; }
-    .cl-url{ font-family:monospace; font-size:12px; color:#495057; word-break:break-all; max-width:360px; }
-    .cl-num{ text-align:right; white-space:nowrap; }
-    .cl-tag{ display:inline-block; padding:2px 9px; border-radius:20px; background:#e7f1fb; color:#1c7ed6; font-size:12px; font-weight:600; white-space:nowrap; }
-    .cl-copy{ border:1px solid #dfe3e8; background:#fff; border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer; }
+    .cl-tag{ display:inline-block; padding:3px 10px; border-radius:20px; background:#e7f1fb; color:#1c7ed6; font-size:12px; font-weight:600; white-space:nowrap; }
+    .cl-list{ display:grid; gap:14px; padding:16px; }
+    .cl-card{ border:1px solid #e9ecef; border-radius:10px; padding:14px 16px; background:#fff; }
+    .cl-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .cl-name{ font-size:15px; font-weight:700; color:#212529; margin:0 0 4px; word-break:break-word; }
+    .cl-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:12px; color:#868e96; }
+    .cl-linkrow{ display:flex; gap:8px; margin:12px 0; min-width:0; }
+    .cl-linkrow input{ flex:1; min-width:0; height:36px; border:1px solid #e9ecef; border-radius:6px; background:#f8f9fa; padding:0 10px; font-family:monospace; font-size:12px; color:#495057; }
+    .cl-copy{ flex:0 0 auto; height:36px; border:1px solid #dfe3e8; background:#fff; border-radius:6px; padding:0 14px; font-size:13px; font-weight:600; cursor:pointer; }
     .cl-copy:hover{ border-color:#1c7ed6; color:#1c7ed6; }
-    .cl-del{ border:0; background:none; color:#adb5bd; cursor:pointer; }
+    .cl-stats{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:8px; }
+    .cl-stat{ background:#f8f9fa; border-radius:8px; padding:8px 10px; }
+    .cl-stat b{ display:block; font-size:18px; color:#212529; line-height:1.2; }
+    .cl-stat span{ font-size:12px; color:#868e96; }
+    .cl-del{ flex:0 0 auto; border:0; background:none; color:#adb5bd; cursor:pointer; padding:4px; }
     .cl-del:hover{ color:#e03131; }
+    .cl-empty{ text-align:center; color:#868e96; padding:28px 16px; }
+    @media (max-width:575px){ .cl-stats{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
 </style>
 
 <div class="card m-b-30">
@@ -67,52 +78,41 @@
 <div class="card m-b-30">
     <div class="card-header"><h6>@lang('Your campaign links')</h6></div>
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-borderless">
-                <thead>
-                    <tr>
-                        <th>@lang('Campaign')</th>
-                        <th>@lang('Channel')</th>
-                        <th>@lang('Link')</th>
-                        <th class="cl-num">@lang('Visits')</th>
-                        <th class="cl-num">@lang('Visitors')</th>
-                        <th class="cl-num">@lang('Calls')</th>
-                        <th class="cl-num">@lang('WhatsApp')</th>
-                        <th class="cl-num">@lang('Enquiries')</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($links as $l)
-                        @php $st = $stats[$l->id] ?? []; @endphp
-                        <tr>
-                            <td>
-                                <b>{{ $l->name }}</b>
-                                <div class="text-muted" style="font-size:12px">{{ $l->created_at->format('d M Y') }}</div>
-                            </td>
-                            <td><span class="cl-tag">{{ $l->channelLabel() }}</span></td>
-                            <td>
-                                <div class="cl-url">{{ $l->url() }}</div>
-                                <button type="button" class="cl-copy cl-copy-btn m-t-5" data-url="{{ $l->url() }}">@lang('Copy')</button>
-                            </td>
-                            <td class="cl-num">{{ number_format($st['sessions'] ?? 0) }}</td>
-                            <td class="cl-num">{{ number_format($st['visitors'] ?? 0) }}</td>
-                            <td class="cl-num">{{ number_format($st['calls'] ?? 0) }}</td>
-                            <td class="cl-num">{{ number_format($st['whatsapp'] ?? 0) }}</td>
-                            <td class="cl-num">{{ number_format($st['enquiries'] ?? 0) }}</td>
-                            <td>
-                                <form method="POST" action="{{ route('admin.analytics.campaigns.destroy', $l->id) }}" onsubmit="return confirm('Remove this link from the list? Visits already counted stay in Traffic Sources.');">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="cl-del" title="@lang('Remove')"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="9" class="text-center text-muted p-4">@lang('No campaign links yet. Create one above.')</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @if($links->isEmpty())
+            <div class="cl-empty">@lang('No campaign links yet. Create one above.')</div>
+        @else
+            <div class="cl-list">
+                @foreach($links as $l)
+                    @php $st = $stats[$l->id] ?? []; @endphp
+                    <div class="cl-card">
+                        <div class="cl-top">
+                            <div>
+                                <p class="cl-name">{{ $l->name }}</p>
+                                <div class="cl-meta">
+                                    <span class="cl-tag">{{ $l->channelLabel() }}</span>
+                                    <span>{{ $l->created_at->format('d M Y') }}</span>
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ route('admin.analytics.campaigns.destroy', $l->id) }}" onsubmit="return confirm('Remove this link from the list? Visits already counted stay in Traffic Sources.');">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="cl-del" title="@lang('Remove')"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </div>
+                        <div class="cl-linkrow">
+                            <input type="text" value="{{ $l->url() }}" readonly aria-label="@lang('Campaign link')">
+                            <button type="button" class="cl-copy cl-copy-btn" data-url="{{ $l->url() }}">@lang('Copy')</button>
+                        </div>
+                        <div class="cl-stats">
+                            <div class="cl-stat"><b>{{ number_format($st['sessions'] ?? 0) }}</b><span>@lang('Visits')</span></div>
+                            <div class="cl-stat"><b>{{ number_format($st['visitors'] ?? 0) }}</b><span>@lang('Visitors')</span></div>
+                            <div class="cl-stat"><b>{{ number_format($st['calls'] ?? 0) }}</b><span>@lang('Calls')</span></div>
+                            <div class="cl-stat"><b>{{ number_format($st['whatsapp'] ?? 0) }}</b><span>@lang('WhatsApp')</span></div>
+                            <div class="cl-stat"><b>{{ number_format($st['enquiries'] ?? 0) }}</b><span>@lang('Enquiries')</span></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </div>
 </div>
 
