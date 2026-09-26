@@ -27,6 +27,17 @@ class DepositController extends Controller
     	return view($this->theme.'user.payment.deposit',compact('payments'));
     }
 
+    /** The tax invoice for one of the user's own successful payments. */
+    public function invoice($id)
+    {
+        $payment = Payment::where('user_id', auth()->id())->where('status', 1)->findOrFail($id);
+
+        return response(\App\Support\Invoice::paymentPdf($payment), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . \App\Support\Invoice::paymentFilename($payment) . '"',
+        ]);
+    }
+
     public function depositDetails($id)
     {
         $payment = Payment::where('user_id',auth()->id())->orderBy('id','desc')->where('status','!=',0)->findOrFail($id);

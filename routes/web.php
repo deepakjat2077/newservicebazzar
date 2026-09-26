@@ -823,6 +823,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                 Route::post('deposit/submit', 'DepositController@depositSubmit')->name('deposit.submit');
                 Route::get('deposit/confirm', 'DepositController@depositConfirm')->name('deposit.confirm');
                 Route::get('deposit/details/{id}', 'DepositController@depositDetails')->name('deposit.details');
+                Route::get('deposit/{id}/invoice', 'DepositController@invoice')->whereNumber('id')->name('deposit.invoice');
 
 
                 Route::name('listing.')->prefix('listing')->group(function () {
