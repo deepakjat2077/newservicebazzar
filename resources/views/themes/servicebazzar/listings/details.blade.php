@@ -1488,6 +1488,23 @@
         margin-right:5px;
     }
 
+    /* Desktop only: at 11px the actions were hard to see and hit. Phones keep their own size. */
+    @media (min-width:768px){
+        .review-actions{ gap:12px; margin-top:14px; }
+        .review-action-btn{
+            display:inline-flex;
+            align-items:center;
+            font-size:14px;
+            font-weight:600;
+            color:#333;
+            padding:7px 14px;
+            border-radius:20px;
+            transition:background .15s ease, color .15s ease;
+        }
+        .review-action-btn i{ font-size:19px; margin-right:6px; }
+        .review-action-btn:hover{ background:#f1f3f5; color:#111; }
+    }
+
     .comment-box-wrap{
         margin-top:15px;
     }
