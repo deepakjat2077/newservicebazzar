@@ -6838,7 +6838,10 @@
             const stickyTop = 95;
             const stickyHeight = stickyForm.offsetHeight || 320;
 
-            const startSticky = triggerRect.bottom < stickyTop;
+            // Matches all.blade.php's own copy of this exactly: wait until the
+            // trigger card is fully scrolled past (100px clear of the top),
+            // not just past the header-clearance line.
+            const startSticky = triggerRect.bottom < -100;
             const stopSticky = listingRect.bottom <= (stickyTop + stickyHeight + 30);
 
             if (startSticky && !stopSticky) {
