@@ -6816,39 +6816,20 @@
 
         if (!stickyForm || !triggerSection || !sidebarColumn || !listingSection) return;
 
-        // The static sidebar here is col-lg-3 (narrower, by design, than
-        // all.blade.php's col-md-4) — left as is. But the user wants the
-        // FLOATING copy sized like all.blade.php's, i.e. a col-md-4 column,
-        // not this page's own col-lg-3. Measuring a real, temporary col-md-4
-        // dropped into the same row gets Bootstrap's exact pixel math (gutters
-        // included) without duplicating it by hand, and without touching the
-        // visible column's class.
-        function referenceStickyWidth() {
-            const row = sidebarColumn.parentElement;
-            const probe = document.createElement("div");
-            probe.className = "col-md-4";
-            probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;height:0;";
-            row.appendChild(probe);
-            const width = probe.getBoundingClientRect().width;
-            row.removeChild(probe);
-            return width;
-        }
-
         function setStickyPosition() {
             if (window.innerWidth <= 991) {
                 return;
             }
 
-            // Anchored to the row's right edge (where the sidebar column
-            // itself ends) rather than its left edge: the floating copy is
-            // wider than the visible col-lg-3 column, so anchoring left would
-            // push its right side out past the row.
-            const rowRect = sidebarColumn.parentElement.getBoundingClientRect();
-            const width = referenceStickyWidth();
+            // Fill the sidebar's white box edge to edge — the widest it can be
+            // without covering the main column (anything wider sat on top of
+            // "Related Searches").
+            const box = sidebarColumn.querySelector(".contact-info-box") || sidebarColumn;
+            const rect = box.getBoundingClientRect();
 
-            stickyForm.style.width = Math.round(width) + "px";
-            stickyForm.style.left = "auto";
-            stickyForm.style.right = Math.round(window.innerWidth - rowRect.right) + "px";
+            stickyForm.style.width = Math.round(rect.width) + "px";
+            stickyForm.style.left = rect.left + "px";
+            stickyForm.style.right = "auto";
         }
 
         function toggleStickyForm() {
