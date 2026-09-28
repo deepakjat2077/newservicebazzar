@@ -2423,55 +2423,6 @@
     {{-- .popular-city-section / .popular-category-section styling now lives
          once in popular-sections.css, loaded from the shared footer --}}
 
-    {{-- "Nearby Areas" / "Popular Cities" links just below this listing.
-         Deliberately NOT sharing .popular-city-section/.popular-title/
-         .popular-city-list with the footer's Popular Cities widget: that
-         widget's mobile CSS (popular-sections.css) hides its title and
-         list until a .popular-mobile-main-toggle button is tapped, and
-         these two blocks never had that button — so on mobile both
-         sections rendered as an invisible sliver, with 7-30 real, useful
-         links sitting there unreachable. Own classes, always visible. --}}
-    .detail-related-block{
-        background:#fff;
-        padding:0 15px 18px;
-        margin-left:40px;
-        margin-right:40px;
-    }
-
-    .detail-related-title{
-        font-size:16px;
-        font-weight:600;
-        margin-bottom:12px;
-        color:#333;
-        line-height:1.2;
-    }
-
-    .detail-related-list{
-        font-size:13px;
-        line-height:2;
-        color:#666;
-    }
-
-    .detail-related-list a{
-        color:#666;
-        text-decoration:none;
-        margin:0 4px;
-    }
-
-    .detail-related-list a:hover{
-        color:#0d6efd;
-    }
-
-    @media (max-width:767px){
-        .detail-related-block{
-            width:100%;
-            margin:15px 0 0;
-            padding:14px 20px;
-            border-top:1px solid #eeeeee;
-            border-bottom:1px solid #eeeeee;
-        }
-    }
-
     @media (max-width:767px){
 
         /*
@@ -6928,13 +6879,13 @@
 
 @if(isset($nearbyAreas) && $nearbyAreas->count() > 0)
 
-    <div class="detail-related-block">
+    <div class="popular-city-section">
 
-        <div class="detail-related-title">
+        <div class="popular-title">
             {{ $currentCategory }} in Nearby Areas
         </div>
 
-        <div class="detail-related-list">
+        <div class="popular-city-list">
 
             @foreach($nearbyAreas as $area)
 
@@ -6965,13 +6916,13 @@
 
 @if(isset($popularCities) && $popularCities->count() > 0)
 
-    <div class="detail-related-block">
+    <div class="popular-city-section">
 
-        <div class="detail-related-title">
+        <div class="popular-title">
             {{ $currentCategory }} in Popular Cities
         </div>
 
-        <div class="detail-related-list">
+        <div class="popular-city-list">
 
             @foreach($popularCities as $city)
 
