@@ -94,11 +94,10 @@
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--green"><i class="fas fa-images"></i></span>
                 <span>Add Photos <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </a>
-            <div class="sb-biz-action-card is-disabled">
+            <a href="{{ route('user.listing.business-contact', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--teal"><i class="fas fa-address-book"></i></span>
-                <span>Add Contact</span>
-                <small>Coming soon</small>
-            </div>
+                <span>Add Contact <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
+            </a>
             <a href="{{ route('user.listing.business-catalogue', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--gray"><i class="fas fa-file-lines"></i></span>
                 <span>Upload Catalogue <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
