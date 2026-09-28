@@ -75,11 +75,10 @@
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--peach"><i class="fas fa-id-card"></i></span>
                 <span>Edit Profile <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
             </button>
-            <div class="sb-biz-action-card is-disabled">
+            <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--purple"><i class="fas fa-bullhorn"></i></span>
-                <span>Advertise</span>
-                <small>Coming soon</small>
-            </div>
+                <span>Advertise <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
+            </a>
             <a href="{{ $sbReviewsUrl ?? '#' }}" class="sb-biz-action-card">
                 <span class="sb-biz-modal-icon sb-biz-modal-icon--blue"><i class="fas fa-star"></i></span>
                 <span>Reviews <i class="fas fa-pen sb-biz-edit-badge" aria-hidden="true"></i></span>
@@ -132,17 +131,14 @@
         <div class="sb-biz-wide-list">
             <h5>My Business</h5>
 
-            <div class="sb-biz-wide-card is-disabled">
+            <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sb-biz-wide-card">
                 <i class="fas fa-bullhorn"></i>
                 <div class="sb-biz-wide-body">
-                    <div class="sb-biz-wide-title">
-                        Advertise on Service Bazzar
-                        <span class="sb-biz-wide-badge sb-biz-wide-badge--green">Coming soon</span>
-                    </div>
+                    <div class="sb-biz-wide-title">Advertise on Service Bazzar</div>
                     <p>Reach more customers searching for your category</p>
                 </div>
                 <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
-            </div>
+            </a>
 
             <a href="{{ route('user.guest-chats.index') }}" class="sb-biz-wide-card">
                 <i class="fas fa-envelope"></i>
