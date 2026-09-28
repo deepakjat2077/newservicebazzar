@@ -1229,8 +1229,12 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 >
 @auth
     @php
-        $sbHeaderBusiness = auth()->user()->listings()->latest()->first();
-        $sbHasBusinessListing = (bool) $sbHeaderBusiness;
+        // The business named in the profile menu must be a live (approved)
+        // one; a pending or rejected listing isn't the user's business yet.
+        $sbHeaderBusiness = auth()->user()->listings()->where('status', 1)->latest()->first();
+        // The header "My Business" link opens the user's listings page, which
+        // shows pending ones with their status, so any listing counts there.
+        $sbHasBusinessListing = $sbHeaderBusiness || auth()->user()->listings()->exists();
     @endphp
 @endauth
     <a href="#main-content" class="skip-link">
