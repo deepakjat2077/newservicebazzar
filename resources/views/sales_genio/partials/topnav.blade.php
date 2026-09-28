@@ -246,10 +246,13 @@ body > *:not(.sg-nav):not(.sg-rail){margin-left:268px;}
   .sg-nav__cart{order:2;padding:6px 8px;}
   .sg-nav__avatar{order:3;}
   .sg-nav__menu{order:3;top:56px;}
-  .sg-city{order:4;flex:1 1 42%;}
-  .sg-city__btn{width:100%;justify-content:center;padding:10px 14px;font-size:14px;}
+  /* City and Create sit side by side at the same height; Create sizes to
+     its one-line label instead of a 46% slot that wrapped it onto two lines. */
+  .sg-city{order:4;flex:1 1 40%;min-width:0;}
+  .sg-city__btn{width:100%;height:44px;justify-content:center;padding:0 12px;font-size:14px;}
   .sg-city__menu{width:min(290px,80vw);}
-  .sg-nav__create{order:5;flex:1 1 46%;text-align:center;padding:11px 12px;font-size:13.5px;}
+  .sg-nav__create{order:5;flex:0 0 auto;height:44px;display:inline-flex;align-items:center;justify-content:center;
+    padding:0 16px;font-size:13px;white-space:nowrap;border-radius:26px;}
   .sg-nav__search{order:6;max-width:100%;flex-basis:100%;}
 }
 </style>

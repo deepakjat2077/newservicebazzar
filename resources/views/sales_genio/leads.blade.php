@@ -75,9 +75,16 @@
     td[data-label="Business"]:before{display:none;}
     .sg-biz{font-size:15px;}
     .sg-note{max-width:none;}
-    .sg-actions{justify-content:flex-end;gap:8px;padding-top:12px;border-top:1px solid #f1f3f8;margin-top:4px;}
+    /* Buttons in an even two-column grid: in one right-aligned row the four
+       deal buttons overflowed and Call was cut off at the left edge. */
+    td.sg-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:12px;
+      border-top:1px solid #f1f3f8;margin-top:4px;white-space:normal !important;}
     .sg-actions:before{display:none;}
-    .sg-call,.sg-open{padding:9px 16px;}
+    .sg-actions .sg-call,.sg-actions .sg-open,.sg-actions .sg-mail{display:flex;align-items:center;justify-content:center;
+      gap:6px;padding:10px 8px;font-size:13.5px;text-align:center;}
+    .sg-actions .sg-call{border:1px solid #1f9d55;}
+    .sg-actions .sg-mail-msg{grid-column:1 / -1;max-width:none;margin-top:0;text-align:center;}
+    .sg-actions .sg-mail-msg:empty{display:none;}
     .sg-empty{background:#fff;border:1px solid #e6e9f2;border-radius:14px;}
   }
 </style>
