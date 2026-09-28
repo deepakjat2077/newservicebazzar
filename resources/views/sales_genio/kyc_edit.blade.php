@@ -88,9 +88,16 @@
     </style>
 </head>
 <body>
+@php
+    // Shared by Sales Genio and the owner's own dashboard; each passes its own URLs.
+    $kycBackUrl = $kycBackUrl ?? route('sales_genio.business.profile', $business->id);
+    $kycUploadUrl = $kycUploadUrl ?? route('sales_genio.business.kyc.upload', $business->id);
+    $kycNumberUrl = $kycNumberUrl ?? route('sales_genio.business.kyc.number', $business->id);
+    $kycDeleteBase = $kycDeleteBase ?? url('sales_genio/business/' . $business->id . '/kyc');
+@endphp
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ $kycBackUrl }}" class="back"><i class="fas fa-chevron-left"></i></a>
         <div class="title">KYC / Documents</div>
     </div>
 
@@ -139,7 +146,7 @@
 </div>
 
 <div class="bottom-bar">
-    <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="btn-save">Save &amp; Proceed</a>
+    <a href="{{ $kycBackUrl }}" class="btn-save">Save &amp; Proceed</a>
 </div>
 
 <input type="file" id="kycFile" accept="image/*,application/pdf" hidden>
@@ -168,8 +175,8 @@
 
 <script>
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
-    const uploadUrl = '{{ route("sales_genio.business.kyc.upload", $business->id) }}';
-    const deleteBase = '{{ url("sales_genio/business/" . $business->id . "/kyc") }}';
+    const uploadUrl = @json($kycUploadUrl);
+    const deleteBase = @json($kycDeleteBase);
     let currentType = null, currentMulti = false;
 
     function pickFile(type, multi) {
@@ -193,7 +200,7 @@
 
     /* ---------------- document number ---------------- */
 
-    const numberUrl = '{{ route("sales_genio.business.kyc.number", $business->id) }}';
+    const numberUrl = @json($kycNumberUrl);
     let numberType = null;
 
     function editNumber(type, label, current) {

@@ -182,14 +182,14 @@
                     <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
                 </div>
 
-                <div class="sb-biz-wide-card is-disabled">
+                <a href="{{ route('user.listing.kyc', $listing->id) }}" class="sb-biz-wide-card">
                     <i class="fas fa-file-invoice-dollar"></i>
                     <div class="sb-biz-wide-body">
                         <div class="sb-biz-wide-title">KYC, Payments &amp; Invoices</div>
                         <p>Update KYC details</p>
                     </div>
                     <i class="fas fa-chevron-right sb-biz-wide-chevron"></i>
-                </div>
+                </a>
 
                 <div class="sb-biz-wide-card is-disabled">
                     <i class="fas fa-award"></i>

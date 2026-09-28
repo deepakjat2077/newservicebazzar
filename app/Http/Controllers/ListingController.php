@@ -995,6 +995,48 @@ public function updatesection(Request $request, $id)
      * methods only), carrying this listing's id so the package activates on the
      * business rather than the buyer's account.
      */
+    /**
+     * The owner's KYC / documents screen — the same page and upload/number
+     * logic the Sales Genio team uses, reached from the business dashboard.
+     */
+    public function businessKyc($id)
+    {
+        $business = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+        $docs = \App\Models\ListingKycDocument::where('listing_id', $business->id)->get()->groupBy('doc_type');
+        $types = \App\Http\Controllers\SalesGenioController::kycTypes();
+
+        return view('sales_genio.kyc_edit', [
+            'business' => $business,
+            'docs' => $docs,
+            'types' => $types,
+            'kycBackUrl' => route('user.listing.dashboard', $business->id),
+            'kycUploadUrl' => route('user.listing.kyc.upload', $business->id),
+            'kycNumberUrl' => route('user.listing.kyc.number', $business->id),
+            'kycDeleteBase' => url('user/listing/' . $business->id . '/kyc'),
+        ]);
+    }
+
+    public function businessKycUpload(Request $request, $id)
+    {
+        $business = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return app(\App\Http\Controllers\SalesGenioController::class)->uploadKyc($request, $business->id);
+    }
+
+    public function businessKycNumber(Request $request, $id)
+    {
+        $business = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return app(\App\Http\Controllers\SalesGenioController::class)->saveKycNumber($request, $business->id);
+    }
+
+    public function businessKycDelete($id, $doc)
+    {
+        $business = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        return app(\App\Http\Controllers\SalesGenioController::class)->deleteKyc($business->id, $doc);
+    }
+
     public function advertise($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();

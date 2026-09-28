@@ -841,6 +841,10 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::get('{id}/dashboard', 'ListingController@businessDashboard')->name('dashboard');
                     Route::get('{id}/manage', 'ListingController@manage')->name('manage');
                     Route::get('{id}/advertise', 'ListingController@advertise')->name('advertise');
+                    Route::get('{id}/kyc', 'ListingController@businessKyc')->name('kyc');
+                    Route::post('{id}/kyc', 'ListingController@businessKycUpload')->name('kyc.upload');
+                    Route::post('{id}/kyc/number', 'ListingController@businessKycNumber')->name('kyc.number');
+                    Route::delete('{id}/kyc/{doc}', 'ListingController@businessKycDelete')->name('kyc.delete');
                     Route::get('{id}/advertise/checkout/{package}', 'ListingController@advertiseCheckout')->name('advertise.checkout');
                     Route::get('advertise-areas', 'ListingController@advertiseAreas')->name('advertise.areas');
                     Route::get('{id}/advertise/package/{pkg}', 'ListingController@advertiseSalesSelect')->name('advertise.sales.select');
