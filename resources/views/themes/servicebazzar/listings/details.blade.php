@@ -6826,8 +6826,13 @@
                 return;
             }
 
-            const rect = sidebarColumn.getBoundingClientRect();
-        
+            // Match the sidebar's own enquiry card, not the column: the column
+            // carries Bootstrap's gutters, so sizing to it made the floating
+            // copy ~70px wider than the card it stands in for.
+            const anchor = document.getElementById("mainEnquiryForm") || sidebarColumn;
+            const rect = anchor.getBoundingClientRect();
+
+            stickyForm.style.width = Math.round(rect.width) + "px";
             stickyForm.style.left = rect.left + "px";
             stickyForm.style.right = "auto";
         }
