@@ -1937,7 +1937,10 @@
     }
     .sticky-floating-form{
         position: fixed;
-        top: 50px;
+        /* Clears the fixed site header; the JS's own stickyTop constant
+           assumes this same 95px (all.blade.php uses it too). At 50px the
+           card sat jammed against the header. */
+        top: 95px;
         z-index: 9999;
         display: none;
     }
@@ -2511,7 +2514,7 @@
 
         .sticky-floating-form{
         position: fixed;
-        top: 50px;
+        top: 95px;
         z-index: 9997;
         display: none;
     }
