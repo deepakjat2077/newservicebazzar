@@ -5769,7 +5769,7 @@
         @foreach($listing->ratings->sortByDesc('id')->values() as $index => $rating)
 
     <div class="reviewer mb-3 review-item-load"
-        style="{{ $index >= 10 ? 'display:none;' : '' }}">
+        style="{{ $index >= 5 ? 'display:none;' : '' }}">
                     
 
                         <div class="content w-100">
@@ -6025,13 +6025,13 @@
                     </div>
                 @endforeach
 
-                @if($listing->ratings->count() > 10)
+                @if($listing->ratings->count() > 5)
 
     <div class="text-center mt-4">
         <button type="button"
                 id="loadMoreReviewsBtn"
                 class="btn btn-outline-primary">
-            Read all reviews
+            View More
         </button>
     </div>
 
@@ -8431,7 +8431,7 @@
     <script>
     document.addEventListener("DOMContentLoaded", function(){
 
-        let visible = 10;
+        let visible = 5;
 
         const btn = document.getElementById("loadMoreReviewsBtn");
 
@@ -8443,11 +8443,11 @@
                 ".review-item-load[style*='display:none']"
             );
 
-            for(let i = 0; i < 10 && i < hiddenReviews.length; i++){
+            for(let i = 0; i < 5 && i < hiddenReviews.length; i++){
                 hiddenReviews[i].style.display = "block";
             }
 
-            visible += 10;
+            visible += 5;
 
             if(document.querySelectorAll(".review-item-load[style*='display:none']").length === 0){
                 btn.style.display = "none";
