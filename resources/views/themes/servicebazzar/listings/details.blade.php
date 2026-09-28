@@ -6629,10 +6629,6 @@
 
     <input type="hidden" name="location_name" value="{{ optional($listing->location)->name ?? $listing->city ?? '' }}">
 
-                        <div class="mb-3">
-                            <label class="enquiry-label">Where do you want to shift?</label>
-                        </div>
-
                         <div class="mb-2 input-icon-group">
                             <span class="input-icon"><i class="las la-user"></i></span>
                             <input type="text" name="name" class="form-control enquiry-input" placeholder="Name" required>
@@ -6646,7 +6642,7 @@
                         <div class="form-check enquiry-check mb-3">
                             <input class="form-check-input" type="checkbox" id="policyCheck" required>
                             <label class="form-check-label" for="policyCheck">
-                                I Agree to <a href="{{ route('single.slug',38) }}">T&C's Privacy Policy</a>
+                                I Agree to <a href="{{ url('/terms-and-conditions') }}">Terms &amp; Conditions</a> &amp; <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
                             </label>
                         </div>
 
@@ -6786,10 +6782,6 @@
                 <input type="hidden" name="author_id" value="{{ $listing->user->id ?? '' }}">
     <input type="hidden" name="location_id"
         value="{{ request('location_id') ?? ($location->id ?? '') }}">
-                <div class="mb-3">
-                    <label class="enquiry-label">Where do you want to shift?</label>
-                </div>
-
                 <div class="mb-2 input-icon-group">
                     <span class="input-icon"><i class="las la-user"></i></span>
                     <input type="text" name="name" class="form-control enquiry-input" placeholder="Name" required>
@@ -6803,7 +6795,7 @@
                 <div class="form-check enquiry-check mb-3">
                     <input class="form-check-input" type="checkbox" id="policyCheckSticky" required>
                     <label class="form-check-label" for="policyCheckSticky">
-                        I Agree to <a href="{{ route('single.slug',38) }}">T&C's Privacy Policy</a>
+                        I Agree to <a href="{{ url('/terms-and-conditions') }}">Terms &amp; Conditions</a> &amp; <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
                     </label>
                 </div>
 
