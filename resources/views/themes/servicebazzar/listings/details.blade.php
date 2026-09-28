@@ -2170,9 +2170,13 @@
 
     @media (max-width: 991px){
         .sticky-floating-form{
-            display: none !important;
+            left: 10px !important;
+            right: 10px !important;
+            width: auto !important;
+            max-width: none !important;
+            top: 80px;
         }
-    }   
+    }
 
     @media (max-width: 767px){
         .enquiry-title{
@@ -6660,7 +6664,7 @@
     );
 @endphp
 @if($peopleAlsoSearches->count() > 0)
-    <div class="related-search-card mt-3">
+    <div class="related-search-card mt-3" id="relatedSearchTrigger">
         <div class="related-search-box">
 
             <div class="mb-2">People Also Search For</div>
@@ -6819,7 +6823,6 @@
 
         function setStickyPosition() {
             if (window.innerWidth <= 991) {
-                stickyForm.classList.remove("show");
                 return;
             }
 
@@ -6830,11 +6833,6 @@
         }
 
         function toggleStickyForm() {
-            if (window.innerWidth <= 991) {
-                stickyForm.classList.remove("show");
-                return;
-            }
-
             const triggerRect = triggerSection.getBoundingClientRect();
             const listingRect = listingSection.getBoundingClientRect();
             const stickyTop = 95;
