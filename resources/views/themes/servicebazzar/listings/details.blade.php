@@ -5050,7 +5050,7 @@
             <div class="row g-3">
 
                 {{-- LEFT SECTION --}}
-        <div class="col-lg-9">
+        <div class="col-lg-8">
         <div class="media-main-box">
 
             {{-- TOP BUTTONS --}}
@@ -6250,7 +6250,7 @@
     </div>
 
     {{-- RIGHT SECTION --}}
-    <div class="col-lg-3" id="sidebarColumn">
+    <div class="col-lg-4" id="sidebarColumn">
         <div class="sidebar-sticky-wrapper">
 
             <div class="contact-info-box">
