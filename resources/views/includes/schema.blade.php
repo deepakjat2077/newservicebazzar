@@ -56,7 +56,17 @@
         if (!empty($schemaService['description'])) { $service['description'] = $schemaService['description']; }
         if (!empty($schemaService['url']))         { $service['url']         = $schemaService['url']; }
         if (!empty($schemaService['areaServed']))  {
-            $service['areaServed'] = ['@type' => 'City', 'name' => $schemaService['areaServed']];
+            $served = (string) $schemaService['areaServed'];
+            if (str_contains($served, ',')) {
+                $servedCity = trim(\Illuminate\Support\Str::afterLast($served, ','));
+                $service['areaServed'] = [
+                    '@type'            => 'Place',
+                    'name'             => trim(\Illuminate\Support\Str::beforeLast($served, ',')),
+                    'containedInPlace' => ['@type' => 'City', 'name' => $servedCity],
+                ];
+            } else {
+                $service['areaServed'] = ['@type' => 'City', 'name' => $served];
+            }
         }
         // Note: aggregateRating deliberately NOT added here — Google's review-
         // snippet rich results only support aggregateRating on certain parent

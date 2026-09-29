@@ -5409,9 +5409,21 @@
         }
 
         if ($fullAddress) {
+            // Street from the separate parts; many listings only have the one
+            // free-text address, so fall back to that, cut before the city
+            // ("…, Jhotwara, Jaipur-302012, Rajasthan" -> "…, Jhotwara").
+            $schemaStreet = trim(collect([$listing->plot_no, $listing->building_name, $listing->street_name, $listing->landmark])->filter()->implode(', '));
+            if ($schemaStreet === '' && trim((string) $listing->address) !== '') {
+                $schemaStreet = trim((string) $listing->address);
+                $schemaCity = trim((string) ($listing->city ?: optional($listing->location)->name));
+                $cut = $schemaCity !== '' ? stripos($schemaStreet, $schemaCity) : false;
+                if ($cut !== false && $cut > 0) {
+                    $schemaStreet = rtrim(substr($schemaStreet, 0, $cut), " ,-");
+                }
+            }
             $listingSchema['address'] = [
                 '@type'           => 'PostalAddress',
-                'streetAddress'   => trim(collect([$listing->plot_no, $listing->building_name, $listing->street_name])->filter()->implode(', ')) ?: null,
+                'streetAddress'   => $schemaStreet !== '' ? $schemaStreet : null,
                 'addressLocality' => $listing->city ?: $locationText ?: null,
                 'addressRegion'   => $listing->state ?: null,
                 'postalCode'      => $listing->pincode ?: null,
@@ -5448,7 +5460,8 @@
         $breadcrumbItems = [];
 
         if (!empty($locationText)) {
-            $breadcrumbItems[] = ['name' => $locationText, 'item' => route('home')];
+            // The city crumb opens the city's own page, not the homepage.
+            $breadcrumbItems[] = ['name' => $locationText, 'item' => url(\Illuminate\Support\Str::slug($locationText))];
         }
 
         if (!empty($categoryText) && !empty($categorySlug)) {

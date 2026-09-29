@@ -129,6 +129,43 @@
         'logo'     => $defaultImage,
     ];
 
+    // The company's own details, from Setting > Invoice (config('invoice.company')).
+    $orgCompany = (array) config('invoice.company', []);
+    if (!empty($orgCompany['address']) || !empty($orgCompany['city'])) {
+        $organizationSchema['address'] = array_filter([
+            '@type'           => 'PostalAddress',
+            'streetAddress'   => $orgCompany['address'] ?? null,
+            'addressLocality' => $orgCompany['city'] ?? null,
+            'addressRegion'   => $orgCompany['state'] ?? null,
+            'postalCode'      => $orgCompany['pincode'] ?? null,
+            'addressCountry'  => 'IN',
+        ]);
+    }
+    if (!empty($orgCompany['phone'])) {
+        $organizationSchema['telephone'] = preg_replace('/\s+/', '', $orgCompany['phone']);
+    }
+    if (!empty($orgCompany['email'])) {
+        $organizationSchema['email'] = $orgCompany['email'];
+    }
+    if (!empty($orgCompany['phone']) || !empty($orgCompany['email'])) {
+        $organizationSchema['contactPoint'] = array_filter([
+            '@type'             => 'ContactPoint',
+            'contactType'       => 'customer service',
+            'telephone'         => !empty($orgCompany['phone']) ? preg_replace('/\s+/', '', $orgCompany['phone']) : null,
+            'email'             => $orgCompany['email'] ?? null,
+            'areaServed'        => 'IN',
+            'availableLanguage' => ['en', 'hi'],
+        ]);
+    }
+    $orgSameAs = collect($socialSites ?? [])->pluck('link')
+        ->filter(fn ($l) => is_string($l) && preg_match('#^https?://#i', $l))->unique()->values()->all();
+    if ($orgSameAs) {
+        $organizationSchema['sameAs'] = $orgSameAs;
+    }
+
+    // The admin can publish a fuller WebSite block for this page; don't emit a second.
+    $adminHasWebsite = $schemas->contains(fn ($s) => (json_decode((string) $s->schema_json, true)['@type'] ?? null) === 'WebSite');
+
     $websiteSchema = [
         '@context'      => 'https://schema.org',
         '@type'         => 'WebSite',
@@ -148,9 +185,11 @@
 <script type="application/ld+json">
 {!! str_ireplace('</script', '<\/script', json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) !!}
 </script>
+@unless($adminHasWebsite)
 <script type="application/ld+json">
 {!! str_ireplace('</script', '<\/script', json_encode($websiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) !!}
 </script>
+@endunless
 
 {{-- Page-specific JSON-LD (Breadcrumb, Service, FAQPage, ItemList of
      LocalBusiness). Only emits blocks whose data a controller has shared. --}}

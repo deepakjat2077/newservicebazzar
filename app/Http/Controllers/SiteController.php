@@ -274,6 +274,11 @@ if (!empty($currentLocationFromUrl)) {
         "{$currentLocationFromUrl->name}'s local business directory — business listings, genuine reviews and contact details, all on {$siteName}.",
     ]);
     $data['seoUrl'] = url('/' . $currentLocationFromUrl->slug);
+    $data['cityHomeName'] = $currentLocationFromUrl->name;
+    $data['schemaBreadcrumbs'] = [
+        ['name' => $siteName, 'url' => url('/')],
+        ['name' => $currentLocationFromUrl->name, 'url' => url('/' . $currentLocationFromUrl->slug)],
+    ];
 
     // Empty city pages (0 listings) should not be indexed — they're thin, have
     // no unique value, and just add noise to search results. Google will crawl

@@ -3174,12 +3174,12 @@ color: #555;
 
         <span>
             <strong>Local Services</strong>
-            <small>Near Your Location</small>
+            <small>{{ !empty($cityHomeName) ? 'in ' . $cityHomeName : 'Near Your Location' }}</small>
         </span>
 
         <span>
             <strong>Verified Businesses</strong>
-            <small>Across India</small>
+            <small>{{ !empty($cityHomeName) ? 'in ' . $cityHomeName : 'Across India' }}</small>
         </span>
 
     </span>

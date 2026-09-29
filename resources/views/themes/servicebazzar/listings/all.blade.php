@@ -553,12 +553,24 @@ a {
 @php
     // BreadcrumbList mirroring the visible trail above.
     $breadcrumbItems = [];
+    $crumbSlug = $selectedSubcategory->slug ?? $selectedCategory->slug ?? null;
 
     if (!empty($locationText)) {
-        $breadcrumbItems[] = ['name' => $locationText, 'item' => route('home')];
-    }
+        $crumbParts = array_map('trim', explode(',', $locationText));
+        $crumbCityName = end($crumbParts);
+        $crumbCitySlug = \Illuminate\Support\Str::slug(optional($locationData ?? null)->name ?? $crumbCityName);
+        $breadcrumbItems[] = ['name' => $crumbCityName, 'item' => url($crumbCitySlug)];
 
-    $breadcrumbItems[] = ['name' => $categoryText, 'item' => url()->current()];
+        if (count($crumbParts) > 1 && $crumbSlug) {
+            // Area page: the category's city page, then the area itself.
+            $breadcrumbItems[] = ['name' => $categoryText, 'item' => url($crumbCitySlug . '/' . $crumbSlug)];
+            $breadcrumbItems[] = ['name' => $crumbParts[0], 'item' => url()->current()];
+        } else {
+            $breadcrumbItems[] = ['name' => $categoryText, 'item' => url()->current()];
+        }
+    } else {
+        $breadcrumbItems[] = ['name' => $categoryText, 'item' => url()->current()];
+    }
 
     $breadcrumbSchema = [
         '@context'        => 'https://schema.org',
