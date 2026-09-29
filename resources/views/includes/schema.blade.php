@@ -7,7 +7,7 @@
       $schemaBreadcrumbs : [ ['name'=>, 'url'=>], ... ]
       $schemaService     : ['name'=>, 'description'=>, 'url'=>, 'areaServed'=>?, 'aggregate'=>['ratingValue'=>,'reviewCount'=>]? ]
       $schemaFaqs        : [ ['question'=>, 'answer'=>], ... ]   (answers must match visible on-page text)
-      $schemaListings    : iterable of ['name'=>, 'url'=>, 'address'=>?, 'city'=>?, 'state'=>?, 'ratingValue'=>?, 'ratingCount'=>?]
+      $schemaListings    : iterable of ['name'=>, 'url'=>, 'address'=>?, 'city'=>?, 'state'=>?, 'ratingValue'=>?, 'ratingCount'=>?, 'geo'=>?]
 --}}
 @php
     $emit = function (array $data) {
@@ -117,6 +117,9 @@
                 $postal['addressCountry'] = 'IN';
                 $business['address'] = $postal;
             }
+
+            $geo = is_array($row) ? ($row['geo'] ?? null) : ($row->geo ?? null);
+            if (!empty($geo)) { $business['geo'] = $geo; }
 
             $ratingValue = is_array($row) ? ($row['ratingValue'] ?? null) : ($row->ratingValue ?? null);
             $ratingCount = is_array($row) ? ($row['ratingCount'] ?? null) : ($row->ratingCount ?? null);

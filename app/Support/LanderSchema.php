@@ -104,6 +104,8 @@ class LanderSchema
                 'state'       => $listing->state ?? null,
                 'ratingValue' => $listing->ratings_avg_ratings ?? null,
                 'ratingCount' => $listing->ratings_count ?? null,
+                // Same validated coordinates the business's own page carries.
+                'geo'         => ListingSchema::geo($listing),
             ];
         }
         $data['schemaListings'] = $items;
