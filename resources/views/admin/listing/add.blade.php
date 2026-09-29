@@ -3832,6 +3832,16 @@ $(document).ready(function () {
             dropdownParent: $(this).closest('.form-group')
         });
     });
+
+    // When the form reloads with a pre-filled pincode (e.g. after a validation
+    // error returning old('pincode')), the keyup/change handler never fires, so
+    // city, state and area stay blank. Trigger the lookup now so those fields
+    // populate automatically without the admin having to retype the pincode.
+    var $pincode = $('#pincode');
+    var existingPin = $pincode.val().trim();
+    if (existingPin.length === 6 && /^\d{6}$/.test(existingPin)) {
+        $pincode.trigger('change');
+    }
 });
 </script>
 @endpush

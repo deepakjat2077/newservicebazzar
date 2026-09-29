@@ -123,18 +123,24 @@ class PincodeController extends Controller
                 $payload = $response->json();
                 $offices = data_get($payload, '0.PostOffice');
 
-                if (data_get($payload, '0.Status') !== 'Success' || !is_array($offices)) {
-                    // A genuine "no records found" — worth remembering, and
-                    // worth telling apart from a network failure so the form
-                    // shows the right message. (array_merge, not `+`: union
-                    // keeps the left-hand `reached => false` and the flag
-                    // would never flip.)
-                    return array_merge($empty, ['reached' => true]);
+                if (data_get($payload, '0.Status') !== 'Success' || !is_array($offices) || empty($offices)) {
+                    // Could be a temporary API error, not necessarily a genuinely
+                    // unknown pincode. Don't cache it permanently — retry next request.
+                    throw new \RuntimeException('postal api returned non-success or empty offices');
+                }
+
+                $district = data_get($offices, '0.District', '');
+                $names    = collect($offices)->pluck('Name')->map(fn ($n) => trim((string) $n))->filter()->values()->all();
+
+                // If the API returned offices but all Name fields are empty/null,
+                // fall back to the district so the area field is not left blank.
+                if (empty($names) && $district) {
+                    $names = [$district];
                 }
 
                 return [
-                    'areas'   => collect($offices)->pluck('Name')->filter()->values()->all(),
-                    'city'    => data_get($offices, '0.District', ''),
+                    'areas'   => $names,
+                    'city'    => $district,
                     'state'   => data_get($offices, '0.State', ''),
                     'reached' => true,
                 ];
