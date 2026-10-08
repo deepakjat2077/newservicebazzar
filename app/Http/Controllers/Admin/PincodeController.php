@@ -96,58 +96,71 @@ class PincodeController extends Controller
      */
     protected function fromPostalApi(string $pin): array
     {
-        $empty = ['areas' => [], 'city' => '', 'state' => '', 'reached' => false];
+        $empty      = ['areas' => [], 'city' => '', 'state' => '', 'reached' => false];
+        $cacheKey   = 'pincode-api:' . $pin;
+
+        // Return immediately when there is a cached answer.
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
 
         try {
-            return Cache::remember('pincode-api:' . $pin, now()->addDays(30), function () use ($pin, $empty) {
-                $attempt = HttpRetry::send(
-                    fn () => Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
-                        ->acceptJson()
-                        ->connectTimeout(8)
-                        ->timeout(15)
-                        ->get(self::ENDPOINT . $pin),
-                    2,
-                    600,
-                    'postalpincode',
-                    20
-                );
+            $attempt = HttpRetry::send(
+                fn () => Http::withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                    ->acceptJson()
+                    ->connectTimeout(8)
+                    ->timeout(15)
+                    ->get(self::ENDPOINT . $pin),
+                2,
+                600,
+                'postalpincode',
+                20
+            );
 
-                $response = $attempt['response'];
+            $response = $attempt['response'];
 
-                if ($response === null || !$response->successful()) {
-                    // Not cached as a permanent answer: a network blip must not
-                    // make a good pincode look empty for the next 30 days.
-                    throw new \RuntimeException('postal api unreachable');
-                }
+            if ($response === null || !$response->successful()) {
+                // Network-level failure — do not cache, retry on the next request.
+                Log::warning('Pincode lookup failed', ['pincode' => $pin, 'error' => 'postal api unreachable']);
+                return $empty;
+            }
 
-                $payload = $response->json();
-                $offices = data_get($payload, '0.PostOffice');
+            $payload = $response->json();
+            $offices = data_get($payload, '0.PostOffice');
 
-                if (data_get($payload, '0.Status') !== 'Success' || !is_array($offices) || empty($offices)) {
-                    // Could be a temporary API error, not necessarily a genuinely
-                    // unknown pincode. Don't cache it permanently — retry next request.
-                    throw new \RuntimeException('postal api returned non-success or empty offices');
-                }
+            if (data_get($payload, '0.Status') !== 'Success' || !is_array($offices) || empty($offices)) {
+                // The API reached us but has no records. Cache briefly: this is
+                // a real answer worth remembering, but we don't want to lock a
+                // valid pincode out for 30 days if the API had a temporary gap.
+                $notFound = array_merge($empty, ['reached' => true]);
+                Cache::put($cacheKey, $notFound, now()->addHours(2));
+                return $notFound;
+            }
 
-                $district = data_get($offices, '0.District', '');
-                $names    = collect($offices)->pluck('Name')->map(fn ($n) => trim((string) $n))->filter()->values()->all();
+            $district = data_get($offices, '0.District', '');
+            $names    = collect($offices)->pluck('Name')->map(fn ($n) => trim((string) $n))->filter()->values()->all();
 
-                // If the API returned offices but all Name fields are empty/null,
-                // fall back to the district so the area field is not left blank.
-                if (empty($names) && $district) {
-                    $names = [$district];
-                }
+            // If all Name fields are null/empty, use the district as a fallback
+            // so the area dropdown is never left blank after a successful call.
+            if (empty($names) && $district) {
+                $names = [$district];
+            }
 
-                return [
-                    'areas'   => $names,
-                    'city'    => $district,
-                    'state'   => data_get($offices, '0.State', ''),
-                    'reached' => true,
-                ];
-            });
+            $result = [
+                'areas'   => $names,
+                'city'    => $district,
+                'state'   => data_get($offices, '0.State', ''),
+                'reached' => true,
+            ];
+
+            // Success — keep for 30 days; the postal directory does not change.
+            Cache::put($cacheKey, $result, now()->addDays(30));
+
+            return $result;
+
         } catch (\Throwable $exception) {
             Log::warning('Pincode lookup failed', ['pincode' => $pin, 'error' => $exception->getMessage()]);
-
             return $empty;
         }
     }
