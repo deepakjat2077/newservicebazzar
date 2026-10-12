@@ -2261,7 +2261,7 @@ a {
         : collect();
 @endphp
 
-@if($popularCityLinks->count() > 0)
+{{-- @if($popularCityLinks->count() > 0)
 
     @php
         $categoryName = $selectedSubcategory->name
@@ -2299,7 +2299,7 @@ a {
         </div>
     </div>
 
-@endif
+@endif --}}
 
 <style>
 .featured-links-section {

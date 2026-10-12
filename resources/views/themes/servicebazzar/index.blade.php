@@ -4064,12 +4064,6 @@ window.SB = {
                     $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
                     $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
 
-                    // =========================
-                    // REAL RATING + REVIEW COUNT
-                    // =========================
-
-                    // Preloaded in SiteController@index (withAvg/withCount) so this
-                    // loop does not fire two rating queries per card.
                     $rating = (float) ($featured->verified_ratings_avg ?? 0);
                     $ratingCount = (int) ($featured->verified_ratings_count ?? 0);
 
