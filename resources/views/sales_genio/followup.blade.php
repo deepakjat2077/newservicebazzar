@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ $meta['title'] }} — Sales Genio</title>
+<title>{{ $meta['title'] }} — SB Sales</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -163,15 +163,106 @@
   .fu-none{padding:60px 20px;text-align:center;color:#8a92a6;}
   .fu-none i{display:block;font-size:30px;margin-bottom:12px;color:#c7cddb;}
 
+  /* Phone-only pieces stay out of the desktop layout. */
+  .fu-mbar,.fu-mcode,.fu-more,.fu-wa,.fu-mback,.fu-mstrength{display:none;}
+
+  /* Below this width the list and the business are two separate screens. */
   @media (max-width:1050px){
     .fu-wrap{grid-template-columns:1fr;}
     .fu-items{max-height:none;}
     .fu-detail{display:none;}
-    .fu-detail.mobile-open{display:block;}
+    body.fu-m-detail .fu-detail{display:block;}
+    body.fu-m-detail .fu-list,
+    body.fu-m-detail .sg-nav,
+    body.fu-m-detail .sg-rail,
+    body.fu-m-detail .sg-bottom{display:none;}
+    body.fu-m-detail{padding-bottom:0;}
+    body.fu-m-detail .fu-wrap{padding:0;}
+    body.fu-m-detail .fu-detail{border:0;border-radius:0;}
+    .fu-mback{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+      border-bottom:1px solid #eef0f6;background:#fff;position:sticky;top:0;z-index:20;}
+    .fu-mback a{color:#12203f;text-decoration:none;font-size:20px;padding:4px 8px 4px 0;}
+    .fu-mback .fu-mback__edit{font-size:13.5px;font-weight:600;color:#1a73e8;padding:4px 0;}
+    .fu-dhead .fu-edit{display:none;}
+    .fu-pane{overflow-x:auto;}
+    table.fu-tbl{min-width:520px;}
+  }
+
+  /* Phone: app-style cards and detail screen. */
+  @media (max-width:760px){
+    body{background:#fff;}
+    .fu-wrap{padding:12px 0 24px;gap:0;}
+    .fu-bar{display:none;}
+    .fu-mbar{display:flex;gap:10px;padding:2px 16px 12px;overflow-x:auto;scrollbar-width:none;}
+    .fu-mbar::-webkit-scrollbar{display:none;}
+    .fu-mpill{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;border:1px solid #dfe3ec;background:#fff;
+      border-radius:10px;padding:10px 16px;font-size:14.5px;color:#1a2235;text-decoration:none;cursor:pointer;}
+    .fu-mpill i{font-size:13px;color:#5b6379;}
+    .fu-mpill.is-on{border-color:#1a73e8;background:#eef4fd;}
+
+    .fu-items{border:0;border-radius:0;background:#fff;}
+    .fu-item{padding:16px;border-bottom:8px solid #f1f3f7;}
+    .fu-item.is-on{background:#fff;box-shadow:none;}
+    .fu-top{margin-bottom:12px;}
+    .fu-when{background:#f3effd;color:#6f55c8;border-radius:6px;padding:6px 10px;font-size:13px;font-weight:500;}
+    .fu-when.is-over{background:#fdeaea;color:#c62828;}
+    .fu-when.is-today{background:#f3effd;color:#6f55c8;}
+    .fu-name{font-size:17px;}
+    .fu-name .n{color:#12203f;}
+    .fu-mcode{display:block;font-size:13.5px;color:#7a8296;margin:3px 0 0 22px;}
+    .fu-meta{font-size:13.5px;margin:6px 0 0 22px;}
+    .fu-note{margin-left:22px;}
+    .fu-more{display:inline-flex;align-items:center;gap:8px;margin:12px 0 0 22px;background:#1a73e8;color:#fff;
+      border-radius:8px;padding:8px 16px;font-size:14px;font-weight:600;}
+    .fu-more i{font-size:11px;}
+    .fu-wa,.fu-call{display:inline-flex;font-size:22px;padding:2px 4px;cursor:pointer;}
+    .fu-wa{color:#25a244;margin-left:auto;}
+    .fu-call{color:#1a73e8;margin-left:10px;}
+
+    .fu-dhead{padding:16px;gap:14px;}
+    .fu-dhead img{width:76px;height:76px;}
+    .fu-dhead h2{font-size:18px;}
+    .fu-mstrength{display:block;margin:0 16px 12px;padding:14px 16px;border-radius:14px;
+      background:linear-gradient(180deg,#eefaf3 0%,#fff 100%);border:1px solid #d9f0e3;}
+    .fu-mstrength.is-weak{background:linear-gradient(180deg,#fdeeee 0%,#fff 100%);border-color:#f6d6d6;}
+    .fu-mstrength__row{display:flex;justify-content:space-between;align-items:center;font-size:14.5px;}
+    .fu-mstrength__row b{color:#12203f;font-weight:600;}
+    .fu-mstrength__row span{color:#1f7a45;font-weight:600;}
+    .fu-mstrength.is-weak .fu-mstrength__row span{color:#d33;}
+    .fu-mstrength__track{margin-top:12px;height:9px;border:1.5px solid #2fa360;border-radius:6px;overflow:hidden;}
+    .fu-mstrength__track div{height:100%;background:#2fa360;}
+    .fu-mstrength.is-weak .fu-mstrength__track{border-color:#e53935;}
+    .fu-mstrength.is-weak .fu-mstrength__track div{background:#e53935;}
+    .fu-dstrength{display:none;}
+
+    .fu-tabs{gap:22px;padding:0 16px;scrollbar-width:none;box-shadow:0 2px 6px rgba(16,24,40,.06);}
+    .fu-tabs::-webkit-scrollbar{display:none;}
+    .fu-tabs button{font-size:15px;padding:14px 0 11px;border-bottom-width:3px;}
+    .fu-pane{padding:4px 16px 20px;}
+    .fu-sec h4{font-size:16px;}
+    .fu-sec p{font-size:14.5px;color:#1a2235;}
+    .fu-link{font-size:14.5px;}
+    .fu-owner .num{min-width:0;font-size:14.5px;color:#1a2235;}
+    .fu-owner .fu-btn.wa,.fu-owner .fu-btn.call{border:0;background:none;padding:4px;font-size:0;}
+    .fu-owner .fu-btn.wa i{font-size:24px;color:#25a244;}
+    .fu-owner .fu-btn.call i{font-size:22px;color:#1a73e8;}
+
+    /* Tables become one card per row, label on the left and value on the right. */
+    .fu-pane{overflow-x:visible;}
+    table.fu-tbl{min-width:0;}
+    table.fu-tbl thead{display:none;}
+    table.fu-tbl,table.fu-tbl tbody,table.fu-tbl tr,table.fu-tbl td{display:block;width:100%;}
+    table.fu-tbl tr{border:1px solid #e6e9f2;border-radius:12px;padding:6px 14px;margin-bottom:12px;background:#fff;}
+    table.fu-tbl td{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+      padding:9px 0;border-top:1px solid #f1f3f8;font-size:14px;text-align:right;white-space:normal !important;}
+    table.fu-tbl td:first-child{border-top:0;}
+    table.fu-tbl td::before{content:attr(data-label);flex:0 0 auto;color:#7a8296;font-size:13px;font-weight:500;text-align:left;}
+    table.fu-tbl td[data-label="Invoice"]{flex-wrap:wrap;}
   }
 </style>
 </head>
-<body>
+@php $mobileDetail = request('view') === 'detail' && !empty($detail['listing']); @endphp
+<body class="{{ $mobileDetail ? 'fu-m-detail' : '' }}">
 
 @include('sales_genio.partials.topnav')
 
@@ -188,6 +279,19 @@
 
   {{-- ================= left: the queue ================= --}}
   <div class="fu-list">
+    {{-- Phone: one-tap Filters / Todays / All, like the app. --}}
+    <div class="fu-mbar">
+      <button type="button" class="fu-mpill {{ $hasFilter ? 'is-on' : '' }}" onclick="openFilters()">
+        Filters <i class="fas fa-filter"></i>
+      </button>
+      @foreach($dueLinks as $key => $label)
+        <a class="fu-mpill {{ $dueFilter === $key ? 'is-on' : '' }}"
+           href="{{ request()->fullUrlWithQuery(['due' => $key, 'page' => null, 'open' => null, 'view' => null]) }}">
+          {{ $label }}@unless($isListing) ({{ $key === 'today' ? $due['today'] : array_sum($due) }})@endunless
+        </a>
+      @endforeach
+    </div>
+
     <div class="fu-bar">
       <span class="found">{{ $rows->total() }} result{{ $rows->total() == 1 ? '' : 's' }} found</span>
       <div class="tools">
@@ -212,11 +316,16 @@
         @php $b = $isListing ? $row : $row->listing; @endphp
         @continue(!$b)
         <a class="fu-item {{ (int) $open === (int) $b->id ? 'is-on' : '' }}"
-           href="{{ request()->fullUrlWithQuery(['open' => $b->id]) }}#detail">
+           href="{{ request()->fullUrlWithQuery(['open' => $b->id, 'view' => 'detail']) }}">
           <div class="fu-top">
             @if($isListing)
-              <span class="fu-when {{ $b->created_at?->isToday() ? 'is-today' : '' }}">
-                <i class="far fa-clock"></i> Added {{ $b->created_at?->format('d M Y | h:i A') }}
+              @php
+                // A business the rep opened and edited, but did not create.
+                $editedOnly = $tab === 'new-business' && (int) $b->sales_user_id !== (int) $user->id && !empty($b->touched_at);
+                $stamp = $editedOnly ? \Illuminate\Support\Carbon::parse($b->touched_at) : $b->created_at;
+              @endphp
+              <span class="fu-when {{ $stamp?->isToday() ? 'is-today' : '' }}">
+                <i class="far fa-clock"></i> {{ $editedOnly ? 'Edited' : 'Added' }} {{ $stamp?->format('d M Y | h:i A') }}
               </span>
               <span class="fu-kind">
                 @if($b->status == 1) Live
@@ -241,6 +350,7 @@
                 <span class="n">{{ $rows->firstItem() + $i }}.</span>
                 <span>{{ $b->name }}</span>
               </div>
+              <div class="fu-mcode">SB{{ str_pad($b->id, 6, '0', STR_PAD_LEFT) }}</div>
               <div class="fu-meta"><i class="fas fa-location-dot"></i>
                 {{ $b->area ?: $b->city }}@if($b->pincode) &bull; {{ $b->pincode }}@endif
               </div>
@@ -250,9 +360,14 @@
               @if(!$isListing && $row->note)
                 <div class="fu-note">{{ \Illuminate\Support\Str::limit($row->note, 90) }}</div>
               @endif
+              <span class="fu-more">More <i class="fas fa-chevron-right"></i></span>
             </div>
             @if($b->mobile)
-              <span class="fu-call" onclick="event.preventDefault();event.stopPropagation();location.href='tel:{{ $b->mobile }}'">
+              <span class="fu-wa" title="WhatsApp"
+                    onclick="event.preventDefault();event.stopPropagation();window.open('https://wa.me/91{{ preg_replace('/\D/', '', $b->mobile) }}','_blank')">
+                <i class="fab fa-whatsapp"></i>
+              </span>
+              <span class="fu-call" title="Call" onclick="event.preventDefault();event.stopPropagation();location.href='tel:{{ $b->mobile }}'">
                 <i class="fas fa-phone"></i>
               </span>
             @endif
@@ -283,6 +398,11 @@
         Pick a business on the left to see its details here.
       </div>
     @else
+      <div class="fu-mback">
+        <a href="{{ request()->fullUrlWithQuery(['view' => null]) }}" aria-label="Back to list"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ route('sales_genio.business.profile', $biz->id) }}" class="fu-mback__edit">Full profile</a>
+      </div>
+
       <div class="fu-dhead">
         @if($biz->thumb)
           <img src="{{ asset('assets/images/listing/thumb/'.$biz->thumb) }}" alt="">
@@ -311,6 +431,15 @@
         <a class="fu-edit" href="{{ route('sales_genio.business.profile', $biz->id) }}">
           <i class="fas fa-pen-to-square"></i> Open
         </a>
+      </div>
+
+      @php $weak = $detail['strength'] < 60; @endphp
+      <div class="fu-mstrength {{ $weak ? 'is-weak' : '' }}">
+        <div class="fu-mstrength__row">
+          <b>Profile Strength</b>
+          <span>{{ $detail['strength'] < 40 ? 'Poor' : ($weak ? 'Average' : 'Good') }} ({{ $detail['strength'] }}%)</span>
+        </div>
+        <div class="fu-mstrength__track"><div style="width:{{ $detail['strength'] }}%;"></div></div>
       </div>
 
       <div class="fu-tabs">
@@ -343,6 +472,10 @@
                    front of the name — the role in brackets is always Owner. --}}
               {{ $biz->contact_person ? trim(($biz->contact_title ? $biz->contact_title.' ' : '').$biz->contact_person).' (Owner) • ' : '' }}
               {{ collect(array_filter((array) ($biz->mobile_numbers ?: [$biz->mobile])))->implode(', ') ?: '—' }}
+              @foreach((array) $biz->extra_contacts as $person)
+                <br>{{ trim(($person['title'] ?? '') . ' ' . ($person['name'] ?? '')) }}@if(!empty($person['designation'])) ({{ $person['designation'] }})@endif
+                @if(!empty($person['mobile'])) &bull; {{ $person['mobile'] }}@endif
+              @endforeach
             </span>
             @if($biz->mobile)
               <a class="fu-btn wa" target="_blank"
@@ -357,7 +490,7 @@
           <p>{{ optional($biz->category)->name ?: '—' }}</p>
         </div>
 
-        <div class="fu-sec">
+        <div class="fu-sec fu-dstrength">
           <h4>Profile Strength</h4>
           <div class="fu-strength">
             <div class="track"><div class="fill" style="width:{{ $detail['strength'] }}%;
@@ -409,10 +542,10 @@
             <tbody>
               @foreach($detail['orders'] as $o)
                 <tr>
-                  <td>{{ $o->paid_at?->format('d M Y, h:i A') ?: '—' }}</td>
-                  <td>{{ $o->items->pluck('name')->implode(', ') ?: '—' }}</td>
-                  <td><b>₹{{ number_format((float) $o->total) }}</b></td>
-                  <td style="white-space:nowrap;">
+                  <td data-label="Paid on">{{ $o->paid_at?->format('d M Y, h:i A') ?: '—' }}</td>
+                  <td data-label="Packages">{{ $o->items->pluck('name')->implode(', ') ?: '—' }}</td>
+                  <td data-label="Amount"><b>₹{{ number_format((float) $o->total) }}</b></td>
+                  <td data-label="Invoice" style="white-space:nowrap;">
                     <a class="fu-link" target="_blank" href="{{ route('sales.order.invoice', $o->token) }}">
                       <i class="fas fa-file-invoice"></i> {{ $o->invoice_no ?: 'View' }}</a>
                     <a class="fu-link" style="margin-left:10px;"
@@ -462,11 +595,11 @@
             <tbody>
               @foreach($history as $h)
                 <tr>
-                  <td>{{ $h->updated_at?->format('d M Y, h:i A') }}</td>
-                  <td>{{ $h->disposition }}</td>
-                  <td>{{ $h->due_at?->format('d M Y, h:i A') ?: '—' }}</td>
-                  <td>{{ optional($h->salesUser)->name ?: '—' }}</td>
-                  <td>{{ $h->note ?: '—' }}</td>
+                  <td data-label="When">{{ $h->updated_at?->format('d M Y, h:i A') }}</td>
+                  <td data-label="Disposition">{{ $h->disposition }}</td>
+                  <td data-label="Due">{{ $h->due_at?->format('d M Y, h:i A') ?: '—' }}</td>
+                  <td data-label="By">{{ optional($h->salesUser)->name ?: '—' }}</td>
+                  <td data-label="Note">{{ $h->note ?: '—' }}</td>
                 </tr>
               @endforeach
             </tbody>
@@ -687,12 +820,6 @@
     document.getElementById(id).classList.add('is-on');
   }
 
-  // On a phone the two panes do not fit side by side, so opening one from the
-  // list shows the detail and the back link returns to the list.
-  if (window.matchMedia('(max-width:1050px)').matches && location.hash === '#detail') {
-    var d = document.getElementById('detail');
-    if (d) { d.classList.add('mobile-open'); d.scrollIntoView(); }
-  }
 </script>
 
 </body>

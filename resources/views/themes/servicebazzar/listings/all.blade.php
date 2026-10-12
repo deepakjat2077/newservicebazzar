@@ -7,7 +7,22 @@
     // $locationText but no $seoTitle/$seoDescription — fold the location in
     // here so every city variant of the same category isn't an identical,
     // duplicate title/description.
-    $seoLocationSuffix = !empty($locationText) ? ' in ' . $locationText : '';
+    // " in <place>" suffix, skipped when the name already names the place —
+    // ~1.9k subcategories are named like "affordable physiotherapy in Chandigarh",
+    // which otherwise rendered "... in Chandigarh in Chandigarh".
+    $sbPlaceText = trim((string) ($locationText ?? ''));
+    $sbPlaceSuffix = function ($name) use ($sbPlaceText) {
+        if ($sbPlaceText === '') {
+            return '';
+        }
+        $name = (string) $name;
+        $city = trim(\Illuminate\Support\Str::afterLast($sbPlaceText, ','));
+        if (stripos($name, $sbPlaceText) !== false || ($city !== '' && stripos($name, $city) !== false)) {
+            return '';
+        }
+        return ' in ' . $sbPlaceText;
+    };
+    $seoLocationSuffix = $sbPlaceSuffix($seoCategory?->name ?? '');
 
     // Controller-provided values (e.g. SiteController::listingsCategory,
     // which appends the site name to its fallback) must win over this
@@ -528,7 +543,7 @@ a {
 
             <span class="sep">&gt;</span>
 
-            <span>{{ $categoryText }} in {{ $locationText }}</span>
+            <span>{{ $categoryText }}{{ $sbPlaceSuffix($categoryText) }}</span>
 
             <span class="sep">&gt;</span>
 
@@ -545,7 +560,7 @@ a {
     </div>
 
     <div class="listing-main-title">
-        Popular {{ $categoryText }}{{ !empty($locationText) ? ' in ' . $locationText : '' }}
+        Popular {{ $categoryText }}{{ $sbPlaceSuffix($categoryText) }}
     </div>
 
 </div>
@@ -1201,17 +1216,33 @@ a {
                             // SiteController::search()/listingsCategory()/
                             // listingsSubcategory(), which never set it, so
                             // it must be guarded rather than assumed present.
+                            // The page's own city only: $location from a /{city}/... lander,
+                            // or an explicit ?location_name. Not $listing — on pages without a
+                            // city that is just the last card the listing loop rendered
+                            // (it sent these links to /ahmedabad/... on an all-India page).
+                            $currentLocationName = request('location_name')
+                                ?? ((($location ?? null) instanceof \App\Models\Location) ? $location->name : '');
+
+                            // "N listings" must be the count in THIS city, live listings
+                            // only. It used to be every listing on the site (all cities,
+                            // inactive too), so a Jaipur page said "340+ Packers and
+                            // Movers" when Jaipur had far fewer.
+                            $relatedLocation = (($location ?? null) instanceof \App\Models\Location ? $location : null)
+                                ?? ($currentLocationName !== '' ? \App\Models\Location::where('name', $currentLocationName)->first() : null);
+                            $currentCategoryId = $selectedCategory->id ?? 0;
+
                             $relatedCategories = \App\Models\Category::where('status', 1)
-                                ->where('id', '!=', ($listing ?? null)?->category_id ?? 0)
-                                ->withCount('listings')
+                                ->where('id', '!=', $currentCategoryId ?: 0)
+                                ->withCount(['listings' => function ($q) use ($relatedLocation) {
+                                    $q->where('status', 1);
+                                    if ($relatedLocation) {
+                                        $q->where('location_id', $relatedLocation->id);
+                                    }
+                                }])
+                                ->having('listings_count', '>', 0)
+                                ->orderByDesc('listings_count')
                                 ->take(5)
                                 ->get();
-                        @endphp
-                        @php
-                            $currentLocationName = request('location_name')
-                                ?? optional(($listing ?? null)?->location)->name
-                                ?? optional($location ?? null)->name
-                                ?? '';
                         @endphp
                         {{-- TRIGGER SECTION --}}
                         <div class="related-search-card mt-3" id="relatedSearchTrigger">
@@ -1226,7 +1257,7 @@ a {
 
                                                     <div class="related-search-content">
                                                         <div class="category-label">{{ $category->name }}</div>
-                                                        <p>{{ $category->listings_count }}+ listings</p>
+                                                        <p>{{ $category->listings_count }} {{ $category->listings_count == 1 ? 'listing' : 'listings' }}{{ $relatedLocation ? ' in ' . $relatedLocation->name : ' across India' }}</p>
 
                                                         <a href="{{ !empty($currentLocationName)
                                 ? url(Str::slug($currentLocationName) . '/' . $category->slug)
@@ -1472,7 +1503,53 @@ a {
                         color: #fff;
                     }
 
-                    @media(max-width:991px) {
+                    /* iPads (768–991px, and the 1024px iPad Pro — a touch screen up to
+                       1199px; small laptops at that width keep the sidebar): listings
+                       only, across the full width. The sidebar (enquiry form + "People
+                       Also Search For") and the floating copy of the form are hidden;
+                       the "Get the List of Top …" box between listings still collects
+                       enquiries. */
+                    @media (min-width:768px) and (max-width:991px), (min-width:992px) and (max-width:1199px) and (pointer:coarse) {
+                        #sidebarColumn, #stickyFloatingForm, #stickyFloatingForm.show{ display:none !important; }
+                        #listingColumn{ flex:0 0 100% !important; max-width:100% !important; width:100% !important; }
+
+                        .listing-card .listing-area > .row{ flex-wrap:nowrap !important; align-items:flex-start !important; }
+                        .listing-card .listing-area > .row > .col-md-3{ flex:0 0 230px !important; max-width:230px !important; width:230px !important; }
+                        .listing-card .listing-area > .row > .col-md-8{ flex:1 1 0 !important; max-width:none !important; width:auto !important; min-width:0; padding-left:20px !important; }
+                        .listing-card .listing-gallery{ width:100% !important; height:190px !important; border-radius:10px; overflow:hidden; }
+                        .listing-card .listing-gallery .listing-img{ width:100% !important; height:100% !important; max-height:none !important; object-fit:cover; }
+                        /* Call, WhatsApp and Get Best Price on one line, as on desktop */
+                        .listing-card .listing-contact.desktop-buttons{ width:100% !important; flex-wrap:nowrap !important; gap:10px; }
+                        .listing-card .listing-contact.desktop-buttons > *{ flex:1 1 0 !important; min-width:0; white-space:nowrap; margin:0 !important; }
+
+                        /* "Get the List of Top …" box between listings */
+                        .enquiry-rotating-card .enquiry-box{ margin-right:0 !important; padding:0 !important; border-radius:10px; overflow:hidden; border:1px solid #dbe6f3; }
+                        .enquiry-rotating-card .enquiry-box > .container{ max-width:100% !important; padding:0 !important; }
+                        .enquiry-rotating-card .enquiry-box .row.g-0 > .col-lg-4{ flex:0 0 100% !important; max-width:100% !important; padding:18px 20px 8px !important; }
+                        .enquiry-rotating-card .enquiry-box .row.g-0 > .col-lg-8{ flex:0 0 100% !important; max-width:100% !important; padding:14px 20px 16px !important; border-left:0 !important; }
+                        .enquiry-rotating-card .enquiry-box form .row{ display:flex !important; flex-wrap:nowrap !important; gap:10px; margin:0 !important; }
+                        .enquiry-rotating-card .enquiry-box form .row > div{ flex:1 1 0 !important; max-width:none !important; width:auto !important; padding:0 !important; margin:0 !important; }
+                        .enquiry-rotating-card .enquiry-box form .row > .col-md-2{ flex:0 0 auto !important; }
+                        .enquiry-rotating-card .enquiry-box input.form-control{ height:44px !important; font-size:15px !important; }
+                        .enquiry-rotating-card .enquiry-box .send-enquiry-btn{ height:44px !important; width:auto !important; padding:0 22px !important; font-size:15px !important; white-space:nowrap; }
+                        .enquiry-rotating-card .enquiry-box .form-check{ margin-top:10px !important; }
+
+                        /* the write-up under the listings: 13px text with tight lines */
+                        #listingColumn .listing-items{ margin-bottom:0 !important; }
+                        #listingSection{ padding-bottom:20px !important; }
+                        .deeke .category-content-body p,
+                        .deeke .category-content-body li{ font-size:15px !important; line-height:1.7 !important; margin-bottom:12px !important; }
+                        .deeke .category-content-body strong{ font-size:inherit !important; }
+                        .deeke .category-content-body h2{ font-size:21px !important; line-height:1.35 !important; margin:28px 0 10px !important; }
+                        .deeke .category-content-body h3{ font-size:18px !important; line-height:1.4 !important; margin:22px 0 8px !important; }
+                        .deeke .lander-answer-tldr{ font-size:16px !important; line-height:1.65 !important; }
+                    }
+                    /* 768–991px: the write-up had no side margin at all, text ran from x=0 */
+                    @media (min-width:768px) and (max-width:991px) {
+                        .deeke.custom-right{ margin-left:24px !important; margin-right:24px !important; }
+                    }
+
+                    @media(max-width:767px) {
                         .sticky-floating-form {
                             left: 10px !important;
                             right: 10px !important;
@@ -1564,11 +1641,15 @@ a {
                         const listingSection = document.getElementById("listingSection");
 
                         function setStickyPosition() {
-                            if (window.innerWidth <= 991) return;
+                            if (window.innerWidth <= 767) return; // iPad keeps the two-column layout, so the form floats in the sidebar like desktop
                             
+                            // Inside the column's padding, so the form doesn't jump 15px
+                            // left and grow 30px wider the moment it starts floating.
                             const rect = sidebarColumn.getBoundingClientRect();
-                            stickyForm.style.width = sidebarColumn.offsetWidth + "px";
-                            stickyForm.style.left = rect.left + "px";
+                            const cs = getComputedStyle(sidebarColumn);
+                            const padL = parseFloat(cs.paddingLeft) || 0, padR = parseFloat(cs.paddingRight) || 0;
+                            stickyForm.style.width = (sidebarColumn.offsetWidth - padL - padR) + "px";
+                            stickyForm.style.left = (rect.left + padL) + "px";
                             stickyForm.style.right = "auto";
                         }
 
@@ -1580,7 +1661,9 @@ a {
                             const stickyTop = 95;
                             const stickyHeight = stickyForm.offsetHeight || 320;
 
-                            const startSticky = triggerRect.bottom < -100;
+                            // switch over the moment the sidebar box goes under the header —
+                            // waiting until it was 100px past the top left the column empty
+                            const startSticky = triggerRect.bottom < stickyTop;
                             const stopSticky = listingRect.bottom <= (stickyTop + stickyHeight + 20);
 
                             if (startSticky && !stopSticky) {
@@ -2019,7 +2102,7 @@ a {
     <div class="featured-links-section">
         <div class="custom-right">
             <h2 class="featured-links-title">
-            {{ $categoryText }}{{ !empty($locationText) ? ' in ' . $locationText : '' }}
+            {{ $categoryText }}{{ $sbPlaceSuffix($categoryText) }}
         </h2>
 
         <div class="featured-links-list">
@@ -2248,6 +2331,15 @@ a {
 
 .featured-links-list span {
     color: #777;
+}
+
+/* iPad (768–991px): the phone fix below gave these sections a 15px gutter and
+   desktop gets 40px from .custom-right, but in between they had none, so the
+   links ran edge to edge. Same 24px edge as the listings and write-up above. */
+@media (min-width:768px) and (max-width:991px) {
+    .featured-links-section{ padding-left:24px !important; padding-right:24px !important; }
+    .featured-links-title{ font-size:17px !important; margin-bottom:8px !important; }
+    .featured-links-list{ font-size:15px !important; line-height:1.55 !important; gap:8px 6px !important; }
 }
 
 /* Toggle icon (Related Categories / Localities / Popular Cities): hidden

@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Exports\EnquiriesExport;
 use App\Exports\ListingClicksExport;
+use App\Models\Category;
 use App\Models\Enquiry;
+use App\Models\Listing;
 use App\Models\ListingClick;
+use App\Models\Location;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -27,7 +30,8 @@ class EnquiryController extends Controller
         ]);
 
         $query = Enquiry::with([
-            'listing',
+            'listing:id,name,mobile,mobile_numbers,mobile_country_code,user_id',
+            'listing.user:id,mobile',
             'location',
             'category',
         ])->latest();
@@ -144,6 +148,64 @@ public function exportEnquiries(Request $request)
 
             return back()->withAlert($alert);
         }
+    }
+
+    public function generateForm()
+    {
+        $categories = Category::where('status', 1)->orderBy('name')->get(['id', 'name']);
+        $locations  = Location::where('status', 1)->orderBy('name')->get(['id', 'name']);
+        return view('admin.enquiry.generate', compact('categories', 'locations'));
+    }
+
+    public function generateListingsByCategory(Request $request)
+    {
+        $listings = Listing::where('status', 1)
+            ->where('category_id', $request->category_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        return response()->json($listings);
+    }
+
+    public function generateStore(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'listing_id'  => 'nullable|exists:listings,id',
+            'name'        => 'required|string|max:255',
+            'phone'       => 'required|string|max:20',
+            'location_id' => 'required|exists:locations,id',
+        ]);
+
+        $listing = $request->filled('listing_id') ? Listing::find($request->listing_id) : null;
+
+        $enquiry = Enquiry::create([
+            'type'        => 'enquiry',
+            'listing_id'  => $listing?->id,
+            'category_id' => $listing?->category_id ?? $request->category_id,
+            'name'        => $request->name,
+            'phone'       => $request->phone,
+            'message'     => 'Interested in your services.',
+            'location_id' => $request->location_id,
+            'is_read'     => 0,
+            'is_starred'  => 0,
+            'is_hidden'   => 0,
+            'dedupe_key'  => md5(($listing?->id ?? $request->category_id) . $request->phone . microtime(true)),
+        ]);
+
+        if ($listing) {
+            \App\Support\VendorEnquiryNotifier::notify($listing, [
+                'name'     => $request->name,
+                'phone'    => $request->phone,
+                'location' => $request->location_id,
+                'message'  => 'Interested in your services.',
+                'enquiry_id' => $enquiry->id,
+            ]);
+        }
+
+        $forLabel = $listing ? $listing->name : 'category';
+
+        return redirect()->route('admin.enquiry.index')
+            ->withAlert(['success', 'Enquiry generated successfully for ' . $forLabel]);
     }
 
     public function index2(Request $request)

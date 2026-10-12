@@ -26,7 +26,7 @@ use DOMXPath;
  */
 class ContentHtml
 {
-    protected const CACHE_VERSION = 'v6';
+    protected const CACHE_VERSION = 'v7'; // v7: <img> keeps src/alt/width/height
 
     /** Block tags kept as-is. */
     protected const BLOCKS = [
@@ -43,6 +43,8 @@ class ContentHtml
     /** Attributes still worth keeping, per tag. */
     protected const KEEP_ATTRIBUTES = [
         'a'  => ['href', 'target', 'rel'],
+        // Without src an editor image was saved as a bare <img> and vanished.
+        'img' => ['src', 'alt', 'width', 'height'],
         'td' => ['colspan', 'rowspan'],
         'th' => ['colspan', 'rowspan'],
     ];
@@ -292,6 +294,14 @@ class ContentHtml
                 if ($attribute->nodeName === 'href'
                     && preg_match('/^\s*(javascript|data|vbscript):/i', $attribute->nodeValue)) {
                     $node->removeAttribute('href');
+                }
+
+                // Image sources: web addresses and site paths only. Embedded
+                // data: images are turned into files before this runs
+                // (ContentHtml::storeEmbeddedImages); anything else goes.
+                if ($attribute->nodeName === 'src'
+                    && !preg_match('#^\s*(https?://|/(?!/))#i', $attribute->nodeValue)) {
+                    $node->removeAttribute('src');
                 }
             }
 
@@ -776,5 +786,39 @@ class ContentHtml
         $out = preg_replace('/\n{2,}/', "\n", $out);
 
         return trim($out);
+    }
+
+    /**
+     * Turns <img src="data:image/...;base64,..."> (pasted or dropped into the
+     * editor) into real files under $dir, so the post stores a short URL
+     * instead of megabytes of text. Images that fail to decode are dropped.
+     */
+    public static function storeEmbeddedImages(?string $html, string $dir): string
+    {
+        $html = (string) $html;
+        if (stripos($html, 'data:image') === false) {
+            return $html;
+        }
+
+        return preg_replace_callback(
+            '#(<img\b[^>]*?\bsrc\s*=\s*)(["\'])data:image/(png|jpe?g|gif|webp);base64,([A-Za-z0-9+/=\s]+)\2#i',
+            function ($m) use ($dir) {
+                $bytes = base64_decode(preg_replace('/\s+/', '', $m[4]), true);
+                if ($bytes === false || @getimagesizefromstring($bytes) === false) {
+                    return $m[1] . $m[2] . $m[2];
+                }
+                $ext = strtolower($m[3]) === 'jpeg' ? 'jpg' : strtolower($m[3]);
+                $name = $dir . '/' . date('Ymd') . '-' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $path = public_path($name);
+                if (!is_dir(dirname($path))) {
+                    @mkdir(dirname($path), 0775, true);
+                }
+                if (@file_put_contents($path, $bytes) === false) {
+                    return $m[1] . $m[2] . $m[2];
+                }
+                return $m[1] . $m[2] . '/' . $name . $m[2];
+            },
+            $html
+        ) ?? $html;
     }
 }

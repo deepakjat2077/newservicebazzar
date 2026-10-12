@@ -26,6 +26,17 @@ class EnquiryOtpController extends Controller
 
         $phone = $request->phone;
 
+        // At most 6 sends a minute per number. Past that no new code goes out,
+        // but the last one is still valid — say so instead of showing an error.
+        $perNumber = 'enquiry-otp:phone:' . preg_replace('/\D+/', '', (string) $phone);
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($perNumber, 6)) {
+            return response()->json([
+                'sent'    => true,
+                'message' => 'An OTP has been sent to your WhatsApp. Please enter that code.',
+            ]);
+        }
+        \Illuminate\Support\Facades\RateLimiter::hit($perNumber, 60);
+
         // Already proven in this session (or signed in with this number), so
         // the form has nothing to ask and can submit straight away.
         if (OtpGate::isVerified($phone)) {
@@ -44,10 +55,13 @@ class EnquiryOtpController extends Controller
             ]);
         }
 
+        // Past this session's hourly budget: no new code is sent, but the last
+        // one is still valid, so point the visitor to it instead of an error.
         if (!OtpGate::withinSendBudget()) {
             return response()->json([
-                'message' => 'Too many OTP requests. Please try again later.',
-            ], 429);
+                'sent'    => true,
+                'message' => 'An OTP has been sent to your WhatsApp. Please enter that code.',
+            ]);
         }
 
         $templateId = config('services.gupshup.otp_template_id');

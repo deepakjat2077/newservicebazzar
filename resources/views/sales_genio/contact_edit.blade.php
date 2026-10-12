@@ -42,6 +42,11 @@
 
         .section-divider { height: 1px; background: #eef0f4; margin: 22px 0; }
 
+        .person-block { border: 1px dashed #c3cbdc; border-radius: 12px; padding: 14px 14px 2px; margin: 0 0 18px; background: #fafbff; }
+        .person-block .boxed, .person-block .num-box, .person-block .cc { background: #fff; }
+        .person-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #12203f; }
+        .person-head .del { background: none; border: none; color: #e53935; font-size: 16px; cursor: pointer; padding: 4px; }
+
         .mobile-block { margin-bottom: 20px; }
         .mobile-row { display: flex; gap: 12px; align-items: flex-start; }
         .mobile-row .cc {
@@ -72,11 +77,12 @@
 <body>
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Contact Details</div>
     </div>
 
-    <form method="POST" action="{{ route('sales_genio.business.contact.update', $business->id) }}" id="contactForm">
+    <form method="POST" action="{{ sg_route('sales_genio.business.contact.update', $business->id) }}" id="contactForm">
         @csrf
         <div class="content">
             <div class="info-note">
@@ -110,6 +116,19 @@
                     @endforeach
                 </select>
             </div>
+
+            {{-- More people to reach at this business --}}
+            @php $extraPeople = array_values((array) old('extra', $business->extra_contacts ?? [])); @endphp
+            <div id="personList">
+                @foreach($extraPeople as $i => $person)
+                    @include('sales_genio.partials.contact_person_block', ['i' => $i, 'p' => $person])
+                @endforeach
+            </div>
+            <span class="add-link" id="addPersonLink" onclick="addPerson()"><i class="fas fa-plus"></i> Add Another Contact Person</span>
+
+            <template id="personTpl">
+                @include('sales_genio.partials.contact_person_block', ['i' => '__I__', 'p' => []])
+            </template>
 
             <div class="section-divider"></div>
 
@@ -239,6 +258,37 @@
 </div>
 
 <script>
+    // Further contact people: each block's fields are named extra[N][...], N never reused.
+    const MAX_PEOPLE = 5;
+    let personNext = document.querySelectorAll('#personList .person-block').length;
+
+    function syncPersonLink() {
+        const count = document.querySelectorAll('#personList .person-block').length;
+        document.getElementById('addPersonLink').style.display = count >= MAX_PEOPLE ? 'none' : '';
+    }
+
+    function addPerson() {
+        if (document.querySelectorAll('#personList .person-block').length >= MAX_PEOPLE) return;
+        const html = document.getElementById('personTpl').innerHTML.replace(/__I__/g, personNext++);
+        document.getElementById('personList').insertAdjacentHTML('beforeend', html);
+        syncPersonLink();
+        const added = document.querySelectorAll('#personList .person-block');
+        added[added.length - 1].querySelector('input[type="text"]').focus();
+    }
+
+    function removePerson(btn) {
+        btn.closest('.person-block').remove();
+        syncPersonLink();
+    }
+
+    // Digits only, for people added now or later.
+    document.addEventListener('input', function (e) {
+        if (e.target.classList && e.target.classList.contains('xnum')) {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+        }
+    });
+    syncPersonLink();
+
     function addMobile() {
         const block = document.createElement('div');
         block.className = 'mobile-block';

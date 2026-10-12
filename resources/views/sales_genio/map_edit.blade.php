@@ -50,11 +50,12 @@
 <body>
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Map and Location</div>
     </div>
 
-    <form method="POST" action="{{ route('sales_genio.business.map.update', $business->id) }}" class="content">
+    <form method="POST" action="{{ sg_route('sales_genio.business.map.update', $business->id) }}" class="content">
         @csrf
         <div class="search-box">
             <input type="text" id="mapSearch" placeholder="Search a place / address to move the pin" onkeydown="if(event.key==='Enter'){event.preventDefault();searchPlace();}">

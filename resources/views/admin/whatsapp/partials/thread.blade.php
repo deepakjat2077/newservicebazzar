@@ -39,6 +39,12 @@
             </a>
         @endif
 
+        <a href="whatsapp://send?phone={{ $phone }}"
+           class="wa-call-btn"
+           title="Open in WhatsApp to call">
+            <i class="fas fa-phone-alt"></i> Call
+        </a>
+
         @adminCan('whatsapp.delete')
             <button type="button" class="wa-delete-chat"
                     data-url="{{ route('admin.whatsapp.chat.delete', $phone) }}"

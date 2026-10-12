@@ -149,32 +149,50 @@
         }
         .btn-save:hover { background: #1557b0; }
 
-        /* Modal */
+        /* "Fill your gallery" prompt: a card on desktop, a bottom sheet on phones. */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none;
+            position: fixed; inset: 0; background: rgba(15,23,42,.55); display: none;
             align-items: center; justify-content: center; z-index: 300; padding: 20px;
         }
         .modal-overlay.show { display: flex; }
         .modal {
-            background: #fff; border-radius: 14px; padding: 28px 24px; width: 380px; max-width: 100%; text-align: center;
+            position: relative; background: #fff; border-radius: 18px; padding: 30px 26px 22px; width: 400px; max-width: 100%;
+            text-align: center; box-shadow: 0 24px 60px rgba(15,23,42,.3); animation: gmUp .22s ease-out;
         }
-        .modal .ico {
-            width: 48px; height: 48px; background: #e8f5e9; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: #43a047; font-size: 20px;
+        @keyframes gmUp { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+        .modal .gm-x {
+            position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border: 0; border-radius: 50%;
+            background: #f1f3f8; color: #62708c; font-size: 18px; line-height: 1; cursor: pointer;
         }
-        .modal h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
-        .modal p { font-size: 13px; color: #777; line-height: 1.6; margin-bottom: 16px; }
-        .modal .mini-prog { background: #fff5f5; border-radius: 8px; padding: 10px 12px; margin-bottom: 18px; }
-        .modal .mini-prog .r { display: flex; justify-content: space-between; font-size: 12px; color: #e53935; font-weight: 600; margin-bottom: 6px; }
-        .modal .mini-prog .b { height: 6px; background: #f0d0d0; border-radius: 3px; overflow: hidden; }
-        .modal .mini-prog .b .f { height: 100%; background: #e53935; }
+        .modal .gm-ring { position: relative; width: 104px; height: 104px; margin: 0 auto 16px; }
+        .modal .gm-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .modal .gm-ring circle { fill: none; stroke-width: 9; }
+        .modal .gm-ring .t { stroke: #e6ecf8; }
+        .modal .gm-ring .p { stroke: #1a73e8; stroke-linecap: round; transition: stroke-dashoffset .7s ease; }
+        .modal .gm-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
+        .modal .gm-num b { font-size: 30px; font-weight: 700; color: #12203f; }
+        .modal .gm-num span { font-size: 12px; color: #7a8296; margin-top: 2px; }
+        .modal h3 { font-size: 20px; font-weight: 600; color: #12203f; margin-bottom: 8px; }
+        .modal p { font-size: 14px; color: #5a6478; line-height: 1.6; margin-bottom: 14px; }
+        .modal .gm-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 14px; }
+        .modal .gm-tags span { background: #eef4fd; color: #1a5fc4; border-radius: 20px; padding: 5px 13px; font-size: 12.5px; font-weight: 500; }
+        .modal .gm-left { font-size: 13px; color: #7a8296; margin-bottom: 18px; }
+        .modal .gm-left b { color: #1a73e8; }
         .modal .btn-primary {
-            width: 100%; background: #1a73e8; color: #fff; border: none; border-radius: 8px;
-            padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 10px; font-family: 'Poppins', sans-serif;
+            width: 100%; background: #1a73e8; color: #fff; border: none; border-radius: 10px;
+            padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 8px; font-family: 'Poppins', sans-serif;
         }
-        .modal .btn-outline {
-            width: 100%; background: #fff; color: #1a73e8; border: 1px solid #1a73e8; border-radius: 8px;
-            padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif;
+        .modal .btn-primary:hover { background: #1557b0; }
+        .modal .btn-later {
+            width: 100%; background: none; color: #62708c; border: 0; border-radius: 10px;
+            padding: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Poppins', sans-serif;
+        }
+        .modal .btn-later:hover { color: #1a73e8; }
+        @media (max-width: 560px) {
+            .modal-overlay { align-items: flex-end; padding: 0; }
+            .modal { width: 100%; border-radius: 22px 22px 0 0; padding: 22px 20px calc(18px + env(safe-area-inset-bottom)); animation: gmSheet .26s ease-out; }
+            .modal::before { content: ''; display: block; width: 40px; height: 4px; border-radius: 2px; background: #d5dae5; margin: -8px auto 16px; }
+            @keyframes gmSheet { from { transform: translateY(100%); } to { transform: none; } }
         }
 
         .uploading-overlay {
@@ -193,7 +211,8 @@
 <div class="page">
 
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Photo Gallery</div>
         <div id="topRight">
             @if($photos->count())
@@ -242,7 +261,7 @@
         <!-- Grid -->
         <div class="grid" id="grid">
             @foreach($photos as $p)
-                <div class="thumb" data-id="{{ $p->id }}">
+                <div class="thumb" data-id="{{ $p->id }}" data-type="{{ $p->type }}">
                     @if($p->type === 'video')
                         <video src="{{ asset($p->path) }}#t=0.1" muted playsinline preload="metadata"
                                data-file="{{ $p->id }}"
@@ -277,18 +296,31 @@
     <button class="danger" onclick="menuDelete()"><i class="fas fa-trash"></i> Delete</button>
 </div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modal">
-    <div class="modal">
-        <div class="ico"><i class="fas fa-arrow-trend-up"></i></div>
-        <h3>You have uploaded <span id="mCount">0</span> of 10 photos</h3>
-        <p>Adding photos of your storefront, logo, or interior help customers feel confident about reaching out. Add <span id="mRemain">10</span> more photos to get the most out of your listing.</p>
-        <div class="mini-prog">
-            <div class="r"><span>Photos uploaded</span><span id="mFrac">0/10</span></div>
-            <div class="b"><div class="f" id="mFill" style="width:0%"></div></div>
+<!-- Fill-your-gallery prompt -->
+<div class="modal-overlay" id="modal" onclick="if (event.target === this) closeModal();">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="gmTitle">
+        <button type="button" class="gm-x" onclick="closeModal()" aria-label="Close">&times;</button>
+
+        <div class="gm-ring">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="t" cx="50" cy="50" r="42"></circle>
+                <circle class="p" id="mRing" cx="50" cy="50" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9"></circle>
+            </svg>
+            <div class="gm-num"><b id="mCount">0</b><span>of 10 photos</span></div>
         </div>
-        <button class="btn-primary" onclick="closeModal(); document.getElementById('photoInput').click();">Add <span id="mAddN">8</span> More Photos <i class="fas fa-arrow-right"></i></button>
-        <button class="btn-outline" onclick="window.location.href=profileUrl">Proceed with <span id="mProceedN">2</span> Photos</button>
+
+        <h3 id="gmTitle">Let's fill up your gallery</h3>
+        <p>Customers like to see a place before they call. Clear photos of the front of your shop, the inside and your work make that easy.</p>
+
+        <div class="gm-tags">
+            <span>Storefront</span><span>Inside</span><span>Your work</span><span>Your team</span>
+        </div>
+        <div class="gm-left"><b id="mRemain">10</b> more photos for a complete gallery</div>
+
+        <button type="button" class="btn-primary" onclick="closeModal(); document.getElementById('photoInput').click();">
+            <i class="fas fa-camera"></i> Add more photos
+        </button>
+        <button type="button" class="btn-later" onclick="window.location.href=profileUrl">I'll add them later</button>
     </div>
 </div>
 
@@ -304,7 +336,7 @@
 
 <script>
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
-    const uploadUrl = '{{ route("sales_genio.business.photos.upload", $business->id) }}';
+    const uploadUrl = '{{ sg_route("sales_genio.business.photos.upload", $business->id) }}';
     let totalCount = {{ $photos->count() }};
 
     document.getElementById('photoInput').addEventListener('change', e => upload(e.target.files));
@@ -334,14 +366,14 @@
         })
         .then(({ ok, data }) => {
             document.getElementById('uploading').classList.remove('show');
-            if (!ok || !data.status) { alert(data.message || 'Upload failed. Try again.'); return; }
+            if (!ok || !data.status) { sgToast(data.message || 'Upload failed. Try again.'); return; }
             data.saved.forEach(addThumb);
             totalCount = data.total;
             refreshUI();
         })
         .catch(() => {
             document.getElementById('uploading').classList.remove('show');
-            alert('Upload failed. Try again.');
+            sgToast('Upload failed. Try again.');
         });
     }
 
@@ -364,7 +396,7 @@
      * paints it on the thumbnail and posts it back — after that the saved
      * poster is used and the video never has to be fetched for it again.
      */
-    const posterUrl = '{{ route("sales_genio.business.video.poster", $business->id) }}';
+    const posterUrl = '{{ sg_route("sales_genio.business.video.poster", $business->id) }}';
 
     function grabPosters() {
         document.querySelectorAll('video[data-grab-poster]').forEach(el => {
@@ -491,17 +523,25 @@
     }
 
     function showModal() {
-        document.getElementById('mCount').textContent = totalCount;
-        document.getElementById('mRemain').textContent = Math.max(0, 10 - totalCount);
-        document.getElementById('mFrac').textContent = totalCount + '/10';
-        document.getElementById('mFill').style.width = Math.min(100, totalCount * 10) + '%';
-        document.getElementById('mAddN').textContent = Math.max(0, 10 - totalCount);
-        document.getElementById('mProceedN').textContent = totalCount;
+        const n = Math.min(10, totalCount);
+        const C = 263.9;   // circumference of the ring (r = 42)
+        const ring = document.getElementById('mRing');
+
+        document.getElementById('mCount').textContent = n;
+        document.getElementById('mRemain').textContent = Math.max(0, 10 - n);
+
+        // Start empty and fill, so the ring visibly grows when the prompt opens.
+        ring.style.transition = 'none';
+        ring.style.strokeDashoffset = C;
         document.getElementById('modal').classList.add('show');
+        void ring.getBoundingClientRect();
+        ring.style.transition = '';
+        ring.style.strokeDashoffset = C * (1 - n / 10);
     }
     function closeModal() { document.getElementById('modal').classList.remove('show'); }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
-    const profileUrl = '{{ route("sales_genio.business.profile", $business->id) }}';
+    const profileUrl = '{{ sg_route("sales_genio.business.profile", $business->id) }}';
 
     // Save and Proceed → show summary modal (or go straight if no photos)
     function onSaveProceed() {
@@ -509,8 +549,8 @@
         showModal();
     }
 
-    const deleteUrl = '{{ route("sales_genio.business.photos.delete", $business->id) }}';
-    const coverUrl  = '{{ route("sales_genio.business.photos.cover", $business->id) }}';
+    const deleteUrl = '{{ sg_route("sales_genio.business.photos.delete", $business->id) }}';
+    const coverUrl  = '{{ sg_route("sales_genio.business.photos.cover", $business->id) }}';
 
     /* ---------------- per-tile menu ---------------- */
 
@@ -544,12 +584,13 @@
         const t = menuTarget;
         closeThumbMenu();
 
-        const msg = t.type === 'cover'
-            ? 'Delete the cover image? The listing will be left without a main photo.'
-            : (t.type === 'video' ? 'Delete this video?' : 'Delete this photo?');
-        if (!confirm(msg)) return;
+        const isCover = t.type === 'cover';
+        const what = t.type === 'video' ? 'video' : (isCover ? 'cover image' : 'photo');
 
-        removeMedia(t.file, t.tile);
+        sgConfirm(
+            isCover ? 'The listing will be left without a main photo. This cannot be undone.' : 'This cannot be undone.',
+            { title: 'Delete this ' + what + '?', ok: 'Delete' }
+        ).then(yes => { if (yes) removeMedia(t.file, t.tile, t.type); });
     }
 
     function menuSetCover() {
@@ -566,28 +607,33 @@
         })
         .then(r => r.json().catch(() => ({})))
         .then(data => {
-            if (!data.status) { alert(data.message || 'Could not set the cover image.'); return; }
+            if (!data.status) { sgToast(data.message || 'Could not set the cover image.'); return; }
             // The old cover is now an ordinary photo — reload so the tiles and
             // the COVER badge line up with what was saved.
             location.reload();
         })
-        .catch(() => alert('Could not set the cover image.'));
+        .catch(() => sgToast('Could not set the cover image.'));
     }
 
     /* ---------------- delete ---------------- */
 
-    function removeMedia(file, tile) {
-        const fd = new FormData();
-        fd.append('filename', file);
+    function removeMedia(file, tile, type) {
+        // PHP only reads a multipart body on POST, so a DELETE has to carry its
+        // fields url-encoded or the server never sees which file was meant.
+        const body = new URLSearchParams({ filename: file, type: type || '' });
 
         return fetch(deleteUrl, {
             method: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
-            body: fd
+            headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: body
         })
-        .then(r => r.json())
+        .then(r => r.json().catch(() => ({})))
         .then(data => {
-            if (!data.status) return false;
+            // Only hide the tile once the server says it is really gone.
+            if (!data.status) {
+                sgToast(data.message || 'Could not delete. Please try again.');
+                return false;
+            }
             if (tile) tile.remove();
             totalCount = data.total;
             if (totalCount === 0) {
@@ -598,6 +644,10 @@
                 refreshUI();
             }
             return true;
+        })
+        .catch(() => {
+            sgToast('Could not delete. Check your connection and try again.');
+            return false;
         });
     }
 
@@ -637,17 +687,24 @@
     function deletePicked() {
         const tiles = [...document.querySelectorAll('.thumb.picked')];
         if (!tiles.length) return;
-        if (!confirm('Delete ' + tiles.length + (tiles.length === 1 ? ' item?' : ' items?'))) return;
 
-        // One after another, so the count coming back stays correct.
-        tiles.reduce(
-            (chain, tile) => chain.then(() => removeMedia(tile.dataset.id, tile)),
-            Promise.resolve()
-        ).then(() => {
-            toggleSelectMode();
-            if (!document.querySelectorAll('.thumb').length) location.reload();
+        sgConfirm('This cannot be undone.', {
+            title: 'Delete ' + tiles.length + (tiles.length === 1 ? ' item?' : ' items?'),
+            ok: 'Delete'
+        }).then(yes => {
+            if (!yes) return;
+
+            // One after another, so the count coming back stays correct.
+            tiles.reduce(
+                (chain, tile) => chain.then(() => removeMedia(tile.dataset.id, tile, tile.dataset.type)),
+                Promise.resolve()
+            ).then(() => {
+                toggleSelectMode();
+                if (!document.querySelectorAll('.thumb').length) location.reload();
+            });
         });
     }
 </script>
+@include('sales_genio.partials.dialog')
 </body>
 </html>

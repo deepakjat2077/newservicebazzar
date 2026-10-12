@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Create New Business – Sales Genio</title>
+    <title>Create New Business – SB Sales</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -79,14 +79,46 @@
         }
         .btn-proceed:hover { background: #1557b0; }
 
-        @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } .form-card { padding: 24px; } }
+        .nav-title { display: none; }
+
+        /* Phone: app-style form — back arrow + centred title, boxed fields,
+           Area/Pincode side by side, Proceed pinned to the bottom. */
+        @media (max-width: 640px) {
+            body { background: #fff; }
+            .navbar { padding: 0 16px; height: 60px; box-shadow: none; border-bottom: 1px solid #eef0f4; justify-content: flex-start; }
+            .navbar img, .navbar .back span, .page-title { display: none; }
+            .navbar .back { color: #1a1a2e; font-size: 22px; padding: 6px 8px 6px 0; }
+            .nav-title { display: block; flex: 1; text-align: center; font-size: 18px; font-weight: 500; color: #1a1a2e; margin-right: 30px; }
+
+            .wrap { margin: 0; padding: 0; }
+            .form-card { border-radius: 0; box-shadow: none; padding: 20px 16px 110px; }
+            .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 8px; }
+            .grid > .field { grid-column: 1 / -1 !important; }
+            .grid > .field.half { grid-column: auto !important; }
+
+            .grid > .field.m-hide, .field .req { display: none; }
+            .field { min-width: 0; border: 1px solid #dfe3ec; border-radius: 4px; padding: 12px 14px 6px; transition: border-color .2s; }
+            .field input { width: 100%; min-width: 0; }
+            .field:focus-within { border-color: #1a73e8; }
+            .field label { font-size: 15px; color: #6b7285; font-weight: 400; margin-bottom: 2px; }
+            .field.half label { font-size: 14px; }
+            .field label span[style] { display: block; font-size: 12px; }
+            .field input { border-bottom: 0; padding: 6px 0; font-size: 16px; }
+            .field input[readonly] { background: transparent !important; }
+            .area-suggestions { left: -1px; right: -1px; }
+
+            .actions { position: fixed; left: 0; right: 0; bottom: 0; margin: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+                background: #fff; border-top: 1px solid #eef0f4; z-index: 60; }
+            .btn-proceed { width: 100%; padding: 14px; font-size: 18px; font-weight: 500; border-radius: 6px; }
+        }
     </style>
 </head>
 <body>
 
 <nav class="navbar">
     <img src="{{ asset('assets/images/logo/logo.png') }}" alt="ServiceBazzar">
-    <a href="{{ route('sales_genio.dashboard') }}" class="back"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    <a href="{{ route('sales_genio.dashboard') }}" class="back" aria-label="Back to Dashboard"><i class="fas fa-arrow-left"></i> <span>Back to Dashboard</span></a>
+    <span class="nav-title">Create New Business</span>
 </nav>
 
 <div class="wrap">
@@ -126,7 +158,7 @@
                     <label>Mobile Number <span class="req">*</span></label>
                     <input type="text" name="mobile" value="{{ old('mobile') }}" maxlength="10" inputmode="numeric" required>
                 </div>
-                <div class="field">
+                <div class="field m-hide">
                     <label>Confirm Mobile Number <span class="req">*</span></label>
                     <input type="text" name="mobile_confirm" value="{{ old('mobile_confirm') }}" maxlength="10" inputmode="numeric" required onpaste="return false;">
                 </div>
@@ -135,7 +167,7 @@
                     <label>Landline Number</label>
                     <input type="text" name="landline" value="{{ old('landline') }}" maxlength="15">
                 </div>
-                <div class="field">
+                <div class="field m-hide">
                     <label>Confirm Landline Number</label>
                     <input type="text" name="landline_confirm" value="{{ old('landline_confirm') }}" maxlength="15" onpaste="return false;">
                 </div>
@@ -144,7 +176,7 @@
                     <label>Email ID</label>
                     <input type="email" name="email" value="{{ old('email') }}">
                 </div>
-                <div class="field">
+                <div class="field m-hide">
                     <label>Confirm Email ID</label>
                     <input type="email" name="email_confirm" value="{{ old('email_confirm') }}" onpaste="return false;">
                 </div>
@@ -153,19 +185,19 @@
                     <label>Website</label>
                     <input type="text" name="website" value="{{ old('website', 'www.') }}">
                 </div>
-                <div class="field">
+                <div class="field m-hide">
                     <label>Confirm Website</label>
                     <input type="text" name="website_confirm" value="{{ old('website_confirm', 'www.') }}">
                 </div>
 
-                <div class="field">
+                <div class="field half">
                     <label>Enter Area <span class="req">*</span></label>
                     <input type="text" name="area" id="areaInput" value="{{ old('area') }}" autocomplete="off" required>
                     <input type="hidden" name="city" id="cityInput" value="{{ old('city') }}">
                     <div id="areaCityNote">@if(old('city'))City: {{ old('city') }}@endif</div>
                     <div class="area-suggestions" id="areaSuggestions"></div>
                 </div>
-                <div class="field">
+                <div class="field half">
                     <label>Enter Pincode <span class="req">*</span></label>
                     <input type="text" name="pincode" id="pincodeInput" value="{{ old('pincode') }}" maxlength="6" inputmode="numeric" required readonly placeholder="Auto-fills from Area" style="background:#f7f8fb;cursor:not-allowed;">
                 </div>
@@ -323,6 +355,25 @@
     document.addEventListener('click', function (e) {
         if (!areaInput.contains(e.target) && !box.contains(e.target)) hideBox();
     });
+</script>
+<script>
+    // Phones hide the "Confirm ..." boxes; fill them from the main field so
+    // the server's match check still passes.
+    (function () {
+        if (!window.matchMedia('(max-width: 640px)').matches) return;
+        var form = document.getElementById('bizForm');
+        [['mobile', 'mobile_confirm'], ['landline', 'landline_confirm'],
+         ['email', 'email_confirm'], ['website', 'website_confirm']].forEach(function (pair) {
+            var src = form.querySelector('[name="' + pair[0] + '"]');
+            var dst = form.querySelector('[name="' + pair[1] + '"]');
+            if (!src || !dst) return;
+            dst.removeAttribute('required');
+            var sync = function () { dst.value = src.value; };
+            sync();
+            src.addEventListener('input', sync);
+            form.addEventListener('submit', sync);
+        });
+    })();
 </script>
 </body>
 </html>

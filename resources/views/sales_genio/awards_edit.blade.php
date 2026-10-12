@@ -59,11 +59,12 @@
 <body>
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">{{ $meta['title'] }}</div>
     </div>
 
-    <form method="POST" action="{{ $type === 'certificate' ? route('sales_genio.business.certificates.update', $business->id) : route('sales_genio.business.awards.update', $business->id) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ $type === 'certificate' ? sg_route('sales_genio.business.certificates.update', $business->id) : sg_route('sales_genio.business.awards.update', $business->id) }}" enctype="multipart/form-data">
         @csrf
         <div class="content" id="awardsWrap">
             @php

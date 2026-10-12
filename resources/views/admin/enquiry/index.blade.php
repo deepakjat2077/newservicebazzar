@@ -150,6 +150,7 @@
                                 <th>Name</th>
                                 <th>Phone</th>
                                 <th>Listing</th>
+                                <th>Listing Owner No.</th>
                                 <th>Location</th>
                                 <th>Category</th>
                                 <th>Status</th>
@@ -176,6 +177,28 @@
 
                                     <td>
                                         {{ optional($enquiry->listing)->name ?? 'N/A' }}
+                                    </td>
+
+                                    {{-- Who to call about this lead: the business's own number(s), and the
+                                         owner's account number when it is a different one. --}}
+                                    <td>
+                                        @php
+                                            $ownerNos = collect();
+                                            if ($enquiry->listing) {
+                                                $ownerNos = collect(is_array($enquiry->listing->mobile_numbers) ? $enquiry->listing->mobile_numbers : [])
+                                                    ->push($enquiry->listing->mobile)
+                                                    ->push(optional($enquiry->listing->user)->mobile)
+                                                    ->map(fn ($n) => preg_replace('/\D+/', '', (string) $n))
+                                                    ->map(fn ($n) => strlen($n) > 10 ? substr($n, -10) : $n)
+                                                    ->filter(fn ($n) => strlen($n) >= 10)
+                                                    ->unique()->values();
+                                            }
+                                        @endphp
+                                        @forelse($ownerNos as $no)
+                                            <a href="tel:+91{{ $no }}" style="white-space:nowrap;">{{ $no }}</a>@if(!$loop->last)<br>@endif
+                                        @empty
+                                            N/A
+                                        @endforelse
                                     </td>
 
                                     <td>
@@ -266,7 +289,7 @@
 
                                 <tr>
                                     {{-- Table mein 9 columns hain --}}
-                                    <td colspan="9"
+                                    <td colspan="10"
                                         class="text-center">
                                         No enquiries found
                                     </td>

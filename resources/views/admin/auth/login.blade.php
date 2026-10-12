@@ -8,8 +8,12 @@
         </div>
         <div class="auth-card">
           <div class="auth-card-body">
-            <form action="{{ route('admin.login.submit') }}" method="post">
+            <form action="{{ route('admin.login.submit') }}" method="post" id="adminLoginForm">
               @csrf
+              {{-- Exact location for the admin login log, when the browser is allowed to share it. --}}
+              <input type="hidden" name="geo_lat" id="geoLat">
+              <input type="hidden" name="geo_lng" id="geoLng">
+              <input type="hidden" name="geo_acc" id="geoAcc">
               <div class="form-group">
                 <label>@lang('Username')</label>
                 <input type="text" name="username" class="form-control" required>
@@ -31,4 +35,14 @@
         </div>
       </div>
     </div>
+<script>
+  (function () {
+    if (!('geolocation' in navigator)) return;
+    navigator.geolocation.getCurrentPosition(function (p) {
+      document.getElementById('geoLat').value = p.coords.latitude;
+      document.getElementById('geoLng').value = p.coords.longitude;
+      document.getElementById('geoAcc').value = Math.round(p.coords.accuracy);
+    }, function () {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  })();
+</script>
 @endsection

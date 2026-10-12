@@ -63,10 +63,14 @@
         display: none;
     }
 
+    /* The headings are <h4 class="h5">, so a bare `h5` selector missed them. */
+    .footer-area .footer-widget .widget-title h4,
     .footer-area .footer-widget .widget-title h5 {
         margin-bottom: 0;
-        font-size: 14px;
+        font-size: 14px !important;
         font-weight: 600;
+        line-height: 1.4;
+        color: #222222;
     }
 
     .footer-widget-toggle-icon {

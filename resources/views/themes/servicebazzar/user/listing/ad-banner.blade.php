@@ -1,6 +1,38 @@
-@extends($themeView.'layouts.site')
+@extends($themeView.'layouts.app')
+
+{{-- Styles go in <head> so the page never flashes unstyled while it loads. --}}
+@push('css')
+<style>.inner-banner{display:none !important;}</style>
+<style>
+.sbab-wrap{background:transparent;padding:28px 0 64px;}
+.sbab-top{margin-bottom:20px;}
+.sbab-back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d7dceb;border-radius:24px;
+  padding:7px 15px;color:#374151;font-weight:600;text-decoration:none;font-size:14px;margin-bottom:14px;}
+.sbab-top h1{font-size:24px;font-weight:800;color:#12203f;margin:0 0 6px;}
+.sbab-top p{margin:0;color:#5b6478;font-size:14px;}
+.sbab-flash{background:#eafaf1;border:1px solid #bde5cd;color:#1f7a45;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;}
+.sbab-flash.is-error{background:#fdeceb;border-color:#f5c2c0;color:#b4261f;}
+.sbab-card{background:#fff;border:1px solid #e6e9f2;border-radius:16px;padding:22px;margin-bottom:20px;}
+.sbab-card h2{font-size:17px;font-weight:800;color:#12203f;margin:0 0 6px;}
+.sbab-help{color:#6b7285;font-size:13.5px;margin:0 0 16px;}
+.sbab-preview{width:100%;border-radius:10px;border:1px solid #e6e9f2;margin:10px 0;}
+.sbab-status{margin:0;font-size:14px;color:#5b6478;}
+.sbab-live{color:#1f9d55;font-weight:700;}
+.sbab-pending{color:#b4801f;font-weight:700;}
+.sbab-field{margin-bottom:16px;}
+.sbab-field label{display:block;font-size:13px;font-weight:700;color:#37415a;margin-bottom:6px;}
+.sbab-field label span{color:#d33;}
+.sbab-field input[type=text]{width:100%;border:1px solid #dfe3ec;border-radius:10px;padding:11px 13px;font-size:14px;color:#1a2235;}
+.sbab-field small{display:block;color:#8a92a6;font-size:12.5px;margin-top:5px;}
+.sbab-submit{background:#1a73e8;color:#fff;border:0;border-radius:10px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer;}
+.sbab-submit:hover{background:#1662c4;}
+</style>
+@endpush
 
 @section('content')
+{{-- Owner panel layout: the page has its own heading, so the layout's title banner is hidden
+     (the layout then pads the content by the fixed navbar's height). --}}
+
 @section('title','Banner details — '.$banner->listing->name)
 
 <div class="sbab-wrap">
@@ -80,29 +112,6 @@
   </div>
 </div>
 
-<style>
-.sbab-wrap{background:#f4f6fb;padding:28px 0 64px;}
-.sbab-top{margin-bottom:20px;}
-.sbab-back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d7dceb;border-radius:24px;
-  padding:7px 15px;color:#374151;font-weight:600;text-decoration:none;font-size:14px;margin-bottom:14px;}
-.sbab-top h1{font-size:24px;font-weight:800;color:#12203f;margin:0 0 6px;}
-.sbab-top p{margin:0;color:#5b6478;font-size:14px;}
-.sbab-flash{background:#eafaf1;border:1px solid #bde5cd;color:#1f7a45;border-radius:12px;padding:14px 18px;margin-bottom:18px;font-weight:600;}
-.sbab-flash.is-error{background:#fdeceb;border-color:#f5c2c0;color:#b4261f;}
-.sbab-card{background:#fff;border:1px solid #e6e9f2;border-radius:16px;padding:22px;margin-bottom:20px;}
-.sbab-card h2{font-size:17px;font-weight:800;color:#12203f;margin:0 0 6px;}
-.sbab-help{color:#6b7285;font-size:13.5px;margin:0 0 16px;}
-.sbab-preview{width:100%;border-radius:10px;border:1px solid #e6e9f2;margin:10px 0;}
-.sbab-status{margin:0;font-size:14px;color:#5b6478;}
-.sbab-live{color:#1f9d55;font-weight:700;}
-.sbab-pending{color:#b4801f;font-weight:700;}
-.sbab-field{margin-bottom:16px;}
-.sbab-field label{display:block;font-size:13px;font-weight:700;color:#37415a;margin-bottom:6px;}
-.sbab-field label span{color:#d33;}
-.sbab-field input[type=text]{width:100%;border:1px solid #dfe3ec;border-radius:10px;padding:11px 13px;font-size:14px;color:#1a2235;}
-.sbab-field small{display:block;color:#8a92a6;font-size:12.5px;margin-top:5px;}
-.sbab-submit{background:#1a73e8;color:#fff;border:0;border-radius:10px;padding:13px 26px;font-size:15px;font-weight:700;cursor:pointer;}
-.sbab-submit:hover{background:#1662c4;}
-</style>
+
 
 @endsection

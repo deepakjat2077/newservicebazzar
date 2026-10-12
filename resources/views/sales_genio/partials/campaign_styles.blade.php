@@ -157,7 +157,7 @@
     .cmp-detail{gap:16px;}
     .cmp-shot{flex:1 1 100%;}
     .cmp-shot img{max-height:320px;object-fit:contain;}
-    .cmp-info{min-width:0;}
+    .cmp-info{flex:1 1 100%;min-width:0;}
     .cmp-info h1{font-size:19px;}
     .cmp-plans{gap:8px;}
     .cmp-plan{flex:1 1 calc(50% - 4px);min-width:0;padding:11px 12px;}

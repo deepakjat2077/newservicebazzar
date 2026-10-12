@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ $meta['title'] }} — Sales Genio</title>
+<title>{{ $meta['title'] }} — SB Sales</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -109,8 +109,14 @@
       </p>
     </div>
     @php $scheduled = (bool) array_intersect($meta['dispositions'] ?? [], \App\Models\ListingDisposition::SCHEDULED); @endphp
+    @php
+      $pageFields = \App\Http\Controllers\SalesGenioController::searchFields();
+      $pageBy = array_key_exists($searchBy ?? '', $pageFields) ? $searchBy : 'name';
+    @endphp
     <form class="sg-search" method="get">
-      <input type="text" name="q" value="{{ $search }}" placeholder="Business name or mobile">
+      {{-- Carry the field picked in the top bar, or this box silently searches the name instead. --}}
+      <input type="hidden" name="by" value="{{ $pageBy }}">
+      <input type="text" name="q" value="{{ $search }}" placeholder="{{ $pageFields[$pageBy] }}">
       <button type="submit">Search</button>
     </form>
   </div>
@@ -155,7 +161,15 @@
             @if($tab === 'deal-closed')
               <td data-label="Packages">{{ $row->items->pluck('name')->implode(', ') }}</td>
               <td data-label="Amount"><b>₹{{ numberFormat($row->total) }}</b></td>
-              <td data-label="Paid on">{{ $row->paid_at?->format('d M Y, h:i A') }}</td>
+              <td data-label="Payment">
+                @if($row->isPaid())
+                  <span class="sg-chip is-green">Paid</span>
+                  <span class="sg-sub">{{ $row->paid_at?->format('d M Y, h:i A') }}</span>
+                @else
+                  <span class="sg-chip is-amber">Payment pending</span>
+                  <span class="sg-sub">Closed {{ $row->closed_at?->format('d M Y, h:i A') }}</span>
+                @endif
+              </td>
             @elseif(in_array($tab, ['new-business', 'all-business']))
               <td data-label="Category">{{ optional($biz->category)->name ?? '—' }}</td>
               <td data-label="Status">

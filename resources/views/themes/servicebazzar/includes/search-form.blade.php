@@ -132,7 +132,7 @@
     }
 
     .header-input_location_box:before {
-        background-image: url(https://akam.cdn.jdmagicbox.com/images/icontent/newwap/web2022/location_icon.svg);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='36' viewBox='0 0 22 36'%3E%3Cpath d='M11 9.55c-3.5 0-6.3 2.8-6.3 6.2 0 4.3 6.3 10.7 6.3 10.7s6.3-6.4 6.3-10.7c0-3.4-2.8-6.2-6.3-6.2z' fill='none' stroke='%235C79B5' stroke-width='1.7' stroke-linejoin='round'/%3E%3Ccircle cx='11' cy='15.55' r='2.55' fill='none' stroke='%235C79B5' stroke-width='1.7'/%3E%3C/svg%3E");
         width: 37px;
         height: 100%;
         position: absolute;
@@ -1458,6 +1458,17 @@ function headerFetchCategorySuggestions(search = "") {
 const categorySlug = item.dataset.url.split("/").filter(Boolean).pop();
 
 const locationText = headerLocationInput.value.trim();
+
+// Typed text that is not one of our cities must never become /{junk}/{category}.
+if (typeof window.sbKnownCity === "function" && !window.sbKnownCity(locationText)) {
+    if (headerErrorBox) {
+        headerErrorBox.innerText = "Please select location from suggestions.";
+        headerErrorBox.style.display = "block";
+    }
+    headerLocationInput.dataset.selectedLocation = "0";
+    headerLocationInput.focus();
+    return;
+}
 
 let city = "";
 let area = "";

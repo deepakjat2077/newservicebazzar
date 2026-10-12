@@ -45,6 +45,12 @@
                         <span class="sidebar-menu-title">@lang('Campaign Links')</span>
                     </a>
                 </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.gsc.index') }}" class="{{ menuActive('admin.gsc.*')[0] }}">
+                        <i class="fab fa-google"></i>
+                        <span class="sidebar-menu-title">Search Console</span>
+                    </a>
+                </li>
                 @endadminCan
 
                 @adminCan('user.view')
@@ -159,6 +165,15 @@
                                         @lang('Rejected Listings')</span>
                                 </a>
                             </li>
+                            @adminCan('listing.edit')
+                            <li class="sidebar-menu-item">
+                                <a href="{{ route('admin.home_featured.index') }}"
+                                    class="{{ menuActive('admin.home_featured*')[0] }}">
+                                    <span class="sidebar-menu-title"><i class="fas fa-chevron-right mr-0"></i>
+                                        @lang('Featured Listings')</span>
+                                </a>
+                            </li>
+                            @endadminCan
                         </ul>
                     </div>
                 </li>
@@ -246,6 +261,15 @@
         </span>
     </a>
 </li>
+@adminCan('enquiry.manage')
+<li class="sidebar-menu-item">
+    <a href="{{ route('admin.enquiry.generate') }}" class="{{ menuActive('admin.enquiry.generate')[0] }}">
+        <span class="sidebar-menu-title">
+            <i class="fas fa-caret-right mr-0"></i> Generate Enquiry
+        </span>
+    </a>
+</li>
+@endadminCan
 
         </ul>
     </div>
@@ -521,14 +545,25 @@
 
                   @endif
 
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.plans.index') }}" class="{{ menuActive('admin.plans*')[0] }}">
+                        <i class="las la-box-open"></i>
+                        <span class="sidebar-menu-title">Plan Subscriptions</span>
+                    </a>
+                </li>
 
-                    
                 @adminCan('history.view')
                 <li class="text-white nav-section">@lang('History')</li>
                 <li class="sidebar-menu-item">
                     <a href="{{ route('admin.history.login') }}" class="{{ menuActive('admin.history.login')[0] }}">
                         <i class="fas fa-sign-in-alt"></i>
-                        <span class="sidebar-menu-title">@lang('Login History')</span>
+                        <span class="sidebar-menu-title">@lang('User Login History')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.history.admin_login') }}" class="{{ menuActive('admin.history.admin_login')[0] }}">
+                        <i class="fas fa-user-shield"></i>
+                        <span class="sidebar-menu-title">@lang('Admin Login History')</span>
                     </a>
                 </li>
                 @endadminCan
@@ -560,6 +595,14 @@
                         <span class="sidebar-menu-title">@lang('Sales Dispositions')</span>
                     </a>
                 </li>
+                @adminCan('package.manage')
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.sales_discounts.index') }}" class="{{ menuActive('admin.sales_discounts*')[0] }}">
+                        <i class="fas fa-tags"></i>
+                        <span class="sidebar-menu-title">@lang('Sales Discounts')</span>
+                    </a>
+                </li>
+                @endadminCan
 
                       @adminCan('setting.manage')
                 <li class="text-white nav-section">@lang('Settings')</li>
@@ -670,6 +713,14 @@
         class="{{ menuActive('admin.home.content.sections.index')[0] }}">
         <i class="fas fa-chevron-right mr-0"></i>
         <span class="sidebar-menu-title">Home Content Section</span>
+    </a>
+</li>
+
+<li class="sidebar-menu-item">
+    <a href="{{ route('admin.blog.comments.index') }}"
+        class="{{ menuActive('admin.blog.comments.index')[0] }}">
+        <i class="fas fa-chevron-right mr-0"></i>
+        <span class="sidebar-menu-title">Blog Comments</span>
     </a>
 </li>
 

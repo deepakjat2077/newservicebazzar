@@ -200,9 +200,21 @@ class WhatsappController extends Controller
             ->groupBy('enquiry_id')
             ->pluck('total', 'enquiry_id');
 
+        // The last send per enquiry: when, and which admin pressed Send.
+        $lastSends = WhatsappMessage::outbound()
+            ->whereIn('enquiry_id', collect($enquiries->items())->pluck('id'))
+            ->orderBy('id')
+            ->get(['enquiry_id', 'admin_id', 'created_at'])
+            ->keyBy('enquiry_id');
+        $senderNames = \App\Models\Admin::whereIn('id', $lastSends->pluck('admin_id')->filter()->unique())
+            ->get(['id', 'first_name', 'last_name', 'username'])
+            ->mapWithKeys(fn ($a) => [$a->id => trim($a->first_name . ' ' . $a->last_name) ?: $a->username]);
+
         return view('admin.whatsapp.enquiries', [
             'enquiries'  => $enquiries,
             'sentCounts' => $sentCounts,
+            'lastSends'  => $lastSends,
+            'senderNames' => $senderNames,
             'stats'      => $this->stats(),
             'configured' => $this->sender->isConfigured(),
         ]);

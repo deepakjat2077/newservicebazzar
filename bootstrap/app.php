@@ -65,6 +65,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // New live listings go to IndexNow (Bing and partners) within the hour.
         $schedule->command('seo:indexnow')->hourly()->withoutOverlapping();
+
+        // Google rating + top reviews, max 500 listings a day (cap enforced in the command).
+        $schedule->command('google:sync-reviews')->dailyAt('03:30')->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
@@ -80,6 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => RedirectIfNotAdmin::class,
             'sales.auth' => RedirectIfNotSalesUser::class,
             'sales.session' => SalesSessionGuard::class,
+            'sales.touch' => \App\Http\Middleware\RecordSalesEdit::class,
             'admin.guest' => RedirectIfAdmin::class,
             'permission' => AdminPermission::class,
             'shielded' => DecodeShieldedPayload::class,

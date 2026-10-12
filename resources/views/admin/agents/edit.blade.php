@@ -75,14 +75,28 @@
 
                         <div class="col-md-6 mb-3">
                             <label>New Password</label>
-                            <input type="password" name="password" class="form-control">
+                            <div class="input-group">
+                                <input type="password" name="password" id="newPassword" class="form-control">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-secondary toggle-password" data-target="newPassword" tabindex="-1">
+                                        <i class="las la-eye" id="newPasswordIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
                             @error('password') <small class="text-danger">{{ $message }}</small> @enderror
-                            <small class="text-muted">Password change nahi karna ho to blank chhod do.</small>
+                            <small class="text-muted">Leave blank if you do not want to change the password.</small>
                         </div>
 
                         <div class="col-md-6 mb-3">
                             <label>Confirm Password</label>
-                            <input type="password" name="password_confirmation" class="form-control">
+                            <div class="input-group">
+                                <input type="password" name="password_confirmation" id="confirmPassword" class="form-control">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-secondary toggle-password" data-target="confirmPassword" tabindex="-1">
+                                        <i class="las la-eye" id="confirmPasswordIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -108,3 +122,22 @@
     </div>
 </div>
 @endsection
+
+@push('js')
+<script>
+document.querySelectorAll('.toggle-password').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var targetId = this.getAttribute('data-target');
+        var input = document.getElementById(targetId);
+        var icon = this.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('la-eye', 'la-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('la-eye-slash', 'la-eye');
+        }
+    });
+});
+</script>
+@endpush

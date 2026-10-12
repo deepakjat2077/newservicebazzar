@@ -18,9 +18,10 @@ class SalesOrder extends Model
     protected $fillable = [
         'token', 'listing_id', 'sales_user_id', 'subtotal', 'gst', 'total',
         'status', 'gateway', 'gateway_order_id', 'gateway_payment_id', 'paid_at',
+        'discount_id', 'discount_name', 'discount_amount',
     ];
 
-    protected $casts = ['paid_at' => 'datetime', 'invoice_sent_at' => 'datetime'];
+    protected $casts = ['paid_at' => 'datetime', 'closed_at' => 'datetime', 'invoice_sent_at' => 'datetime'];
 
     public static function newToken(): string
     {

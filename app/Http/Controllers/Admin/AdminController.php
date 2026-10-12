@@ -49,19 +49,23 @@ public function dashboard(Request $request){
     $data['inActiveUsers'] = $data['totalUsers'] - $data['activeUsers'];
 
     $data['monthDeposits'] = Payment::where('status', 1)
+        ->whereYear('created_at', now()->year)
         ->whereMonth('created_at', now()->format('m'))
         ->selectRaw("DATE_FORMAT(created_at, '%d') as days")
         ->selectRaw("SUM(amount) as amount")
         ->groupBy(DB::raw("DATE_FORMAT(created_at, '%d')"))
         ->get();
 
+    // Last calendar month of the right year (whereMonth alone also summed the same month of earlier years).
     $data['prevDepo'] = Payment::where('status',1)
-        ->whereMonth('created_at',now()->subMonth()->format('m'))
+        ->whereYear('created_at', now()->subMonthNoOverflow()->year)
+        ->whereMonth('created_at', now()->subMonthNoOverflow()->format('m'))
         ->sum('amount');
+    $data['prevMonthName'] = now()->subMonthNoOverflow()->format('F');
 
     $prevDepo = $data['prevDepo'] ? $data['prevDepo'] : 1;
     $data['diffDepo'] = $data['monthDeposits']->sum('amount')
-        ? (($data['monthDeposits']->sum('amount') / $prevDepo * 100) - 100)
+        ? round(($data['monthDeposits']->sum('amount') / $prevDepo * 100) - 100, 1)
         : 0;
 
     $data['pendingDeposits'] = Payment::where('status',2)->sum('amount');
@@ -224,11 +228,54 @@ $data['adminListingReport'] = $adminListingQuery
 			return back()->withAlert($alert);
 		}
 
-		$admin->password = Hash::make($request->password);
+		$admin->password      = Hash::make($request->password);
+		$admin->remember_token = \Illuminate\Support\Str::random(60);
 		$admin->save();
 
-		$alert = ['success','Password updated successfully'];
+		$this->logoutOtherAdminSessions($admin->id);
+
+		$alert = ['success','Password updated successfully. All other devices have been logged out.'];
 		return back()->withAlert($alert);
+	}
+
+	private function logoutOtherAdminSessions(int $adminId): void
+	{
+		try {
+			$redis     = \Illuminate\Support\Facades\Redis::connection();
+			$prefix    = 'ms_infotech_directory_database_';
+			$guardKey  = 'login_admin_59ba36addc2b2f9401580f014c7f58ea4e30989d';
+			$currentId = session()->getId();
+			$needle    = $guardKey . '";i:' . $adminId . ';';
+
+			$deleted = 0;
+			$scanned = 0;
+			$cursor  = '0';
+			do {
+				$result = $redis->rawCommand('SCAN', $cursor, 'MATCH', $prefix . '*', 'COUNT', '200');
+				$cursor = $result[0];
+				foreach ($result[1] as $key) {
+					$scanned++;
+					if (!str_contains($key, $currentId)) {
+						$val = $redis->rawCommand('GET', $key);
+						if ($val && str_contains($val, $needle)) {
+							$redis->rawCommand('DEL', $key);
+							$deleted++;
+						}
+					}
+				}
+			} while ($cursor !== '0');
+
+			\Illuminate\Support\Facades\Log::info('logoutOtherAdminSessions', [
+				'adminId'   => $adminId,
+				'currentId' => $currentId,
+				'needle'    => $needle,
+				'scanned'   => $scanned,
+				'deleted'   => $deleted,
+			]);
+		} catch (\Throwable $e) {
+			\Illuminate\Support\Facades\Log::error('logoutOtherAdminSessions failed', ['error' => $e->getMessage()]);
+			report($e);
+		}
 	}
 
 	public function agents()

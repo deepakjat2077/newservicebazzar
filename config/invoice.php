@@ -57,6 +57,10 @@ return [
     // top, which is what the cart and the payment link already do.
     'gst_rate' => (float) env('INVOICE_GST_RATE', 18),
 
+    // Where GST is charged when a sale carries a discount: 'full' = on the full price, the discount
+    // then comes off the total; 'net' = on the price after the discount.
+    'discount_gst_on' => env('INVOICE_DISCOUNT_GST_ON', 'full'),
+
     // SB/26-27/0001
     'prefix' => env('INVOICE_PREFIX', 'SB'),
 

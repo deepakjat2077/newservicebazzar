@@ -105,7 +105,7 @@
                         <div class="col-md-6 mb-3">
                             <label><strong>@lang('Requested New Address')</strong></label>
                             <div class="border rounded p-2" style="min-height: 70px;">
-                                {{ $listing->pending_address ?? '-' }}
+                                {{ $listing->pendingAddressText() ?: '-' }}
                             </div>
                         </div>
 

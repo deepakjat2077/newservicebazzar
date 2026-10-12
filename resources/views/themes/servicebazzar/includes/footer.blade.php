@@ -159,6 +159,43 @@
 </style>
 
 
+<style>
+/* Tablets (768–1199px): the footer wrapper kept the desktop 40px offset on one
+   side only, so the text sat on the left edge with a gap on the right. Even
+   24px padding on both sides instead. */
+@media (min-width:768px) and (max-width:1199px){
+    .footer-area > .custom-right{ margin-left:0 !important; margin-right:0 !important; width:100% !important; max-width:100% !important; padding-left:24px !important; padding-right:24px !important; }
+    .footer-area > .custom-right > div > .row{ margin-left:-12px !important; margin-right:-12px !important; }
+    .footer-area > .custom-right > div > .row > [class*="col-"]{ padding-left:12px !important; padding-right:12px !important; }
+    .footer-area .footer-widget{ margin-right:0 !important; }
+}
+/* iPad portrait (768–991px): two-by-two left "Contact Info" alone under the
+   left column with a hole beside it. Balanced instead: about + contact side by
+   side on top, the three link lists in equal thirds below. */
+@media (min-width:768px) and (max-width:991px){
+    .footer-area > .custom-right > div > .row{ justify-content:flex-start !important; }
+    .footer-area > .custom-right > div > .row > [class*="col-"]{ flex:0 0 33.3333% !important; max-width:33.3333% !important; width:33.3333% !important; margin-bottom:26px; order:3; }
+    .footer-area > .custom-right > div > .row > [class*="col-"]:first-child{ flex:0 0 55% !important; max-width:55% !important; width:55% !important; order:1; }
+    .footer-area > .custom-right > div > .row > [class*="col-"]:last-child{ flex:0 0 45% !important; max-width:45% !important; width:45% !important; order:2; }
+    /* the link lists were split into two mini-columns on narrow widths; one list per column here */
+    .footer-area .footer-widget ul{ columns:auto !important; column-count:1 !important; display:block !important; }
+    .footer-area .footer-widget ul li{ width:100% !important; float:none !important; }
+    /* a phone rule (≤768px) also caught exactly 768: 20px extra on the left and 13px links */
+    .footer-area > .custom-right > .just{ margin-left:0 !important; margin-right:0 !important; }
+    .footer-area .footer-widget ul li a{ font-size:16px !important; line-height:1.7 !important; }
+    /* "Follow us on" lines up with the footer text below (24px edge) */
+    .social-follow-section .container{ max-width:100% !important; padding-left:24px !important; padding-right:24px !important; }
+}
+@media (min-width:992px) and (max-width:1199px){
+    .social-follow-section .container{ max-width:100% !important; padding-left:40px !important; padding-right:40px !important; }
+}
+@media (min-width:992px) and (max-width:1199px){
+    .footer-area > .custom-right{ padding-left:40px !important; padding-right:40px !important; }
+    /* five columns in ~940px wrapped every link; three per row reads cleanly */
+    .footer-area > .custom-right > div > .row{ justify-content:flex-start !important; }
+    .footer-area > .custom-right > div > .row > [class*="col-"]{ flex:0 0 33.3333% !important; max-width:33.3333% !important; margin-bottom:28px; }
+}
+</style>
 <footer class="footer-area">
     <div  class="container-fulde ssss custom-right ">
         <div class="pt-5 just pb-5">
@@ -312,6 +349,22 @@
 
 </div>
 
+        {{-- Phone/iPad only: app download, just above the copyright line. Android
+             app only, so a single Google Play badge (no App Store). --}}
+        <div class="footer-app-download">
+            <p class="footer-app-title">Download the app</p>
+            <a href="https://play.google.com/store/apps/details?id=com.servicebazaar"
+               class="footer-play-badge" target="_blank" rel="noopener"
+               aria-label="Get the Service Bazzar app on Google Play">
+                <svg class="footer-play-icon" viewBox="0 0 24 26" aria-hidden="true">
+                    <path d="M1.2.4C.9.7.7 1.2.7 1.8v22.4c0 .6.2 1.1.5 1.4l.1.1L13.8 13.2v-.3L1.3.3z" fill="#2196F3"/>
+                    <path d="M18 17.4l-4.2-4.2v-.3L18 8.6l.1.1 5 2.8c1.4.8 1.4 2.1 0 2.9l-5 2.9z" fill="#FFC107"/>
+                    <path d="M18.1 17.3L13.8 13 1.2 25.6c.5.5 1.2.5 2.1.1l14.8-8.4" fill="#F44336"/>
+                    <path d="M18.1 8.7L3.3.3C2.4-.2 1.7-.1 1.2.4L13.8 13l4.3-4.3z" fill="#4CAF50"/>
+                </svg>
+                <span class="footer-play-text"><small>GET IT ON</small><b>Google Play</b></span>
+            </a>
+        </div>
         <div class="footer-bottom">
     <p>
         Copyright ©{{ date('Y') }}
@@ -321,8 +374,27 @@
         All Rights Reserved.
     </p>
 </div>
+
     </div>
 </footer>
+<style>
+.footer-app-download { display: none; }
+@media (max-width: 991px) {
+    .footer-app-download {
+        display: flex; flex-direction: column; align-items: center; gap: 10px;
+        padding: 22px 16px 18px; background: #fff;
+    }
+    .footer-app-title { margin: 0; font-size: 14px; font-weight: 600; color: #111; }
+    .footer-play-badge {
+        display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 16px 0 13px;
+        background: #000; color: #fff !important; border: 1px solid #a6a6a6; border-radius: 9px; text-decoration: none !important;
+    }
+    .footer-play-icon { width: 22px; height: 24px; flex: 0 0 auto; }
+    .footer-play-text { display: flex; flex-direction: column; line-height: 1.05; text-align: left; }
+    .footer-play-text small { font-size: 9px; letter-spacing: .4px; color: #fff; }
+    .footer-play-text b { font-size: 17px; font-weight: 600; color: #fff; }
+}
+</style>
 
 @push('js')
     <script src="{{ asset($themeAsset.'js/components/popular-accordion.js') }}?v={{ filemtime(public_path($themeAsset.'js/components/popular-accordion.js')) }}"></script>

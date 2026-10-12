@@ -52,6 +52,24 @@
 <link rel="alternate" hreflang="x-default" href="{{ $seoUrl }}">
 @endif
 <meta name="google-site-verification" content="B178KugYDqjU7Y2Y6oIbKdwZa2vWRc_aJj5vmyjxmRE" />
+{{-- AdSense: the account tag verifies the site; the ads script itself (~600 ms of
+     main-thread work) waits for the visitor's first scroll/tap/key so it never
+     slows the first paint — auto ads still appear as soon as they interact. --}}
+<meta name="google-adsense-account" content="ca-pub-1828623221110116">
+<script>
+(function () {
+    var done = false, ev = ['scroll', 'touchstart', 'pointerdown', 'keydown', 'mousemove'];
+    function load() {
+        if (done) return; done = true;
+        ev.forEach(function (e) { removeEventListener(e, load, {passive: true}); });
+        var s = document.createElement('script');
+        s.async = true; s.crossOrigin = 'anonymous';
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1828623221110116';
+        document.head.appendChild(s);
+    }
+    ev.forEach(function (e) { addEventListener(e, load, {passive: true}); });
+})();
+</script>
 <link rel="shortcut icon" 
       href="{{ asset('assets/images/logo/favicon_new.png') }}" 
       type="image/x-icon">

@@ -1,110 +1,10 @@
-@extends($themeView.'layouts.site')
+@extends($themeView.'layouts.app')
 
-@section('content')
-@section('title',$package->name.' — '.$listing->name)
-
-@php
-  $sym    = $setting->currency_symbol ?? '₹';
-  $images = $package->imageUrls();
-  $plans  = $package->planList();
-  $tree   = $package->needsLocation() ? $package->positionPriceTree() : [];
-@endphp
-
-<div class="sbsel-wrap">
-  <div class="container">
-
-    <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbsel-back"><i class="las la-arrow-left"></i> Back to plans</a>
-
-    <div class="sbsel-card">
-
-      {{-- left: creative --}}
-      <div class="sbsel-media">
-        @if($images)
-          <img id="sbselImg" src="{{ $images[0] }}" alt="{{ $package->name }}">
-          @if(count($images) > 1)
-            <div class="sbsel-dots">
-              @foreach($images as $i => $url)
-                <span class="{{ $i === 0 ? 'active' : '' }}" data-src="{{ $url }}"></span>
-              @endforeach
-            </div>
-          @endif
-        @endif
-      </div>
-
-      {{-- right: what they get + what they choose --}}
-      <div class="sbsel-body">
-        <h1>{{ $package->name }}</h1>
-        <p class="sbsel-for">for <strong>{{ $listing->name }}</strong></p>
-
-        @if($active)
-          <div class="sbsel-active"><i class="las la-check-circle"></i> Already active — {{ $active->plan }}, till {{ $active->expires_at->format('d M Y, h:i A') }}. Buying again extends from today.</div>
-        @endif
-
-        <h2>Benefits You get</h2>
-        <ul class="sbsel-benefits">
-          @foreach($package->benefitList() as $benefit)
-            <li><i class="las la-check-circle"></i> {{ $benefit }}</li>
-          @endforeach
-        </ul>
-
-        @foreach($package->highlightList() as $hl)
-          <span class="sbsel-chip">{{ $hl }}</span>
-        @endforeach
-
-        <form method="get" action="{{ route('user.listing.advertise.sales.checkout', ['id' => $listing->id, 'pkg' => $package->id]) }}" id="sbselForm">
-
-          @if($package->needsLocation())
-            <h2>Where should it run?</h2>
-            <div class="sbsel-loc">
-              <div>
-                <label>City</label>
-                <select id="sbselCity" class="sbsel-select">
-                  @foreach($cities as $cityName)
-                    <option value="{{ $cityName }}" @selected($cityName === $listing->city)>{{ $cityName }}</option>
-                  @endforeach
-                </select>
-              </div>
-              <div>
-                <label>Area</label>
-                <select id="sbselArea" class="sbsel-select"></select>
-              </div>
-            </div>
-            <input type="hidden" name="city" value="">
-            <input type="hidden" name="area" value="">
-
-            <h2>Select plan</h2>
-            <div class="sbsel-plans" id="sbselPlans"></div>
-            <p class="sbsel-noprice" id="sbselNoPrice" style="display:none;">No price is set for this area yet. Please pick another area.</p>
-          @else
-            <h2>Select plan</h2>
-            <div class="sbsel-plans">
-              @foreach($plans as $i => $pl)
-                <label class="sbsel-plan {{ $i === 0 ? 'is-on' : '' }}">
-                  <input type="radio" name="plan" value="{{ $i }}" {{ $i === 0 ? 'checked' : '' }}>
-                  <span class="sbsel-plan-label">{{ $pl['label'] }}</span>
-                  <span class="sbsel-plan-price">{{ $sym }}{{ numberFormat($pl['price']) }}</span>
-                </label>
-              @endforeach
-            </div>
-          @endif
-
-          @if($package->needs_ad_details)
-            <p class="sbsel-note"><i class="las la-info-circle"></i> After payment you'll add your banner text and photo, and the banner is created for you.</p>
-          @endif
-
-          <div class="sbsel-actions">
-            <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbsel-skip">Skip</a>
-            <button type="submit" class="sbsel-buy" id="sbselBuy">Continue to Pay <i class="las la-arrow-right"></i></button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-  </div>
-</div>
-
+{{-- Styles go in <head> so the page never flashes unstyled while it loads. --}}
+@push('css')
+<style>.inner-banner{display:none !important;}</style>
 <style>
-.sbsel-wrap{background:#f4f6fb;padding:28px 0 64px;}
+.sbsel-wrap{background:transparent;padding:28px 0 64px;}
 .sbsel-back{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d7dceb;border-radius:24px;
   padding:8px 16px;color:#374151;font-weight:600;text-decoration:none;font-size:14px;margin-bottom:18px;}
 .sbsel-card{display:flex;gap:34px;background:#fff;border:1px solid #e6e9f2;border-radius:18px;padding:26px;flex-wrap:wrap;}
@@ -147,6 +47,133 @@
 .sbsel-buy:disabled{opacity:.5;cursor:not-allowed;}
 @media (max-width:760px){.sbsel-media{flex-basis:100%;}}
 </style>
+@endpush
+
+@section('content')
+{{-- Owner panel layout: the page has its own heading, so the layout's title banner is hidden
+     (the layout then pads the content by the fixed navbar's height). --}}
+
+@section('title',$package->name.' — '.$listing->name)
+
+@php
+  $sym    = $setting->currency_symbol ?? '₹';
+  $images = $package->imageUrls();
+  $plans  = $package->planList();
+  $tree   = $package->needsLocation() ? $package->positionPriceTree() : [];
+@endphp
+
+<div class="sbsel-wrap">
+  <div class="container">
+
+    <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbsel-back"><i class="las la-arrow-left"></i> Back to plans</a>
+
+    <div class="sbsel-card">
+
+      {{-- left: creative --}}
+      <div class="sbsel-media">
+        @if($images)
+          <img id="sbselImg" src="{{ $images[0] }}" alt="{{ $package->name }}">
+          @if(count($images) > 1)
+            <div class="sbsel-dots">
+              @foreach($images as $i => $url)
+                <span class="{{ $i === 0 ? 'active' : '' }}" data-src="{{ $url }}"></span>
+              @endforeach
+            </div>
+          @endif
+        @endif
+      </div>
+
+      {{-- right: what they get + what they choose --}}
+      <div class="sbsel-body">
+        <h1>{{ $package->name }}</h1>
+        <p class="sbsel-for">for <strong>{{ $listing->name }}</strong></p>
+
+        @php
+          // A package already running for this business can't be bought again until it ends
+          // (buying again used to restart it from today and throw away the days left).
+          // Location packages can still be bought for a different city/area.
+          $blocked = $active && !$package->needsLocation();
+        @endphp
+        @if($active)
+          <div class="sbsel-active"><i class="las la-check-circle"></i>
+            Already active — {{ $active->plan }}@if($active->city), {{ trim($active->area ? $active->area . ', ' . $active->city : $active->city) }}@endif,
+            till {{ $active->expires_at->format('d M Y, h:i A') }}.
+            @if($blocked) You can renew it once it ends. @else You can still book it for another city or area. @endif
+          </div>
+        @endif
+
+        <h2>Benefits You get</h2>
+        <ul class="sbsel-benefits">
+          @foreach($package->benefitList() as $benefit)
+            <li><i class="las la-check-circle"></i> {{ $benefit }}</li>
+          @endforeach
+        </ul>
+
+        @foreach($package->highlightList() as $hl)
+          <span class="sbsel-chip">{{ $hl }}</span>
+        @endforeach
+
+        @if($blocked)
+          <div class="sbsel-actions">
+            <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbsel-buy" style="text-decoration:none;text-align:center;"><i class="las la-arrow-left"></i> Back to plans</a>
+          </div>
+        @else
+        <form method="get" action="{{ $package->needsTemplate()
+              ? route('user.listing.advertise.design', ['id' => $listing->id, 'pkg' => $package->id])
+              : route('user.listing.advertise.sales.checkout', ['id' => $listing->id, 'pkg' => $package->id]) }}" id="sbselForm">
+
+          @if($package->needsLocation())
+            <h2>Where should it run?</h2>
+            <div class="sbsel-loc">
+              <div>
+                <label>City</label>
+                <select id="sbselCity" class="sbsel-select">
+                  @foreach($cities as $cityName)
+                    <option value="{{ $cityName }}" @selected($cityName === $listing->city)>{{ $cityName }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div>
+                <label>Area</label>
+                <select id="sbselArea" class="sbsel-select"></select>
+              </div>
+            </div>
+            <input type="hidden" name="city" value="">
+            <input type="hidden" name="area" value="">
+
+            <h2>Select plan</h2>
+            <div class="sbsel-plans" id="sbselPlans"></div>
+            <p class="sbsel-noprice" id="sbselNoPrice" style="display:none;">No price is set for this area yet. Please pick another area.</p>
+          @else
+            <h2>Select plan</h2>
+            <div class="sbsel-plans">
+              @foreach($plans as $i => $pl)
+                <label class="sbsel-plan {{ $i === 0 ? 'is-on' : '' }}">
+                  <input type="radio" name="plan" value="{{ $i }}" {{ $i === 0 ? 'checked' : '' }}>
+                  <span class="sbsel-plan-label">{{ $pl['label'] }}</span>
+                  <span class="sbsel-plan-price">{{ $sym }}{{ numberFormat($pl['price']) }}</span>
+                </label>
+              @endforeach
+            </div>
+          @endif
+
+          @if($package->needs_ad_details)
+            <p class="sbsel-note"><i class="las la-info-circle"></i> After payment you'll add your banner text and photo, and the banner is created for you.</p>
+          @endif
+
+          <div class="sbsel-actions">
+            <a href="{{ route('user.listing.advertise', $listing->id) }}" class="sbsel-skip">Skip</a>
+            <button type="submit" class="sbsel-buy" id="sbselBuy">{{ $package->needsTemplate() ? 'Choose Website Design' : 'Continue to Pay' }} <i class="las la-arrow-right"></i></button>
+          </div>
+        </form>
+        @endif
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
 
 <script>
 (function(){

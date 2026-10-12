@@ -113,7 +113,7 @@
 
   <div class="so-card">
     <h2>What you are buying</h2>
-    @foreach($order->items as $item)
+    @foreach($order->items->reject->is_free as $item)
       <div class="so-item">
         <div>
           <b>{{ $item->name }}</b>
@@ -135,6 +135,9 @@
 
     <div class="so-sums">
       <div class="so-row"><span>Subtotal</span><b>₹{{ numberFormat($order->subtotal) }}</b></div>
+      @if($order->discount_amount > 0)
+        <div class="so-row" style="color:#1f7a45;"><span>Discount — {{ $order->discount_name }}</span><b>−₹{{ numberFormat($order->discount_amount) }}</b></div>
+      @endif
       <div class="so-row"><span>GST (18%)</span><b>₹{{ numberFormat($order->gst) }}</b></div>
     </div>
     <div class="so-total">

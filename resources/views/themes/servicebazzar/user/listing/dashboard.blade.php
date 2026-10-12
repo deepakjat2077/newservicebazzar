@@ -127,6 +127,24 @@
              real pages this site already has; Business Profile opens the
              same real side panel as the grid's Edit Profile card. The rest
              have no working feature behind them yet, same as above. --}}
+        {{-- Push notification enable banner --}}
+        @if($vapidPublicKey)
+        <div id="sbPushBanner" class="sb-push-banner" style="display:none">
+            <i class="fas fa-bell"></i>
+            <div>
+                <strong>Enable Enquiry Notifications</strong>
+                <span>Get instant browser notifications whenever a new enquiry arrives on your listing.</span>
+            </div>
+            <button type="button" id="sbPushEnableBtn" class="sb-push-btn-yes">Enable</button>
+            <button type="button" id="sbPushDismissBtn" class="sb-push-btn-no" aria-label="Dismiss">✕</button>
+        </div>
+        <div id="sbPushEnabled" class="sb-push-banner sb-push-banner--ok" style="display:none">
+            <i class="fas fa-bell" style="color:#059669"></i>
+            <strong>Push Notifications Active!</strong>
+            <span>You will receive instant notifications for new enquiries.</span>
+        </div>
+        @endif
+
         <div class="sb-biz-wide-list">
             <h5>My Business</h5>
 
@@ -421,6 +439,18 @@
 
 @push('css')
 <link rel="stylesheet" href="{{ asset('assets/servicebazzar/css/business-panel.css') }}">
+<style>
+.sb-push-banner{display:flex;align-items:center;gap:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:14px;flex-wrap:wrap}
+.sb-push-banner i{font-size:22px;color:#2563eb;flex-shrink:0}
+.sb-push-banner div{flex:1;min-width:0}
+.sb-push-banner strong{display:block;font-weight:600;color:#1e293b}
+.sb-push-banner span{color:#64748b;font-size:12px}
+.sb-push-btn-yes{background:#2563eb;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0}
+.sb-push-btn-yes:hover{background:#1d4ed8}
+.sb-push-btn-no{background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1}
+.sb-push-banner--ok{background:#f0fdf4;border-color:#bbf7d0}
+.sb-push-banner--ok strong{color:#166534}
+</style>
 @endpush
 
 @push('js')
@@ -462,4 +492,94 @@ document.addEventListener('DOMContentLoaded', function(){
     @endif
 });
 </script>
+
+@if($vapidPublicKey)
+<script>
+(function(){
+    var VAPID_KEY = '{{ $vapidPublicKey }}';
+    var SUBSCRIBE_URL  = '{{ route("user.push.subscribe") }}';
+    var UNSUBSCRIBE_URL = '{{ route("user.push.unsubscribe") }}';
+    var CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    var banner  = document.getElementById('sbPushBanner');
+    var okBadge = document.getElementById('sbPushEnabled');
+    var enableBtn  = document.getElementById('sbPushEnableBtn');
+    var dismissBtn = document.getElementById('sbPushDismissBtn');
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    function urlB64ToUint8(base64String) {
+        var padding = '='.repeat((4 - base64String.length % 4) % 4);
+        var base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        var raw     = atob(base64);
+        var arr     = new Uint8Array(raw.length);
+        for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+        return arr;
+    }
+
+    function saveSubscription(sub) {
+        var json = sub.toJSON();
+        fetch(SUBSCRIBE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth })
+        });
+    }
+
+    function checkAndShowBanner() {
+        if (Notification.permission === 'denied') return;
+        navigator.serviceWorker.register('/sw.js').then(function (reg) {
+            reg.pushManager.getSubscription().then(function (sub) {
+                if (sub) {
+                    if (banner)  banner.style.display  = 'none';
+                    if (okBadge) okBadge.style.display = 'flex';
+                    saveSubscription(sub); // re-register in case server lost it
+                } else if (Notification.permission === 'granted') {
+                    subscribe(reg);
+                } else if (localStorage.getItem('sb_push_dismissed') !== '1') {
+                    if (banner) banner.style.display = 'flex';
+                }
+            });
+        });
+    }
+
+    function subscribe(reg) {
+        reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlB64ToUint8(VAPID_KEY)
+        }).then(function (sub) {
+            saveSubscription(sub);
+            if (banner)  banner.style.display  = 'none';
+            if (okBadge) okBadge.style.display = 'flex';
+        }).catch(function () {
+            if (banner) banner.style.display = 'none';
+        });
+    }
+
+    if (enableBtn) {
+        enableBtn.addEventListener('click', function () {
+            navigator.serviceWorker.register('/sw.js').then(function (reg) {
+                if (Notification.permission === 'granted') {
+                    subscribe(reg);
+                } else {
+                    Notification.requestPermission().then(function (perm) {
+                        if (perm === 'granted') subscribe(reg);
+                        else if (banner) banner.style.display = 'none';
+                    });
+                }
+            });
+        });
+    }
+
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', function () {
+            localStorage.setItem('sb_push_dismissed', '1');
+            if (banner) banner.style.display = 'none';
+        });
+    }
+
+    checkAndShowBanner();
+})();
+</script>
+@endif
 @endpush

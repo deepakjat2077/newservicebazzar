@@ -432,6 +432,19 @@
        accept="image/*">
 </div>
 
+{{-- Video Upload --}}
+<div class="col-md-12 mt-2 mb-4">
+    <div class="bg__dark p-2 text-white d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">Videos <small class="fw-normal">(optional — mp4/mov/webm, max 20 MB each)</small></h5>
+        <button type="button" class="btn btn-success text-white" id="addVideoBtn">
+            <i class="las la-plus"></i> Add Video
+        </button>
+    </div>
+    <div class="row mt-2" id="videoPreviewRow"></div>
+    <input type="file" id="videoFilesInput" class="d-none" multiple accept="video/mp4,video/webm,video/quicktime">
+    <input type="hidden" name="uploaded_videos_csv" id="uploadedVideosCsv" value="">
+</div>
+
                         {{-- <div class="col-md-12 mt-2 mb-4">
                             <div class="bg__dark p-2 text-white d-flex align-items-center justify-content-between">
                                 <h5 class="mb-0">Services</h5>
@@ -2557,6 +2570,79 @@ $(document).on('click', '.imageRemove', function () {
     renderExtraImages();
 });
 
+// --- Video upload (direct AJAX — bypasses firewall shield) ---
+var VIDEO_UPLOAD_URL = '{{ route("admin.listing.listing.video.upload") }}';
+var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
+
+$('#addVideoBtn').on('click', function () { $('#videoFilesInput').click(); });
+
+$('#videoFilesInput').on('change', function () {
+    Array.from(this.files).forEach(function (file) {
+        if (file.size > 20 * 1024 * 1024) { alert(file.name + ' exceeds 20 MB limit.'); return; }
+        uploadVideoFile(file);
+    });
+    this.value = '';
+});
+
+function uploadVideoFile(file) {
+    var localUrl = URL.createObjectURL(file);
+    var tempId   = 'vid_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    var row = document.getElementById('videoPreviewRow');
+
+    var col = document.createElement('div');
+    col.className = 'col-md-3 mb-3';
+    col.id = tempId;
+    col.innerHTML =
+        '<div class="position-relative border rounded p-1">' +
+        '<video src="' + localUrl + '" muted preload="metadata" style="width:100%;height:120px;object-fit:cover;border-radius:6px;"></video>' +
+        '<div class="text-center py-1"><small class="text-muted">Uploading...</small><div class="progress mt-1" style="height:4px;"><div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div></div></div>' +
+        '</div>';
+    row.appendChild(col);
+
+    var fd = new FormData();
+    fd.append('_token', CSRF_TOKEN);
+    fd.append('video', file);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', VIDEO_UPLOAD_URL);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+    xhr.onload = function () {
+        var el = document.getElementById(tempId);
+        if (!el) return;
+        try {
+            var res = JSON.parse(xhr.responseText);
+            if (xhr.status === 200 && res.ok) {
+                el.querySelector('div > div:last-child').innerHTML = '<small class="text-success d-block text-truncate px-1">' + file.name + '</small>';
+                var csvInput = document.getElementById('uploadedVideosCsv');
+                csvInput.value = csvInput.value ? csvInput.value + ',' + res.filename : res.filename;
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-danger btn-sm position-absolute';
+                btn.style = 'top:4px;right:4px;padding:2px 6px;';
+                btn.innerHTML = '<i class="las la-times"></i>';
+                btn.onclick = function () {
+                    var csv = document.getElementById('uploadedVideosCsv');
+                    csv.value = csv.value.split(',').filter(function(f){ return f !== res.filename; }).join(',');
+                    el.remove();
+                };
+                el.querySelector('.position-relative').appendChild(btn);
+            } else {
+                el.querySelector('div > div:last-child').innerHTML = '<small class="text-danger">Upload failed: ' + (res.message || xhr.status) + '</small>';
+            }
+        } catch(e) {
+            el.querySelector('div > div:last-child').innerHTML = '<small class="text-danger">Upload error</small>';
+        }
+    };
+
+    xhr.onerror = function () {
+        var el = document.getElementById(tempId);
+        if (el) el.querySelector('div > div:last-child').innerHTML = '<small class="text-danger">Network error</small>';
+    };
+
+    xhr.send(fd);
+}
+
     // feature add/remove
     $(document).on('click', '.addFeature', function () {
         let featureElement = `
@@ -2932,7 +3018,7 @@ toggleOpen24Hours();
     });
 
     // pincode -> city/state/area
-    $('#pincode').on('keyup change', debounce(function () {
+    $('#pincode').on('keyup change input', debounce(function () {
         let pin = $(this).val().trim();
 
         if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {

@@ -9,7 +9,7 @@
 <section class="pt-30 pb-80">
     <div class="container" style="max-width:560px;">
         <div class="sb-biz-header">
-            <a href="{{ request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
+            <a href="{{ request('from') === 'profile' ? route('user.listing.profile', $listing->id) : (request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id)) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 <h4>Business Address</h4>
                 <span>{{ $listing->name }}</span>

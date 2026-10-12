@@ -24,6 +24,7 @@ class Listing extends Model
         'landline_numbers'       => 'array',
         'toll_free_numbers'      => 'array',
         'extra_emails'           => 'array',
+        'extra_contacts'         => 'array',
         'extra_websites'         => 'array',
         'social_links'           => 'array',
 
@@ -48,6 +49,105 @@ class Listing extends Model
      * the manage page) disagreed with what the public page shows. This mirrors
      * the public rule so every screen agrees.
      */
+    public const WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    /**
+     * Business hours as [day => [[open, close], …]] in week order, whichever
+     * way they were stored. The canonical form is one row per day per shift
+     * (business_days[i] ↔ open_time[i] ↔ close_time[i], a day repeated for a
+     * second shift). Older forms saved "the ticked days" plus "the time slots,
+     * which apply to every ticked day" — one slot or several — and both are
+     * read correctly here too.
+     */
+    public function shiftsByDay(): array
+    {
+        $days   = array_values(array_filter(array_map(fn ($d) => trim((string) $d), (array) ($this->business_days ?? []))));
+        $opens  = array_values((array) ($this->open_time ?? []));
+        $closes = array_values((array) ($this->close_time ?? []));
+
+        $out = [];
+
+        if (!$days || !$opens) {
+            return $out;
+        }
+
+        // Several slots but fewer than the days: the old "slots for every ticked day" shape.
+        $slotsForAll = count($opens) > 1 && count($opens) < count($days);
+
+        foreach ($days as $i => $day) {
+            $pairs = $slotsForAll
+                ? array_map(null, $opens, $closes)    // every slot applies to every day
+                : [[                                   // row i belongs to day i; a lone value covers all days
+                    count($opens) === 1 ? $opens[0] : ($opens[$i] ?? null),
+                    count($closes) === 1 ? $closes[0] : ($closes[$i] ?? null),
+                ]];
+
+            foreach ($pairs as [$open, $close]) {
+                if (filled($open) && filled($close) && $open !== 'Closed') {
+                    $out[$day][] = [trim((string) $open), trim((string) $close)];
+                }
+            }
+        }
+
+        foreach ($out as $day => $shifts) {
+            $out[$day] = array_values(array_unique($shifts, SORT_REGULAR));
+        }
+
+        return collect(self::WEEK)->filter(fn ($d) => isset($out[$d]))->mapWithKeys(fn ($d) => [$d => $out[$d]])->all()
+            + array_diff_key($out, array_flip(self::WEEK));
+    }
+
+    /**
+     * Turns "these days" + "these time slots (each for every day)" into the
+     * canonical parallel arrays: one row per day per shift, in week order.
+     * Returns [business_days, open_time, close_time].
+     */
+    public static function hoursRows(array $days, array $opens, array $closes): array
+    {
+        $days = array_values(array_unique(array_filter(array_map(fn ($d) => trim((string) $d), $days))));
+        usort($days, fn ($a, $b) => (array_search($a, self::WEEK) ?? 9) <=> (array_search($b, self::WEEK) ?? 9));
+
+        $slots = [];
+        foreach (array_values($opens) as $i => $open) {
+            $close = array_values($closes)[$i] ?? null;
+            if (filled($open) && filled($close) && $open !== 'Closed') {
+                $slots[] = [trim((string) $open), trim((string) $close)];
+            }
+        }
+
+        // Days ticked but no time chosen yet: keep the days, as before.
+        if (!$slots) {
+            return [$days, [], []];
+        }
+
+        $rowDays = $rowOpens = $rowCloses = [];
+        foreach ($days as $day) {
+            foreach ($slots as [$open, $close]) {
+                $rowDays[] = $day;
+                $rowOpens[] = $open;
+                $rowCloses[] = $close;
+            }
+        }
+
+        return [$rowDays, $rowOpens, $rowCloses];
+    }
+
+    /**
+     * Hours from a form that has day checkboxes, an "Open 24 Hours" box and
+     * "+ Add Another Time Slot" rows (every slot applies to every ticked day).
+     * Returns canonical [business_days, open_time, close_time].
+     */
+    public static function hoursFromForm($days, bool $open24, $opens, $closes): array
+    {
+        $days = (array) $days;
+
+        if ($open24) {
+            return self::hoursRows($days ?: self::WEEK, ['12:00 AM'], ['11:59 PM']);
+        }
+
+        return self::hoursRows($days, (array) $opens, (array) $closes);
+    }
+
     public function isOpen24HoursDerived(): bool
     {
         if ($this->open_24_hours) {
@@ -98,6 +198,17 @@ public function getSubcategoryAttribute()
         return new \Illuminate\Database\Eloquent\Collection();
     }
 
+    // Built once per listing. A card reads this three times (isset, count,
+    // take) and a listing can carry 300+ ids, so re-hydrating on every read
+    // was ~40% of a category page's render time. Keyed on the ids so a
+    // changed subcategory_ids still gets a fresh collection.
+    $memoKey = implode(',', $ids);
+    static::$subcategoryMemo ??= new \WeakMap();
+    $memo = static::$subcategoryMemo[$this] ?? null;
+    if ($memo !== null && $memo[0] === $memoKey) {
+        return $memo[1];
+    }
+
     $lookup = static::subcategoryLookup();
     $rows = [];
 
@@ -109,8 +220,16 @@ public function getSubcategoryAttribute()
 
     // Same Eloquent Collection of Subcategory models the accessor always
     // returned, so `->count()`, `->take(3)` and `->name` keep working.
-    return Subcategory::hydrate($rows);
+    $collection = Subcategory::hydrate($rows);
+    static::$subcategoryMemo[$this] = [$memoKey, $collection];
+
+    return $collection;
 }
+
+/** listing => [ids key, Collection] for getSubcategoryAttribute(). A WeakMap,
+ *  not a property, so it is never serialized into a cached model and is freed
+ *  with the listing. */
+protected static $subcategoryMemo;
 
 /**
  * id => {id, name, slug} for every subcategory, cached.
@@ -245,6 +364,29 @@ public static function forgetSubcategoryLookup(): void
      * filled — only the component fields — so reading `address` alone showed
      * them as having no address at all.
      */
+    /** Address lines a sales rep asked to change, waiting for admin approval (null when none). */
+    public function pendingAddressFields(): ?array
+    {
+        $data = json_decode((string) $this->pending_address, true);
+
+        return is_array($data) && isset($data['fields']) && is_array($data['fields']) ? $data['fields'] : null;
+    }
+
+    /** The requested address as readable text, whichever way it was requested. */
+    public function pendingAddressText(): string
+    {
+        $fields = $this->pendingAddressFields();
+
+        if ($fields === null) {
+            return trim((string) $this->pending_address);
+        }
+
+        return collect([
+            $fields['plot_no'] ?? null, $fields['building_name'] ?? null, $fields['street_name'] ?? null, $fields['landmark'] ?? null,
+            $this->area, $this->city, $this->state, $this->pincode,
+        ])->map(fn ($part) => trim((string) $part))->filter()->implode(', ');
+    }
+
     public function displayAddress(): string
     {
         $address = trim((string) $this->address);
@@ -467,6 +609,25 @@ public static function forgetSubcategoryLookup(): void
 
         static::creating(function ($listing) {
             $listing->slug = static::generateSlug($listing->name);
+        });
+
+        // Pull the Google place id, rating and top reviews for a new listing once the
+        // response is sent. afterResponse keeps it off the queue workers (new job classes
+        // fail there). Skipped in console so imports and seeders make no API calls.
+        static::created(function ($listing) {
+            if (app()->runningInConsole()) {
+                return;
+            }
+
+            $id = $listing->id;
+
+            dispatch(function () use ($id) {
+                $fresh = static::find($id);
+
+                if ($fresh) {
+                    \App\Support\GoogleReviews::syncListing($fresh);
+                }
+            })->afterResponse();
         });
 
         // Guarantee every listing carries a healthy meta title, so the SEO

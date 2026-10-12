@@ -9,7 +9,7 @@
                 <div class="p-3 border-bottom">
                     <form method="get" action="">
                         <div class="form-row align-items-end">
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-2 mb-2">
                                 <label class="mb-1">@lang('Search')</label>
                                 <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="@lang('Listing name or username')">
                             </div>
@@ -23,13 +23,32 @@
                                 </select>
                             </div>
 
-                            <div class="col-md-3 mb-2">
+                            <div class="col-md-2 mb-2">
                                 <label class="mb-1">@lang('Location')</label>
                                 <select name="location_id" class="form-control">
                                     <option value="">@lang('All')</option>
                                     @foreach($locations as $location)
                                         <option value="{{ $location->id }}" @selected(request('location_id') == $location->id)>{{ __($location->name) }}</option>
                                     @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label class="mb-1">@lang('Area')</label>
+                                {{-- Options are rebuilt in JS from #areaOptionsData so they follow the Location filter. --}}
+                                <select name="area" id="areaFilter" class="form-control" data-placeholder="@lang('All areas')">
+                                    <option value="">@lang('All')</option>
+                                    @if(request('area'))
+                                        <option value="{{ request('area') }}" selected>{{ request('area') }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <label class="mb-1">@lang('Added by')</label>
+                                <select name="added_by" class="form-control">
+                                    <option value="">@lang('All')</option>
+                                    <option value="user" @selected(request('added_by') === 'user')>@lang('User (self-listed)')</option>
+                                    <option value="admin" @selected(request('added_by') === 'admin')>@lang('Admin')</option>
+                                    <option value="sales" @selected(request('added_by') === 'sales')>@lang('SB Sales team')</option>
                                 </select>
                             </div>
                             <div class="col-md-2 mb-2 d-flex">
@@ -40,6 +59,9 @@
                     </form>
                 </div>
 
+                @if(request()->hasAny(['added_by','q','category_id','location_id','area']) && method_exists($listings, 'total'))
+                    <div class="px-3 pb-2 text-muted">@lang('Found'): <strong>{{ number_format($listings->total()) }}</strong> @lang('listings')</div>
+                @endif
                 <div class="table-responsive">
                     <table class="table">
                         <thead>
@@ -144,8 +166,60 @@
 @endif
 
 
+@push('css-link')
+<link rel="stylesheet" href="{{ asset('assets/admin/css/select2.min.css') }}">
+@endpush
+@push('js-link')
+<script src="{{ asset('assets/admin/js/select2.min.js') }}"></script>
+@endpush
+
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script id="areaOptionsData" type="application/json">@json($areaOptions ?? [])</script>
+<script>
+$(function () {
+    var all = JSON.parse(document.getElementById('areaOptionsData').textContent || '[]');
+    var $area = $('#areaFilter');
+    var $loc = $('select[name="location_id"]');
+    var current = @json(request('area', ''));
+
+    function build() {
+        var locId = String($loc.val() || '');
+        var seen = {};
+        $area.empty().append(new Option('All', '', false, false));
+        all.forEach(function (row) {
+            if (locId && String(row.location_id) !== locId) return;
+            // Without a city chosen the same area name can exist in two cities, so show the city.
+            var hasCity = row.area.toLowerCase().indexOf(String(row.city).toLowerCase()) !== -1;
+            var label = (locId || hasCity) ? row.area : row.area + ' (' + row.city + ')';
+            var key = locId ? row.area : row.area + '|' + row.location_id;
+            if (seen[key]) return;
+            seen[key] = true;
+            var opt = new Option(label, row.area, false, row.area === current);
+            opt.dataset.loc = row.location_id;
+            $area.append(opt);
+        });
+        $area.trigger('change.select2');
+    }
+
+    $area.select2({ width: '100%', placeholder: $area.data('placeholder'), allowClear: true });
+    build();
+
+    $loc.on('change', function () { current = ''; build(); });
+
+    // Picking an area while "All" locations is selected also sets its city,
+    // so "Jhotwara (Jaipur)" doesn't match a Jhotwara somewhere else.
+    $area.on('select2:select', function (e) {
+        var loc = e.params.data.element && e.params.data.element.dataset.loc;
+        if (loc && !$loc.val()) {
+            $loc.val(loc);
+            current = e.params.data.id;
+            build();
+        }
+    });
+});
+</script>
 
 <script>
 $(document).on('click', '.deleteBtn', function () {

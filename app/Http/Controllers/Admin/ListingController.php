@@ -47,7 +47,8 @@ class ListingController extends Controller
     	$title = 'All Listings';
         $categories = Category::where('status',1)->orderBy('name')->get();
         $locations = Location::where('status',1)->orderBy('name')->get();
-    	return view('admin.listing.index',compact('listings','title','categories','locations'));
+        $areaOptions = $this->areaFilterOptions();
+    	return view('admin.listing.index',compact('listings','title','categories','locations','areaOptions'));
     }
 
     public function pending(Request $request){
@@ -55,7 +56,8 @@ class ListingController extends Controller
     	$title = 'Pending Listings';
         $categories = Category::where('status',1)->orderBy('name')->get();
         $locations = Location::where('status',1)->orderBy('name')->get();
-    	return view('admin.listing.index',compact('listings','title','categories','locations'));
+        $areaOptions = $this->areaFilterOptions();
+    	return view('admin.listing.index',compact('listings','title','categories','locations','areaOptions'));
     }
 
     public function approved(Request $request){
@@ -63,7 +65,8 @@ class ListingController extends Controller
     	$title = 'Approved Listings';
         $categories = Category::where('status',1)->orderBy('name')->get();
         $locations = Location::where('status',1)->orderBy('name')->get();
-    	return view('admin.listing.index',compact('listings','title','categories','locations'));
+        $areaOptions = $this->areaFilterOptions();
+    	return view('admin.listing.index',compact('listings','title','categories','locations','areaOptions'));
     }
 
     public function rejected(Request $request){
@@ -71,7 +74,8 @@ class ListingController extends Controller
     	$title = 'Rejected Listings';
         $categories = Category::where('status',1)->orderBy('name')->get();
         $locations = Location::where('status',1)->orderBy('name')->get();
-    	return view('admin.listing.index',compact('listings','title','categories','locations'));
+        $areaOptions = $this->areaFilterOptions();
+    	return view('admin.listing.index',compact('listings','title','categories','locations','areaOptions'));
     }
 
      public function details($id){
@@ -155,6 +159,23 @@ public function edit($id)
     ));
 }
 
+public function uploadVideo(Request $request)
+{
+    $request->validate([
+        'video' => 'required|file|mimes:mp4,webm,mov|max:20480',
+    ]);
+
+    $file = $request->file('video');
+    $dir  = public_path('assets/images/listing/videos');
+
+    if (!is_dir($dir)) { mkdir($dir, 0755, true); }
+
+    $fname = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+    $file->move($dir, $fname);
+
+    return response()->json(['ok' => true, 'filename' => $fname]);
+}
+
 public function update(Request $request, $id)
 {
     $listing = Listing::findOrFail($id);
@@ -162,6 +183,11 @@ public function update(Request $request, $id)
     $rules = [
         'images'                   => 'nullable|array',
         'images.*'                 => 'nullable|image|mimes:jpg,jpeg,png,webp',
+
+        'uploaded_videos_csv'      => 'nullable|string|max:5000',
+
+        'existing_videos'          => 'nullable|array',
+        'existing_videos.*'        => 'nullable|string|max:255',
 
         'remove_images'            => 'nullable|array',
         'remove_images.*'          => 'nullable|string',
@@ -608,6 +634,14 @@ $listing->business_categories = $businessCategories;
         $listing->email = $extraEmails[0] ?? $listing->email;
     }
 
+    // Videos — keep existing + newly uploaded (CSV field always present in shield)
+    if (\Illuminate\Support\Facades\Schema::hasColumn('listings', 'videos')) {
+        $keptVideos  = array_values(array_filter((array) $request->input('existing_videos', [])));
+        $newVideos   = array_values(array_filter(explode(',', (string) $request->input('uploaded_videos_csv', ''))));
+        $allVideos   = array_merge($keptVideos, $newVideos);
+        $listing->videos = !empty($allVideos) ? $allVideos : null;
+    }
+
     $listing->save();
 
     $notify[] = ['success', 'Listing updated successfully'];
@@ -715,6 +749,23 @@ $listing->business_categories = $businessCategories;
         return back()->withAlert($alert);
     }
 
+    /**
+     * Distinct areas per city for the listing filter (~2.8k rows), cached briefly.
+     * Each row: area, location_id, city.
+     */
+    protected function areaFilterOptions()
+    {
+        return \Illuminate\Support\Facades\Cache::remember('admin:listing-area-options:v2', 600, function () {
+            return DB::table('listings as l')
+                ->join('locations as c', 'c.id', '=', 'l.location_id')
+                ->whereNotNull('l.area')
+                ->whereRaw("TRIM(TRIM(BOTH ',' FROM TRIM(l.area))) <> ''")
+                ->selectRaw("DISTINCT TRIM(TRIM(BOTH ',' FROM TRIM(l.area))) AS area, l.location_id, c.name AS city")
+                ->orderBy('area')
+                ->get();
+        });
+    }
+
     protected function buildListingQuery(Request $request){
         $query = Listing::with('user','location','category','salesUser')->orderBy('id','desc');
         if ($request->filled('q')) {
@@ -732,6 +783,49 @@ $listing->business_categories = $businessCategories;
         }
         if ($request->filled('location_id')) {
             $query->where('location_id',$request->location_id);
+        }
+        if ($request->filled('area')) {
+            // Same normalisation as areaFilterOptions(): stray spaces/commas around the name.
+            $query->whereRaw("TRIM(TRIM(BOTH ',' FROM TRIM(area))) = ?", [trim($request->area, " ,")]);
+        }
+        // Who put the listing up: the business owner from the website/app
+        // (no admin, no sales rep behind it), an admin, or the SB Sales team.
+        if ($request->input('added_by') === 'user') {
+            // Marked at creation since 6 Oct 2026 (source website/app). Older rows
+            // carry no mark — and from April to July admin-added listings were not
+            // tagged with the admin either — so for those, "self-listed" means the
+            // owner had signed in to the site before the listing appeared, or it is
+            // still waiting for approval (admin-added ones go live at once).
+            $query->where(function ($q) {
+                $q->whereIn('source', ['website', 'app'])
+                  ->orWhere(function ($old) {
+                      $old->whereNull('source')->whereNull('created_by_admin_id')->whereNull('sales_user_id')
+                          ->where(function ($sig) {
+                              $sig->where('status', 0)
+                                  ->orWhereExists(function ($h) {
+                                      $h->selectRaw('1')->from('login_histories')
+                                        ->whereColumn('login_histories.user_id', 'listings.user_id')
+                                        ->whereRaw('login_histories.created_at <= DATE_ADD(listings.created_at, INTERVAL 5 MINUTE)');
+                                  });
+                          });
+                  });
+            });
+        } elseif ($request->input('added_by') === 'admin') {
+            // Tagged with the admin, or an older untagged one that isn't self-listed (see above).
+            $query->where(function ($q) {
+                $q->whereNotNull('created_by_admin_id')
+                  ->orWhere(function ($old) {
+                      $old->whereNull('source')->whereNull('created_by_admin_id')->whereNull('sales_user_id')
+                          ->where('status', '!=', 0)
+                          ->whereNotExists(function ($h) {
+                              $h->selectRaw('1')->from('login_histories')
+                                ->whereColumn('login_histories.user_id', 'listings.user_id')
+                                ->whereRaw('login_histories.created_at <= DATE_ADD(listings.created_at, INTERVAL 5 MINUTE)');
+                          });
+                  });
+            });
+        } elseif ($request->input('added_by') === 'sales') {
+            $query->whereNotNull('sales_user_id');
         }
         return $query;
     }
@@ -757,7 +851,19 @@ public function approveNameAddress($id)
         $listing->name_approval_status = 'approved';
     }
 
-    if ($listing->address_approval_status === 'pending' && !empty($listing->pending_address)) {
+    if ($listing->address_approval_status === 'pending' && ($fields = $listing->pendingAddressFields()) !== null) {
+        // Requested from SB Sales as separate address lines.
+        $hadText = trim((string) $listing->address) !== '';
+        foreach (['plot_no', 'building_name', 'street_name', 'landmark'] as $f) {
+            $listing->$f = $fields[$f] ?? null;
+        }
+        // A free-text address would hide the new lines, so it is rebuilt from them.
+        if ($hadText) {
+            $listing->address = $listing->pendingAddressText();
+        }
+        $listing->pending_address = null;
+        $listing->address_approval_status = 'approved';
+    } elseif ($listing->address_approval_status === 'pending' && !empty($listing->pending_address)) {
         $listing->address = $listing->pending_address;
         $listing->pending_address = null;
         $listing->address_approval_status = 'approved';
@@ -851,6 +957,8 @@ public function store(Request $request)
         // Extra Images — at least 2 required for a new listing.
         'images'                   => 'required|array|min:2',
         'images.*'                 => 'required|image|mimes:jpg,jpeg,png,webp',
+
+        'uploaded_videos_csv'      => 'nullable|string|max:5000',
 
         'question'                 => 'nullable|array',
         'question.*'               => 'nullable|string|max:255',
@@ -1268,6 +1376,12 @@ $listing->youtube   = $youtube;
     // photos column me extra images save hongi
     $listing->photos = $uploadedPhotos;
 
+    // Videos (filenames uploaded via direct AJAX, passed as CSV)
+    $uploadedVideos = array_values(array_filter(explode(',', (string) $request->input('uploaded_videos_csv', ''))));
+    if (Schema::hasColumn('listings', 'videos')) {
+        $listing->videos = !empty($uploadedVideos) ? $uploadedVideos : null;
+    }
+
     if (Schema::hasColumn('listings', 'meta_title')) {
         $listing->meta_title = $metaTitle;
     }
@@ -1343,6 +1457,21 @@ if (Schema::hasColumn('listings', 'longitude')) {
 
 
 
+
+    /**
+     * How SB Sales listings want their description written: a local person
+     * recommending the business, not a brochure.
+     */
+    private const LOCAL_DETAILS_RULES = "- details: about 220 words (never under 190), in proper HTML <p> paragraphs, in English
+- details must read like a local person recommending this business to others, in a friendly, simple, conversational tone
+- details must mention Service Bazzar naturally as a platform to find trusted local services
+- details must use the city and the service/subcategory keywords naturally, with no keyword stuffing
+- details must add trust factors such as experience, quality and customer satisfaction, without inventing specific numbers, awards or years
+- details must end with a natural call to action
+- details must start with a fresh, unique opening — never a stock intro such as \"Looking for\" or \"Welcome to\"
+- details must avoid AI-style words and robotic phrasing (no \"delve\", \"elevate\", \"seamless\", \"look no further\", \"in today's fast-paced world\")
+- details must not use bold, <strong>, <b> or headings — plain paragraphs only; it must feel 100% human-written
+";
 
    public function aiGenerate(Request $request)
     {
@@ -1439,8 +1568,8 @@ Strict Rules (ABSOLUTE - NO EXCEPTIONS):
 - meta_keywords: 5-8 comma-separated keywords, no special characters except commas
 - Include area-specific, location-based and service-related keywords
 - Example keywords: \"packers movers, relocation, Vaishali Nagar shifting, Jaipur moving, household transport\"
-- details: minimum 300 words, proper HTML <p> paragraphs, specific to business
-- no placeholder text, no generic content, no links, no fake claims
+" . ($request->input('details_style') === 'local' ? self::LOCAL_DETAILS_RULES : "- details: minimum 300 words, proper HTML <p> paragraphs, specific to business
+") . "- no placeholder text, no generic content, no links, no fake claims
 - faqs: exactly 3 items with complete questions and answers
 - write natural, engaging, SEO-friendly business content";
 

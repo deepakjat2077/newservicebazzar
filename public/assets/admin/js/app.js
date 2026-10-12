@@ -115,6 +115,34 @@ $(function() {
                 ['view', ['fullscreen', 'codeview', 'help']]
             ],
             callbacks: {
+                // Upload pictures as files and insert their link; Summernote's
+                // default embeds the whole image as base64 text in the post.
+                onImageUpload: function (files) {
+                    var $editor = $(this);
+                    Array.prototype.forEach.call(files, function (file) {
+                        var data = new FormData();
+                        data.append('image', file);
+                        var token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').first().val();
+                        $.ajax({
+                            url: '/admin/editor-image',
+                            method: 'POST',
+                            data: data,
+                            processData: false,
+                            contentType: false,
+                            headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }
+                        }).done(function (res) {
+                            if (res && res.url) {
+                                $editor.summernote('insertImage', res.url, function ($img) {
+                                    $img.attr('alt', (file.name || '').replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
+                                    $img.css('max-width', '100%');
+                                });
+                            }
+                        }).fail(function (xhr) {
+                            var msg = (xhr.responseJSON && (xhr.responseJSON.message || (xhr.responseJSON.errors && Object.values(xhr.responseJSON.errors)[0][0]))) || 'Image upload failed.';
+                            alert(msg);
+                        });
+                    });
+                },
                 onInit: function () {
                     var $editor = $(this);
                     var code = $editor.summernote('code');

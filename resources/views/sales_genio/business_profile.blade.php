@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $business->name }} – Sales Genio</title>
+    <title>{{ $business->name }} – SB Sales</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -24,17 +24,30 @@
         .topbar .menu { color: #666; font-size: 18px; cursor: pointer; }
 
         /* Cover */
+        /* The whole photo is shown, never cropped to a strip: sharp and centred over a
+           soft blurred copy of itself, so portrait and landscape photos both sit right. */
+        .cover-link { display: block; text-decoration: none; }
         .cover {
-            height: 130px; margin: 0; position: relative;
+            width: 100%; margin: 0; position: relative; overflow: hidden;
+            aspect-ratio: 16 / 9; min-height: 190px; max-height: 340px;
             background: linear-gradient(135deg, #cfe0f5 0%, #e8f0fb 100%);
             display: flex; align-items: center; justify-content: center;
+        }
+        .cover.is-empty { aspect-ratio: auto; height: 130px; min-height: 0; }
+        .cover .cover-bg {
+            position: absolute; inset: -24px; background-size: cover; background-position: center;
+            filter: blur(24px) brightness(.8); transform: scale(1.1);
+        }
+        .cover .cover-img {
+            position: relative; z-index: 1; display: block;
+            max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;
         }
         .cover .cam {
             width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,.55);
             display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px;
         }
         .cover .add-photos {
-            position: absolute; bottom: 12px; right: 14px;
+            position: absolute; bottom: 12px; right: 14px; z-index: 2;
             background: #1a1a2e; color: #fff; font-size: 12px; font-weight: 500;
             padding: 7px 14px; border-radius: 6px; display: flex; align-items: center; gap: 6px;
         }
@@ -56,6 +69,7 @@
             position: absolute; top: 16px; right: 18px; width: 30px; height: 30px;
             border: 1px solid #e0e4ec; border-radius: 50%; display: flex; align-items: center;
             justify-content: center; color: #666; font-size: 12px; cursor: pointer; background: #fff;
+            text-decoration: none; z-index: 2;
         }
 
         /* Actions */
@@ -72,7 +86,6 @@
         .action .ico.call { color: #1a73e8; }
         .action .ico.chat { color: #25d366; }
         .action .ico.dir { color: #444; }
-        .action .ico.demo { color: #e65100; }
         .action .lbl { font-size: 12px; font-weight: 500; color: #333; }
         .action .pen {
             position: absolute; top: -4px; right: 6px; width: 20px; height: 20px;
@@ -166,12 +179,24 @@
     @if(session('success'))
         <div class="approved-banner"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
     @endif
+    @if($business->name_approval_status === 'pending' && $business->pending_name)
+        <div class="approved-banner" style="background:#fff7e6;color:#8a5a00;"><i class="fas fa-clock"></i> New name "{{ $business->pending_name }}" is waiting for admin approval.</div>
+    @endif
+    @if($business->address_approval_status === 'pending' && $business->pending_address)
+        <div class="approved-banner" style="background:#fff7e6;color:#8a5a00;"><i class="fas fa-clock"></i> New address "{{ $business->pendingAddressText() }}" is waiting for admin approval.</div>
+    @endif
 
     <!-- Cover -->
-    @php $cover = $photos->firstWhere('type', 'photo') ?? $photos->first(); @endphp
-    <a href="{{ route('sales_genio.business.photos', $business->id) }}" style="text-decoration:none;">
-        <div class="cover" @if($cover) style="background-image:url('{{ asset($cover->path) }}');background-size:cover;background-position:center;" @endif>
-            @unless($cover)<div class="cam"><i class="fas fa-camera"></i></div>@endunless
+    {{-- The business's own thumbnail (the one search results show) leads; a gallery photo only when there is none. --}}
+    @php $cover = $photos->firstWhere('type', 'cover') ?? $photos->firstWhere('type', 'photo') ?? $photos->first(); @endphp
+    <a href="{{ route('sales_genio.business.photos', $business->id) }}" class="cover-link">
+        <div class="cover {{ $cover ? '' : 'is-empty' }}">
+            @if($cover)
+                <div class="cover-bg" style="background-image:url('{{ asset($cover->path) }}');"></div>
+                <img class="cover-img" src="{{ asset($cover->path) }}" alt="{{ $business->name }}" decoding="async">
+            @else
+                <div class="cam"><i class="fas fa-camera"></i></div>
+            @endif
             <div class="add-photos">
                 @if($photos->count()){{ $photos->count() }} Photos @else Add Photos @endif
                 <i class="fas fa-chevron-right"></i>
@@ -181,7 +206,7 @@
 
     <!-- Header -->
     <div class="biz-head">
-        <div class="edit-round"><i class="fas fa-pen"></i></div>
+        <a class="edit-round" href="{{ route('sales_genio.business.name', $business->id) }}" aria-label="Edit business name"><i class="fas fa-pen"></i></a>
         <div class="name">{{ $business->name }}</div>
         <div class="rating">
             <span class="badge">0.0 <i class="fas fa-star" style="font-size:9px;"></i></span>
@@ -193,7 +218,8 @@
         </div>
         <div class="timings">
             @php $bd = is_array($business->business_days) ? $business->business_days : []; @endphp
-            {{ count($bd) ? count($bd).' days open' : 'Add Timings' }}
+            @php $bd24 = ($business->open_time[0] ?? '') === '12:00 AM' && ($business->close_time[0] ?? '') === '11:59 PM'; @endphp
+            {{ count($bd) ? (count($bd) === 7 ? 'Open all 7 days' : count($bd) . ' days open') . ($bd24 ? ' · 24 hours' : '') : 'Add Timings' }}
             <a href="{{ route('sales_genio.business.timings', $business->id) }}">Edit</a>
         </div>
     </div>
@@ -214,10 +240,6 @@
             <div class="pen"><i class="fas fa-pen"></i></div>
             <div class="ico dir"><i class="fas fa-location-arrow"></i></div>
             <div class="lbl">Direction</div>
-        </div>
-        <div class="action">
-            <div class="ico demo"><i class="fas fa-gift"></i></div>
-            <div class="lbl">Demo</div>
         </div>
     </div>
 
@@ -276,6 +298,30 @@
         </div>
     </div>
 
+    <!-- Rate Card / Catalogue -->
+    <div class="section">
+        <div class="s-head">
+            <div class="s-title">Rate Card / Catalogue</div>
+            <button class="btn-edit" onclick="location.href='{{ route('sales_genio.business.catalogue', $business->id) }}'"><i class="fas fa-pen"></i> Edit</button>
+        </div>
+        @if($catalogue->count())
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:14px;">
+                @foreach($catalogue->take(8) as $c)
+                    <a href="{{ route('sales_genio.business.catalogue', $business->id) }}">
+                        <img src="{{ asset('assets/images/listing/extra/' . $c->image) }}" alt="Catalogue" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;">
+                    </a>
+                @endforeach
+            </div>
+        @else
+            <a href="{{ route('sales_genio.business.catalogue', $business->id) }}" style="text-decoration:none;">
+                <div class="add-photo-box"><i class="fas fa-plus"></i> Add Rate Card / Catalogue</div>
+            </a>
+        @endif
+        <div class="photo-btns">
+            <button onclick="location.href='{{ route('sales_genio.business.catalogue', $business->id) }}'" style="flex:1;">Add Catalogue</button>
+        </div>
+    </div>
+
     <!-- Quick Information -->
     <div class="section">
         <div class="s-title" style="margin-bottom:6px;">Quick Information</div>
@@ -302,6 +348,12 @@
                     @endforeach
                     @php $landline = is_array($business->landline_numbers) ? ($business->landline_numbers[0] ?? null) : null; @endphp
                     @if($landline)<div class="ir-val">{{ $landline }}</div>@endif
+                    @foreach((array) $business->extra_contacts as $person)
+                        <div class="ir-val">
+                            {{ trim(($person['title'] ?? '') . ' ' . ($person['name'] ?? '')) }}@if(!empty($person['designation'])) ({{ $person['designation'] }})@endif
+                            @if(!empty($person['mobile'])) · +91-{{ $person['mobile'] }}@endif
+                        </div>
+                    @endforeach
                 </div>
             </div>
             <button class="btn-edit" onclick="location.href='{{ route('sales_genio.business.contact', $business->id) }}'"><i class="fas fa-pen"></i> Edit</button>
@@ -314,7 +366,13 @@
                     <div class="ir-title">Business Hours</div>
                     @php $bdays = is_array($business->business_days) ? $business->business_days : []; @endphp
                     @if(count($bdays))
-                        <div class="ir-val">{{ count($bdays) }} days open · {{ ($business->open_time[0] ?? '') }} - {{ ($business->close_time[0] ?? '') }}</div>
+                        @php
+                            $bOpen = $business->open_time[0] ?? '';
+                            $bClose = $business->close_time[0] ?? '';
+                            // 12:00 AM – 11:59 PM is how the timings page saves "Open 24 Hrs".
+                            $b24 = $bOpen === '12:00 AM' && $bClose === '11:59 PM';
+                        @endphp
+                        <div class="ir-val">{{ count($bdays) === 7 ? 'Open all 7 days' : count($bdays) . ' days open' }} · {{ $b24 ? 'Open 24 hours' : $bOpen . ' - ' . $bClose }}</div>
                     @else
                         <div class="ir-val">Add Timings</div>
                     @endif
@@ -449,7 +507,7 @@
             <button class="dclose" onclick="closeDispo()">&times;</button>
         </div>
         <div class="dispo-list">
-            @foreach(\App\Http\Controllers\SalesGenioController::dispositionOptions() as $opt)
+            @foreach(\App\Http\Controllers\SalesGenioController::repDispositionOptions() as $opt)
                 @php $isOn = in_array($opt, $activeDispositions ?? []); @endphp
                 <div class="dispo-item">
                     <span>{{ $opt }}</span>

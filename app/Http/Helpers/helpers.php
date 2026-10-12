@@ -137,7 +137,11 @@ function landerForeignCityName(?string $name, ?string $urlCityName): ?string
         return null;
     }
 
-    $cities = \Illuminate\Support\Facades\Cache::remember('lander:city_names:v1', now()->addHours(6), function () {
+    // Held for the request: a category page calls this once per subcategory
+    // (hundreds of times), and fetching + unserializing the list from Redis
+    // on each call was ~20% of the page's render time.
+    static $cities = null;
+    $cities ??= \Illuminate\Support\Facades\Cache::remember('lander:city_names:v1', now()->addHours(6), function () {
         return \App\Models\Location::where('status', 1)
             ->pluck('name')
             ->map(fn ($n) => trim((string) $n))
@@ -150,6 +154,10 @@ function landerForeignCityName(?string $name, ?string $urlCityName): ?string
     $urlCityName = mb_strtolower(trim((string) $urlCityName));
 
     foreach ($cities as $city) {
+        // Cheap substring test first; the word-boundary regex only runs on a hit.
+        if (mb_stripos($name, $city) === false) {
+            continue;
+        }
         if (mb_strtolower($city) === $urlCityName) {
             continue; // the page's own city is not "foreign"
         }
@@ -207,6 +215,82 @@ function userAvatarUrl($image) {
  * Strips the original extension and appends .webp.
  * Falls back to the original path if no WebP is found.
  */
+/**
+ * A blog picture for the small cards (homepage): a 760px-wide WebP copy kept
+ * in blog/thumb/. Uploads are often 1500px+ and 150 KB for a 380px card.
+ * The copy is made on first use, so each app server builds its own.
+ */
+function blogThumb($image)
+{
+    $dir  = 'assets/servicebazzar/images/blog/';
+    $src  = public_path($dir . $image);
+    $rel  = $dir . 'thumb/' . pathinfo((string) $image, PATHINFO_FILENAME) . '.webp';
+
+    if (is_file(public_path($rel))) {
+        return asset($rel);
+    }
+    if (!$image || !is_file($src)) {
+        return loadImage($dir . $image);
+    }
+
+    try {
+        $data = @file_get_contents($src);
+        $img  = $data !== false ? @imagecreatefromstring($data) : false;
+        if ($img) {
+            if (imagesx($img) > 760) {
+                $img = imagescale($img, 760);
+            }
+            @mkdir(public_path($dir . 'thumb'), 0775, true);
+            imagewebp($img, public_path($rel), 72);
+            imagedestroy($img);
+            if (is_file(public_path($rel))) {
+                return asset($rel);
+            }
+        }
+    } catch (\Throwable $e) {
+        // fall back to the original picture
+    }
+
+    return loadImage($dir . $image);
+}
+
+/**
+ * A WebP copy of a public image at most $width px wide, kept in a "w{width}"
+ * folder beside it and made on first use (each app server builds its own).
+ * For phone-sized pictures such as the homepage banner on mobile.
+ */
+function narrowWebp($path, $width = 800)
+{
+    $rel = dirname($path) . '/w' . $width . '/' . pathinfo($path, PATHINFO_FILENAME) . '.webp';
+
+    if (is_file(public_path($rel))) {
+        return asset($rel);
+    }
+
+    $src = public_path($path);
+    if (is_file($src)) {
+        try {
+            $data = @file_get_contents($src);
+            $img  = $data !== false ? @imagecreatefromstring($data) : false;
+            if ($img) {
+                if (imagesx($img) > $width) {
+                    $img = imagescale($img, $width);
+                }
+                @mkdir(dirname(public_path($rel)), 0775, true);
+                imagewebp($img, public_path($rel), 75);
+                imagedestroy($img);
+                if (is_file(public_path($rel))) {
+                    return asset($rel);
+                }
+            }
+        } catch (\Throwable $e) {
+            // fall back to the full picture
+        }
+    }
+
+    return loadImageWebp($path);
+}
+
 function loadImageWebp($image, $isAvatar = false) {
     if ($image) {
         $webpPath = preg_replace('/\.(png|jpe?g|gif)$/i', '.webp', $image);
@@ -531,4 +615,31 @@ function retiredSubcategorySlugs(): array
         'best-wedding-band-mumbai-wedding-bands-mumbai-mumbai-wedding-band-marriage-band-mumbai-brass-band-mumbai-baraat-band-mumbai-wedding-music-band-mumbai-professional-wedding-band-mumbai-premium-wedding-band-mumbai' => 'best-wedding-band-mumbai',
         'decorators-event-organisers-for-arm-wrestling-event-organisers-for-bachelorette-party-event-organisers-for-bhajan-sandhya-event-organisers-for-birthday-party-event-organisers-for-concert-event-organisers-for-corporate-event-organisers-for-dj-event-organis' => 'decorators-event-organisers',
     ];
+}
+
+if (!function_exists('sg_route')) {
+    /**
+     * route() for the SB Sales business edit pages. The same views also serve
+     * a business owner (OwnerEditController); then each sales route name is
+     * swapped for the owner's mirror route with the same parameters.
+     */
+    function sg_route(string $name, $parameters = [], bool $absolute = true): string
+    {
+        if (request()->attributes->get('sg_owner')) {
+            if ($name === 'sales_genio.business.profile') {
+                return route('user.listing.profile', $parameters, $absolute);
+            }
+            if ($name === 'sales_genio.business.contact') {
+                return route('user.listing.business-contact', is_array($parameters) ? $parameters : [$parameters], $absolute);
+            }
+            if ($name === 'sales_genio.subcategories.by.category') {
+                return route('user.listing.sg.subcategories', $parameters, $absolute);
+            }
+            if (str_starts_with($name, 'sales_genio.business.')) {
+                return route('user.listing.sg.' . substr($name, strlen('sales_genio.business.')), $parameters, $absolute);
+            }
+        }
+
+        return route($name, $parameters, $absolute);
+    }
 }

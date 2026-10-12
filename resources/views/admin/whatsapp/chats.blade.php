@@ -225,6 +225,16 @@
     }
     .wa-thread-listing ~ .wa-delete-chat{ margin-left:6px; }  /* badge already took the auto */
     .wa-delete-chat:hover{ color:#c92a2a; }
+    .wa-call-btn{
+        display:inline-flex; align-items:center; gap:4px;
+        margin-left:auto;
+        padding:4px 10px; border-radius:20px;
+        background:#25d366; color:#fff; font-size:13px; font-weight:600;
+        text-decoration:none; white-space:nowrap;
+    }
+    .wa-call-btn:hover{ background:#128c4a; color:#fff; text-decoration:none; }
+    .wa-thread-listing ~ .wa-call-btn{ margin-left:8px; }
+    .wa-call-btn ~ .wa-delete-chat{ margin-left:8px; }
 
     /* ---------- delivery ticks ---------- */
     .wa-tick{ font-size:11px; margin-left:3px; }

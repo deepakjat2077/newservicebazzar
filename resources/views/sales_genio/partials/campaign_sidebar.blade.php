@@ -45,6 +45,37 @@
       @endforeach
     </div>
 
+{{-- Phone: the same packages as tappable cards (campaign landing only). --}}
+@if($mobileList ?? false)
+  @php
+    $sbCard = function ($pk) use ($business, $icon, $sbOwned, $sbAwaiting, $cart) {
+        $state = $sbOwned->has($pk->id) ? 'Active' : ($sbAwaiting->contains($pk->id) ? 'Awaiting payment'
+               : (($cart ?? collect())->has($pk->id) ? 'In cart' : null));
+        return ['url' => route('sales_genio.business.campaign', ['id' => $business->id, 'pkg' => $pk->id]),
+                'icon' => $icon($pk), 'name' => $pk->name, 'line' => $pk->benefitList()[0] ?? '', 'state' => $state];
+    };
+  @endphp
+  <div class="cmp-mlist">
+    @foreach(['Select Package' => $mainPackages, 'Select Addons' => $addonPackages] as $heading => $group)
+      @if($group->isNotEmpty())
+        <h3>{{ $heading }}</h3>
+        @foreach($group as $pk)
+          @php $c = $sbCard($pk); @endphp
+          <a href="{{ $c['url'] }}" class="cmp-mcard">
+            <i class="fas {{ $c['icon'] }} ic"></i>
+            <span class="tx">
+              <b>{{ $c['name'] }}</b>
+              @if($c['line'])<small>{{ $c['line'] }}</small>@endif
+              @if($c['state'])<em>{{ $c['state'] }}</em>@endif
+            </span>
+            <i class="fas fa-chevron-right go"></i>
+          </a>
+        @endforeach
+      @endif
+    @endforeach
+  </div>
+@endif
+
 
 <style>
 .cmp-side .tick--wait{color:#e0a11b;}

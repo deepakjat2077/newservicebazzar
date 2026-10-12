@@ -70,6 +70,13 @@
                         <td>
                             @if($sentCounts->get($enquiry->id))
                                 <span class="badge badge-success">{{ $sentCounts->get($enquiry->id) }}</span>
+                                @php $ls = $lastSends->get($enquiry->id); @endphp
+                                @if($ls)
+                                    <small class="d-block text-muted mt-1" style="white-space:nowrap;line-height:1.3;">
+                                        by {{ $ls->admin_id ? ($senderNames[$ls->admin_id] ?? 'Admin #' . $ls->admin_id) : 'System (auto)' }}<br>
+                                        {{ $ls->created_at->timezone('Asia/Kolkata')->format('d M, h:i A') }}
+                                    </small>
+                                @endif
                             @else
                                 <span class="text-muted small">—</span>
                             @endif

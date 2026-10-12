@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Genio Dashboard – ServiceBazzar</title>
+    <title>SB Sales Dashboard – ServiceBazzar</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -290,13 +290,78 @@
             font-size: 15px;
         }
 
+        .m-revenue { display: none; }
+
+        @media (max-width: 760px) {
+            body { background: #fff; }
+
+            .main { padding: 0 16px 20px; }
+            .greeting { display: none; }
+
+
+            .m-revenue { display: block; padding: 18px 0 14px; }
+            .m-revenue__row { display: flex; align-items: baseline; gap: 8px; }
+            .m-revenue__amount { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+            .m-revenue__diff { font-size: 15px; font-weight: 600; }
+            .m-revenue__diff.up { color: #2e7d32; }
+            .m-revenue__diff.down { color: #d32f2f; }
+            .m-revenue__note { font-size: 13px; color: #37415a; margin-top: 4px; }
+
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            .stat-card {
+                background: var(--accent-light, #e8f0fe);
+                box-shadow: none;
+                border-radius: 12px;
+                padding: 12px 10px;
+                gap: 4px;
+                min-height: 92px;
+            }
+            .stat-card::before, .stat-card .icon, .stat-card .sub { display: none; }
+            .stat-card .label {
+                font-size: 12.5px;
+                font-weight: 600;
+                letter-spacing: 0;
+                text-transform: none;
+                color: #1a1a2e;
+                line-height: 1.3;
+            }
+            .stat-card .value { font-size: 17px; }
+        }
     </style>
 </head>
 <body>
 
+@php
+    $revNow  = $stats['revenue'];
+    $revLast = $stats['revenue_last'];
+    $revDiff = $revLast > 0 ? (int) round(($revNow - $revLast) / $revLast * 100) : null;
+@endphp
+
 @include('sales_genio.partials.topnav')
 
+
 <div class="main">
+    <div class="m-revenue">
+        <div class="m-revenue__row">
+            <span class="m-revenue__amount">₹{{ number_format($revNow) }}</span>
+            @if($revDiff !== null)
+                <span class="m-revenue__diff {{ $revDiff >= 0 ? 'up' : 'down' }}">{{ $revDiff >= 0 ? '+' : '' }}{{ $revDiff }}%</span>
+            @endif
+        </div>
+        <p class="m-revenue__note">
+            @if($revDiff === null)
+                Your sales this month.
+            @elseif($revDiff >= 0)
+                Your sales have increased compared with last month.
+            @else
+                Your sales have decreased compared with last month.
+            @endif
+        </p>
+    </div>
+
     <div class="greeting">
         <h1>Welcome back, {{ explode(' ', $user->name)[0] }}! 👋</h1>
         <p>

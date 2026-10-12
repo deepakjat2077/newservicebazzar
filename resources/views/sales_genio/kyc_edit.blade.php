@@ -90,14 +90,15 @@
 <body>
 @php
     // Shared by Sales Genio and the owner's own dashboard; each passes its own URLs.
-    $kycBackUrl = $kycBackUrl ?? route('sales_genio.business.profile', $business->id);
-    $kycUploadUrl = $kycUploadUrl ?? route('sales_genio.business.kyc.upload', $business->id);
-    $kycNumberUrl = $kycNumberUrl ?? route('sales_genio.business.kyc.number', $business->id);
-    $kycDeleteBase = $kycDeleteBase ?? url('sales_genio/business/' . $business->id . '/kyc');
+    $kycBackUrl = $kycBackUrl ?? sg_route('sales_genio.business.profile', $business->id);
+    $kycUploadUrl = $kycUploadUrl ?? sg_route('sales_genio.business.kyc.upload', $business->id);
+    $kycNumberUrl = $kycNumberUrl ?? sg_route('sales_genio.business.kyc.number', $business->id);
+    $kycDeleteBase = $kycDeleteBase ?? url('sb-sales/business/' . $business->id . '/kyc');
 @endphp
 <div class="page">
     <div class="topbar">
         <a href="{{ $kycBackUrl }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">KYC / Documents</div>
     </div>
 

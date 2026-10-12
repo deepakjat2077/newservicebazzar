@@ -52,7 +52,7 @@ class OtpGate
      * requests per IP; this caps the damage a single session can do to the
      * WhatsApp bill by cycling through numbers.
      */
-    public const SEND_BUDGET_PER_HOUR = 8;
+    public const SEND_BUDGET_PER_HOUR = 20;
 
     /** Everything this visitor's gate stores hangs off one prefix. */
     protected static function scope(): string

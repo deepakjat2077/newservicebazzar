@@ -43,13 +43,6 @@
   .ct-remove:hover{color:#b4261f;}
   .ct-edit{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:#1a73e8;text-decoration:none;}
 
-  .ct-pending{background:#fff8ec;border:1px solid #f2dca6;border-radius:14px;padding:14px 16px;margin-bottom:14px;}
-  .ct-pending__head{font-size:13.5px;font-weight:700;color:#8a6412;margin-bottom:8px;}
-  .ct-pending__row{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;
-    border:1px solid #f0e2c4;border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:13px;color:#5a6478;
-    text-decoration:none;}
-  .ct-pending__row b{color:#12203f;white-space:nowrap;}
-  .ct-pending p{margin:4px 0 0;font-size:12px;color:#94743a;}
   .ct-live{background:#eafaf1;color:#1f7a45;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;
     margin-left:8px;vertical-align:middle;}
   .ct-empty{background:#fff;border:1px dashed #d7dceb;border-radius:14px;padding:46px 20px;text-align:center;color:#7a8296;}
@@ -69,7 +62,33 @@
   .ct-card{background:#fff;border:1px solid #e6e9f2;border-radius:16px;overflow:hidden;}
   .ct-card h3{margin:0;padding:15px 18px;border-bottom:1px solid #eef0f6;font-size:14.5px;font-weight:800;color:#12203f;}
   .ct-line{display:flex;justify-content:space-between;gap:10px;padding:11px 18px;font-size:13.5px;color:#5a6478;}
+  .ct-top .ct-biz{margin-left:auto;}
   .ct-line b{color:#12203f;}
+  .ct-line small{display:block;color:#8a92a6;font-size:11.5px;margin-top:2px;}
+  .ct-disc span,.ct-disc b{color:#1f7a45;}
+  .ct-disc small a{color:#1a73e8;text-decoration:none;}
+  .ct-inline{display:inline;margin:0;}
+  .ct-linkbtn{background:none;border:0;padding:0;color:#c62828;font:inherit;font-size:11.5px;cursor:pointer;}
+  .ct-apply{display:flex;align-items:center;gap:10px;width:calc(100% - 36px);margin:10px 18px 14px;padding:11px 14px;background:#f2f9f5;border:1.5px dashed #6fbf8c;
+    border-radius:10px;color:#1f7a45;font:600 14px 'Poppins',sans-serif;cursor:pointer;text-align:left;}
+  .ct-apply em{margin-left:auto;font-style:normal;font-weight:500;font-size:12px;color:#5a8d70;}
+  .ct-apply:hover{background:#e8f5ee;}
+
+  .dc-modal{position:fixed;inset:0;z-index:300;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:18px;}
+  .dc-modal.open{display:flex;}
+  .dc-box{background:#fff;border-radius:16px;width:100%;max-width:440px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;}
+  .dc-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eef0f6;}
+  .dc-head b{font-size:17px;color:#12203f;}
+  .dc-x{border:0;background:#f1f3f8;width:32px;height:32px;border-radius:50%;font-size:19px;color:#62708c;cursor:pointer;}
+  .dc-list{overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+  .dc-item{border:1.5px solid #e3e7ef;border-radius:12px;padding:14px 16px;display:flex;gap:14px;align-items:center;justify-content:space-between;}
+  .dc-item.is-on{border-color:#1f9d55;background:#f2f9f5;}
+  .dc-item b{display:block;font-size:15px;color:#12203f;}
+  .dc-item .off{font-size:15px;font-weight:700;color:#1f7a45;}
+  .dc-item small{display:block;color:#7a8296;font-size:12px;margin-top:3px;line-height:1.4;}
+  .dc-item form{margin:0;}
+  .dc-item button{border:0;border-radius:8px;padding:9px 16px;background:#1a73e8;color:#fff;font:600 13px 'Poppins',sans-serif;cursor:pointer;white-space:nowrap;}
+  .dc-item.is-on button{background:#1f9d55;cursor:default;}
   .ct-total{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#12203f;color:#fff;}
   .ct-total span{font-size:13.5px;opacity:.85;}
   .ct-total strong{font-size:24px;}
@@ -78,24 +97,78 @@
   .ct-pay:hover{background:#188746;color:#fff;}
   .ct-note{padding:12px 18px;font-size:12px;color:#8a92a6;text-align:center;line-height:1.5;}
   @media (max-width:900px){.ct-side{position:static;flex-basis:100%;}}
+  .ct-empty strong{display:block;margin-bottom:4px;color:#12203f;font-size:16px;}
+  .ct-empty span{display:block;}
+
+  .ct-mhead,.ct-mfoot{display:none;}
+  @media (max-width:760px){
+    .sg-nav{display:none;}
+    body{background:#fff;padding-bottom:92px;}
+    .ct-mhead{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;background:#fff;
+      padding:14px 16px;border-bottom:1px solid #eef0f4;}
+    .ct-mhead .b{font-size:20px;color:#1a1a2e;text-decoration:none;width:70px;}
+    .ct-mhead .t{flex:1;text-align:center;font-size:17px;font-weight:500;color:#1a1a2e;}
+    .ct-mhead form{width:70px;text-align:right;margin:0;}
+    .ct-mhead .x{background:none;border:0;color:#1a73e8;font-size:15px;font-family:inherit;cursor:pointer;padding:0;}
+    .ct-mhead .x-ph{width:70px;}
+    .ct-top .ct-back,.ct-head .ct-clear,.ct-side .ct-pay{display:none;}
+    .ct-wrap.is-empty .ct-head,.ct-wrap.is-empty .ct-side,.ct-wrap.is-empty .ct-top{display:none;}
+    .ct-wrap.is-empty .ct-empty{border:0;background:none;padding:22vh 20px 20px;font-size:15px;color:#1a1a2e;}
+    .ct-wrap.is-empty .ct-empty i{font-size:56px;color:#1a73e8;margin-bottom:22px;}
+    .ct-wrap.is-empty .ct-empty strong{font-size:18px;font-weight:600;}
+    .ct-mfoot{display:flex;align-items:center;gap:14px;position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff;
+      border-top:1px solid #eef0f4;padding:12px 16px calc(12px + env(safe-area-inset-bottom));}
+    .ct-mfoot .sum{display:flex;flex-direction:column;line-height:1.25;}
+    .ct-mfoot .sum span{font-size:14px;color:#6b7285;}
+    .ct-mfoot .sum strong{font-size:19px;color:#1a1a2e;}
+    .ct-mfoot .go{margin-left:auto;background:#1a73e8;color:#fff;border-radius:6px;padding:14px 26px;
+      font-size:17px;font-weight:500;text-decoration:none;text-align:center;}
+    .ct-mfoot .go.wide{margin:0;flex:1;}
+
+    /* Cart line: picture, then name, price and what it includes. */
+    .ct-item{border:0 !important;background:#f7f8fa !important;border-radius:10px;padding:16px !important;
+      gap:14px !important;margin-bottom:14px;}
+    .ct-item img{width:76px !important;height:auto !important;align-self:flex-start;}
+    .ct-item .info h3{font-size:19px !important;font-weight:600;}
+    .ct-item .info p{font-size:13.5px;color:#6b7285;}
+    .ct-item .price b{font-size:19px;}
+    .ct-more h2{font-size:16px;font-weight:500;color:#1a1a2e;margin:18px 0 12px;}
+  }
 </style>
 </head>
 <body>
 
 @include('sales_genio.partials.topnav')
+@include('sales_genio.partials.flow_chrome')
 
 @php
-  $total = $items->sum('price');
+  // What the rep sees here is before GST; the discount comes off it. GST is added at checkout.
+  $total = $items->sum('price') - $totals['discountAmount'];
   $payable = $items->where('price', '>', 0)->count();
 @endphp
 
-<div class="ct-wrap">
+{{-- Phone header: back to packages, title, Clear All. --}}
+<div class="ct-mhead">
+  <a href="{{ route('sales_genio.business.campaign', $business->id) }}" class="b" aria-label="Back to packages"><i class="fas fa-arrow-left"></i></a>
+  <span class="t">Cart</span>
+  @if($items->isNotEmpty())
+    <form method="post" action="{{ route('sales_genio.business.cart.clear', $business->id) }}">
+      @csrf
+      <button type="submit" class="x">Clear All</button>
+    </form>
+  @else
+    <span class="x-ph"></span>
+  @endif
+</div>
+
+<div class="ct-wrap {{ $items->isEmpty() ? 'is-empty' : '' }}">
   <div class="ct-top">
     <a href="{{ route('sales_genio.business.campaign', $business->id) }}" class="ct-back"><i class="fas fa-arrow-left"></i> Back to packages</a>
     <div class="ct-biz">
       <strong>{{ $business->name }}</strong>
       {{ $business->area ? $business->area.', ' : '' }}{{ $business->city }}
     </div>
+    @include('sales_genio.partials.flow_avatar')
   </div>
 
   @if(session('success'))<div class="ct-flash"><i class="fas fa-circle-check"></i> {{ session('success') }}</div>@endif
@@ -119,19 +192,6 @@
         </div>
       @endif
 
-      @if($pendingOrders->isNotEmpty())
-        <div class="ct-pending">
-          <div class="ct-pending__head"><i class="fas fa-clock"></i> Payment links waiting to be paid</div>
-          @foreach($pendingOrders as $po)
-            <a class="ct-pending__row" href="{{ route('sales_genio.business.order', ['id' => $business->id, 'order' => $po->id]) }}">
-              <span>Order #{{ $po->id }} · {{ $po->items_count }} item{{ $po->items_count == 1 ? '' : 's' }} · sent {{ $po->created_at->diffForHumans() }}</span>
-              <b>₹{{ numberFormat($po->total) }} <i class="fas fa-chevron-right"></i></b>
-            </a>
-          @endforeach
-          <p>The cart below is kept until one of these is paid, so nothing is lost if the customer pays later.</p>
-        </div>
-      @endif
-
       @forelse($items as $item)
         <div class="ct-item">
           @if($item['image'])<img src="{{ $item['image'] }}" alt="{{ $item['name'] }}">@endif
@@ -142,6 +202,10 @@
               @endif
             </h3>
             <p>{{ $item['plan'] }}</p>
+            @if(!empty($item['needs_design']))
+              <p style="color:#c62828;font-weight:600;">Website design not chosen yet —
+                <a href="{{ $item['design_url'] }}" style="color:#1a73e8;">choose a design</a></p>
+            @endif
             <p>Runs for {{ $item['days'] }} days from the day it is paid</p>
             @if(!empty($item['lines']))
               <p>@foreach($item['lines'] as $line){{ $line['tier'] }} — {{ $line['area'] }} ({{ $line['pincode'] }}){{ !$loop->last ? ' · ' : '' }}@endforeach</p>
@@ -166,13 +230,14 @@
       @empty
         <div class="ct-empty">
           <i class="fas fa-cart-shopping"></i>
-          Nothing in the cart yet — pick a package to start the pitch.
+          <strong>Your Cart is Empty!</strong>
+          <span>Looks like you haven't added anything in the cart yet!</span>
         </div>
       @endforelse
 
       @if($suggestions->isNotEmpty())
         <div class="ct-more">
-          <h2>Also worth pitching</h2>
+          <h2>You might also be interested in</h2>
           <div class="ct-rail">
             @foreach($suggestions as $sug)
               <div class="ct-sug">
@@ -196,13 +261,35 @@
         <h3>Order summary</h3>
         @foreach($items as $item)
           <div class="ct-line">
-            <span>{{ $item['name'] }}</span>
+            <span>{{ $item['name'] }}<small>{{ $item['plan'] }}</small></span>
             <b>@if(!empty($item['free'])) FREE @else ₹{{ numberFormat($item['price']) }} @endif</b>
           </div>
         @endforeach
         @if($items->isEmpty())
           <div class="ct-line"><span>No items yet</span><b>₹0</b></div>
         @endif
+
+        @if($payable)
+          @if($totals['discount'])
+            <div class="ct-line ct-disc">
+              <span>
+                Discount — {{ $totals['discount']->name }}
+                <small>{{ $totals['discount']->label() }} ·
+                  <a href="#" onclick="openDiscounts(); return false;">Change</a> ·
+                  <form method="post" action="{{ route('sales_genio.business.cart.discount.remove', $business->id) }}" class="ct-inline">
+                    @csrf <button type="submit" class="ct-linkbtn">Remove</button>
+                  </form>
+                </small>
+              </span>
+              <b>−₹{{ numberFormat($totals['discountAmount']) }}</b>
+            </div>
+          @elseif($availableDiscounts->isNotEmpty())
+            <button type="button" class="ct-apply" onclick="openDiscounts()">
+              <i class="fas fa-tags"></i> Apply discount <em>{{ $availableDiscounts->count() }} available</em>
+            </button>
+          @endif
+        @endif
+
         <div class="ct-total">
           <span>Total price</span>
           <strong>₹{{ numberFormat($total) }}</strong>
@@ -216,6 +303,53 @@
       </div>
     </div>
   </div>
+</div>
+
+{{-- Discounts the admin has switched on, that cover something in this cart. --}}
+<div class="dc-modal" id="dcModal" role="dialog" aria-modal="true" aria-label="Choose a discount" onclick="if (event.target === this) closeDiscounts();">
+  <div class="dc-box">
+    <div class="dc-head"><b>Choose a discount</b><button type="button" class="dc-x" onclick="closeDiscounts()" aria-label="Close">&times;</button></div>
+    <div class="dc-list">
+      @forelse($availableDiscounts as $d)
+        @php
+          $on = optional($totals['discount'])->id === $d->id;
+          $covers = $d->coversAllPackages() ? 'All packages' : $packages->whereIn('id', $d->package_ids)->pluck('name')->implode(', ');
+        @endphp
+        <div class="dc-item {{ $on ? 'is-on' : '' }}">
+          <div>
+            <b>{{ $d->name }}</b>
+            <span class="off">{{ $d->label() }}</span>
+            <small>You save ₹{{ numberFormat($d->amountFor($items)) }} on this cart · {{ $covers }}@if($d->ends_at) · until {{ $d->ends_at->format('d M Y') }}@endif</small>
+          </div>
+          @if($on)
+            <button type="button" disabled>Applied ✓</button>
+          @else
+            <form method="post" action="{{ route('sales_genio.business.cart.discount', $business->id) }}">
+              @csrf <input type="hidden" name="discount_id" value="{{ $d->id }}">
+              <button type="submit">Apply</button>
+            </form>
+          @endif
+        </div>
+      @empty
+        <p style="color:#7a8296;font-size:14px;padding:6px 4px;">No discount covers what is in this cart.</p>
+      @endforelse
+    </div>
+  </div>
+</div>
+<script>
+  function openDiscounts() { document.getElementById('dcModal').classList.add('open'); }
+  function closeDiscounts() { document.getElementById('dcModal').classList.remove('open'); }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDiscounts(); });
+</script>
+
+{{-- Phone: one big action pinned to the bottom. --}}
+<div class="ct-mfoot">
+  @if($payable)
+    <div class="sum"><span>Total Price</span><strong>₹{{ numberFormat($total) }}</strong></div>
+    <a class="go" href="{{ route('sales_genio.business.cart.checkout', $business->id) }}">Proceed to Pay</a>
+  @else
+    <a class="go wide" href="{{ route('sales_genio.business.campaign', $business->id) }}">Browse Products</a>
+  @endif
 </div>
 
 </body>

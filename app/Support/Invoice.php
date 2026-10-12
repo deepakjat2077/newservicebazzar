@@ -288,6 +288,8 @@ class Invoice
             'sgst'       => $intraState ? round($tax / 2, 2) : 0.0,
             'igst'       => $intraState ? 0.0 : $tax,
             'tax'        => $tax,
+            'discount'   => (float) $order->discount_amount,
+            'discountName' => (string) $order->discount_name,
             'total'      => (float) $order->total,
             'inWords'    => self::words((float) $order->total),
         ];

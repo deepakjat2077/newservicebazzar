@@ -63,15 +63,14 @@ class Booster{
 	    }
 
 
-	    $xml = @simplexml_load_file("http://www.geoplugin.net/xml.gp?ip=" . $ip);
-
-
-	    $country = @$xml->geoplugin_countryName;
-	    $city = @$xml->geoplugin_city;
-	    $area = @$xml->geoplugin_areaCode;
-	    $code = @$xml->geoplugin_countryCode;
-	    $long = @$xml->geoplugin_longitude;
-	    $lat = @$xml->geoplugin_latitude;
+	    // geoplugin.net stopped answering free requests (country was always empty).
+	    $geo = \App\Support\GeoIp::lookup(request()->ip());
+	    $country = $geo['country'] ?? null;
+	    $city = $geo['city'] ?? null;
+	    $area = null;
+	    $code = $geo['country_code'] ?? null;
+	    $long = $geo['lng'] ?? null;
+	    $lat = $geo['lat'] ?? null;
 
 	    $data['country'] = $country;
 	    $data['code'] = $code;

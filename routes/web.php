@@ -202,6 +202,10 @@ Route::get('/jaipur/maintenance', function () {
 
         Route::middleware('admin')->group(function () {
 
+            // Admin browser push subscriptions (Web Push / VAPID)
+            Route::post('push/subscribe',    'AdminPushSubscriptionController@subscribe')->name('push.subscribe');
+            Route::delete('push/unsubscribe', 'AdminPushSubscriptionController@unsubscribe')->name('push.unsubscribe');
+
             Route::get('dashboard', 'AdminController@dashboard')->name('dashboard');
             Route::get('dashboard/listing-export', 'AdminController@listingExport')->middleware('permission:listing.export')->name('dashboard.listing.export');
 
@@ -218,6 +222,13 @@ Route::get('/jaipur/maintenance', function () {
                 Route::get('export/excel', 'AnalyticsController@exportExcel')->name('export.excel');
                 Route::get('export/csv', 'AnalyticsController@exportCsv')->name('export.csv');
                 Route::get('export/pdf', 'AnalyticsController@exportPdf')->name('export.pdf');
+            });
+
+            Route::prefix('gsc')->name('gsc.')->group(function () {
+                Route::get('/',          'GscController@index')->name('index');
+                Route::get('/auth',      'GscController@auth')->name('auth');
+                Route::get('/callback',  'GscController@callback')->name('callback');
+                Route::delete('/disconnect', 'GscController@disconnect')->name('disconnect');
             });
 
             // Pinged by long admin forms so a slow one doesn't lose its
@@ -239,6 +250,9 @@ Route::get('/jaipur/maintenance', function () {
                 Route::delete('delete/{id}', 'AdminController@delete')->name('delete');
             });
 
+
+            // Plan subscriptions history
+            Route::get('plans', 'PlanController@index')->name('plans.index');
 
             Route::name('categoryHeading.')->prefix('category-heading')->middleware('permission:category.manage')->group(function () {
                 Route::get('/', 'AdminController@categoryHeadingIndex')->name('index');
@@ -400,6 +414,9 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
     Route::post('shielded-upload', '\App\Http\Controllers\Admin\ShieldedUploadController@store')
         ->name('shielded.upload');
 
+    Route::post('listing-video-upload', 'ListingController@uploadVideo')
+        ->name('listing.video.upload');
+
     // `shielded`: the listing forms post their fields base64-packed, and
     // reference the photo uploaded above by id, so the hosting firewall has
     // neither prose nor an upload to match against and stops 403-ing saves.
@@ -508,6 +525,7 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
 
 
             Route::get('login-history', 'HistoryController@loginHistory')->middleware('permission:history.view')->name('history.login');
+            Route::get('admin-login-history', 'HistoryController@adminLoginHistory')->middleware('permission:history.view')->name('history.admin_login');
 
 
             Route::name('language.')->prefix('language')->middleware('permission:language.manage')->group(function () {
@@ -565,6 +583,10 @@ Route::put('schema-settings/update/{id}', 'SettingController@SchemaSettingupdate
 Route::delete('schema-settings/delete/{id}', 'SettingController@SchemaSettingdelete')->middleware('permission:schema.manage')->name('schema.delete');
 
 
+Route::post('editor-image', 'EditorImageController@store')->name('editor.image')->middleware('throttle:30,1');
+Route::get('blog-comments', 'BlogCommentController@index')->middleware('permission:theme.manage')->name('blog.comments.index');
+Route::delete('blog-comments/{id}', 'BlogCommentController@destroy')->middleware('permission:theme.manage')->name('blog.comments.delete');
+
 Route::get('home-content-sections', 'HomeContentSectionController@index')->middleware('permission:home.manage')->name('home.content.sections.index');
 Route::post('home-content-sections/store', 'HomeContentSectionController@store')->middleware('permission:home.manage')->name('home.content.sections.store');
 Route::put('home-content-sections/update/{id}', 'HomeContentSectionController@update')->middleware('permission:home.manage')->name('home.content.sections.update');
@@ -581,6 +603,28 @@ Route::delete('home-content-sections/delete/{id}', 'HomeContentSectionController
             Route::put('/{salesUser}',        'SalesUsersController@update')->name('update');
             Route::delete('/{salesUser}',     'SalesUsersController@destroy')->name('destroy');
             Route::post('/{salesUser}/toggle','SalesUsersController@toggleStatus')->name('toggle');
+        });
+
+        // Home page "Featured Listings", picked by hand — no payment involved
+        Route::name('home_featured.')->prefix('featured-listings')->middleware('permission:listing.edit')->group(function () {
+            Route::get('/',                 'HomeFeaturedController@index')->name('index');
+            Route::get('/search',           'HomeFeaturedController@search')->name('search');
+            Route::post('/',                'HomeFeaturedController@store')->name('store');
+            Route::post('/{id}',            'HomeFeaturedController@update')->whereNumber('id')->name('update');
+            Route::post('/{id}/toggle',     'HomeFeaturedController@toggle')->whereNumber('id')->name('toggle');
+            Route::post('/{id}/move/{dir}', 'HomeFeaturedController@move')->whereNumber('id')->whereIn('dir', ['up', 'down'])->name('move');
+            Route::delete('/{id}',          'HomeFeaturedController@destroy')->whereNumber('id')->name('destroy');
+        });
+
+        // Sales Genio — discounts the sales team can pick from in the cart
+        Route::name('sales_discounts.')->prefix('sales-discounts')->middleware('permission:package.manage')->group(function () {
+            Route::get('/',               'SalesDiscountController@index')->name('index');
+            Route::get('/create',         'SalesDiscountController@create')->name('create');
+            Route::post('/',              'SalesDiscountController@store')->name('store');
+            Route::get('/{id}/edit',      'SalesDiscountController@edit')->name('edit');
+            Route::post('/{id}',          'SalesDiscountController@update')->name('update');
+            Route::post('/{id}/toggle',   'SalesDiscountController@toggle')->name('toggle');
+            Route::delete('/{id}',        'SalesDiscountController@destroy')->name('destroy');
         });
 
         // Sales Genio — KYC document review
@@ -679,6 +723,13 @@ Route::get('/enquiry-clicks', 'EnquiryController@index2')->middleware('permissio
 
 Route::get('/enquiry-clicks/export', 'EnquiryController@exportClicks')->middleware('permission:enquiry.view')
     ->name('enquiry.clicks.export');
+
+Route::get('/enquiry/generate', 'EnquiryController@generateForm')->middleware('permission:enquiry.manage')
+    ->name('enquiry.generate');
+Route::post('/enquiry/generate', 'EnquiryController@generateStore')->middleware('permission:enquiry.manage')
+    ->name('enquiry.generate.store');
+Route::get('/enquiry/listings-by-category', 'EnquiryController@generateListingsByCategory')->middleware('permission:enquiry.manage')
+    ->name('enquiry.listings.by.category');
 
             /*
             |------------------------------------------------------------------
@@ -822,6 +873,7 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                 Route::post('password-update', 'UserController@passwordUpdate')->name('password.update');
 
                 Route::get('deposit', 'DepositController@deposits')->name('deposit');
+                Route::get('payment/done', 'DepositController@paymentDone')->name('payment.done');
                 Route::post('deposit/submit', 'DepositController@depositSubmit')->name('deposit.submit');
                 Route::get('deposit/confirm', 'DepositController@depositConfirm')->name('deposit.confirm');
                 Route::get('deposit/details/{id}', 'DepositController@depositDetails')->name('deposit.details');
@@ -840,6 +892,43 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::get('import-leads/sample', 'ListingController@importLeadsSample')->name('import-leads.sample');
                     Route::get('{id}/dashboard', 'ListingController@businessDashboard')->name('dashboard');
                     Route::get('{id}/manage', 'ListingController@manage')->name('manage');
+                    Route::get('{id}/profile', 'ListingController@ownerProfile')->name('profile');
+                    // The SB Sales edit pages, used by the owner for their own listing (see OwnerEditController).
+                    Route::get('{id}/edit/name', 'OwnerEditController@proxy')->defaults('sg', 'editName')->name('sg.name');
+                    Route::post('{id}/edit/name', 'OwnerEditController@proxy')->defaults('sg', 'updateName')->name('sg.name.update');
+                    Route::get('{id}/edit/address', 'OwnerEditController@proxy')->defaults('sg', 'editAddress')->name('sg.address');
+                    Route::post('{id}/edit/address', 'OwnerEditController@proxy')->defaults('sg', 'updateAddress')->name('sg.address.update');
+                    Route::get('{id}/edit/timings', 'OwnerEditController@proxy')->defaults('sg', 'editTimings')->name('sg.timings');
+                    Route::post('{id}/edit/timings', 'OwnerEditController@proxy')->defaults('sg', 'updateTimings')->name('sg.timings.update');
+                    Route::get('{id}/edit/categories', 'OwnerEditController@proxy')->defaults('sg', 'editCategories')->name('sg.categories');
+                    Route::post('{id}/edit/categories', 'OwnerEditController@proxy')->defaults('sg', 'updateCategories')->name('sg.categories.update');
+                    Route::get('{id}/edit/establishment', 'OwnerEditController@proxy')->defaults('sg', 'editEstablishment')->name('sg.establishment');
+                    Route::post('{id}/edit/establishment', 'OwnerEditController@proxy')->defaults('sg', 'updateEstablishment')->name('sg.establishment.update');
+                    Route::get('{id}/edit/website', 'OwnerEditController@proxy')->defaults('sg', 'editWebsite')->name('sg.website');
+                    Route::post('{id}/edit/website', 'OwnerEditController@proxy')->defaults('sg', 'updateWebsite')->name('sg.website.update');
+                    Route::get('{id}/edit/social', 'OwnerEditController@proxy')->defaults('sg', 'editSocial')->name('sg.social');
+                    Route::post('{id}/edit/social', 'OwnerEditController@proxy')->defaults('sg', 'updateSocial')->name('sg.social.update');
+                    Route::get('{id}/edit/map', 'OwnerEditController@proxy')->defaults('sg', 'editMap')->name('sg.map');
+                    Route::post('{id}/edit/map', 'OwnerEditController@proxy')->defaults('sg', 'updateMap')->name('sg.map.update');
+                    Route::get('{id}/edit/awards', 'OwnerEditController@proxy')->defaults('sg', 'editAwards')->name('sg.awards');
+                    Route::post('{id}/edit/awards', 'OwnerEditController@proxy')->defaults('sg', 'updateAwards')->name('sg.awards.update');
+                    Route::get('{id}/edit/certificates', 'OwnerEditController@proxy')->defaults('sg', 'editCertificates')->name('sg.certificates');
+                    Route::post('{id}/edit/certificates', 'OwnerEditController@proxy')->defaults('sg', 'updateCertificates')->name('sg.certificates.update');
+                    Route::get('{id}/edit/language', 'OwnerEditController@proxy')->defaults('sg', 'editLanguage')->name('sg.language');
+                    Route::post('{id}/edit/language', 'OwnerEditController@proxy')->defaults('sg', 'updateLanguage')->name('sg.language.update');
+                    Route::get('{id}/edit/photos', 'OwnerEditController@proxy')->defaults('sg', 'photoGallery')->name('sg.photos');
+                    Route::post('{id}/edit/photos', 'OwnerEditController@proxy')->defaults('sg', 'uploadPhotos')->name('sg.photos.upload');
+                    Route::delete('{id}/edit/photos', 'OwnerEditController@proxy')->defaults('sg', 'deletePhoto')->name('sg.photos.delete');
+                    Route::post('{id}/edit/video-poster', 'OwnerEditController@proxy')->defaults('sg', 'videoPoster')->name('sg.video.poster');
+                    Route::post('{id}/edit/photos/cover', 'OwnerEditController@proxy')->defaults('sg', 'setCoverPhoto')->name('sg.photos.cover');
+                    Route::get('{id}/edit/catalogue', 'OwnerEditController@proxy')->defaults('sg', 'catalogue')->name('sg.catalogue');
+                    Route::post('{id}/edit/catalogue', 'OwnerEditController@proxy')->defaults('sg', 'uploadCatalogue')->name('sg.catalogue.upload');
+                    Route::post('{id}/edit/catalogue/{image}/delete', 'OwnerEditController@proxy')->defaults('sg', 'deleteCatalogue')->name('sg.catalogue.delete');
+                    Route::get('{id}/edit/kyc', 'OwnerEditController@proxy')->defaults('sg', 'editKyc')->name('sg.kyc');
+                    Route::post('{id}/edit/kyc', 'OwnerEditController@proxy')->defaults('sg', 'uploadKyc')->name('sg.kyc.upload');
+                    Route::post('{id}/edit/kyc/number', 'OwnerEditController@proxy')->defaults('sg', 'saveKycNumber')->name('sg.kyc.number');
+                    Route::delete('{id}/edit/kyc/{doc}', 'OwnerEditController@proxy')->defaults('sg', 'deleteKyc')->name('sg.kyc.delete');
+                    Route::get('edit/subcategories-by-category', [\App\Http\Controllers\SalesGenioController::class, 'subcategoriesByCategory'])->name('sg.subcategories');
                     Route::get('{id}/advertise', 'ListingController@advertise')->name('advertise');
                     Route::get('{id}/kyc', 'ListingController@businessKyc')->name('kyc');
                     Route::post('{id}/kyc', 'ListingController@businessKycUpload')->name('kyc.upload');
@@ -848,6 +937,8 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::get('{id}/advertise/checkout/{package}', 'ListingController@advertiseCheckout')->name('advertise.checkout');
                     Route::get('advertise-areas', 'ListingController@advertiseAreas')->name('advertise.areas');
                     Route::get('{id}/advertise/package/{pkg}', 'ListingController@advertiseSalesSelect')->name('advertise.sales.select');
+                    Route::get('{id}/advertise/package/{pkg}/design', 'ListingController@advertiseDesign')->name('advertise.design');
+                    Route::get('{id}/advertise/design-preview/{template}', 'OwnerEditController@proxy')->defaults('sg', 'websitePreview')->name('advertise.design.preview');
                     Route::get('{id}/advertise/sales-checkout/{pkg}', 'ListingController@advertiseSalesCheckout')->name('advertise.sales.checkout');
                     Route::get('ad-banner/{id}', [\App\Http\Controllers\AdBannerController::class, 'edit'])->name('ad.banner.edit');
                     Route::post('ad-banner/{id}', [\App\Http\Controllers\AdBannerController::class, 'update'])->name('ad.banner.update');
@@ -901,6 +992,15 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
                     Route::post('{id}/import-leads', 'ListingController@importLeadsUpload')->name('import-leads.upload');
                 });
             });
+
+            // Browser push subscription (Web Push / VAPID)
+            Route::post('push/subscribe',   'PushSubscriptionController@subscribe')->name('push.subscribe');
+            Route::delete('push/unsubscribe', 'PushSubscriptionController@unsubscribe')->name('push.unsubscribe');
+
+            // The bell in the site header.
+            Route::get('notifications/feed',       'UserNotificationController@feed')->middleware('throttle:60,1')->name('notifications.feed');
+            Route::post('notifications/read-all',  'UserNotificationController@readAll')->name('notifications.read-all');
+            Route::post('notifications/{id}/read', 'UserNotificationController@read')->whereNumber('id')->name('notifications.read');
         });
     });
 
@@ -1018,6 +1118,7 @@ Route::get('/jaipur/maintenance', function () {
 
     Route::get('blogs', 'SiteController@blogs')->name('blogs');
     Route::get('blog/{slug}', 'SiteController@blogDetails')->name('blog.details');
+    Route::post('blog/{slug}/comment', 'SiteController@blogComment')->name('blog.comment')->middleware('throttle:5,1');
 Route::get('popular-services', 'SiteController@serviceKeywords')
     ->name('service.keywords');
 
@@ -1055,7 +1156,7 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
      * cooldown and a per-session budget on top of these per-IP caps.
      */
     Route::post('enquiry-otp/send', 'EnquiryOtpController@send')
-        ->middleware('throttle:8,1')->name('enquiry.otp.send');
+        ->middleware('throttle:120,1')->name('enquiry.otp.send');
     Route::post('enquiry-otp/verify', 'EnquiryOtpController@verify')
         ->middleware('throttle:15,1')->name('enquiry.otp.verify');
     Route::post('listing-click-track', 'SiteController@listingClickTrack')->middleware('throttle:60,1')->name('listing.click.track');
@@ -1126,14 +1227,27 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
     Route::get('/location/{location}', 'SiteController@index')
         ->name('home.location');
 
-    // ── Sales Genio — before {location}/{slug} catch-all ────────────────────
-    Route::prefix('sales_genio')->name('sales_genio.')->group(function () {
+    // ── SB Sales (formerly Sales Genio) — before {location}/{slug} catch-all ──
+    // 308 keeps the method and body, so a form left open on the old URL still submits.
+    Route::any('sales_genio/{rest?}', fn (\Illuminate\Http\Request $r, $rest = '') =>
+        redirect('/sb-sales' . ($rest !== '' ? '/' . $rest : '') . ($r->getQueryString() ? '?' . $r->getQueryString() : ''), 308)
+    )->where('rest', '.*');
+
+    Route::prefix('sb-sales')->name('sales_genio.')->group(function () {
         Route::get('/',         [\App\Http\Controllers\SalesGenioController::class, 'showLogin'])->name('login');
         Route::post('/login',   [\App\Http\Controllers\SalesGenioController::class, 'login'])->name('login.post');
         Route::get('/otp',      [\App\Http\Controllers\SalesGenioController::class, 'showOtp'])->name('otp');
-        Route::post('/otp',     [\App\Http\Controllers\SalesGenioController::class, 'verifyOtp'])->name('otp.verify');
+        Route::post('/otp',     [\App\Http\Controllers\SalesGenioController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('otp.verify');
 
-        Route::middleware(['sales.session', 'sales.auth'])->group(function () {
+        Route::get('/login-otp',  [\App\Http\Controllers\SalesGenioController::class, 'showOtpLogin'])->name('otp.login');
+        Route::post('/login-otp', [\App\Http\Controllers\SalesGenioController::class, 'sendLoginOtp'])->middleware('throttle:5,1')->name('otp.login.send');
+
+        Route::get('/forgot-password',         [\App\Http\Controllers\SalesGenioController::class, 'showForgotPassword'])->name('password.forgot');
+        Route::post('/forgot-password',        [\App\Http\Controllers\SalesGenioController::class, 'sendResetOtp'])->middleware('throttle:5,1')->name('password.forgot.send');
+        Route::get('/forgot-password/reset',   [\App\Http\Controllers\SalesGenioController::class, 'showResetPassword'])->name('password.reset');
+        Route::post('/forgot-password/reset',  [\App\Http\Controllers\SalesGenioController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.reset.save');
+
+        Route::middleware(['sales.session', 'sales.auth', 'sales.touch'])->group(function () {
             Route::get('/dashboard',        [\App\Http\Controllers\SalesGenioController::class, 'dashboard'])->name('dashboard');
             Route::post('/city',            [\App\Http\Controllers\SalesGenioController::class, 'switchCity'])->name('city');
             Route::get('/city/clear',       [\App\Http\Controllers\SalesGenioController::class, 'clearCity'])->name('city.clear');
@@ -1160,6 +1274,8 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
             Route::post('/business/{id}/disposition',     [\App\Http\Controllers\SalesGenioController::class, 'saveDisposition'])->name('business.disposition');
             Route::get('/business/{id}/campaign',         [\App\Http\Controllers\SalesGenioController::class, 'manageCampaign'])->name('business.campaign');
             Route::post('/business/{id}/campaign/skip',   [\App\Http\Controllers\SalesGenioController::class, 'skipCampaignOptional'])->name('business.campaign.skip');
+            Route::get('/business/{id}/campaign/{pkg}/template', [\App\Http\Controllers\SalesGenioController::class, 'websiteTemplates'])->name('business.campaign.template');
+            Route::get('/business/{id}/website-preview/{template}', [\App\Http\Controllers\SalesGenioController::class, 'websitePreview'])->name('business.website.preview');
             Route::get('/business/{id}/campaign/{pkg}/areas',     [\App\Http\Controllers\SalesGenioController::class, 'campaignAreas'])->name('business.campaign.areas');
             Route::post('/business/{id}/campaign/{pkg}/areas',    [\App\Http\Controllers\SalesGenioController::class, 'saveCampaignAreas'])->name('business.campaign.areas.save');
             Route::get('/business/{id}/campaign/{pkg}/position',  [\App\Http\Controllers\SalesGenioController::class, 'campaignPosition'])->name('business.campaign.position');
@@ -1170,9 +1286,13 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
             Route::get('/business/{id}/cart',            [\App\Http\Controllers\SalesGenioController::class, 'cart'])->name('business.cart');
             Route::post('/business/{id}/cart/add',       [\App\Http\Controllers\SalesGenioController::class, 'quickAddCart'])->name('business.cart.add');
             Route::get('/business/{id}/cart/checkout',   [\App\Http\Controllers\SalesGenioController::class, 'cartCheckout'])->name('business.cart.checkout');
+            Route::get('/business/{id}/cart/gst',        [\App\Http\Controllers\SalesGenioController::class, 'gstDetails'])->name('business.cart.gst');
             Route::post('/business/{id}/cart/order',     [\App\Http\Controllers\SalesGenioController::class, 'generateOrder'])->name('business.cart.order');
+            Route::post('/business/{id}/cart/discount',  [\App\Http\Controllers\SalesGenioController::class, 'applyDiscount'])->name('business.cart.discount');
+            Route::post('/business/{id}/cart/discount/remove', [\App\Http\Controllers\SalesGenioController::class, 'removeDiscount'])->name('business.cart.discount.remove');
             Route::get('/business/{id}/order/{order}',   [\App\Http\Controllers\SalesGenioController::class, 'showOrder'])->name('business.order');
             Route::post('/business/{id}/order/{order}/whatsapp', [\App\Http\Controllers\SalesGenioController::class, 'sendOrderWhatsapp'])->name('business.order.whatsapp');
+            Route::post('/business/{id}/order/{order}/close',    [\App\Http\Controllers\SalesGenioController::class, 'dealClose'])->name('business.order.close');
             Route::post('/business/{id}/order/{order}/invoice-mail', [\App\Http\Controllers\SalesGenioController::class, 'mailOrderInvoice'])->name('business.order.invoice.mail');
             Route::post('/business/{id}/cart/clear',     [\App\Http\Controllers\SalesGenioController::class, 'clearCart'])->name('business.cart.clear');
             Route::post('/business/{id}/campaign/cart',   [\App\Http\Controllers\SalesGenioController::class, 'addCampaignCart'])->name('business.campaign.cart');
@@ -1205,6 +1325,9 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
             Route::delete('/business/{id}/photos',        [\App\Http\Controllers\SalesGenioController::class, 'deletePhoto'])->name('business.photos.delete');
             Route::post('/business/{id}/video-poster',    [\App\Http\Controllers\SalesGenioController::class, 'videoPoster'])->name('business.video.poster');
             Route::post('/business/{id}/photos/cover',    [\App\Http\Controllers\SalesGenioController::class, 'setCoverPhoto'])->name('business.photos.cover');
+            Route::get('/business/{id}/catalogue',        [\App\Http\Controllers\SalesGenioController::class, 'catalogue'])->name('business.catalogue');
+            Route::post('/business/{id}/catalogue',       [\App\Http\Controllers\SalesGenioController::class, 'uploadCatalogue'])->name('business.catalogue.upload');
+            Route::post('/business/{id}/catalogue/{image}/delete', [\App\Http\Controllers\SalesGenioController::class, 'deleteCatalogue'])->name('business.catalogue.delete');
 
             // GET hits on the POST-only endpoints (typed/refreshed directly)
             // bounce to the form — and when unauthenticated, sales.auth sends

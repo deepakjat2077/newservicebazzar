@@ -98,7 +98,7 @@ class CachePublicPages
         'dashboard', 'dashboard/*',
         // Sales Genio is one rep's own work — queues, customers, their own
         // profile. None of it may be held in a cache keyed only by URL.
-        'sales_genio', 'sales_genio/*',
+        'sales_genio', 'sales_genio/*', 'sb-sales', 'sb-sales/*',
         // The customer's payment link, which shows what they bought.
         'order-pay', 'order-pay/*', 'p/*',
         'login', 'register', 'logout',

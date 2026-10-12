@@ -201,6 +201,7 @@ $listing->location_id = $request->location_id;
     $listing->name        = $request->name;
     $listing->slug        = \Str::slug($request->name) . '-' . time();
     $listing->user_id     = $user->id;
+    $listing->source      = 'website'; // the owner listed it themselves (admin "Added by: User")
     $listing->category_id = $request->category_id;
     // $listing->details is rendered unescaped ({!! !!}) on the public listing
     // page — purify it so a business owner can't stored-XSS every visitor
@@ -240,6 +241,12 @@ $listing->landmark      = $request->landmark;
     $listing->landline_country_code = $landlineCountryCode;
     $listing->landline_numbers      = $landlineNumbers;
     $listing->extra_emails          = $extraEmails;
+    // One row per day per shift — the same shape the admin form saves, so every
+    // ticked day gets every time slot (not just Monday), and a second slot is a second shift.
+    [$businessDays, $openTime, $closeTime] = Listing::hoursFromForm(
+        $request->input('business_days', []), $request->boolean('open_24_hours'),
+        $request->input('open_time', []), $request->input('close_time', [])
+    );
     $listing->business_days         = $businessDays;
     $listing->open_time             = $openTime;
     $listing->close_time            = $closeTime;
@@ -288,11 +295,18 @@ $listing->landmark      = $request->landmark;
 // is unexplained), and a listing quietly missing its AI copy is worse than
 // holding one PHP process for the few seconds the call takes. Listings are
 // created a handful of times a day, so that cost is not felt.
-\App\Jobs\GenerateListingAiContent::dispatchAfterResponse($listing->id);
+// true = the description is written as a local recommendation (same style as SB Sales listings).
+\App\Jobs\GenerateListingAiContent::dispatchAfterResponse($listing->id, true);
 
 $count = Listing::where('status', 0)->count();
 
 event(new AdminNotification('listing', $count));
+
+\App\Support\AdminPush::send(
+    'New Listing Submitted',
+    ($listing->name ?? 'A new listing') . ' has been submitted and is pending approval.',
+    '/admin/listing'
+);
 
 if (!empty($images)) {
     $this->addExtraImage($request, $listing);
@@ -932,8 +946,9 @@ public function updatesection(Request $request, $id)
 
         $todayCount = (clone $enquiries)->whereDate('created_at', today())->count();
         $totalCount = (clone $enquiries)->count();
-        $missedCount = (clone $enquiries)->where('is_read', 0)->count();
-        $respondedCount = $totalCount - $missedCount;
+        // Missed = not opened within 24 hours (a brand-new enquiry isn't missed yet).
+        $missedCount = (clone $enquiries)->where('is_read', 0)->where('created_at', '<', now()->subDay())->count();
+        $respondedCount = $totalCount - (clone $enquiries)->where('is_read', 0)->count();
         $respondedPercent = $totalCount > 0 ? round(($respondedCount / $totalCount) * 100) : 0;
         // "Hot" is plainly defined as "arrived in the last 24 hours" — a
         // real, derivable cut, not a fabricated interest score.
@@ -946,10 +961,12 @@ public function updatesection(Request $request, $id)
             ->where('is_hidden', 0)
             ->count();
 
+        $vapidPublicKey = app(\App\Services\VapidService::class)->publicKey();
+
         return view($this->theme.'user.listing.dashboard', compact(
             'listing', 'todayCount', 'totalCount', 'missedCount',
             'respondedCount', 'respondedPercent', 'hotCount', 'recentEnquiries',
-            'quotationCount', 'ownerListings'
+            'quotationCount', 'ownerListings', 'vapidPublicKey'
         ));
     }
 
@@ -961,6 +978,40 @@ public function updatesection(Request $request, $id)
      * No invented data — value/"Info Missing" states are derived from the
      * listing's own columns, same as the dashboard's Business Profile panel.
      */
+    /**
+     * The owner's edit page, laid out like the SB Sales business profile:
+     * every part of the listing with an Edit next to it. Reached from the
+     * edit icon on the public listing, and its back arrow returns there.
+     */
+    public function ownerProfile($id)
+    {
+        $business = Listing::with('category')->where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $photos = collect();
+        if (!empty($business->thumb) && is_file(public_path('assets/images/listing/thumb/' . $business->thumb))) {
+            $photos->push((object) ['type' => 'cover', 'path' => 'assets/images/listing/thumb/' . $business->thumb]);
+        }
+        foreach ($business->extraImages()->where(fn ($q) => $q->where('type', 'gallery')->orWhereNull('type')->orWhere('type', ''))->latest()->get() as $img) {
+            $photos->push((object) ['type' => 'photo', 'path' => 'assets/images/listing/extra/' . $img->image]);
+        }
+        foreach (collect($business->photos ?? [])->filter() as $file) {
+            $photos->push((object) ['type' => 'photo', 'path' => 'assets/images/listing/photos/' . $file]);
+        }
+
+        $catalogue = $business->extraImages()->where('type', 'catalogue')->latest()->get();
+
+        $avgRating    = (float) round($business->ratings->avg('ratings') ?? 0, 1);
+        $totalRatings = $business->ratings->count();
+
+        $publicUrl = $business->category
+            ? route('listings.details', [$business->category->slug, $business->slug])
+            : null;
+
+        return view($this->theme.'user.listing.profile', compact(
+            'business', 'photos', 'catalogue', 'avgRating', 'totalRatings', 'publicUrl'
+        ));
+    }
+
     public function manage($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -1009,7 +1060,7 @@ public function updatesection(Request $request, $id)
             'business' => $business,
             'docs' => $docs,
             'types' => $types,
-            'kycBackUrl' => route('user.listing.dashboard', $business->id),
+            'kycBackUrl' => request('from') === 'profile' ? route('user.listing.profile', $business->id) : route('user.listing.dashboard', $business->id),
             'kycUploadUrl' => route('user.listing.kyc.upload', $business->id),
             'kycNumberUrl' => route('user.listing.kyc.number', $business->id),
             'kycDeleteBase' => url('user/listing/' . $business->id . '/kyc'),
@@ -1117,6 +1168,36 @@ public function updatesection(Request $request, $id)
      * or, for position-priced packages, from the city/area/position row.
      * Always resolved from the DB, never from the submitted form.
      */
+    /**
+     * Website packages only: pick one of the website designs — each shown as
+     * the full home page filled in with this business's own details — before
+     * checkout. The same designs and previews the SB Sales team uses.
+     */
+    public function advertiseDesign(Request $request, $id, $pkg)
+    {
+        $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+        $package = \App\Models\CertificatePackage::where('status', 1)->findOrFail($pkg);
+        $back    = ['id' => $listing->id, 'pkg' => $package->id];
+
+        if (!$package->needsTemplate()) {
+            return redirect()->route('user.listing.advertise.sales.checkout', $back + ['plan' => $request->query('plan')]);
+        }
+
+        $plan = $request->query('plan');
+        $choice = is_numeric($plan) ? $package->resolveChoice(['plan' => (string) (int) $plan, 'tier' => null, 'city' => '', 'area' => '']) : null;
+        if (!$choice) {
+            return redirect()->route('user.listing.advertise.sales.select', $back)->withAlert(['danger', 'Please pick a plan first.']);
+        }
+
+        $templates = \App\Support\WebsiteTemplates::all();
+        $selected  = \App\Support\WebsiteTemplates::exists($request->query('template')) ? $request->query('template') : null;
+
+        return view($this->theme.'user.listing.advertise-design', [
+            'listing' => $listing, 'package' => $package, 'choice' => $choice,
+            'plan' => (int) $plan, 'templates' => $templates, 'selected' => $selected,
+        ]);
+    }
+
     public function advertiseSalesCheckout(Request $request, $id, $pkg)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -1135,6 +1216,29 @@ public function updatesection(Request $request, $id)
                 ->withAlert(['danger', 'Please pick a plan for this package.']);
         }
 
+        // Already running for this business (same city/area for location packages):
+        // no second payment until it ends.
+        $running = \App\Models\ListingSalesPackage::where('listing_id', $listing->id)
+            ->where('certificate_package_id', $package->id)
+            ->where('expires_at', '>', now())
+            ->when($package->needsLocation(), fn ($q) => $q->where('city', (string) ($choice['city'] ?? ''))->where('area', (string) ($choice['area'] ?? '')))
+            ->latest()->first();
+
+        if ($running) {
+            return redirect()->route('user.listing.advertise.sales.select', ['id' => $listing->id, 'pkg' => $package->id])
+                ->withAlert(['info', $package->name . ' is already active for this business till ' . $running->expires_at->format('d M Y, h:i A') . '. You can renew it once it ends.']);
+        }
+
+        // Website packages: the design is chosen before paying (same 5 designs SB Sales offers).
+        $template = null;
+        if ($package->needsTemplate()) {
+            $template = (string) $request->query('template');
+            if (!\App\Support\WebsiteTemplates::exists($template)) {
+                return redirect()->route('user.listing.advertise.design', ['id' => $listing->id, 'pkg' => $package->id, 'plan' => $request->query('plan')]);
+            }
+            $choice['label'] .= ' · Design: ' . \App\Support\WebsiteTemplates::name($template);
+        }
+
         // A free plan has nothing to pay for — switch it on right away.
         if ($choice['price'] <= 0) {
             \App\Support\SalesPerks::activate($listing, $package, $choice);
@@ -1149,7 +1253,7 @@ public function updatesection(Request $request, $id)
             ->whereHas('paymentMethod', fn ($q) => $q->whereIn('act', ['razorpay', 'cashfree']))
             ->with('paymentMethod')->orderBy('currency_name')->get();
 
-        return view($this->theme.'user.listing.advertise-sales-checkout', compact('listing', 'package', 'choice', 'methods'));
+        return view($this->theme.'user.listing.advertise-sales-checkout', compact('listing', 'package', 'choice', 'methods', 'template'));
     }
 
     /**
@@ -1412,7 +1516,10 @@ public function updatesection(Request $request, $id)
         // answered (that's "Missed Call" / "Not Connected" below, which
         // this site genuinely cannot know and says so rather than guessing).
         $newCount = (clone $base)->where('is_hidden', 0)->where('is_read', 0)->count();
-        $missedCount = $newCount;
+        // Missed = still not opened 24 hours after it came in. A fresh enquiry
+        // is New (and Hot), not missed — it only turns missed once a day passes.
+        $missedCount = (clone $base)->where('is_hidden', 0)->where('is_read', 0)
+            ->where('created_at', '<', now()->subDay())->count();
 
         $query = (clone $base)->with('category');
 
@@ -1432,7 +1539,7 @@ public function updatesection(Request $request, $id)
         } elseif ($filter === 'new') {
             $query->where('is_hidden', 0)->where('is_read', 0);
         } elseif ($filter === 'missed') {
-            $query->where('is_hidden', 0)->where('is_read', 0);
+            $query->where('is_hidden', 0)->where('is_read', 0)->where('created_at', '<', now()->subDay());
         } else {
             $query->where('is_hidden', 0);
         }
@@ -2000,35 +2107,16 @@ public function updatesection(Request $request, $id)
             'close_time.*' => 'nullable|string|max:50',
         ]);
 
-        $listing->business_days = $request->input('business_days', []);
-
-        // `open_24_hours` isn't a real column on `listings` — the public page
-        // derives "Open 24 Hours" purely from the 12:00 AM–11:59 PM times (see
-        // Listing::isOpen24HoursDerived()). So branch on the request value, and
-        // only write the flag where the column actually exists, to stay safe.
         $open24 = $request->boolean('open_24_hours');
         if (\Schema::hasColumn('listings', 'open_24_hours')) {
             $listing->open_24_hours = $open24;
         }
 
-        if ($open24) {
-            // Store the same 12:00 AM–11:59 PM the public detail page reads as
-            // "Open 24 Hours", so the flag and the shown hours never diverge
-            // (clearing the times left the public page with no hours at all).
-            $listing->open_time = ['12:00 AM'];
-            $listing->close_time = ['11:59 PM'];
-        } else {
-            $openTimes = collect($request->input('open_time', []));
-            $closeTimes = collect($request->input('close_time', []));
-
-            // Keep only slots that actually have both ends filled in — an
-            // "+ Add Another Time Slot" row left empty shouldn't save as a
-            // blank shift.
-            $keep = $openTimes->keys()->filter(fn ($i) => filled($openTimes[$i] ?? null) && filled($closeTimes[$i] ?? null));
-
-            $listing->open_time = $keep->map(fn ($i) => $openTimes[$i])->values()->all();
-            $listing->close_time = $keep->map(fn ($i) => $closeTimes[$i])->values()->all();
-        }
+        // One row per day per shift: every ticked day gets every slot.
+        [$listing->business_days, $listing->open_time, $listing->close_time] = Listing::hoursFromForm(
+            $request->input('business_days', []), $open24,
+            $request->input('open_time', []), $request->input('close_time', [])
+        );
 
         $listing->save();
 
@@ -2121,8 +2209,15 @@ public function updatesection(Request $request, $id)
             'subcategory_ids.*' => 'integer|exists:subcategories,id',
         ]);
 
+        $before = collect($listing->subcategory_ids ?? [])->map(fn ($v) => (int) $v)->sort()->values()->all();
         $listing->subcategory_ids = array_values(array_unique(array_filter((array) $request->subcategory_ids)));
         $listing->save();
+
+        // New subcategories → rewrite the AI description, meta and FAQs to match
+        // (only copy the AI wrote; text the owner edited by hand is left alone).
+        if ($before !== collect($listing->subcategory_ids)->map(fn ($v) => (int) $v)->sort()->values()->all()) {
+            \App\Jobs\GenerateListingAiContent::dispatchAfterResponse($listing->id, true, true);
+        }
 
         return back()->withAlert(['success', 'Business categories updated.']);
     }
@@ -2796,6 +2891,12 @@ public function update(Request $request, $id)
     |--------------------------------------------------------------------------
     */
 
+    // One row per day per shift — the same shape the admin form saves, so every
+    // ticked day gets every time slot (not just Monday), and a second slot is a second shift.
+    [$businessDays, $openTime, $closeTime] = Listing::hoursFromForm(
+        $request->input('business_days', []), $request->boolean('open_24_hours'),
+        $request->input('open_time', []), $request->input('close_time', [])
+    );
     $listing->business_days = $businessDays;
     $listing->open_time = $openTime;
     $listing->close_time = $closeTime;
@@ -3237,6 +3338,15 @@ public function cityCategoryArea($city, $categoryArea)
 
         if ($realCitySlug) {
             return redirect('/' . $realCitySlug . '/' . $categoryArea, 301);
+        }
+
+        // A visitor searching ON our site with a place we don't have (typed
+        // into a location box, never picked from the list — "jaipurddddds")
+        // goes back to the homepage with a message, not to "Page Not Found".
+        // Links from anywhere else keep their 404.
+        $refHost = strtolower((string) parse_url((string) request()->headers->get('referer'), PHP_URL_HOST));
+        if ($refHost !== '' && \Str::endsWith($refHost, 'servicebazzar.com')) {
+            return redirect('/?location_not_found=' . rawurlencode(\Str::limit(str_replace('-', ' ', $city), 40, '')), 302);
         }
 
         abort(404);

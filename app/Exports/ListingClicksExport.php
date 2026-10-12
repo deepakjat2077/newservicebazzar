@@ -215,6 +215,12 @@ class ListingClicksExport implements WithMultipleSheets
                         ? (int) ($categoryTotals[$categoryName] ?? 0)
                         : '',
 
+                    $click->owner_name ?: '',
+
+                    $click->owner_number ?: '',
+
+                    $click->clicked_number ?: '',
+
                     ucfirst($typeName),
 
                     $showTypeTotal
@@ -264,6 +270,7 @@ class ListingClicksExport implements WithMultipleSheets
             ->selectRaw("
                 COALESCE(NULLIF(listing_name, ''), 'N/A') AS item_name
             ")
+            ->selectRaw("MAX(NULLIF(owner_number, '')) AS owner_no")
             ->selectRaw('COUNT(*) AS total_clicks')
             ->selectRaw("
                 SUM(
@@ -291,6 +298,7 @@ class ListingClicksExport implements WithMultipleSheets
                 return [
                     $index + 1,
                     $row->item_name,
+                    (string) ($row->owner_no ?? ''),
                     (int) $row->total_clicks,
                     (int) $row->total_calls,
                     (int) $row->total_whatsapp,
@@ -386,6 +394,35 @@ class ListingClicksExport implements WithMultipleSheets
                 ];
             });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Number-wise taps — how many times each number was tapped to call or
+        | to WhatsApp (the number actually dialled, else the owner's number)
+        |--------------------------------------------------------------------------
+        */
+
+        $numberWise = $this->baseQuery()
+            ->whereIn('type', ['call', 'whatsapp'])
+            ->selectRaw("COALESCE(NULLIF(clicked_number, ''), NULLIF(owner_number, ''), 'N/A') AS num")
+            ->selectRaw("MAX(COALESCE(NULLIF(listing_name, ''), 'N/A')) AS listing")
+            ->selectRaw("MAX(COALESCE(owner_name, '')) AS owner")
+            ->selectRaw("SUM(CASE WHEN type = 'call' THEN 1 ELSE 0 END) AS calls")
+            ->selectRaw("SUM(CASE WHEN type = 'whatsapp' THEN 1 ELSE 0 END) AS whatsapps")
+            ->selectRaw('COUNT(*) AS total')
+            ->groupBy('num')
+            ->orderByDesc('total')
+            ->get()
+            ->values()
+            ->map(fn ($row, $index) => [
+                $index + 1,
+                (string) $row->num,
+                $row->listing,
+                $row->owner,
+                (int) $row->calls,
+                (int) $row->whatsapps,
+                (int) $row->total,
+            ]);
+
         return [
             new ReportSheet(
                 $detailData,
@@ -397,6 +434,9 @@ class ListingClicksExport implements WithMultipleSheets
                     'Location Total Clicks',
                     'Category',
                     'Category Total Clicks',
+                    'Owner Name',
+                    'Owner Number',
+                    'Clicked Number',
                     'Type',
                     'Type Total Clicks',
                     'Date',
@@ -420,12 +460,27 @@ class ListingClicksExport implements WithMultipleSheets
                 [
                     '#',
                     'Listing',
+                    'Owner Number',
                     'Total Clicks',
                     'Call Clicks',
                     'WhatsApp Clicks',
                     'Enquiry Clicks',
                 ],
                 'Listing Wise'
+            ),
+
+            new ReportSheet(
+                $numberWise,
+                [
+                    '#',
+                    'Number',
+                    'Listing',
+                    'Owner Name',
+                    'Call Taps',
+                    'WhatsApp Taps',
+                    'Total Taps',
+                ],
+                'Number Wise'
             ),
 
             new ReportSheet(

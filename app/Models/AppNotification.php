@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 class AppNotification extends Model
 {
     protected $fillable = [
-        'user_id', 'title', 'body', 'image', 'link', 'is_read',
+        'user_id', 'title', 'body', 'image', 'link', 'enquiry_id', 'is_read',
     ];
 
     protected $casts = [

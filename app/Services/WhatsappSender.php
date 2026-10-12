@@ -209,6 +209,90 @@ class WhatsappSender
     }
 
     /**
+     * [contact person, business name, button tail] for the listing template.
+     * "Congratulations {{1}}," must never be blank, so the business name
+     * stands in when no contact person is on file.
+     */
+    public static function listingApprovedParams(Listing $listing): array
+    {
+        // "Mr deepak jat" → "Mr. Deepak Jat"
+        $title = trim((string) $listing->contact_title);
+        if (preg_match('/^(mr|mrs|ms|dr|smt|shri)$/i', $title)) {
+            $title = ucfirst(strtolower($title)) . '.';
+        }
+        $person = trim($title . ' ' . mb_convert_case(trim((string) $listing->contact_person), MB_CASE_TITLE));
+
+        if (trim((string) $listing->contact_person) === '') {
+            $person = (string) $listing->name;
+        }
+
+        return array_map([static::class, 'cleanParam'], [
+            $person,
+            (string) $listing->name,
+            static::listingButtonSuffix($listing),
+        ]);
+    }
+
+    /**
+     * Public URL of the picture for the template's image header: the
+     * business's thumbnail, else its first photo, else the site logo.
+     */
+    public static function listingImageUrl(Listing $listing): string
+    {
+        $base = rtrim((string) config('app.url'), '/');
+
+        $candidates = [];
+        if (!empty($listing->thumb)) {
+            $candidates[] = 'assets/images/listing/thumb/' . $listing->thumb;
+        }
+        foreach ((array) $listing->photos as $photo) {
+            $candidates[] = 'assets/images/listing/photos/' . $photo;
+        }
+
+        foreach ($candidates as $relative) {
+            if (is_file(public_path($relative)) && ($jpg = static::whatsappJpeg($relative))) {
+                return $base . '/' . $jpg;
+            }
+        }
+
+        return $base . '/assets/images/logo/logo.png';
+    }
+
+    /**
+     * WhatsApp only takes JPEG or PNG in an image header, and listing pictures
+     * are stored as WebP — so a JPEG copy is made once and reused.
+     * Returns the copy's public path, or null when the picture can't be read.
+     */
+    protected static function whatsappJpeg(string $relative): ?string
+    {
+        $ext = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
+        if (in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
+            return $relative;
+        }
+
+        $dir = 'assets/images/whatsapp_headers';
+        $out = $dir . '/' . md5($relative) . '.jpg';
+
+        if (is_file(public_path($out)) && filemtime(public_path($out)) >= filemtime(public_path($relative))) {
+            return $out;
+        }
+
+        if (!is_dir(public_path($dir)) && !@mkdir(public_path($dir), 0775, true)) {
+            return null;
+        }
+
+        $src = @imagecreatefromstring((string) @file_get_contents(public_path($relative)));
+        if (!$src) {
+            return null;
+        }
+
+        $ok = imagejpeg($src, public_path($out), 85);
+        imagedestroy($src);
+
+        return $ok ? $out : null;
+    }
+
+    /**
      * The "category-slug/listing-slug" tail the template's dynamic button
      * appends to the site URL.
      */
@@ -251,11 +335,23 @@ class WhatsappSender
             );
         }
 
+        // The listing template has an image header — the business's own picture.
+        if ($templateId === $this->defaultTemplateId()) {
+            $meta['media_image'] = $meta['media_image'] ?? static::listingImageUrl($listing);
+        }
+
         if ($params === null || $params === []) {
-            $params = [
-                (string) $listing->name,
-                static::listingButtonSuffix($listing),
-            ];
+            if ($templateId === $this->defaultTemplateId()) {
+                // business_listing_approved: an image header (the business's
+                // thumbnail), "Congratulations {{1}}" = contact person,
+                // "Your business {{2}}" = business name, then the button tail.
+                $params = static::listingApprovedParams($listing);
+            } else {
+                $params = [
+                    (string) $listing->name,
+                    static::listingButtonSuffix($listing),
+                ];
+            }
         }
 
         return $this->sendTemplate($phone, $templateId, $params, $meta);
@@ -300,7 +396,12 @@ class WhatsappSender
             // ->retry() alone only covers a dropped connection; a 429 or 503
             // body counts as a completed request and would be logged as a
             // permanent failure for something that works seconds later.
-            $attempt = HttpRetry::send(function () use ($phone, $template) {
+            // A media template needs its header picture sent alongside the variables.
+            $media = !empty($meta['media_image'])
+                ? json_encode(['type' => 'image', 'image' => ['link' => $meta['media_image']]], JSON_UNESCAPED_SLASHES)
+                : null;
+
+            $attempt = HttpRetry::send(function () use ($phone, $template, $media) {
                 return Http::asForm()
                     ->acceptJson()
                     ->withHeaders([
@@ -318,7 +419,7 @@ class WhatsappSender
                             $template,
                             JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
                         ),
-                    ]);
+                    ] + ($media ? ['message' => $media] : []));
             }, 3, 2000, 'gupshup.template', 20);
 
             $response = $attempt['response'];

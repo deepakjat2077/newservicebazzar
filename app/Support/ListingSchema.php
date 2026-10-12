@@ -113,31 +113,32 @@ class ListingSchema
      */
     public static function openingHours($listing): array
     {
-        $days   = self::toArray($listing->business_days ?? null);
-        $opens  = self::toArray($listing->open_time ?? null);
-        $closes = self::toArray($listing->close_time ?? null);
+        // shiftsByDay() understands every stored shape of the hours.
+        $byDay = $listing instanceof \App\Models\Listing ? $listing->shiftsByDay() : [];
 
-        if (empty($days)) {
+        if (empty($byDay)) {
             return [];
         }
 
         $groups = [];
-        foreach ($days as $i => $abbr) {
+        foreach ($byDay as $abbr => $shifts) {
             $full = self::DAY_MAP[trim((string) $abbr)] ?? null;
             if ($full === null) {
                 continue;
             }
 
-            $open  = self::to24($opens[$i] ?? null);
-            $close = self::to24($closes[$i] ?? null);
-            if ($open === null || $close === null) {
-                continue;
-            }
+            foreach ($shifts as [$openRaw, $closeRaw]) {
+                $open  = self::to24($openRaw);
+                $close = self::to24($closeRaw);
+                if ($open === null || $close === null) {
+                    continue;
+                }
 
-            $key = $open . '|' . $close;
-            $groups[$key]['opens']    = $open;
-            $groups[$key]['closes']   = $close;
-            $groups[$key]['days'][]   = $full;
+                $key = $open . '|' . $close;
+                $groups[$key]['opens']    = $open;
+                $groups[$key]['closes']   = $close;
+                $groups[$key]['days'][]   = $full;
+            }
         }
 
         $out = [];

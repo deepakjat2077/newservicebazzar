@@ -113,5 +113,66 @@
        Before @stack('js'), so a page's own scripts are already covered. --}}
   @include('admin.includes.csrf-guard')
   @stack('js')
+
+  {{-- Admin browser push notifications (Web Push / VAPID) --}}
+  @php $adminVapidKey = app(\App\Services\VapidService::class)->publicKey(); @endphp
+  @if($adminVapidKey)
+  <script>
+  (function(){
+    var VAPID_KEY    = '{{ $adminVapidKey }}';
+    var SUBSCRIBE    = '{{ route("admin.push.subscribe") }}';
+    var CSRF         = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    function urlB64ToUint8(b) {
+      var pad = '='.repeat((4 - b.length % 4) % 4);
+      var raw = atob((b + pad).replace(/-/g,'+').replace(/_/g,'/'));
+      var arr = new Uint8Array(raw.length);
+      for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+      return arr;
+    }
+
+    function saveSubscription(sub) {
+      var j = sub.toJSON();
+      fetch(SUBSCRIBE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
+        body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth })
+      });
+    }
+
+    navigator.serviceWorker.register('/sw.js').then(function(reg){
+      reg.pushManager.getSubscription().then(function(sub){
+        if (sub) { saveSubscription(sub); return; }
+        if (Notification.permission === 'granted') {
+          reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_KEY) })
+            .then(saveSubscription).catch(function(){});
+        } else if (Notification.permission !== 'denied') {
+          // Ask after 3 seconds — admin pages are high-intent, prompt is expected
+          setTimeout(function(){
+            Notification.requestPermission().then(function(perm){
+              if (perm !== 'granted') return;
+              reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_KEY) })
+                .then(saveSubscription).catch(function(){});
+            });
+          }, 3000);
+        }
+      });
+    });
+  })();
+  </script>
+  @endif
+@auth('admin')
+<script>
+/* Daily admin logout: reload when the cut-off arrives so an open screen ends
+   up on the login page without anyone clicking (the server does the logout). */
+(function () {
+    var at = {{ \App\Support\AdminDailyLogout::nextCutoff()->timestamp }} * 1000;
+    var wait = at - Date.now() + 2000;
+    if (wait > 0 && wait < 2147483647) setTimeout(function () { location.reload(); }, wait);
+})();
+</script>
+@endauth
 </body>
 </html>

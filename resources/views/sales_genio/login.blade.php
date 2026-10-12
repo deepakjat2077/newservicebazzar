@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Genio – ServiceBazzar</title>
+    <title>SB Sales – ServiceBazzar</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,13 +15,14 @@
             align-items: center;
             justify-content: center;
             background: #f0f2f5;
+            padding: 16px;
         }
 
         .login-wrapper {
             display: flex;
             width: 900px;
             max-width: 95vw;
-            min-height: 480px;
+            min-height: 0;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,.15);
@@ -88,7 +89,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 48px 40px;
+            padding: 28px 40px;
         }
 
         .right-panel h2 {
@@ -96,6 +97,7 @@
             font-weight: 600;
             color: #1a1a2e;
             margin-bottom: 6px;
+            text-align: center;
         }
 
         .right-panel h2 span { color: #1a73e8; }
@@ -103,11 +105,12 @@
         .right-panel .sub-text {
             font-size: 13px;
             color: #888;
-            margin-bottom: 32px;
+            margin-bottom: 18px;
+            text-align: center;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .form-group label {
@@ -122,7 +125,7 @@
 
         .form-group input {
             width: 100%;
-            padding: 12px 14px;
+            padding: 10px 14px;
             border: 1.5px solid #dde2ec;
             border-radius: 8px;
             font-size: 14px;
@@ -148,7 +151,7 @@
 
         .btn-login {
             width: 100%;
-            padding: 13px;
+            padding: 11px;
             background: #1a73e8;
             color: #fff;
             border: none;
@@ -165,11 +168,35 @@
         .btn-login:hover { background: #1557b0; }
         .btn-login:active { transform: scale(.98); }
 
+        .alt-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 14px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .alt-links a { color: #1a73e8; text-decoration: none; font-weight: 500; }
+        .alt-links a:hover { text-decoration: underline; }
+
+
+        .status-msg {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
         .footer-text {
             text-align: center;
             font-size: 11px;
             color: #aaa;
-            margin-top: 28px;
+            margin-top: 14px;
         }
 
         @media (max-width: 640px) {
@@ -189,19 +216,23 @@
             Use your Employee Code and Password to access the Sales Portal.
         </div>
         <div class="divider"></div>
-        <div class="product-name">Sales Genio</div>
+        <div class="product-name">SB Sales</div>
     </div>
 
     <!-- Right -->
     <div class="right-panel">
-        <div style="margin-bottom:24px;">
-            <img src="{{ asset('assets/images/logo/logo.png') }}" alt="ServiceBazzar" style="max-width:170px;">
+        <div style="margin-bottom:14px;text-align:center;">
+            <img src="{{ asset('assets/images/logo/logo.png') }}" alt="ServiceBazzar" style="max-width:150px;">
         </div>
         <h2>Sign <span>In</span></h2>
         <p class="sub-text">Enter your credentials to continue</p>
 
+        @if (session('status'))
+            <div class="status-msg">{{ session('status') }}</div>
+        @endif
+
         @if ($errors->any())
-            <div style="background:#fde8e8;border:1px solid #f5c6cb;color:#c62828;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:18px;">
+            <div style="background:#fde8e8;border:1px solid #f5c6cb;color:#c62828;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;">
                 {{ $errors->first() }}
             </div>
         @endif
@@ -234,6 +265,11 @@
 
             <button type="submit" class="btn-login">LOGIN</button>
         </form>
+
+        <div class="alt-links">
+            <a href="{{ route('sales_genio.otp.login') }}">Login with OTP</a>
+            <a href="{{ route('sales_genio.password.forgot') }}">Forgot password?</a>
+        </div>
 
         <p class="footer-text">ServiceBazzar Sales Portal &copy; {{ date('Y') }}</p>
     </div>

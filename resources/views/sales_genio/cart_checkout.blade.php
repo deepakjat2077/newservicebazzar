@@ -46,6 +46,7 @@
   .pay-line{display:flex;justify-content:space-between;gap:10px;padding:11px 18px;font-size:13.5px;color:#5a6478;
     border-bottom:1px dashed #eef0f6;}
   .pay-line:last-of-type{border-bottom:0;}
+  .pay-top .pay-biz{margin-left:auto;}
   .pay-line b{color:#12203f;}
   .pay-line small{display:block;color:#8a92a6;font-size:11.5px;margin-top:2px;}
   .pay-line.is-free b{color:#1f7a45;}
@@ -54,18 +55,42 @@
   .pay-total span{font-size:13.5px;opacity:.85;}
   .pay-total strong{font-size:24px;}
   .pay-go{display:block;width:100%;background:#1f9d55;color:#fff;border:0;padding:15px;font-size:15px;font-weight:700;
+    text-align:center;text-decoration:none;box-sizing:border-box;
     text-align:center;text-decoration:none;}
   .pay-go:hover{background:#188746;color:#fff;}
   .pay-note{padding:12px 18px;font-size:12px;color:#8a92a6;text-align:center;line-height:1.55;}
   @media (max-width:900px){.pay-right{flex-basis:100%;}}
+
+  @media (max-width:760px){
+    .pay-wrap{padding:0 16px 110px !important;}
+    .pay-top,.pay-card h2,.pay-note{display:none;}
+    .pay-grid{display:block;}
+    .pay-card{border:0 !important;padding:0 !important;box-shadow:none !important;background:none !important;}
+    .pay-right .pay-card{margin-top:22px;}
+    .pay-right h2{display:block;font-size:16px;font-weight:500;color:#6b7285;margin:0 0 10px;}
+    .pay-methods{display:flex;flex-direction:column;gap:12px;padding-top:16px;}
+    .pay-method{display:flex;align-items:center;gap:16px;border:1px solid #dfe3ec;border-radius:6px;padding:18px 16px;
+      font-size:16px;color:#1a1a2e;}
+    .pay-method .dot{display:none;}
+    .pay-method > i{font-size:19px;color:#1a1a2e;}
+    .pay-method > span{flex:1;min-width:0;}
+    .pay-method > span b{display:block;font-size:16px;font-weight:500;}
+    .pay-method > span span{display:block;font-size:13px;color:#7a8296;margin-top:2px;}
+    .pay-method.is-on{border-color:#1a73e8;background:#f5f9ff;}
+    .pay-method::after{content:"\\f054";font-family:"Font Awesome 6 Free";font-weight:900;color:#37415a;font-size:14px;}
+    .pay-go{display:none !important;}
+  }
 </style>
 </head>
 <body>
 
 @include('sales_genio.partials.topnav')
+@include('sales_genio.partials.campaign_mhead', [
+  'back'  => route('sales_genio.business.cart', $business->id),
+  'title' => 'Select Payment Mode',
+])
 
 @php
-  $total = $subtotal + $gst;
   $waText = rawurlencode('Hi, here is the Service Bazzar payment link for ' . $business->name . ' — ₹'
       . numberFormat($total) . ' (incl. GST): ' . $payLink);
   $waNumber = preg_replace('/\D/', '', (string) $business->mobile);
@@ -78,6 +103,7 @@
       <strong>{{ $business->name }}</strong>
       {{ $business->mobile }}
     </div>
+    @include('sales_genio.partials.flow_avatar')
   </div>
 
   <div class="pay-grid">
@@ -120,15 +146,18 @@
             <b>@if(!empty($item['free'])) FREE @else ₹{{ numberFormat($item['price']) }} @endif</b>
           </div>
         @endforeach
+        @if($discountAmount > 0)
+          <div class="pay-line" style="color:#1f7a45;"><span>Discount — {{ $discount->name }}</span><b>−₹{{ numberFormat($discountAmount) }}</b></div>
+        @endif
         <div class="pay-line pay-gst"><span>GST (18%)</span><b>₹{{ numberFormat($gst) }}</b></div>
         <div class="pay-total">
           <span>Total payable</span>
           <strong>₹{{ numberFormat($total) }}</strong>
         </div>
-        <form method="post" action="{{ route('sales_genio.business.cart.order', $business->id) }}">
-          @csrf
-          <button type="submit" class="pay-go">Generate payment link</button>
-        </form>
+        <a class="pay-go" href="{{ route('sales_genio.business.cart.gst', $business->id) }}">Continue</a>
+        <div class="cmp-mfoot">
+          <a class="pri" href="{{ route('sales_genio.business.cart.gst', $business->id) }}">Proceed</a>
+        </div>
         <p class="pay-note">Makes a link with these exact plans and amount. The customer opens it, pays by card or UPI, and every package switches on by itself.</p>
       </div>
     </div>

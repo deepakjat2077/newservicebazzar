@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Enquiry extends Model
 {
+    protected static function booted(): void
+    {
+        // A deleted enquiry takes its "New enquiry" notification with it, so
+        // the vendor's bell never points at a lead that no longer exists.
+        static::deleted(function (Enquiry $enquiry) {
+            AppNotification::where('enquiry_id', $enquiry->id)->delete();
+        });
+    }
+
     protected $fillable = [
         'type',
         'listing_id',

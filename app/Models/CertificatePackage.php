@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class CertificatePackage extends Model
 {
-    protected $fillable = ['name', 'image', 'gallery', 'benefits', 'highlights', 'plans', 'pricing_type', 'positions', 'validity_days', 'needs_ad_details', 'perk_type', 'status'];
+    protected $fillable = ['name', 'image', 'gallery', 'benefits', 'highlights', 'plans', 'pricing_type', 'positions', 'validity_days', 'needs_ad_details', 'needs_template', 'perk_type', 'status'];
 
-    protected $casts = ['plans' => 'array', 'gallery' => 'array', 'status' => 'boolean', 'needs_ad_details' => 'boolean'];
+    protected $casts = ['plans' => 'array', 'gallery' => 'array', 'status' => 'boolean', 'needs_ad_details' => 'boolean', 'needs_template' => 'boolean'];
 
     public function positionPrices()
     {
@@ -61,6 +61,12 @@ class CertificatePackage extends Model
             $tree[$row->city][$row->area][$row->tier] = (float) $row->price;
         }
         return $tree;
+    }
+
+    /** Packages that include a website: the rep picks a design before they reach the cart. */
+    public function needsTemplate(): bool
+    {
+        return (bool) $this->needs_template;
     }
 
     public function benefitList(): array

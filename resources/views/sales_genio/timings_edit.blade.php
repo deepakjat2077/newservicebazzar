@@ -73,11 +73,12 @@
 <body>
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Update Business Timings</div>
     </div>
 
-    <form method="POST" action="{{ route('sales_genio.business.timings.update', $business->id) }}" id="timingsForm">
+    <form method="POST" action="{{ sg_route('sales_genio.business.timings.update', $business->id) }}" id="timingsForm">
         @csrf
         <div class="content">
             <div class="info-note">
@@ -113,7 +114,9 @@
     let slots = @json($slots);
 
     function timeOptions(sel) {
-        return TIMES.map(t => '<option value="' + t + '" ' + (t === sel ? 'selected' : '') + '>' + t + '</option>').join('');
+        // A time saved elsewhere at a finer step (e.g. 08:20 AM) is kept as an option, not silently replaced.
+        const list = (sel && sel !== 'Closed' && TIMES.indexOf(sel) === -1) ? [sel].concat(TIMES) : TIMES;
+        return list.map(t => '<option value="' + t + '" ' + (t === sel ? 'selected' : '') + '>' + t + '</option>').join('');
     }
 
     function is24(s) { return s.open === '12:00 AM' && s.close === '11:59 PM'; }

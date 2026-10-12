@@ -27,6 +27,7 @@ class NotificationService
             'body'    => $body,
             'image'   => $meta['image'] ?? null,
             'link'    => $meta['link'] ?? null,
+            'enquiry_id' => $meta['enquiry_id'] ?? null,
             'is_read' => false,
         ]);
 

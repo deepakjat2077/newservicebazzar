@@ -5,7 +5,7 @@
 <section class="pt-30 pb-80">
     <div class="container">
         <div class="sb-biz-header">
-            <a href="{{ request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
+            <a href="{{ request('from') === 'profile' ? route('user.listing.profile', $listing->id) : (request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id)) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 <h4>{{ $listing->name }}</h4>
                 <span>{{ optional($listing->location)->name ?? $listing->area }}</span>
@@ -13,7 +13,14 @@
             <a href="{{ route('contact') }}" class="sb-leads-help"><i class="fas fa-headset"></i> Help</a>
         </div>
 
-        <div class="sb-leads-newcount">{{ $type === 'quotation' ? 'Quotation Request' : 'Total Enquiries' }} : {{ $totalCount }}</div>
+        <div class="sb-leads-newcount">
+            @if($filter === 'today')
+                Today's Enquiries : {{ method_exists($leads, 'total') ? $leads->total() : count($leads) }}
+                <a href="{{ route('user.listing.leads', $listing->id) }}" style="margin-left:10px;font-weight:500;color:#1a73e8;">See all enquiries ({{ $totalCount }})</a>
+            @else
+                {{ $type === 'quotation' ? 'Quotation Request' : 'Total Enquiries' }} : {{ $totalCount }}
+            @endif
+        </div>
 
         {{-- The "Today's Enquiries" link from the dashboard lands here with
              filter=today — that's a single fixed view (today's leads, full
@@ -312,6 +319,22 @@
 
 @push('css')
 <link rel="stylesheet" href="{{ asset('assets/servicebazzar/css/business-panel.css') }}">
+<style>
+    /* Date / Enquiry Status open as a small card right under their button,
+       over the page — not a box pushed into the page below the filter bar. */
+    .sb-leads-dropdown{position:fixed;z-index:1060;max-height:calc(100vh - 24px);overflow-y:auto;margin:0;width:290px;max-width:calc(100vw - 32px);
+        padding:8px;gap:2px;border-color:#e3e7ef;border-radius:12px;box-shadow:0 14px 34px rgba(16,24,40,.16);}
+    .sb-leads-dropdown[hidden]{display:none !important;}
+    .sb-leads-dropdown-item{display:block;padding:10px 12px;font-size:14px;color:#1a1a2e;text-decoration:none !important;}
+    .sb-leads-dropdown-item:hover{background:#f3f6fb;}
+    .sb-leads-dropdown-custom{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 0;padding:10px 4px 2px;border-top:1px solid #eef0f6;}
+    .sb-leads-dropdown-custom::before{content:"Custom range";grid-column:1 / -1;font-size:12px;color:#7a8296;}
+    .sb-leads-dropdown-custom .sb-input{min-width:0;width:100%;height:38px;padding:6px 8px;font-size:13px;border:1px solid #d5dae5;border-radius:8px;}
+    .sb-leads-dropdown-custom button{grid-column:1 / -1;height:38px;border:0;border-radius:8px;background:#1a73e8;color:#fff;font-size:14px;font-weight:600;cursor:pointer;}
+    .sb-leads-dropdown-custom button:hover{background:#1557b0;}
+    .sb-leads-dropdown-clear{display:block;padding:8px 12px 4px;text-decoration:none !important;}
+    .sb-leads-filter-btn.is-open{border-color:#1a73e8;color:#1a73e8;}
+</style>
 @endpush
 
 @push('js')
@@ -457,11 +480,32 @@ document.addEventListener('DOMContentLoaded', function () {
         var btn = document.getElementById(btnId);
         var dropdown = document.getElementById(dropdownId);
         if (!btn || !dropdown) return;
-        btn.addEventListener('click', function () {
+        // Hang the card right under its button (fixed, so no box on the page can clip it).
+        document.body.appendChild(dropdown);
+
+        function place() {
+            var b = btn.getBoundingClientRect();
+            var left = Math.min(b.left, window.innerWidth - dropdown.offsetWidth - 12);
+            var top = b.bottom + 6;
+            if (top + dropdown.offsetHeight > window.innerHeight - 8) {
+                top = Math.max(8, b.top - dropdown.offsetHeight - 6);
+            }
+            dropdown.style.left = Math.max(12, left) + 'px';
+            dropdown.style.top = top + 'px';
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
             var willShow = dropdown.hidden;
             document.querySelectorAll('.sb-leads-dropdown').forEach(function (d) { d.hidden = true; });
+            document.querySelectorAll('.sb-leads-filter-btn.is-open').forEach(function (b) { b.classList.remove('is-open'); });
             dropdown.hidden = !willShow;
+            if (willShow) { place(); btn.classList.add('is-open'); }
         });
+        dropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+        document.addEventListener('click', function () { dropdown.hidden = true; btn.classList.remove('is-open'); });
+        window.addEventListener('resize', function () { if (!dropdown.hidden) place(); });
+        window.addEventListener('scroll', function () { if (!dropdown.hidden) place(); }, { passive: true });
     }
     toggleDropdown('sbLeadsDateBtn', 'sbLeadsDateDropdown');
     toggleDropdown('sbLeadsStatusBtn', 'sbLeadsStatusDropdown');

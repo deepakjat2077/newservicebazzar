@@ -655,6 +655,7 @@ trait GatewayIpn{
 	}
 
 	protected function redirect(){
-		return 'user.deposit';
+		// Decides there: a thank-you screen for a listing package, else the Payment Log.
+		return 'user.payment.done';
 	}
 }

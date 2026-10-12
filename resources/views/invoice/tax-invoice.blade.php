@@ -210,7 +210,7 @@
         </tr>
       </thead>
       <tbody>
-        @foreach($order->items as $i => $item)
+        @foreach($order->items->reject(fn ($it) => !empty($it->is_free))->values() as $i => $item)
           <tr>
             <td class="c">{{ $i + 1 }}</td>
             <td>
@@ -279,6 +279,12 @@
               <tr>
                 <td class="k">IGST @ {{ rtrim(rtrim(number_format($rate, 2, '.', ''), '0'), '.') }}%</td>
                 <td class="v">{{ number_format($igst, 2) }}</td>
+              </tr>
+            @endif
+            @if(!empty($discount))
+              <tr>
+                <td class="k">Less: Discount{{ $discountName ? ' (' . $discountName . ')' : '' }}</td>
+                <td class="v">−{{ number_format($discount, 2) }}</td>
               </tr>
             @endif
             <tr class="grand">

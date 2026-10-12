@@ -237,6 +237,7 @@ class BusinessController extends Controller
         $listing->name              = $request->name;
         $listing->slug              = Str::slug($request->name) . '-' . time();
         $listing->user_id           = $user->id;
+        $listing->source            = 'app'; // the owner listed it themselves from the mobile app
         $listing->category_id       = $request->category_id;
         $listing->details           = $request->filled('details') ? (new HTMLPurifier())->purify($request->details) : null;
         $listing->plot_no           = $request->plot_no;
@@ -257,6 +258,11 @@ class BusinessController extends Controller
         $listing->landline_numbers      = $landlineNumbers;
         $listing->extra_emails          = $extraEmails;
         $listing->subcategory_ids       = $subcategoryIds;
+        // One row per day per shift: every ticked day gets every slot.
+        [$businessDays, $openTime, $closeTime] = \App\Models\Listing::hoursFromForm(
+            $request->input('business_days', []), $request->boolean('open_24_hours'),
+            $request->input('open_time', []), $request->input('close_time', [])
+        );
         $listing->business_days         = $businessDays;
         $listing->open_time             = $openTime;
         $listing->close_time            = $closeTime;

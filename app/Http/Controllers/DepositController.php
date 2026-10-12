@@ -22,6 +22,31 @@ class DepositController extends Controller
 		$this->theme = 'themes.'.$this->setting->theme.'.';
     }
 
+    /**
+     * Where every payment gateway lands after a payment (GatewayIpn::redirect()).
+     * A listing package that was just paid for gets a thank-you screen showing
+     * what was bought, then goes back to that business's plans page; anything
+     * else (old packages, failures) carries on to the Payment Log as before.
+     */
+    public function paymentDone()
+    {
+        $trx = session('transaction');
+
+        $payment = $trx
+            ? Payment::where('user_id', auth()->id())->where('trx_number', $trx)->latest('id')->first()
+            : null;
+
+        if (!$payment || (int) $payment->status !== 1 || !$payment->listing_id || !$payment->sales_package_id) {
+            session()->reflash();
+
+            return redirect()->route('user.deposit');
+        }
+
+        $payment->loadMissing(['listing', 'salesPackage', 'method_currency.paymentMethod']);
+
+        return view($this->theme.'user.payment.thank-you', compact('payment'));
+    }
+
     public function deposits(){
     	$payments = Payment::where('user_id',auth()->user()->id)->where('status','!=',0)->with('method_currency','package')->orderBy('id','desc')->paginate(20);
     	return view($this->theme.'user.payment.deposit',compact('payments'));
@@ -69,6 +94,36 @@ class DepositController extends Controller
     		if (!$salesChoice || $salesChoice['price'] <= 0) {
     			$alert = ['danger','Please pick a plan for this package.'];
     			return back()->withAlert($alert);
+    		}
+
+    		// Website packages carry the chosen design in the plan text, the same
+    		// "· Design: X" SB Sales orders use, so the team knows what to build.
+    		if ($salesPackage->needsTemplate()) {
+    			if (!\App\Support\WebsiteTemplates::exists($request->input('template'))) {
+    				$message = 'Please choose a website design first.';
+    				if ($request->ajax() || $request->wantsJson()) {
+    					return response()->json(['success' => false, 'error' => $message], 422);
+    				}
+    				return back()->withAlert(['danger', $message]);
+    			}
+    			$salesChoice['label'] .= ' · Design: '.\App\Support\WebsiteTemplates::name($request->input('template'));
+    		}
+
+    		// No second payment for a package this business already has running
+    		// (same city/area for location packages) — the checkout page says so too.
+    		if ($request->filled('listing_id')) {
+    			$running = \App\Models\ListingSalesPackage::where('listing_id', (int) $request->listing_id)
+    				->where('certificate_package_id', $salesPackage->id)
+    				->where('expires_at', '>', now())
+    				->when($salesPackage->needsLocation(), fn ($q) => $q->where('city', (string) ($salesChoice['city'] ?? ''))->where('area', (string) ($salesChoice['area'] ?? '')))
+    				->exists();
+    			if ($running) {
+    				$message = $salesPackage->name.' is already active for this business. You can renew it once it ends.';
+    				if ($request->ajax() || $request->wantsJson()) {
+    					return response()->json(['success' => false, 'error' => $message], 422);
+    				}
+    				return back()->withAlert(['danger', $message]);
+    			}
     		}
     	}
 

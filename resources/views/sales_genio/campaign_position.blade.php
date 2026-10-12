@@ -95,6 +95,45 @@
   .pb-go:hover{background:#1662c4;}
   .pb-edit{display:block;text-align:center;padding:12px;font-size:13.5px;font-weight:600;color:#1a73e8;text-decoration:none;}
   @media (max-width:900px){.pb-side{position:static;flex-basis:100%;}}
+
+  .pm{display:none;}
+  @media (max-width:760px){
+    .cmp-panel > h1,.pb-grid{display:none !important;}
+    .pm{display:block;padding-top:10px;}
+    .pm-card{border:1px solid #dfe3ec;border-radius:10px;overflow:hidden;}
+    .pm-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:16px;}
+    .pm-row3 label,.pm-row3 > div{display:flex;flex-direction:column;gap:4px;min-width:0;}
+    .pm-row3 span{font-size:14px;color:#6b7285;}
+    .pm-row3 select{border:0;background:none;font-family:inherit;font-size:16px;font-weight:600;color:#12203f;padding:0;
+      max-width:100%;}
+    /* Options do not inherit the select's size, so the popup list was far
+       larger than the rest of the page. */
+    .pm-row3 select option{font-size:15px;font-weight:400;}
+    .pm-row3 b{font-size:17px;color:#12203f;}
+    .pm-budget{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#f6f7fa;padding:16px;
+      font-size:15.5px;}
+    .pm-budget b{font-weight:700;color:#12203f;}
+    .pm-budget strong{font-size:17px;color:#12203f;}
+    .pm-total{padding:0 16px 14px;background:#f6f7fa;font-size:13px;color:#6b7285;}
+    .pm-links{display:flex;gap:24px;padding:18px 0;}
+    .pm-links a{color:#1a73e8;font-weight:600;font-size:15.5px;text-decoration:none;}
+    .pm-head{display:grid;grid-template-columns:minmax(0,1fr) 96px 72px;gap:8px;background:#f6f7fa;margin:0 -16px;padding:14px 16px;
+      font-size:14px;color:#6b7285;}
+    .pm-head span:last-child{text-align:right;}
+    .pm-item{display:grid;grid-template-columns:30px minmax(0,1fr) 96px 72px;gap:8px;align-items:center;padding:16px 0;
+      border-bottom:1px solid #f1f3f8;}
+    .pm-item.is-off .pm-name,.pm-item.is-off .pm-amt{opacity:.45;}
+    .pm-tick input{position:absolute;opacity:0;pointer-events:none;}
+    .pm-tick span{width:26px;height:26px;border-radius:50%;border:1.5px solid #cfd5e1;display:flex;align-items:center;
+      justify-content:center;color:transparent;font-size:12px;cursor:pointer;}
+    .pm-tick input:checked + span{background:#1a73e8;border-color:#1a73e8;color:#fff;}
+    .pm-name{font-size:15.5px;color:#1a1a2e;min-width:0;}
+    .pm-name small{display:block;font-size:12.5px;color:#8a92a6;}
+    .pm-tier{border:1px solid #dfe3ec;border-radius:6px;padding:6px 4px;font-family:inherit;font-size:13.5px;background:#fff;
+      max-width:100%;}
+    .pm-tier option{font-size:14px;}
+    .pm-amt{text-align:right;font-size:15.5px;color:#12203f;}
+  }
 </style>
 <style>
   /* This flow needs the room: everything on one screen, full width. */
@@ -112,6 +151,10 @@
 <body>
 
 @include('sales_genio.partials.topnav')
+@include('sales_genio.partials.campaign_mhead', [
+  'back'  => route('sales_genio.business.campaign.areas', ['id' => $business->id, 'pkg' => $package->id]),
+  'title' => 'Choose Your Position',
+])
 
 @php
   $firstTier = array_key_first($rates);
@@ -122,10 +165,12 @@
 <div class="cmp-wrap">
   <div class="cmp-top">
     <a href="{{ route('sales_genio.business.campaign.areas', ['id' => $business->id, 'pkg' => $package->id]) }}" class="cmp-back"><i class="fas fa-arrow-left"></i> Change areas</a>
+    @include('sales_genio.partials.campaign_dcart')
     <div class="cmp-biz">
       <strong>{{ $business->name }}</strong>
       {{ $business->area ? $business->area.', ' : '' }}{{ $business->city }}
     </div>
+    @include('sales_genio.partials.flow_avatar')
   </div>
 
   @if(session('error'))<div class="cmp-flash warn"><i class="fas fa-circle-exclamation"></i> {{ session('error') }}</div>@endif
@@ -216,11 +261,60 @@
                 <span>Total</span>
                 <strong id="sTotal">₹0</strong>
               </div>
-              <button type="submit" class="pb-go">Add to pitch list</button>
+              <button type="submit" class="pb-go">Add to cart</button>
               <a class="pb-edit" href="{{ route('sales_genio.business.campaign', ['id' => $business->id, 'pkg' => $package->id]) }}">Cancel</a>
             </div>
           </div>
         </div>
+
+        {{-- Phone: one card for position/tenure/budget, a row per area. These
+             controls have no names — they set the radios above, which are what
+             gets submitted. --}}
+        <div class="pm">
+          <div class="pm-card">
+            <div class="pm-row3">
+              <label><span>Position</span>
+                <select id="pmPos">
+                  @foreach($rates as $tier => $rate)<option value="{{ $tier }}">{{ $tier }}</option>@endforeach
+                </select>
+              </label>
+              <label><span>Tenure</span>
+                <select id="pmDays">
+                  @foreach($tenures as $tenureDays => $tenureLabel)
+                    <option value="{{ $tenureDays }}" @selected($tenureDays == $defaultDays)>{{ $tenureLabel }}</option>
+                  @endforeach
+                </select>
+              </label>
+              <div><span>Inventory</span><b id="pmInv">100%</b></div>
+            </div>
+            <div class="pm-budget">
+              <b>Campaign Budget</b>
+              <span><strong id="pmMonth">₹0</strong> / month</span>
+            </div>
+            <div class="pm-total" id="pmTotal"></div>
+          </div>
+
+          <div class="pm-links">
+            <a href="{{ route('sales_genio.business.campaign.areas', ['id' => $business->id, 'pkg' => $package->id]) }}">Add Area</a>
+          </div>
+
+          <div class="pm-head"><span>Areas</span><span>Position</span><span>Budget</span></div>
+          @foreach($groups as $group)
+            @php $held = $taken[$group['pincode']] ?? []; @endphp
+            <div class="pm-item" data-pin="{{ $group['pincode'] }}">
+              <label class="pm-tick"><input type="checkbox" checked><span><i class="fas fa-check"></i></span></label>
+              <div class="pm-name">{{ $group['label'] }}<small>{{ $group['pincode'] }}</small></div>
+              <select class="pm-tier" aria-label="Position in {{ $group['label'] }}">
+                @foreach($rates as $tier => $rate)
+                  <option value="{{ $tier }}" @disabled(isset($held[$tier]))>{{ $tier }}{{ isset($held[$tier]) ? ' (taken)' : '' }}</option>
+                @endforeach
+              </select>
+              <b class="pm-amt">₹0</b>
+            </div>
+          @endforeach
+        </div>
+
+        <div class="cmp-mfoot"><button type="submit" class="pri">Proceed</button></div>
       </form>
     </div>
   </div>
@@ -292,6 +386,84 @@
   document.getElementById('pbAreas').addEventListener('change', update);
   document.getElementById('pbDays').addEventListener('change', update);
   update();
+})();
+
+// ---- Phone: drive the radios from the compact card ----
+(function () {
+  if (!window.matchMedia('(max-width:760px)').matches) return;
+
+  var fullDays = {{ $fullDays }};
+  var money = function (n) { return '₹' + Math.round(n).toLocaleString('en-IN'); };
+  var items = Array.prototype.slice.call(document.querySelectorAll('.pm-item'));
+  var pos = document.getElementById('pmPos');
+  var daysSel = document.getElementById('pmDays');
+
+  function radio(pin, tier) {
+    return Array.prototype.slice.call(document.querySelectorAll('input[name="position[' + pin + ']"]'))
+      .filter(function (r) { return r.value === tier; })[0];
+  }
+  function free(sel) { return Array.prototype.slice.call(sel.options).filter(function (o) { return !o.disabled; }); }
+
+  function apply() {
+    var dayRadio = document.querySelector('input[name="days"][value="' + daysSel.value + '"]');
+    if (dayRadio) { dayRadio.checked = true; document.getElementById('pbDays').dispatchEvent(new Event('change')); }
+
+    var share = Number(daysSel.value) / fullDays;
+    var total = 0, chosen = 0, ok = 0;
+
+    items.forEach(function (it) {
+      var pin = it.dataset.pin;
+      var on = it.querySelector('input').checked;
+      var sel = it.querySelector('select');
+      var r = on ? radio(pin, sel.value) : null;
+      it.classList.toggle('is-off', !on);
+
+      if (r && !r.disabled) {
+        r.checked = true;
+        var price = Math.round(Number(r.dataset.rate || 0) * share);
+        total += price;
+        it.querySelector('.pm-amt').textContent = money(price);
+      } else {
+        radio(pin, '').checked = true;
+        it.querySelector('.pm-amt').textContent = '—';
+      }
+
+      if (on) {
+        chosen++;
+        var want = Array.prototype.slice.call(sel.options).filter(function (o) { return o.value === pos.value; })[0];
+        if (want && !want.disabled) ok++;
+      }
+    });
+
+    document.getElementById('pbAreas').dispatchEvent(new Event('change'));
+    document.getElementById('pmInv').textContent = chosen ? Math.round(ok / chosen * 100) + '%' : '—';
+    var months = Math.max(1, Math.round(Number(daysSel.value) / 30));
+    document.getElementById('pmMonth').textContent = money(total / months);
+    document.getElementById('pmTotal').textContent = total
+      ? money(total) + ' in total for ' + daysSel.options[daysSel.selectedIndex].text
+      : 'Tick at least one area';
+  }
+
+  // The headline position is applied to every area where it is still free.
+  pos.addEventListener('change', function () {
+    items.forEach(function (it) {
+      var sel = it.querySelector('select');
+      var want = free(sel).filter(function (o) { return o.value === pos.value; })[0];
+      if (want) sel.value = pos.value;
+    });
+    apply();
+  });
+  daysSel.addEventListener('change', apply);
+  items.forEach(function (it) {
+    it.querySelector('select').addEventListener('change', apply);
+    it.querySelector('input').addEventListener('change', apply);
+    // Start each area on the first position nobody holds there.
+    var first = free(it.querySelector('select'))[0];
+    if (first) { it.querySelector('select').value = first.value; }
+    else { it.querySelector('input').checked = false; it.querySelector('input').disabled = true; }
+  });
+
+  apply();
 })();
 </script>
 

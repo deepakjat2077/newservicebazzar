@@ -110,7 +110,9 @@ public function elementSave(Request $request, $id = null)
             // its own colours, and tables that fall off the edge of a phone.
             // See App\Support\ContentHtml.
             if (!empty($data['rich'])) {
-                $value = ContentHtml::clean($value);
+                $value = ContentHtml::clean(
+                    ContentHtml::storeEmbeddedImages($value, 'assets/' . $setting->theme . '/images/' . $key . '/content')
+                );
             }
 
             $content[$fieldKey] = $value;

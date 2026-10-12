@@ -58,15 +58,7 @@ class SalesGenioController extends Controller
             return back()->withErrors(['empcode' => 'No WhatsApp number on your account. Contact admin.']);
         }
 
-        $otp = (string) random_int(100000, 999999);
-
-        $user->update([
-            'otp'            => $otp,
-            'otp_expires_at' => now()->addMinutes(10),
-        ]);
-
-        // Send via WhatsApp
-        $this->sendOtpWhatsapp($user, $otp);
+        $this->issueOtp($user);
 
         // Store empcode in session for OTP step
         $request->session()->put('sales_pending_empcode', $user->empcode);
@@ -96,12 +88,8 @@ class SalesGenioController extends Controller
 
         $user = SalesUser::where('empcode', $empcode)->first();
 
-        if (!$user || $user->otp !== $request->otp) {
-            return back()->withErrors(['otp' => 'Invalid OTP. Please try again.']);
-        }
-
-        if ($user->otp_expires_at && $user->otp_expires_at->isPast()) {
-            return back()->withErrors(['otp' => 'OTP has expired. Please login again.']);
+        if ($error = $this->otpError($user, $request->otp)) {
+            return back()->withErrors(['otp' => $error]);
         }
 
         // OTP correct — clear it, set verified time, log in
@@ -121,6 +109,169 @@ class SalesGenioController extends Controller
         $request->session()->put('sales_last_seen', now()->timestamp);
 
         return redirect()->route('sales_genio.dashboard');
+    }
+
+    public function showOtpLogin()
+    {
+        if (Auth::guard('sales')->check()) {
+            return redirect()->route('sales_genio.dashboard');
+        }
+        return view('sales_genio.mobile_otp', ['mode' => 'login']);
+    }
+
+    /** Login with OTP: the code goes to the rep's WhatsApp, then the normal OTP screen logs them in. */
+    public function sendLoginOtp(Request $request)
+    {
+        $user = $this->findByMobile($request);
+        if ($user instanceof \Illuminate\Http\RedirectResponse) {
+            return $user;
+        }
+
+        $this->issueOtp($user);
+        $request->session()->put('sales_pending_empcode', $user->empcode);
+
+        return redirect()->route('sales_genio.otp')
+            ->with('phone_hint', $this->maskPhone($user->phone));
+    }
+
+    public function showForgotPassword()
+    {
+        return view('sales_genio.mobile_otp', ['mode' => 'reset']);
+    }
+
+    public function sendResetOtp(Request $request)
+    {
+        $user = $this->findByMobile($request);
+        if ($user instanceof \Illuminate\Http\RedirectResponse) {
+            return $user;
+        }
+
+        $this->issueOtp($user);
+        $request->session()->put('sales_reset_empcode', $user->empcode);
+
+        return redirect()->route('sales_genio.password.reset')
+            ->with('phone_hint', $this->maskPhone($user->phone));
+    }
+
+    public function showResetPassword(Request $request)
+    {
+        if (!$request->session()->has('sales_reset_empcode')) {
+            return redirect()->route('sales_genio.password.forgot');
+        }
+        return view('sales_genio.reset_password');
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'otp'      => 'required|digits:6',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $empcode = $request->session()->get('sales_reset_empcode');
+        if (!$empcode) {
+            return redirect()->route('sales_genio.password.forgot');
+        }
+
+        $user = SalesUser::where('empcode', $empcode)->first();
+
+        if ($error = $this->otpError($user, $request->otp)) {
+            return back()->withErrors(['otp' => $error]);
+        }
+
+        $user->update([
+            'password'       => Hash::make($request->password),
+            'otp'            => null,
+            'otp_expires_at' => null,
+        ]);
+
+        $request->session()->forget('sales_reset_empcode');
+
+        return redirect()->route('sales_genio.login')
+            ->with('status', 'Your password has been changed. Please log in with your new password.')
+            ->withInput(['empcode' => $user->empcode]);
+    }
+
+    /**
+     * Finds the active rep for the mobile number typed in. Two reps can share a
+     * number, so when it matches more than one account the Employee Code is
+     * asked for as well.
+     */
+    private function findByMobile(Request $request)
+    {
+        $request->validate([
+            'mobile'  => 'required|string|max:20',
+            'empcode' => 'nullable|string|max:20',
+        ]);
+
+        $digits = substr(preg_replace('/\D/', '', $request->mobile), -10);
+        if (strlen($digits) !== 10) {
+            return back()->withErrors(['mobile' => 'Enter a valid 10-digit mobile number.'])->withInput();
+        }
+
+        $users = SalesUser::where('status', 1)
+            ->where('phone', 'like', '%' . $digits)
+            ->get();
+
+        if ($request->filled('empcode')) {
+            $users = $users->where('empcode', strtoupper(trim($request->empcode)));
+        }
+
+        if ($users->isEmpty()) {
+            return back()->withErrors(['mobile' => $request->filled('empcode')
+                ? 'This Employee Code is not linked to this mobile number.'
+                : 'No active sales account is linked to this mobile number.'])->withInput();
+        }
+
+        if ($users->count() > 1) {
+            return back()->withErrors(['empcode' => 'This mobile number is linked to more than one account. Please enter your Employee Code as well.'])
+                ->withInput()
+                ->with('need_empcode', true);
+        }
+
+        return $users->first();
+    }
+
+    private function issueOtp(SalesUser $user): void
+    {
+        $otp = (string) random_int(100000, 999999);
+
+        $user->update([
+            'otp'            => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
+        ]);
+        \Illuminate\Support\Facades\Cache::forget('sales_otp_fails:' . $user->id);
+
+        $this->sendOtpWhatsapp($user, $otp);
+    }
+
+    /** Returns an error message, or null when the OTP is correct. Five wrong tries burn the OTP. */
+    private function otpError(?SalesUser $user, string $otp): ?string
+    {
+        if (!$user || !$user->otp) {
+            return 'This OTP is no longer valid. Please request a new one.';
+        }
+
+        if ($user->otp_expires_at && $user->otp_expires_at->isPast()) {
+            return 'OTP has expired. Please request a new one.';
+        }
+
+        if (!hash_equals($user->otp, $otp)) {
+            $key   = 'sales_otp_fails:' . $user->id;
+            $fails = \Illuminate\Support\Facades\Cache::increment($key);
+            if ($fails === 1) {
+                \Illuminate\Support\Facades\Cache::put($key, 1, now()->addMinutes(10));
+            }
+            if ($fails >= 5) {
+                $user->update(['otp' => null, 'otp_expires_at' => null]);
+                \Illuminate\Support\Facades\Cache::forget($key);
+                return 'Too many wrong attempts. Please request a new OTP.';
+            }
+            return 'Invalid OTP. Please try again.';
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('sales_otp_fails:' . $user->id);
+        return null;
     }
 
     public function dashboard()
@@ -171,9 +322,15 @@ class SalesGenioController extends Controller
 
         $won = $paid->pluck('listing_id')->unique()->count();
 
+        $revenueLast = (float) \App\Models\SalesOrder::where('sales_user_id', $salesUserId)
+            ->where('status', \App\Models\SalesOrder::PAID)
+            ->whereBetween('paid_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()])
+            ->sum('total');
+
         return [
             'deals'       => $paid->count(),
             'revenue'     => (float) $paid->sum('total'),
+            'revenue_last' => $revenueLast,
             'follow_ups'  => $followPending,
             'new_leads'   => $newLeads,
             'pitched'     => $pitched,
@@ -306,14 +463,15 @@ class SalesGenioController extends Controller
         $city = self::activeCity();
 
         if ($tab === 'deal-closed') {
-            // Real payments, not a manually ticked disposition.
+            // Deals the rep has closed, plus anything already paid.
             $rows = \App\Models\SalesOrder::query()
                 ->where('sales_user_id', $user->id)
-                ->where('status', \App\Models\SalesOrder::PAID)
+                ->where(fn ($q) => $q->where('status', \App\Models\SalesOrder::PAID)
+                                     ->orWhereNotNull('closed_at'))
                 ->when($city, fn ($q) => $q->whereHas('listing', fn ($w) => $w->where('city', $city)))
                 ->when($search, fn ($q) => $q->whereHas('listing', fn ($w) => self::applySearch($w, $searchBy, $search)))
                 ->with(['listing', 'items'])
-                ->latest('paid_at')
+                ->orderByRaw('COALESCE(paid_at, closed_at) DESC')
                 ->paginate(20)->withQueryString();
         } elseif ($tab === 'all-business') {
             // Every business on the site — old listings included — so a rep can
@@ -329,7 +487,7 @@ class SalesGenioController extends Controller
             // Same two-pane layout as Follow Up, so the filters work on the
             // date the business was added rather than on a due date.
             $rows = \App\Models\Listing::query()
-                ->where('sales_user_id', $user->id)
+                ->tap(fn ($q) => self::ownOrEdited($q, $user->id))
                 ->when($city, fn ($q) => $q->where('city', $city))
                 ->when($search, fn ($q) => self::applySearch($q, $searchBy, $search))
                 ->when($request->input('due') === 'today',
@@ -339,7 +497,10 @@ class SalesGenioController extends Controller
                 ->when($request->filled('area'), fn ($q) => $q->where('area', 'like', '%' . $request->input('area') . '%'))
                 ->when($request->filled('pincode'), fn ($q) => $q->where('pincode', $request->input('pincode')))
                 ->with('category:id,name')
-                ->latest('id')
+                ->addSelect(['touched_at' => \App\Models\SalesListingTouch::select('updated_at')
+                    ->whereColumn('listing_id', 'listings.id')->where('sales_user_id', $user->id)->limit(1)])
+                ->orderByRaw('GREATEST(listings.created_at, COALESCE((SELECT t.updated_at FROM sales_listing_touches t
+                    WHERE t.listing_id = listings.id AND t.sales_user_id = ?), listings.created_at)) DESC', [$user->id])
                 ->paginate(30)->withQueryString();
         } else {
             $scheduled = (bool) array_intersect(
@@ -524,11 +685,13 @@ class SalesGenioController extends Controller
     {
         if ($tab === 'deal-closed') {
             return $query->whereIn('id', \App\Models\SalesOrder::where('sales_user_id', $salesUserId)
-                ->where('status', \App\Models\SalesOrder::PAID)->select('listing_id'));
+                ->where(fn ($q) => $q->where('status', \App\Models\SalesOrder::PAID)
+                                     ->orWhereNotNull('closed_at'))
+                ->select('listing_id'));
         }
 
         if ($tab === 'new-business') {
-            return $query->where('sales_user_id', $salesUserId);
+            return self::ownOrEdited($query, $salesUserId);
         }
 
         return $query->whereIn('id', \App\Models\ListingDisposition::where('sales_user_id', $salesUserId)
@@ -541,7 +704,6 @@ class SalesGenioController extends Controller
     public static function searchFields(): array
     {
         return [
-            'contract_id' => 'Contract ID',
             'name'        => 'Company Name',
             'keyword'     => 'Business Keyword',
             'area'        => 'Area',
@@ -554,21 +716,43 @@ class SalesGenioController extends Controller
     /** Narrows a Listing query to one field, or across the lot by default. */
     public static function applySearch($query, ?string $by, string $term)
     {
-        $like = '%' . $term . '%';
+        $term   = trim($term);
+        $like   = fn (string $text) => '%' . addcslashes($text, '%_\\') . '%';
+        $words  = preg_split('/\s+/', $term, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        // A number is typed many ways — spaces, dashes, +91, a leading 0 — so
+        // only its last 10 digits are compared, and stored numbers that were
+        // saved with spaces ("99829 56798") are compared without them.
+        $digits = preg_replace('/\D+/', '', $term);
+        $phone  = strlen($digits) > 10 ? substr($digits, -10) : $digits;
+
+        $phoneMatch = fn ($w) => $phone === ''
+            ? $w->whereRaw('1 = 0')
+            : $w->whereRaw("REPLACE(REPLACE(REPLACE(mobile, ' ', ''), '-', ''), '+', '') LIKE ?", [$like($phone)])
+                ->orWhere('mobile_numbers', 'like', $like($phone))
+                ->orWhere('whatsapp_numbers', 'like', $like($phone));
 
         return match ($by) {
-            'contract_id' => $query->where('id', (int) filter_var($term, FILTER_SANITIZE_NUMBER_INT)),
-            'area'        => $query->where('area', 'like', $like),
-            'pincode'     => $query->where('pincode', 'like', $like),
-            'city'        => $query->where('city', 'like', $like),
-            'mobile'      => $query->where(fn ($w) => $w->where('mobile', 'like', $like)
-                ->orWhere('mobile_numbers', 'like', $like)
-                ->orWhere('whatsapp_numbers', 'like', $like)),
-            'keyword'     => $query->where(fn ($w) => $w->where('meta_keywords', 'like', $like)
-                ->orWhere('name', 'like', $like)
-                ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))),
-            default       => $query->where(fn ($w) => $w->where('name', 'like', $like)
-                ->orWhere('mobile', 'like', $like)),
+            'area'    => $query->where('area', 'like', $like($term)),
+            'pincode' => $query->where('pincode', 'like', $like(preg_replace('/\s+/', '', $term))),
+            'city'    => $query->where('city', 'like', $like($term)),
+            'mobile'  => $query->where($phoneMatch),
+            'keyword' => $query->where(fn ($w) => $w->where('meta_keywords', 'like', $like($term))
+                ->orWhere('name', 'like', $like($term))
+                ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like($term)))),
+            // Company name: every word must appear, in any order. A number
+            // typed into this box still finds the business by its phone.
+            default   => $query->where(function ($w) use ($words, $like, $digits, $term, $phoneMatch) {
+                $w->where(function ($n) use ($words, $like) {
+                    foreach ($words as $word) {
+                        $n->where('name', 'like', $like($word));
+                    }
+                });
+
+                if (strlen($digits) >= 5 && !preg_match('/[a-z]/i', $term)) {
+                    $w->orWhere($phoneMatch);
+                }
+            }),
         };
     }
 
@@ -605,6 +789,14 @@ class SalesGenioController extends Controller
         ];
     }
 
+    /** Businesses the rep created, plus any they have edited. */
+    private static function ownOrEdited($query, int $salesUserId)
+    {
+        return $query->where(fn ($q) => $q
+            ->where('sales_user_id', $salesUserId)
+            ->orWhereIn('id', \App\Models\SalesListingTouch::where('sales_user_id', $salesUserId)->select('listing_id')));
+    }
+
     /** Badge numbers on the menu. */
     public static function leadCounts(int $salesUserId): array
     {
@@ -623,11 +815,12 @@ class SalesGenioController extends Controller
             'appointments'   => $pick(['Appointment Refixed', 'Self Appointment']),
             'dispositions'   => (int) $byDisposition->sum(),
             'deal-closed'    => \App\Models\SalesOrder::where('sales_user_id', $salesUserId)
-                ->where('status', \App\Models\SalesOrder::PAID)
+                ->where(fn ($q) => $q->where('status', \App\Models\SalesOrder::PAID)
+                                     ->orWhereNotNull('closed_at'))
                 ->when($city, fn ($q) => $q->whereHas('listing', fn ($w) => $w->where('city', $city)))
                 ->count(),
             'not-interested' => $pick(['Not Interested', 'Do Not Disturb']),
-            'new-business'   => \App\Models\Listing::where('sales_user_id', $salesUserId)
+            'new-business'   => self::ownOrEdited(\App\Models\Listing::query(), $salesUserId)
                 ->when($city, fn ($q) => $q->where('city', $city))->count(),
             'all-business'   => null,
             'pending-kyc'    => \App\Models\Listing::where('sales_user_id', $salesUserId)
@@ -704,7 +897,8 @@ class SalesGenioController extends Controller
             : null;
 
         $preview = null;
-        if ($selected) {
+        // The Web and Mobile Banners show their own picture (the banner on a listings page), not the generated mock-up.
+        if ($selected && ! in_array($selected->id, [5, 6, 7, 10], true)) {
             $variant = \App\Support\SalesPreview::variantFor($selected);
             $preview = $variant ? \App\Support\SalesPreview::url($business, $variant) : null;
         }
@@ -730,10 +924,11 @@ class SalesGenioController extends Controller
         $packages = \App\Models\CertificatePackage::where('status', 1)->orderBy('id')->get();
 
         $groups = self::cityAreaGroups($business->city);
+        $own = self::ownPincode($business, $groups);
         $selected = $request->session()->get(self::areaKey($business->id, $package->id))
-            ?? array_values(array_filter([self::ownPincode($business, $groups)]));
+            ?? array_values(array_filter([$own]));
 
-        return view('sales_genio.campaign_areas', compact('user', 'business', 'package', 'packages', 'groups', 'selected'));
+        return view('sales_genio.campaign_areas', compact('user', 'business', 'package', 'packages', 'groups', 'selected', 'own'));
     }
 
     public function saveCampaignAreas(Request $request, $id, $pkg)
@@ -805,7 +1000,7 @@ class SalesGenioController extends Controller
         return redirect()->route('sales_genio.business.campaign.review', ['id' => $business->id, 'pkg' => $package->id]);
     }
 
-    /** The budget review before anything reaches the pitch list. */
+    /** The budget review before anything reaches the cart. */
     public function campaignReview(Request $request, $id, $pkg)
     {
         $user = Auth::guard('sales')->user();
@@ -825,7 +1020,7 @@ class SalesGenioController extends Controller
         return view('sales_genio.campaign_review', compact('user', 'business', 'package', 'packages', 'quote', 'freebie'));
     }
 
-    /** Approved — the campaign and its free add-on go on the pitch list. */
+    /** Approved — the campaign goes into the cart (its free add-on rides along on the payment link). */
     public function confirmCampaign(Request $request, $id, $pkg)
     {
         $business = \App\Models\Listing::findOrFail($id);
@@ -854,20 +1049,14 @@ class SalesGenioController extends Controller
             'city'       => $business->city,
         ];
 
-        // A top-position campaign carries a free certificate.
+        // A top-position campaign carries a free certificate. It is deliberately
+        // NOT a cart line — the cart holds only what is being charged for — so
+        // generateOrder() attaches it to the payment link at zero instead.
         $freebie = \App\Models\CertificatePackage::where('status', 1)
             ->where('perk_type', 'certificate')->orderBy('id')->first();
 
         $free = null;
         if ($freebie && !isset($cart[$freebie->id])) {
-            $cart[$freebie->id] = [
-                'package_id' => $freebie->id,
-                'name'       => $freebie->name,
-                'plan'       => 'Free with ' . $package->name,
-                'price'      => 0,
-                'days'       => $quote['days'],
-                'free'       => true,
-            ];
             $free = [
                 'name'  => $freebie->name,
                 'note'  => collect($freebie->benefitList())->first() ?? 'Included free with this campaign.',
@@ -880,7 +1069,7 @@ class SalesGenioController extends Controller
         $request->session()->forget(self::pickKey($business->id, $package->id));
 
         return redirect()->route('sales_genio.business.campaign', ['id' => $business->id, 'pkg' => $package->id])
-            ->with('success', $package->name . ' — ' . $quote['summary'] . ' added to the pitch list.')
+            ->with('success', $package->name . ' — ' . $quote['summary'] . ' added to the cart.')
             ->with('free_addon', $free);
     }
 
@@ -1138,14 +1327,15 @@ class SalesGenioController extends Controller
                 ->where('expires_at', '>', now())
                 ->pluck('certificate_package_id')->all();
 
-            if (!$active) {
-                continue;
-            }
+            // A free perk is never a cart line; drop any left behind by an
+            // older cart so counts and totals show only what is charged for.
+            // These are dropped silently — $removed reports paid items only.
+            $paidOnly = array_filter($items, fn ($item) => empty($item['free']));
 
-            $kept = array_filter($items, fn ($item) => !in_array($item['package_id'], $active, true));
+            $kept = array_filter($paidOnly, fn ($item) => !in_array($item['package_id'], $active, true));
+            $removed += count($paidOnly) - count($kept);
 
             if (count($kept) !== count($items)) {
-                $removed += count($items) - count($kept);
                 $kept ? $request->session()->put($key, $kept) : $request->session()->forget($key);
             }
         }
@@ -1213,14 +1403,11 @@ class SalesGenioController extends Controller
                 : optional($package)->imageUrl();
             $item['position_priced'] = $package && $package->isPositionPriced();
             $item['active_till'] = $active[$item['package_id']] ?? null;
+            $item['needs_design'] = $package && $package->needsTemplate() && empty($item['template']);
+            $item['design_url']   = $item['needs_design'] ? $this->designStepUrl($business, $package, $item) : null;
 
             return $item;
         })->values();
-
-        // Links already sent for this business that nobody has paid yet.
-        $pendingOrders = \App\Models\SalesOrder::where('listing_id', $business->id)
-            ->where('status', \App\Models\SalesOrder::PENDING)
-            ->withCount('items')->latest()->get();
 
         // Everything not in the cart yet, cheapest plan shown as the "from" price.
         $suggestions = $packages->reject(fn ($p) => $cart->has($p->id))
@@ -1240,8 +1427,12 @@ class SalesGenioController extends Controller
                 ];
             })->values();
 
+        $totals = $this->cartTotals($request, $business, $items);
+        $availableDiscounts = \App\Models\SalesDiscount::live()->orderBy('name')->get()
+            ->filter(fn ($d) => $d->amountFor($items) > 0)->values();
+
         return view('sales_genio.cart', compact(
-            'user', 'business', 'packages', 'items', 'suggestions', 'pendingOrders', 'pruned'
+            'user', 'business', 'packages', 'items', 'suggestions', 'pruned', 'totals', 'availableDiscounts'
         ));
     }
 
@@ -1257,6 +1448,10 @@ class SalesGenioController extends Controller
 
         $items = collect($request->session()->get('campaign_cart_' . $business->id, []))->values();
 
+        if ($redirect = $this->redirectIfDesignMissing($business, $items)) {
+            return $redirect;
+        }
+
         if ($items->where('price', '>', 0)->isEmpty()) {
             return redirect()->route('sales_genio.business.cart', $business->id)
                 ->with('error', 'Add a paid package before collecting payment.');
@@ -1266,15 +1461,158 @@ class SalesGenioController extends Controller
             ->whereHas('paymentMethod', fn ($q) => $q->whereIn('act', ['razorpay', 'cashfree']))
             ->with('paymentMethod')->get();
 
-        $subtotal = $items->sum('price');
-        $gst = round($subtotal * 0.18);
+        $totals = $this->cartTotals($request, $business, $items);
+        $subtotal = $totals['subtotal'];
+        $gst = $totals['gst'];
+        $discount = $totals['discount'];
+        $discountAmount = $totals['discountAmount'];
+        $total = $totals['total'];
 
         // The owner pays from their own business page.
         $payLink = route('user.listing.advertise', $business->id);
 
         return view('sales_genio.cart_checkout', compact(
-            'user', 'business', 'packages', 'items', 'methods', 'subtotal', 'gst', 'payLink'
+            'user', 'business', 'packages', 'items', 'methods', 'subtotal', 'gst', 'payLink',
+            'discount', 'discountAmount', 'total'
         ));
+    }
+
+    /** The discount chosen for this business's cart, if it is still valid, and what it takes off. */
+    private function cartDiscount(Request $request, \App\Models\Listing $business, $items): array
+    {
+        $key = 'campaign_discount_' . $business->id;
+        $discount = ($id = $request->session()->get($key)) ? \App\Models\SalesDiscount::live()->find($id) : null;
+        $amount = $discount ? $discount->amountFor(collect($items)) : 0.0;
+
+        // Gone off, expired, or nothing left in the cart that it covers: drop it quietly.
+        if (!$discount || $amount <= 0) {
+            $request->session()->forget($key);
+
+            return [null, 0.0];
+        }
+
+        return [$discount, $amount];
+    }
+
+    /** Subtotal, discount, GST and total for a cart, worked out one way everywhere. */
+    private function cartTotals(Request $request, \App\Models\Listing $business, $items): array
+    {
+        $items = collect($items);
+        [$discount, $off] = $this->cartDiscount($request, $business, $items);
+        $subtotal = (float) $items->sum('price');
+        $t = \App\Models\SalesDiscount::totals($subtotal, $off);
+
+        return ['subtotal' => $subtotal, 'discount' => $discount, 'discountAmount' => $off, 'gst' => $t['gst'], 'total' => $t['total']];
+    }
+
+    public function applyDiscount(Request $request, $id)
+    {
+        $business = \App\Models\Listing::findOrFail($id);
+        $request->validate(['discount_id' => 'required|integer']);
+
+        $items = collect($request->session()->get('campaign_cart_' . $business->id, []));
+        $discount = \App\Models\SalesDiscount::live()->find($request->discount_id);
+
+        if (!$discount || $discount->amountFor($items) <= 0) {
+            return back()->with('error', 'That discount does not apply to what is in the cart.');
+        }
+
+        $request->session()->put('campaign_discount_' . $business->id, $discount->id);
+
+        return back()->with('success', $discount->name . ' applied — ' . $discount->label() . '.');
+    }
+
+    public function removeDiscount(Request $request, $id)
+    {
+        $request->session()->forget('campaign_discount_' . $id);
+
+        return back()->with('success', 'Discount removed.');
+    }
+
+    /**
+     * A website in the cart must have a design before anyone pays. This catches one that got in
+     * without it (added before a package had the design step) and sends the rep to choose.
+     */
+    private function redirectIfDesignMissing(\App\Models\Listing $business, $items)
+    {
+        foreach ($items as $item) {
+            $package = \App\Models\CertificatePackage::find($item['package_id'] ?? 0);
+
+            if (!$package || !$package->needsTemplate() || !empty($item['template'])) {
+                continue;
+            }
+
+            return redirect($this->designStepUrl($business, $package, $item))
+                ->with('error', 'Choose a website design for ' . $package->name . ' before paying.');
+        }
+
+        return null;
+    }
+
+    /** The design step for a website already in the cart, keeping the plan the rep picked. */
+    private function designStepUrl(\App\Models\Listing $business, \App\Models\CertificatePackage $package, array $item): string
+    {
+        $index = 0;
+        foreach ($package->planList() as $i => $plan) {
+            // The item's text starts with its plan's label.
+            if (str_starts_with((string) ($item['plan'] ?? ''), $plan['label'])) {
+                $index = $i;
+                break;
+            }
+        }
+
+        return route('sales_genio.business.campaign.template', ['id' => $business->id, 'pkg' => $package->id, 'plan' => $index]);
+    }
+
+    /** GSTN & PAN, filled in just before the payment link is made. */
+    /** True when a GST number is already filed under the business's KYC (confirmed there). */
+    private function gstOnFile(\App\Models\Listing $business): bool
+    {
+        return \App\Models\ListingKycDocument::where('listing_id', $business->id)
+            ->where('doc_type', 'gst')->whereNotNull('doc_number')->where('doc_number', '!=', '')->exists();
+    }
+
+    /** True when the business already has a PAN card or number filed under KYC. */
+    private function panOnFile(\App\Models\Listing $business): bool
+    {
+        return \App\Models\ListingKycDocument::where('listing_id', $business->id)
+            ->where('doc_type', 'pan')->exists();
+    }
+
+    public function gstDetails(Request $request, $id)
+    {
+        $user = Auth::guard('sales')->user();
+        $business = \App\Models\Listing::findOrFail($id);
+
+        $items = collect($request->session()->get('campaign_cart_' . $business->id, []))->values();
+
+        if ($redirect = $this->redirectIfDesignMissing($business, $items)) {
+            return $redirect;
+        }
+
+        if ($items->where('price', '>', 0)->isEmpty()) {
+            return redirect()->route('sales_genio.business.cart', $business->id)
+                ->with('error', 'Add a paid package before collecting payment.');
+        }
+
+        $totals = $this->cartTotals($request, $business, $items);
+        $subtotal = $totals['subtotal'];
+        $gst = $totals['gst'];
+        $total = $totals['total'];
+        $discountAmount = $totals['discountAmount'];
+
+        // What the last link for this business used, so a repeat sale does not
+        // make the rep type it all again.
+        $last = \App\Models\SalesOrder::where('listing_id', $business->id)
+            ->whereNotNull('buyer_gstin')->latest('id')->first();
+
+        $panDoc = \App\Models\ListingKycDocument::where('listing_id', $business->id)
+            ->where('doc_type', 'pan')->latest('id')->first();
+        $gstDoc = \App\Models\ListingKycDocument::where('listing_id', $business->id)
+            ->where('doc_type', 'gst')->whereNotNull('doc_number')->latest('id')->first();
+        $panOnFile = (bool) $panDoc;
+
+        return view('sales_genio.gst_details', compact('user', 'business', 'items', 'subtotal', 'gst', 'last', 'panDoc', 'gstDoc', 'panOnFile', 'total', 'discountAmount'));
     }
 
     /** Turns the cart into a payment link the customer can open and pay. */
@@ -1285,12 +1623,40 @@ class SalesGenioController extends Controller
 
         $items = collect($request->session()->get('campaign_cart_' . $business->id, []))->values();
 
+        if ($redirect = $this->redirectIfDesignMissing($business, $items)) {
+            return $redirect;
+        }
+
         if ($items->where('price', '>', 0)->isEmpty()) {
             return back()->with('error', 'Add a paid package before making a payment link.');
         }
 
-        $subtotal = $items->sum('price');
-        $gst = round($subtotal * 0.18);
+        $request->validate([
+            'buyer_gstin'       => ['nullable', 'string', 'regex:/^[0-9A-Z]{15}$/'],
+            // Not needed again when a PAN card (or number) is already filed under the business's KYC.
+            'buyer_pan'         => array_filter(['nullable', 'string', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/',
+                $this->panOnFile($business) || $request->hasFile('pan_file') ? null : 'required_without:buyer_gstin']),
+            'pan_file'          => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+            'buyer_gst_address' => ['nullable', 'string', 'max:255'],
+            'buyer_gst_pincode' => ['nullable', 'digits:6'],
+            'buyer_gst_state'   => ['nullable', 'string', 'max:100'],
+            // `accepted` is checked even when the field is absent, so the rule
+            // is only attached once a GSTIN is actually being claimed.
+            'gst_consent'       => $request->filled('buyer_gstin') && ! $this->gstOnFile($business) ? ['accepted'] : ['nullable'],
+        ], [
+            'buyer_gstin.regex'    => 'A GST number is 15 characters, letters and digits only.',
+            'buyer_pan.regex'      => 'A PAN is 10 characters, like ABCDE1234F.',
+            'buyer_pan.required_without' => 'Enter the PAN number when the business has no GST number.',
+            'pan_file.mimes'       => 'The PAN card must be a JPG, PNG, WEBP or PDF file.',
+            'pan_file.max'         => 'The PAN card file must be under 10 MB.',
+            'gst_consent.required_with' => 'Please tick the box to confirm the GST number is correct.',
+            'gst_consent.accepted' => 'Please tick the box to confirm the GST number is correct.',
+        ]);
+
+        // Worked out here again from the cart and the discount as they are right now — never taken from the page.
+        $totals = $this->cartTotals($request, $business, $items);
+        $subtotal = $totals['subtotal'];
+        $gst = $totals['gst'];
 
         $order = \App\Models\SalesOrder::create([
             'token'         => \App\Models\SalesOrder::newToken(),
@@ -1298,9 +1664,20 @@ class SalesGenioController extends Controller
             'sales_user_id' => $user->id,
             'subtotal'      => $subtotal,
             'gst'           => $gst,
-            'total'         => $subtotal + $gst,
+            'total'         => $totals['total'],
             'status'        => \App\Models\SalesOrder::PENDING,
         ]);
+
+        $order->forceFill([
+            'discount_id'       => optional($totals['discount'])->id,
+            'discount_name'     => optional($totals['discount'])->name,
+            'discount_amount'   => $totals['discountAmount'],
+            'buyer_gstin'       => strtoupper(trim((string) $request->input('buyer_gstin'))) ?: null,
+            'buyer_pan'         => strtoupper(trim((string) $request->input('buyer_pan'))) ?: null,
+            'buyer_gst_address' => trim((string) $request->input('buyer_gst_address')) ?: null,
+            'buyer_gst_pincode' => trim((string) $request->input('buyer_gst_pincode')) ?: null,
+            'buyer_gst_state'   => trim((string) $request->input('buyer_gst_state')) ?: null,
+        ])->save();
 
         foreach ($items as $item) {
             $pick = $request->session()->get(self::pickKey($business->id, $item['package_id']));
@@ -1313,6 +1690,7 @@ class SalesGenioController extends Controller
                 'days'                   => $item['days'],
                 'is_free'                => !empty($item['free']),
                 'meta'                   => [
+                    'template'  => $item['template'] ?? null,
                     'city'      => $item['city'] ?? $business->city,
                     'area'      => $business->area,
                     'lines'     => $item['lines'] ?? [],
@@ -1322,12 +1700,63 @@ class SalesGenioController extends Controller
             ]);
         }
 
+        if ($request->hasFile('pan_file')) {
+            $this->storePanCard($business, $request->file('pan_file'),
+                strtoupper(trim((string) $request->input('buyer_pan'))) ?: null);
+        }
+
+        // The free certificate that comes with a top-position campaign. It is
+        // kept out of the cart, so it is added here — at zero, after GST was
+        // worked out on the paid lines.
+        $topIds = \App\Models\CertificatePackage::where('perk_type', 'top_position')->pluck('id')->all();
+        $campaign = $items->first(fn ($i) => in_array((int) $i['package_id'], $topIds, true));
+        $freebie = \App\Models\CertificatePackage::where('status', 1)
+            ->where('perk_type', 'certificate')->orderBy('id')->first();
+
+        if ($campaign && $freebie && !$items->contains(fn ($i) => (int) $i['package_id'] === $freebie->id)) {
+            $order->items()->create([
+                'certificate_package_id' => $freebie->id,
+                'name'                   => $freebie->name,
+                'plan'                   => 'Free with ' . $campaign['name'],
+                'price'                  => 0,
+                'days'                   => (int) $campaign['days'],
+                'is_free'                => true,
+                'meta'                   => ['city' => $business->city, 'area' => $business->area],
+            ]);
+        }
+
         // The cart stays until the order is actually paid — an unpaid link
         // must never lose the rep's work.
         return redirect()->route('sales_genio.business.order', ['id' => $business->id, 'order' => $order->id]);
     }
 
     /** Sends the approved payment-link template through Gupshup. */
+    /**
+     * Deal Close — the rep has closed the sale. It only files the deal under
+     * Deal Closed; the payment stays unconfirmed, and the packages switch on
+     * only once the money actually arrives through the payment link.
+     */
+    public function dealClose(Request $request, $id, $order)
+    {
+        $user = Auth::guard('sales')->user();
+        $business = \App\Models\Listing::findOrFail($id);
+        $order = \App\Models\SalesOrder::where('listing_id', $business->id)->findOrFail($order);
+
+        if ($order->closed_at) {
+            return redirect()->route('sales_genio.leads', 'deal-closed')
+                ->with('error', 'This deal is already in Deal Closed.');
+        }
+
+        $order->forceFill([
+            'closed_at' => now(),
+            'closed_by' => $user->id,
+        ])->save();
+
+        return redirect()->route('sales_genio.leads', 'deal-closed')
+            ->with('success', 'Deal closed for ' . $business->name
+                . '. The payment shows as pending until the customer pays.');
+    }
+
     /** Emails the tax invoice of a paid order again (JSON, for the Deal Closed list). */
     public function mailOrderInvoice(Request $request, $id, $order)
     {
@@ -1420,6 +1849,11 @@ class SalesGenioController extends Controller
             return redirect()->route('sales_genio.business.campaign.areas', ['id' => $business->id, 'pkg' => $package->id]);
         }
 
+        // A website needs its design chosen, so it cannot be added in one tap.
+        if ($package->needsTemplate()) {
+            return redirect()->route('sales_genio.business.campaign', ['id' => $business->id, 'pkg' => $package->id]);
+        }
+
         $plans = $package->planList();
 
         if (!$plans) {
@@ -1455,11 +1889,73 @@ class SalesGenioController extends Controller
     public function clearCart(Request $request, $id)
     {
         $request->session()->forget('campaign_cart_' . $id);
+        $request->session()->forget('campaign_discount_' . $id);
 
         return back()->with('success', 'Cart cleared.');
     }
 
     /** The rep's pitch list for this business, kept for the visit. */
+    /** Website packages: the five designs, each showing this business's own home page. */
+    public function websiteTemplates(Request $request, $id, $pkg)
+    {
+        $user     = Auth::guard('sales')->user();
+        $business = \App\Models\Listing::findOrFail($id);
+        $package  = \App\Models\CertificatePackage::where('status', 1)->findOrFail($pkg);
+        $back     = ['id' => $business->id, 'pkg' => $package->id];
+
+        if (!$package->needsTemplate()) {
+            return redirect()->route('sales_genio.business.campaign', $back);
+        }
+
+        $plan = $request->query('plan');
+        if (!is_numeric($plan) || !isset($package->planList()[(int) $plan])) {
+            return redirect()->route('sales_genio.business.campaign', $back)->with('error', 'Please pick a plan first.');
+        }
+
+        $choice = $package->resolveChoice(['plan' => (string) (int) $plan, 'tier' => null, 'city' => $business->city, 'area' => '']);
+        if (!$choice) {
+            return redirect()->route('sales_genio.business.campaign', $back)->with('error', 'Could not price that plan.');
+        }
+
+        $templates = \App\Support\WebsiteTemplates::all();
+        $selected  = session('campaign_cart_' . $business->id . '.' . $package->id . '.template');
+
+        return view('sales_genio.website_templates', [
+            'user' => $user, 'business' => $business, 'package' => $package, 'choice' => $choice,
+            'plan' => (int) $plan, 'templates' => $templates,
+            'selected' => \App\Support\WebsiteTemplates::exists($selected) ? $selected : null,
+        ]);
+    }
+
+    /** One design's complete home page, filled in from the business. Shown inside a frame. */
+    public function websitePreview($id, $template)
+    {
+        abort_unless(\App\Support\WebsiteTemplates::exists($template), 404);
+
+        $business = \App\Models\Listing::with('category:id,name')->findOrFail($id);
+
+        $photos = collect([$business->thumb ? 'assets/images/listing/thumb/' . $business->thumb : null])
+            ->merge(collect($business->photos ?? [])->map(fn ($f) => 'assets/images/listing/photos/' . $f))
+            ->filter(fn ($path) => $path && is_file(public_path($path)))
+            ->unique()->values()->map(fn ($path) => asset($path))->take(6);
+
+        $services = collect((array) $business->business_categories)->filter()->unique()->take(6)->values();
+        if ($services->isEmpty() && optional($business->category)->name) {
+            $services = collect([$business->category->name]);
+        }
+
+        $times = array_values(array_filter((array) $business->open_time));
+        $hours = $times ? ($times[0] . ' – ' . (array_values(array_filter((array) $business->close_time))[0] ?? '')) : null;
+        $days  = count((array) $business->business_days);
+
+        return response()->view('sales_genio.website_preview', [
+            't' => $template, 'business' => $business, 'photos' => $photos, 'services' => $services,
+            'about' => \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags((string) $business->details))), 340),
+            'hours' => $hours, 'days' => $days,
+            'address' => collect([$business->plot_no, $business->building_name, $business->street_name, $business->area, $business->city])->filter()->implode(', '),
+        ]);
+    }
+
     public function addCampaignCart(Request $request, $id)
     {
         $business = \App\Models\Listing::findOrFail($id);
@@ -1470,6 +1966,7 @@ class SalesGenioController extends Controller
             'tier'       => 'nullable|string|max:60',
             'city'       => 'nullable|string|max:100',
             'area'       => 'nullable|string|max:150',
+            'template'   => 'nullable|string|max:30',
         ]);
 
         $package = \App\Models\CertificatePackage::where('status', 1)->findOrFail($request->package_id);
@@ -1485,19 +1982,30 @@ class SalesGenioController extends Controller
             return back()->with('error', 'Please pick a plan first.');
         }
 
+        // A package with a website needs a design. Without one, send the rep to pick it.
+        $template = $request->input('template');
+        if ($package->needsTemplate() && !\App\Support\WebsiteTemplates::exists($template)) {
+            return redirect()->route('sales_genio.business.campaign.template', [
+                'id' => $business->id, 'pkg' => $package->id, 'plan' => $request->input('plan'),
+            ])->with('error', 'Please choose a website design first.');
+        }
+
         $key = 'campaign_cart_' . $business->id;
         $cart = $request->session()->get($key, []);
         $cart[$package->id] = [
             'package_id' => $package->id,
             'name'       => $package->name,
-            'plan'       => $choice['label'],
+            // The design is part of the plan text, so it shows on the cart, the payment link,
+            // the invoice and the subscription list without each of them knowing about designs.
+            'plan'       => $choice['label'] . ($package->needsTemplate() ? ' · Design: ' . \App\Support\WebsiteTemplates::name($template) : ''),
+            'template'   => $package->needsTemplate() ? $template : null,
             'price'      => $choice['price'],
             'days'       => $choice['days'],
         ];
         $request->session()->put($key, $cart);
 
         return redirect()->route('sales_genio.business.campaign', ['id' => $business->id, 'pkg' => $package->id])
-            ->with('success', $package->name . ' — ' . $choice['label'] . ' added to the pitch list.');
+            ->with('success', $package->name . ' — ' . $cart[$package->id]['plan'] . ' added to the cart.');
     }
 
     public function removeCampaignCart(Request $request, $id)
@@ -1526,21 +2034,6 @@ class SalesGenioController extends Controller
     {
         $hasTimings = collect((array) $b->open_time)->filter()->isNotEmpty();
         $photoCount = count((array) $b->photos) + $b->extraImages()->count();
-        $kyc = $b->kycDocuments()->get(['doc_type', 'status']);
-        $isAddress = fn ($type) => str_contains($type, 'aadhaar') || str_contains($type, 'address');
-
-        $kycState = function (callable $match) use ($kyc) {
-            $rows = $kyc->filter(fn ($d) => $match(strtolower((string) $d->doc_type)));
-
-            if ($rows->contains(fn ($d) => strtolower((string) $d->status) === 'approved')) {
-                return 'approved';
-            }
-
-            return $rows->isNotEmpty() ? 'in_review' : 'missing';
-        };
-
-        $panState = $kycState(fn ($type) => str_contains($type, 'pan'));
-        $addressState = $kycState($isAddress);
 
         $required = [
             ['label' => 'Business name',      'done' => filled($b->name),        'route' => 'sales_genio.business.name'],
@@ -1549,10 +2042,6 @@ class SalesGenioController extends Controller
             ['label' => 'Category',           'done' => filled($b->category_id), 'route' => 'sales_genio.business.categories'],
             ['label' => 'Business timings',   'done' => $hasTimings,             'route' => 'sales_genio.business.timings'],
             ['label' => 'At least one photo', 'done' => $photoCount > 0,         'route' => 'sales_genio.business.photos'],
-            ['label' => 'KYC — PAN', 'done' => $panState === 'approved', 'route' => 'sales_genio.business.kyc',
-             'state' => $panState],
-            ['label' => 'KYC — Address proof', 'done' => $addressState === 'approved', 'route' => 'sales_genio.business.kyc',
-             'state' => $addressState],
         ];
 
         $optional = [
@@ -1715,6 +2204,10 @@ class SalesGenioController extends Controller
         $listing->slug = $this->uniqueSlug($request->business_name ?: 'listing', $listing->id);
         $listing->save();
 
+        // Meta title/keywords/description, the listing description and FAQs —
+        // written by AI just as for an admin-created listing, once the page has loaded.
+        \App\Jobs\GenerateListingAiContent::dispatchAfterResponse($listing->id, true);
+
         $msg = $listing->status == 1
             ? 'Business created & approved successfully.'
             : 'Business saved. Add a Business Category to make it live.';
@@ -1775,6 +2268,7 @@ class SalesGenioController extends Controller
         $business = \App\Models\Listing::findOrFail($id);
         $photos   = $this->listingPhotos($business);
         $activeDispositions = \App\Models\ListingDisposition::where('listing_id', $id)->pluck('disposition')->all();
+        $catalogue = \App\Models\ExtraImage::where('listing_id', $business->id)->where('type', 'catalogue')->latest('id')->get();
 
         // What still blocks a campaign — shown as a popup on Manage Campaign.
         [$required, $optional] = self::campaignChecklist($business);
@@ -1783,7 +2277,7 @@ class SalesGenioController extends Controller
         $optionalSkipped = (bool) session('campaign_optional_skipped_' . $business->id);
 
         return view('sales_genio.business_profile', compact(
-            'user', 'business', 'photos', 'activeDispositions',
+            'user', 'business', 'photos', 'activeDispositions', 'catalogue',
             'campaignMissing', 'campaignOptional', 'optionalSkipped'
         ));
     }
@@ -1832,14 +2326,29 @@ class SalesGenioController extends Controller
         ]);
 
         // Area, pincode, city and state are locked after creation — only the
-        // detailed address lines can be edited here.
+        // detailed address lines can be changed, and only through an admin:
+        // the change waits in pending_address until it is approved.
+        $fields = [];
         foreach (['plot_no', 'building_name', 'street_name', 'landmark'] as $f) {
-            $business->$f = $request->input($f);
+            $fields[$f] = trim((string) $request->input($f)) ?: null;
         }
+
+        $current = [];
+        foreach (array_keys($fields) as $f) {
+            $current[$f] = trim((string) $business->$f) ?: null;
+        }
+
+        if ($fields === $current) {
+            return redirect()->route('sales_genio.business.profile', $business->id)
+                ->with('success', 'The address is unchanged.');
+        }
+
+        $business->pending_address = json_encode(['fields' => $fields, 'by_sales' => Auth::guard('sales')->id()]);
+        $business->address_approval_status = 'pending';
         $business->save();
 
         return redirect()->route('sales_genio.business.profile', $business->id)
-            ->with('success', 'Address updated successfully.');
+            ->with('success', 'Address change sent to the admin for approval.');
     }
 
     public function editCategories($id)
@@ -1876,6 +2385,8 @@ class SalesGenioController extends Controller
         // Keep names in the same order the ids were submitted.
         $orderedNames = collect($ids)->map(fn ($i) => $names[$i] ?? null)->filter()->values()->all();
 
+        $categoriesBefore = [(int) $business->category_id, collect($business->subcategory_ids ?? [])->map(fn ($v) => (int) $v)->sort()->values()->all()];
+
         $business->category_id         = $request->category_id ?: null;
         $business->subcategory_ids     = array_map('strval', $ids);
         $business->business_categories = $orderedNames;
@@ -1892,6 +2403,12 @@ class SalesGenioController extends Controller
         }
 
         $business->save();
+
+        // New categories → rewrite the AI description, meta and FAQs to match
+        // (only copy the AI wrote; a hand-edited description is left alone).
+        if ($categoriesBefore !== [(int) $business->category_id, collect($ids)->sort()->values()->all()]) {
+            \App\Jobs\GenerateListingAiContent::dispatchAfterResponse($business->id, true, true);
+        }
 
         $msg = ((int) $business->status === 1)
             ? 'Business categories updated. Listing is live.'
@@ -2019,6 +2536,16 @@ class SalesGenioController extends Controller
             ->with('success', $label . ' updated successfully.');
     }
 
+    /**
+     * What a rep can set from the Disposition panel. The wider list below is
+     * kept for the admin report, because older businesses still carry the
+     * other dispositions and admin has to be able to see and filter them.
+     */
+    public static function repDispositionOptions(): array
+    {
+        return ['Follow Up', 'Call Back', 'Not Available'];
+    }
+
     public static function dispositionOptions(): array
     {
         return ['Call Back','Follow Up','Appointment Refixed','Self Appointment','Not Available',
@@ -2032,7 +2559,7 @@ class SalesGenioController extends Controller
         $user = Auth::guard('sales')->user();
 
         $request->validate([
-            'disposition' => 'required|string|in:' . implode(',', self::dispositionOptions()),
+            'disposition' => 'required|string|in:' . implode(',', self::repDispositionOptions()),
             'value'       => 'nullable|boolean',
             'call_back'   => 'nullable|boolean',
             'note'        => 'nullable|string|max:500',
@@ -2112,13 +2639,21 @@ class SalesGenioController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $business->name = $request->name;
-        // Keep the slug in step with the name (clean, unique).
-        $business->slug = $this->uniqueSlug($request->name, $business->id);
+        // A new name never applies straight away — it waits for an admin, the
+        // same rule business owners follow.
+        $new = trim((string) $request->name);
+
+        if ($new === trim((string) $business->name)) {
+            return redirect()->route('sales_genio.business.profile', $business->id)
+                ->with('success', 'The business name is unchanged.');
+        }
+
+        $business->pending_name = $new;
+        $business->name_approval_status = 'pending';
         $business->save();
 
         return redirect()->route('sales_genio.business.profile', $business->id)
-            ->with('success', 'Business name updated successfully.');
+            ->with('success', 'Name change sent to the admin for approval.');
     }
 
     public function editKyc($id)
@@ -2239,6 +2774,55 @@ class SalesGenioController extends Controller
         }
 
         return response()->json(['status' => true, 'saved' => $saved]);
+    }
+
+    /**
+     * The PAN card attached on the GSTN & PAN screen. It is filed as the
+     * business's own PAN KYC document, so it goes through the same approval
+     * and the same number-reading as one uploaded from the KYC page.
+     */
+    private function storePanCard(\App\Models\Listing $business, \Illuminate\Http\UploadedFile $file, ?string $number): void
+    {
+        $dir = 'assets/images/sales_genio/kyc/' . $business->id;
+        $fullDir = public_path($dir);
+
+        if (!is_dir($fullDir)) {
+            mkdir($fullDir, 0755, true);
+        }
+
+        $ext = strtolower($file->getClientOriginalExtension());
+        $isPdf = $ext === 'pdf';
+        $filename = 'pan_' . uniqid() . '_' . time() . '.' . ($isPdf ? 'pdf' : 'webp');
+
+        if ($isPdf) {
+            $file->move($fullDir, $filename);
+        } else {
+            $this->resizeToWebp($file->getRealPath(), $fullDir . '/' . $filename, 1600);
+        }
+
+        // PAN is a single-file type, so the new scan replaces the old one —
+        // but only now that the replacement is safely written. Deleting first
+        // loses the original if anything above fails.
+        foreach (\App\Models\ListingKycDocument::where('listing_id', $business->id)
+                     ->where('doc_type', 'pan')->get() as $old) {
+            $oldFile = public_path($old->path);
+
+            if (is_file($oldFile)) {
+                @unlink($oldFile);
+            }
+
+            $old->delete();
+        }
+
+        $doc = \App\Models\ListingKycDocument::create([
+            'listing_id' => $business->id,
+            'doc_type'   => 'pan',
+            'doc_number' => $number,
+            'path'       => $dir . '/' . $filename,
+            'status'     => 'in_review',
+        ]);
+
+        app()->terminating(fn () => \App\Support\KycReader::run($doc->fresh() ?? $doc));
     }
 
     public function deleteKyc($id, $docId)
@@ -2366,23 +2950,19 @@ class SalesGenioController extends Controller
         $business = \App\Models\Listing::findOrFail($id);
 
         $order   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-        $days    = is_array($business->business_days) ? $business->business_days : [];
-        $opens   = is_array($business->open_time) ? array_values($business->open_time) : [];
-        $closes  = is_array($business->close_time) ? array_values($business->close_time) : [];
-
-        // Map each open day to its (open, close), then group days that share the
-        // same hours into one slot — that's how the editor shows them.
-        $dayHours = [];
-        foreach (array_values($days) as $i => $d) {
-            $dayHours[$d] = [$opens[$i] ?? '10:00 AM', $closes[$i] ?? '08:00 PM'];
-        }
+        // Every (open, close) shift becomes one slot holding the days that have
+        // it — a day with two shifts sits in two slots. shiftsByDay() reads
+        // every format hours were ever saved in.
+        $dayHours = $business->shiftsByDay();
 
         $slots = [];
-        foreach ($dayHours as $d => $hrs) {
-            $key = $hrs[0] . '|' . $hrs[1];
-            $slots[$key]['days'][] = $d;
-            $slots[$key]['open']  = $hrs[0];
-            $slots[$key]['close'] = $hrs[1];
+        foreach ($dayHours as $d => $shifts) {
+            foreach ($shifts as [$open, $close]) {
+                $key = $open . '|' . $close;
+                $slots[$key]['days'][] = $d;
+                $slots[$key]['open']  = $open;
+                $slots[$key]['close'] = $close;
+            }
         }
         $slots = array_values($slots);
 
@@ -2405,29 +2985,37 @@ class SalesGenioController extends Controller
 
         $slots = $request->input('slots', []);
 
-        // Collect per-day hours from all open slots (last write wins if a day
-        // appears twice), then emit parallel arrays in week order.
-        $dayHours = [];
+        // Each open slot adds a shift to every day it lists, so a day ticked in
+        // two slots gets two shifts (e.g. 9–1 and 5–9). Rows come out one per
+        // day per shift, in week order, earliest shift first.
+        $dayShifts = [];
         foreach ($slots as $slot) {
             $open  = $slot['open']  ?? '';
             $close = $slot['close'] ?? '';
             $days  = $slot['days']  ?? [];
-            if ($open === '' || $open === 'Closed') {
+            if ($open === '' || $open === 'Closed' || $close === '') {
                 continue; // closed slot — those days simply stay out
             }
             foreach ($days as $d) {
                 if (in_array($d, $order, true)) {
-                    $dayHours[$d] = [$open, $close];
+                    $dayShifts[$d][$open . '|' . $close] = [$open, $close];
                 }
             }
         }
 
+        $minutes = function ($t) {
+            $ts = strtotime('2000-01-01 ' . $t);
+            return $ts === false ? 0 : (int) date('G', $ts) * 60 + (int) date('i', $ts);
+        };
+
         $businessDays = $openTimes = $closeTimes = [];
         foreach ($order as $d) {
-            if (isset($dayHours[$d])) {
+            $shifts = array_values($dayShifts[$d] ?? []);
+            usort($shifts, fn ($a, $b) => $minutes($a[0]) <=> $minutes($b[0]));
+            foreach ($shifts as [$open, $close]) {
                 $businessDays[] = $d;
-                $openTimes[]    = $dayHours[$d][0];
-                $closeTimes[]   = $dayHours[$d][1];
+                $openTimes[]    = $open;
+                $closeTimes[]   = $close;
             }
         }
 
@@ -2504,9 +3092,40 @@ class SalesGenioController extends Controller
             'landlines.*'     => 'nullable|string|max:20',
             'tollfrees'       => 'nullable|array',
             'tollfrees.*'     => 'nullable|string|max:20',
+            'extra'                => 'nullable|array|max:5',
+            'extra.*.title'        => 'nullable|string|max:10',
+            'extra.*.name'         => 'nullable|string|max:255',
+            'extra.*.designation'  => 'nullable|string|max:100',
+            'extra.*.mobile'       => 'nullable|digits:10',
+        ], [
+            'extra.max'            => 'You can add up to 5 more contact people.',
+            'extra.*.mobile.digits' => 'The mobile number of an additional contact person must be 10 digits.',
         ]);
 
         $clean = fn ($arr) => array_values(array_unique(array_filter(array_map('trim', $arr ?? []))));
+
+        // Further people at the business. A block with nothing in it is dropped;
+        // one with a number or role but no name is refused rather than saved nameless.
+        $people = [];
+        foreach ((array) $request->input('extra', []) as $row) {
+            $name   = trim((string) ($row['name'] ?? ''));
+            $mobile = trim((string) ($row['mobile'] ?? ''));
+
+            if ($name === '' && $mobile === '') {
+                continue;
+            }
+
+            if ($name === '') {
+                return back()->withErrors(['extra' => 'Enter a name for each additional contact person.'])->withInput();
+            }
+
+            $people[] = [
+                'title'       => trim((string) ($row['title'] ?? '')) ?: 'Mr',
+                'name'        => $name,
+                'designation' => trim((string) ($row['designation'] ?? '')) ?: null,
+                'mobile'      => $mobile ?: null,
+            ];
+        }
 
         $mobiles = $clean($request->mobiles);
         if (empty($mobiles)) {
@@ -2524,6 +3143,7 @@ class SalesGenioController extends Controller
         $business->contact_title     = $request->contact_title;
         $business->contact_person    = $request->contact_person;
         $business->designation       = $request->designation;
+        $business->extra_contacts    = $people ?: null;
         $business->mobile            = $mobiles[0];
         $business->mobile_numbers    = $mobiles;
         $business->whatsapp_numbers  = $clean($request->whatsapps);
@@ -2535,6 +3155,66 @@ class SalesGenioController extends Controller
 
         return redirect()->route('sales_genio.business.profile', $business->id)
             ->with('success', 'Contact details updated successfully.');
+    }
+
+    /**
+     * Rate card / catalogue pictures — the same extra_images (type=catalogue)
+     * the owner uploads, shown on the listing as "Rate Card / Catalogue".
+     */
+    private const CATALOGUE_DIR = 'assets/images/listing/extra';
+
+    public function catalogue($id)
+    {
+        $user     = Auth::guard('sales')->user();
+        $business = \App\Models\Listing::findOrFail($id);
+        $images   = \App\Models\ExtraImage::where('listing_id', $business->id)->where('type', 'catalogue')->latest('id')->get();
+
+        return view('sales_genio.catalogue', compact('user', 'business', 'images'));
+    }
+
+    public function uploadCatalogue(Request $request, $id)
+    {
+        $business = \App\Models\Listing::findOrFail($id);
+
+        $request->validate([
+            'images'   => ['required', 'array', 'max:20'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+        ], [
+            'images.required' => 'Choose at least one picture.',
+            'images.*.mimes'  => 'Only JPG, PNG or WEBP pictures are allowed.',
+            'images.*.max'    => 'Each picture must be under 10 MB.',
+        ]);
+
+        $dir = public_path(self::CATALOGUE_DIR);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        foreach ($request->file('images') as $file) {
+            $filename = uniqid('cat_') . '_' . time() . '.webp';
+            $this->resizeToWebp($file->getRealPath(), $dir . '/' . $filename, 1600);
+
+            $row = new \App\Models\ExtraImage();
+            $row->listing_id = $business->id;
+            $row->type = 'catalogue';
+            $row->image = $filename;
+            $row->save();
+        }
+
+        return back()->with('success', count($request->file('images')) . ' catalogue picture(s) added.');
+    }
+
+    public function deleteCatalogue($id, $image)
+    {
+        $row = \App\Models\ExtraImage::where('listing_id', $id)->where('type', 'catalogue')->findOrFail($image);
+
+        $full = public_path(self::CATALOGUE_DIR . '/' . basename($row->image));
+        $row->delete();
+        if (is_file($full)) {
+            @unlink($full);
+        }
+
+        return back()->with('success', 'Catalogue picture removed.');
     }
 
     public function photoGallery($id)
@@ -2757,12 +3437,19 @@ class SalesGenioController extends Controller
     {
         $listing  = \App\Models\Listing::findOrFail($id);
         $filename = basename((string) $request->input('filename')); // no path traversal
+        // The same file can be both the cover and a gallery photo, so the page
+        // says which tile it was; without it the cover is tried first.
+        $type     = in_array($request->input('type'), ['cover', 'photo', 'video'], true) ? $request->input('type') : null;
+
+        if ($filename === '') {
+            return response()->json(['status' => false, 'message' => 'No file was given to delete.'], 422);
+        }
 
         $photos = $listing->photos ?? [];
         $videos = $listing->videos ?? [];
 
         // The cover image, deleted from the gallery.
-        if ($filename !== '' && $filename === $listing->thumb) {
+        if (($type === null || $type === 'cover') && $filename === $listing->thumb) {
             $listing->thumb = null;
             $listing->save();
 
@@ -2772,13 +3459,17 @@ class SalesGenioController extends Controller
             return response()->json(['status' => true, 'total' => $this->mediaCount($listing)]);
         }
 
-        if (($key = array_search($filename, $photos, true)) !== false) {
+        if (($type === null || $type === 'photo') && ($key = array_search($filename, $photos, true)) !== false) {
             unset($photos[$key]);
             $listing->photos = array_values($photos);
             $listing->save();
             $full = public_path('assets/images/listing/photos/' . $filename);
             if (is_file($full)) @unlink($full);
-        } elseif (($key = array_search($filename, $videos, true)) !== false) {
+
+            return response()->json(['status' => true, 'total' => $this->mediaCount($listing)]);
+        }
+
+        if (($type === null || $type === 'video') && ($key = array_search($filename, $videos, true)) !== false) {
             unset($videos[$key]);
             $listing->videos = array_values($videos);
             $listing->save();
@@ -2787,9 +3478,16 @@ class SalesGenioController extends Controller
 
             $poster = public_path(self::VIDEO_POSTER_DIR . '/' . pathinfo($filename, PATHINFO_FILENAME) . '.webp');
             if (is_file($poster)) @unlink($poster);
+
+            return response()->json(['status' => true, 'total' => $this->mediaCount($listing)]);
         }
 
-        return response()->json(['status' => true, 'total' => $this->mediaCount($listing)]);
+        // Nothing matched. Saying "done" here is what made a failed delete look
+        // like it worked, with the photo coming back on the next refresh.
+        return response()->json([
+            'status'  => false,
+            'message' => 'That file is no longer on this business. Refresh the page.',
+        ], 404);
     }
 
     public function areaSearch(Request $request)

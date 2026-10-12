@@ -64,11 +64,12 @@
 <body>
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Year of Establishment</div>
     </div>
 
-    <form method="POST" action="{{ route('sales_genio.business.establishment.update', $business->id) }}">
+    <form method="POST" action="{{ sg_route('sales_genio.business.establishment.update', $business->id) }}">
         @csrf
         <div class="content">
             <div class="info-note">

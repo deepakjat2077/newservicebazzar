@@ -49,19 +49,30 @@
     cursor:pointer;font-family:'Poppins',sans-serif;}
   .rv-go:hover{background:#1662c4;}
   @media (max-width:900px){.rv-side{flex-basis:100%;}}
+
+  @media (max-width:760px){
+    .rv-go{position:fixed;left:16px;right:16px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;width:auto !important;
+      border-radius:6px;padding:14px !important;font-size:16.5px !important;box-shadow:0 0 0 12px #fff;}
+  }
 </style>
 </head>
 <body>
 
 @include('sales_genio.partials.topnav')
+@include('sales_genio.partials.campaign_mhead', [
+  'back'  => route('sales_genio.business.campaign.position', ['id' => $business->id, 'pkg' => $package->id]),
+  'title' => 'Review Campaign',
+])
 
 <div class="cmp-wrap">
   <div class="cmp-top">
     <a href="{{ route('sales_genio.business.campaign.position', ['id' => $business->id, 'pkg' => $package->id]) }}" class="cmp-back"><i class="fas fa-arrow-left"></i> Change positions</a>
+    @include('sales_genio.partials.campaign_dcart')
     <div class="cmp-biz">
       <strong>{{ $business->name }}</strong>
       {{ $business->area ? $business->area.', ' : '' }}{{ $business->city }}
     </div>
+    @include('sales_genio.partials.flow_avatar')
   </div>
 
   @if(!empty($quote['clash']))

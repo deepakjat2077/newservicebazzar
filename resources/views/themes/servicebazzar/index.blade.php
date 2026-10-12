@@ -215,7 +215,7 @@ Local Businesses & Trusted Services Near You
     overflow: hidden;
 }
    .input_location_box:before {
-    background-image: url(https://akam.cdn.jdmagicbox.com/images/icontent/newwap/web2022/location_icon.svg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='36' viewBox='0 0 22 36'%3E%3Cpath d='M11 9.55c-3.5 0-6.3 2.8-6.3 6.2 0 4.3 6.3 10.7 6.3 10.7s6.3-6.4 6.3-10.7c0-3.4-2.8-6.2-6.3-6.2z' fill='none' stroke='%235C79B5' stroke-width='1.7' stroke-linejoin='round'/%3E%3Ccircle cx='11' cy='15.55' r='2.55' fill='none' stroke='%235C79B5' stroke-width='1.7'/%3E%3C/svg%3E");
     width: 37px;
     height: 100%;
     position: absolute;
@@ -683,7 +683,7 @@ Local Businesses & Trusted Services Near You
 
 
 .search_white_icon {
-    background-image: url(https://akam.cdn.jdmagicbox.com/images/icontent/newwap/web2022/search_white_icon.svg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14.2' height='14.2' viewBox='0 0 14.2 14.2'%3E%3Ccircle cx='6' cy='6' r='4.9' fill='none' stroke='%23fff' stroke-width='1.7'/%3E%3Cpath d='M9.7 9.7l3.5 3.5' stroke='%23fff' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E");
     width: 16px;
     height: 16px;
 }
@@ -1034,7 +1034,6 @@ Local Businesses & Trusted Services Near You
     width: 14px;
     height: 14px;
     min-width: 14px;
-    background-image: url('https://akam.cdn.jdmagicbox.com/images/icontent/newwap/web2022/web_whiteright_arrow.svg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
@@ -1056,8 +1055,10 @@ Local Businesses & Trusted Services Near You
     height: 100%;
     /* The box is 2:1 and the banners are 2.25:1, so "fill" was stretching
        every one of them out of shape. Cover keeps the proportions and trims
-       the edges instead. */
+       the edges instead. Left-anchored because all current banners have
+       their headline/content on the left side of the image. */
     object-fit: cover;
+    object-position: left center;
 }
 
 .mini-service-card{
@@ -1392,6 +1393,19 @@ Local Businesses & Trusted Services Near You
 
     word-break: break-word;
     overflow-wrap: break-word;
+}
+
+/* Tablet + desktop: the 72px cap with break-word split names mid-word
+   ("Homeopathi / c Doctor"). Wrap only between words, and let the label use
+   the column plus most of the 20px gap so "Physiotherapists" fits whole.
+   Phone keeps its own rules in the max-width:767px block. */
+@media (min-width: 768px){
+    .category-item .font14{
+        max-width: none;
+        width: calc(100% + 16px);
+        word-break: normal;
+        overflow-wrap: normal;
+    }
 }
 
 .category-item a{
@@ -2626,6 +2640,16 @@ label.popup-overlay {
     }
 }
 
+/* 992–1199px (iPad Pro, small laptops): ten cards per row left each one ~80px
+   wide with the names cut — show six, the rest are behind the arrows. */
+@media (min-width: 992px) and (max-width: 1199px){
+    .trending-same-section .trending-scroll,
+    .location-same-section .trending-scroll,
+    .popular-same-section .trending-scroll{
+        grid-auto-columns: calc((100% - 60px) / 6) !important;
+    }
+}
+
 @media (max-width: 991px){
     .trending-same-section .trending-scroll,
     .location-same-section .trending-scroll,
@@ -2737,6 +2761,81 @@ label.popup-overlay {
         max-height: 11px !important;
     }
 }
+/* Phone: every card name the same size, on one line. 11px is the largest size
+   at which nearly all names fit the ~90px cards; the few very long ones end in
+   "…" instead of shrinking or wrapping, so all cards read alike. */
+@media (max-width: 767px){
+    .trending-same-section .trend-card-title,
+    .location-same-section .trend-card-title,
+    .seasonal-same-section .trend-card-title,
+    .popular-same-section .trend-card-title{
+        font-size: 11px !important;
+        line-height: 15px !important;
+        letter-spacing: -0.15px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        word-break: normal !important;
+        display: block !important;
+        height: 15px !important;
+        min-height: 15px !important;
+        max-height: 15px !important;
+        top: auto !important;
+        bottom: 0 !important;
+    }
+    .trending-same-section .trend-card-overlay > div,
+    .seasonal-same-section .trend-card-overlay > div,
+    .popular-same-section .trend-card-overlay > div{
+        height: 15px !important;
+        min-height: 15px !important;
+        max-height: 15px !important;
+    }
+}
+/* Narrow phones (360px): 12px side padding left a long name only 78px. */
+@media (max-width: 400px){
+    .trending-same-section .trend-card-overlay,
+    .location-same-section .trend-card-overlay,
+    .seasonal-same-section .trend-card-overlay,
+    .popular-same-section .trend-card-overlay{
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+}
+</style>
+<script>
+/* Card names: keep them as big as the card allows. A name that does not fit
+   its box (a long single word like "Physiotherapists", or a name that would
+   wrap past two lines) steps down 0.5px at a time until it does — never below
+   9px. Names that already fit keep the full size. */
+(function () {
+    var SEL = '.trending-same-section .trend-card-title, .location-same-section .trend-card-title, .seasonal-same-section .trend-card-title, .popular-same-section .trend-card-title';
+    function overflows(el) {
+        return el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
+    }
+    function fit() {
+        if (window.innerWidth <= 767) return; // phones: one fixed size, see the CSS above
+        document.querySelectorAll(SEL).forEach(function (el) {
+            el.style.removeProperty('font-size');
+            el.style.removeProperty('white-space');
+            if (!el.clientWidth) return;
+            var size = parseFloat(getComputedStyle(el).fontSize);
+            var guard = 0;
+            while (overflows(el) && size > 9 && guard++ < 12) {
+                size -= 0.5;
+                el.style.setProperty('font-size', size + 'px', 'important');
+            }
+            // Last resort for the longest words on the narrowest phones.
+            el.style.removeProperty('letter-spacing');
+            if (overflows(el)) el.style.setProperty('letter-spacing', '-0.3px', 'important');
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fit); else fit();
+    window.addEventListener('load', fit);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(fit, 150); });
+})();
+</script>
+<style>
 .listing-area {
         position: relative;
     }
@@ -3159,6 +3258,219 @@ color: #555;
 }
 </style>
 
+<style>
+/* Top 4 category cards: the picture fills the card, and the name sits at the
+   BOTTOM on a dark fade with a round arrow in the corner — our own layout. */
+@media (min-width:0){
+    .mobile-category-col .mini-service-card{
+        border-radius:22px !important; padding:0 !important; isolation:isolate;
+        box-shadow:0 10px 26px rgba(15,35,90,.18); transition:transform .25s ease, box-shadow .25s ease;
+    }
+    .mobile-category-col .mini-service-card:hover{ transform:translateY(-5px); box-shadow:0 18px 36px rgba(15,35,90,.26); }
+    .mobile-category-col .mini-service-card img{ transition:transform .5s ease; }
+    .mobile-category-col .mini-service-card:hover img{ transform:scale(1.06); }
+    .mobile-category-col .mini-service-card::after{
+        content:""; position:absolute; left:0; right:0; bottom:0; height:62%; z-index:1; pointer-events:none;
+        background:linear-gradient(to top, rgba(8,15,35,.88) 0%, rgba(8,15,35,.55) 45%, rgba(8,15,35,0) 100%);
+    }
+    .mobile-category-col .mini-card-title{
+        position:absolute !important; z-index:2; left:16px; right:16px; bottom:38px; top:auto !important;
+        margin:0 !important; font-size:17px !important; line-height:1.25 !important; color:#fff !important;
+        text-shadow:0 2px 8px rgba(0,0,0,.35); transform:none !important;
+    }
+    .mobile-category-col .home_banner_subtext{
+        position:absolute !important; z-index:2; left:16px; right:16px; bottom:16px; top:auto !important;
+        margin:0 !important; font-size:12.5px !important; color:rgba(255,255,255,.85) !important; white-space:nowrap;
+    }
+    .mobile-category-col .home_banner_explore{
+        position:absolute !important; z-index:2; right:12px !important; left:auto !important; top:12px !important; bottom:auto !important;
+        width:36px; height:36px !important; min-width:36px; padding:0 !important; border-radius:50% !important;
+        background:#fff !important; box-shadow:0 4px 12px rgba(0,0,0,.25) !important;
+    }
+    .mobile-category-col .home_banner_exploretxt{ display:none !important; }
+    .mobile-category-col .home_banner_explorearw{ width:auto !important; height:auto !important; min-width:0 !important; font-size:16px; color:#0b1b3f !important; }
+    .mobile-category-col .home_banner_explorearw i{ color:#0b1b3f; }
+    .mobile-category-col .mini-service-card:hover .home_banner_explore{ transform:rotate(-45deg); }
+    .mobile-category-col .home_banner_explore{ transition:transform .25s ease; }
+}
+/* phone: four small tiles — the picture alone in the rounded card, the name
+   underneath it in dark text (on these small tiles text over the picture hid it) */
+@media (max-width:767px){
+    .mobile-category-col .mini-service-card{
+        height:auto !important; background:transparent !important; box-shadow:none !important;
+        border-radius:0 !important; overflow:visible !important; padding:0 !important;
+    }
+    .mobile-category-col .mini-service-card::after{ display:none !important; }
+    .mobile-category-col .mini-service-card img{
+        position:static !important; display:block; width:100% !important; height:auto !important; aspect-ratio:1 / 1.05;
+        min-height:0 !important; max-height:none !important; object-fit:cover; border-radius:14px !important;
+        background:var(--c); box-shadow:0 6px 14px rgba(15,35,90,.16);
+    }
+    .mobile-category-col .mini-service-card:hover img{ transform:none; }
+    .mobile-category-col .mobile-category-item{ height:auto !important; overflow:visible !important; background:transparent !important; border-radius:0 !important; }
+    .mobile-category-col .mini-card-title{
+        position:static !important; margin:6px 0 0 !important; padding:0 2px; text-align:center;
+        color:#1a1a2e !important; text-shadow:none !important; font-size:10.5px !important; font-weight:600 !important;
+        line-height:1.25 !important; display:-webkit-box !important; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .mobile-category-col .home_banner_subtext,
+    .mobile-category-col .home_banner_explore{ display:none !important; }
+}
+</style>
+<style>
+/* Tablets (768–1199px). Between phone and full desktop the page was using the
+   desktop layout squeezed: the banner cropped beside four cramped category
+   cards ("Get Nearest Vend…"), only four icon tiles per row with wide gaps,
+   and the Download App button stuck to the search box. */
+@media (min-width:768px) and (max-width:1199px){
+    /* banner full width at its own shape, the four cards in a row under it */
+    .custom-banner-section .mobile-banner-row{ margin:0 !important; padding:0 16px !important; row-gap:16px; }
+    .custom-banner-section .mobile-banner-col{ flex:0 0 100% !important; max-width:100% !important; width:100% !important; margin:0 !important; padding:0 !important; }
+    .custom-banner-section #mainBannerCarousel,
+    .custom-banner-section .main-banner-box{ height:auto !important; max-height:none !important; border-radius:16px; overflow:hidden; }
+    .custom-banner-section .main-banner-box img{ width:100% !important; height:auto !important; aspect-ratio:1200 / 534; object-fit:cover !important; display:block; }
+    .custom-banner-section .mobile-category-col{ flex:0 0 100% !important; max-width:100% !important; width:100% !important; margin:0 !important; padding:0 !important; }
+    .custom-banner-section .mobile-category-row{ margin:0 !important; display:flex !important; flex-wrap:nowrap !important; gap:14px; }
+    .custom-banner-section .mobile-category-item{ flex:1 1 0 !important; max-width:none !important; width:auto !important; padding:0 !important; margin:0 !important; }
+    .custom-banner-section .mobile-category-item{ height:230px !important; min-height:0 !important; background:transparent !important; }
+    .custom-banner-section .mobile-category-col .mini-service-card{ height:100% !important; width:100% !important; }
+    .custom-banner-section .mobile-category-col .mini-service-card img{ height:100% !important; max-height:none !important; object-fit:cover; }
+
+}
+@media (min-width:992px) and (max-width:1199px){
+    /* line the banner and cards up with the title/search above (40px edge),
+       and keep Download App clear of the search box */
+    .custom-banner-section .mobile-banner-row{ padding:0 40px !important; }
+    .banner-download-btn{ right:40px !important; }
+}
+@media (min-width:768px) and (max-width:1199px){
+    /* blog: use the full width instead of Bootstrap's fixed 720/960px box, and
+       give the three cards equal height with the Read buttons on one line */
+    .blog-section > .container{ max-width:100% !important; padding-left:24px !important; padding-right:24px !important; }
+    .blog-section .row.mb__30{ margin-left:-10px; margin-right:-10px; }
+    .blog-section .row.mb__30 > .col-md-4{ display:flex; padding-left:10px; padding-right:10px; }
+    .blog-section .blog-area{ display:flex; flex-direction:column; width:100%; height:100%; }
+    .blog-section .blog-area .thumb{ height:auto !important; min-height:0 !important; max-height:none !important; }
+    .blog-section .blog-area .thumb img{ width:100% !important; height:auto !important; aspect-ratio:400 / 250; object-fit:cover; }
+    .blog-section .blog-area .content-area{ display:flex; flex-direction:column; flex:1 1 auto; }
+    .blog-section .blog-area .content-area .btn{ margin-top:auto; align-self:flex-start; }
+}
+@media (min-width:992px) and (max-width:1199px){
+    .blog-section > .container{ padding-left:40px !important; padding-right:40px !important; }
+}
+@media (min-width:768px) and (max-width:991px){
+    /* icon tiles: five to a row instead of four spread wide */
+    .category-area .category-grid{ grid-template-columns:repeat(5, 1fr) !important; row-gap:22px; padding:0 16px; }
+}
+</style>
+<div id="sbLocNotFound" class="sb-locnf" role="alert" hidden>
+    <span class="sb-locnf-text"></span>
+    <button type="button" class="sb-locnf-x" aria-label="Close">&times;</button>
+</div>
+<style>
+.sb-locnf { position: fixed; top: 74px; left: 50%; transform: translateX(-50%); z-index: 100001; max-width: min(520px, calc(100vw - 32px));
+    background: #fff; color: #b42318; border: 1px solid #f3c0c0; border-left: 4px solid #dc3545; border-radius: 10px; padding: 12px 40px 12px 14px;
+    box-shadow: 0 10px 28px rgba(16,24,40,.14); font-size: 14px; line-height: 1.45; font-weight: 500; }
+@media (max-width: 767px) { .sb-locnf { width: calc(100vw - 32px); top: 64px; } }
+.sb-locnf-x { position: absolute; top: 6px; right: 8px; border: 0; background: transparent; font-size: 22px; line-height: 1; color: #98a2b3; cursor: pointer; }
+</style>
+<script>
+/* Back here from a search with a place we don't have (the server sends
+   /?location_not_found=...): say so, clear that text everywhere, and put the
+   cursor in the location box so the visitor picks one from the list. */
+(function () {
+    var params = new URLSearchParams(location.search);
+    if (!params.has('location_not_found')) return;
+    var bad = (params.get('location_not_found') || '').trim();
+    function run() {
+        var msgText = (bad ? '"' + bad + '" is not a location we cover. ' : 'That location is not one we cover. ') + 'Please pick your city or area from the list.';
+        var heroInput = document.getElementById('homeLocationInput');
+        var box = document.getElementById('sbLocNotFound');
+        if (heroInput && heroInput.offsetParent !== null && window.sbShowLocError) {
+            heroInput.value = '';
+            window.sbShowLocError(heroInput, msgText);
+            box = null;
+        }
+        if (box) {
+            box.querySelector('.sb-locnf-text').textContent = msgText;
+            box.hidden = false;
+            box.querySelector('.sb-locnf-x').addEventListener('click', function () { box.hidden = true; });
+            setTimeout(function () { box.hidden = true; }, 9000);
+        }
+        try {
+            ['jf_city', 'jf_detected_city', 'jf_selected_location_name', 'jf_user_city', 'jf_location_id'].forEach(function (k) {
+                var v = localStorage.getItem(k);
+                if (v && (!window.sbKnownCity || !window.sbKnownCity(v))) localStorage.removeItem(k);
+            });
+        } catch (e) {}
+        ['homeLocationInput', 'headerLocationInput'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && (!window.sbKnownCity || !window.sbKnownCity(el.value))) { el.value = ''; el.dataset.selectedLocation = '0'; }
+        });
+        var target = document.getElementById('homeLocationInput');
+        if (target && target.offsetParent !== null) target.focus();
+        params.delete('location_not_found');
+        history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '') + location.hash);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(run, 50); });
+    else setTimeout(run, 50);
+})();
+</script>
+<style>
+/* Desktop home: the top bar and the search row below it read as ONE header.
+   At the top there is no shadow line between them; once the page scrolls the
+   search row "rises" into the bar — same boxes, same sizes, same city. */
+@media (min-width:992px){
+    body.home-page #stickyScrollHeader.scrolled{ box-shadow:0 2px 10px rgba(15,23,42,.10) !important; }
+    body.home-page #stickyScrollHeader.scrolled #scrollSearchHolder{ animation:sbSearchRise .32s ease-out both; }
+    body.home-page #scrollSearchHolder .header-search-row-custom{ gap:14px; }
+    body.home-page #scrollSearchHolder .header-location-col-custom{ flex:0 1 280px !important; width:auto !important; max-width:280px; }
+    body.home-page #scrollSearchHolder .header-search-col-custom{ flex:0 1 430px !important; width:auto !important; max-width:430px; }
+    body.home-page #stickyScrollHeader.scrolled #scrollSearchHolder{ flex:1 1 724px !important; max-width:724px !important; min-width:0; }
+    body.home-page #scrollSearchHolder .header-search-row-custom{ width:100% !important; }
+    body.home-page #scrollSearchHolder .header-location-col-custom{ min-width:150px; }
+    body.home-page #scrollSearchHolder .header-search-col-custom{ min-width:200px; }
+    body.home-page #scrollSearchHolder .header-input_location_box,
+    body.home-page #scrollSearchHolder .header-location-col-custom input{ width:100% !important; }
+    body.home-page #homeSearchOriginalPlace{ transition:opacity .2s ease; }
+    body.home-page.header-fixed #homeSearchOriginalPlace{ opacity:0; }
+}
+@media (min-width:992px) and (max-width:1199px){
+    body.home-page #stickyScrollHeader.scrolled #scrollSearchHolder{ max-width:430px !important; }
+    body.home-page #stickyScrollHeader.scrolled .navbar a{ white-space:nowrap; }
+}
+@keyframes sbSearchRise{ from{ opacity:0; transform:translateY(22px); } to{ opacity:1; transform:none; } }
+</style>
+<script>
+/* Keep the two search boxes in step: whichever one the visitor sees gets the
+   city, the typed service and the placeholder of the other. */
+document.addEventListener('DOMContentLoaded', function () {
+    var header = document.getElementById('stickyScrollHeader');
+    if (!header) return;
+    var pairs = [
+        ['homeLocationInput', 'headerLocationInput'],
+        ['homeCategorySearch', 'headerCategorySearch'],
+        ['homeSearchLatitude', 'headerSearchLatitude'],
+        ['homeSearchLongitude', 'headerSearchLongitude'],
+        ['homeSearchLocationId', 'headerSearchLocationId']
+    ].map(function (p) { return [document.getElementById(p[0]), document.getElementById(p[1])]; })
+     .filter(function (p) { return p[0] && p[1]; });
+
+    function copy(toHeader) {
+        pairs.forEach(function (p) {
+            var from = toHeader ? p[0] : p[1], to = toHeader ? p[1] : p[0];
+            if (from.value && from.value !== to.value) to.value = from.value;
+            if (from.type === 'text' && from.placeholder && to.type === 'text' && (from.id || '').indexOf('Category') > -1) to.placeholder = from.placeholder;
+        });
+    }
+    var was = header.classList.contains('scrolled');
+    copy(true);
+    new MutationObserver(function () {
+        var now = header.classList.contains('scrolled');
+        if (now !== was) { copy(now); was = now; }
+    }).observe(header, { attributes: true, attributeFilter: ['class'] });
+});
+</script>
 <section class="banner-section">
     <div class="container-fulde">
              <div class="row g-0">
@@ -3332,7 +3644,8 @@ window.SB = {
     </div>
 
     <div class="banner-download-btn desktop-only">
-    <a href="{{ route('home') }}" class="download-btn">
+    <a href="https://play.google.com/store/apps/details?id=com.servicebazaar" class="download-btn"
+       target="_blank" rel="noopener" aria-label="Download the Service Bazzar app on Google Play">
         Download App
         <i class="fas fa-download"></i>
     </a>
@@ -3415,8 +3728,8 @@ window.SB = {
                             @push('lcp')
                                 {{-- Mobile LCP preload (WebP preferred) --}}
                                 <link rel="preload" as="image"
-                                    href="{{ loadImageWebp($firstMobileSrc) }}"
-                                    imagesrcset="{{ loadImageWebp($firstMobileSrc) }}"
+                                    href="{{ narrowWebp($firstMobileSrc) }}"
+                                    imagesrcset="{{ narrowWebp($firstMobileSrc) }}"
                                     media="(max-width: 767px)"
                                     fetchpriority="high">
                                 {{-- Desktop LCP preload (WebP preferred) --}}
@@ -3485,7 +3798,8 @@ window.SB = {
 
                                         {{-- Mobile banner — WebP with fallback --}}
                                         <picture class="mobile-banner-img">
-                                            <source srcset="{{ loadImageWebp($mobileSrc) }}" type="image/webp">
+                                            {{-- phones get an 800px copy (the banner is ~400px wide there) --}}
+                                            <source srcset="{{ narrowWebp($mobileSrc) }}" type="image/webp">
                                             <img width="1200" height="534"
                                                 src="{{ loadImage($mobileSrc) }}"
                                                 loading="{{ $loadPriority }}"
@@ -3565,7 +3879,7 @@ window.SB = {
                 <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
                    class="mini-service-card dynamic-category-link"
                    data-slug="{{ $categoryItem->slug }}"
-                   style="background-color: {{ $bgColor }}; display:block; height:100%;">
+                   style="background-color: {{ $bgColor }}; --c: {{ $bgColor }}; display:block; height:100%;">
 
                     {{-- The category name is right below in .mini-card-title, so
                          repeating it in alt makes a screen reader say it twice. --}}
@@ -3586,10 +3900,7 @@ window.SB = {
                             Explore
                         </div>
 
-                        <div class="home_banner_explorearw font11"
-                             style="color:#fff;
-                             background-image:url('https://akam.cdn.jdmagicbox.com/images/icontent/newwap/web2022/web_whiteright_arrow.svg');">
-                        </div>
+                        <div class="home_banner_explorearw font11" style="color:#fff;"><i class="las la-arrow-right"></i></div>
                     </div>
 
                 </a>
@@ -4110,7 +4421,7 @@ window.SB = {
 
                                 <div class="trend-card-overlay">
                                     <div>
-                                        <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }} hh-h5-size">
+                                        <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                             {{ $category->name }}
                                         </h3>
                                     </div>
@@ -4168,7 +4479,7 @@ window.SB = {
 
                                 <div class="trend-card-overlay">
                                     <div>
-                                        <h3 class="trend-card-title hh-h5-size">{{ $location->name }}</h3>
+                                        <h3 class="trend-card-title">{{ $location->name }}</h3>
                                         <div class="trend-card-subtitle">Explore Now</div>
                                     </div>
 
@@ -4225,7 +4536,7 @@ window.SB = {
 
                             <div class="trend-card-overlay">
                                 <div>
-                                    <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }} hh-h5-size">
+                                    <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                         {{ $category->name }}
                                     </h3>
                                 </div>
@@ -4298,7 +4609,7 @@ window.SB = {
                                 <div class="trend-card-overlay">
                                     <div>
 
-                                        <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }} hh-h5-size">
+                                        <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
                                             {{ $category->name }}
                                         </h3>
 
@@ -4564,7 +4875,7 @@ WhatsApp
      data-url="{{ route('blog.details', $blog->content->slug) }}"
      style="cursor:pointer;">
                         <div class="thumb">
-                            <img width="400" height="250" src="{{ loadImage('assets/servicebazzar/images/blog/'.$blog->content->image) }}" loading="lazy" alt="blog">
+                            <img width="400" height="250" src="{{ blogThumb($blog->content->image) }}" loading="lazy" alt="blog">
                         </div>
                        
                        <div class="content-area">

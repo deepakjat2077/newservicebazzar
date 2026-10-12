@@ -923,7 +923,7 @@ class BrowseController extends Controller
             'message' => 'nullable|string|max:1000',
         ]);
 
-        Enquiry::create([
+        $enquiry = Enquiry::create([
             'type'        => 'enquiry',
             'listing_id'  => $listing->id,
             'category_id' => $listing->category_id,
@@ -933,6 +933,15 @@ class BrowseController extends Controller
             'email'       => $data['email'] ?? $user->email,
             'message'     => $data['message'] ?? null,
             'is_read'     => 0,
+        ]);
+
+        \App\Support\VendorEnquiryNotifier::notify($listing, [
+            'name'     => $data['name'] ?? $user->fullname(),
+            'phone'    => $data['phone'] ?? $user->mobile ?? null,
+            'email'    => $data['email'] ?? null,
+            'location' => $data['location_id'] ?? null,
+            'message'  => $data['message'] ?? null,
+            'enquiry_id' => $enquiry->id,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Your enquiry has been sent.']);
@@ -948,18 +957,28 @@ class BrowseController extends Controller
             return response()->json(['success' => true]);
         }
 
-        $click = new \App\Models\ListingClick();
-        $click->listing_id   = $listing->id;
-        $click->listing_name = $listing->name;
-        $click->category_id  = $listing->category_id;
-        $click->location_id  = $listing->location_id;
-        $click->type = [
+        $clickType = [
             'call' => 'call', 'landline' => 'call',
             'whatsapp' => 'whatsapp', 'enquiry' => 'enquiry',
         ][$request->type] ?? 'call';
-        $click->ip_address = $request->ip();
-        $click->user_agent = $request->userAgent();
-        $click->save();
+
+        $alreadyRecorded = \App\Models\ListingClick::where('listing_id', $listing->id)
+            ->where('type', $clickType)
+            ->where('ip_address', $request->ip())
+            ->where('created_at', '>=', now()->subMinutes(30))
+            ->exists();
+
+        if (!$alreadyRecorded) {
+            $click = new \App\Models\ListingClick();
+            $click->listing_id   = $listing->id;
+            $click->listing_name = $listing->name;
+            $click->category_id  = $listing->category_id;
+            $click->location_id  = $listing->location_id;
+            $click->type         = $clickType;
+            $click->ip_address   = $request->ip();
+            $click->user_agent   = $request->userAgent();
+            $click->save();
+        }
 
         return response()->json(['success' => true]);
     }

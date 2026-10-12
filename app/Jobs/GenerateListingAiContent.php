@@ -35,8 +35,18 @@ class GenerateListingAiContent implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(protected int $listingId)
+    /**
+     * $localStyle: write the description as a local recommendation (SB Sales listings).
+     * $refresh:    a re-run after the categories changed — it only replaces copy this job
+     *              wrote itself, never text someone has since edited by hand.
+     */
+    public function __construct(protected int $listingId, protected bool $localStyle = false, protected bool $refresh = false)
     {
+    }
+
+    public static function autoKey(int $listingId): string
+    {
+        return 'listing_ai_auto_' . $listingId;
     }
 
     public function handle(AiContentGenerator $ai): void
@@ -51,6 +61,11 @@ class GenerateListingAiContent implements ShouldQueue
             return;
         }
 
+        if ($this->refresh && trim(strip_tags((string) $listing->details)) !== ''
+            && \Illuminate\Support\Facades\Cache::get(self::autoKey($listing->id)) !== md5((string) $listing->details)) {
+            return;
+        }
+
         $subcategories = Subcategory::whereIn('id', $listing->subcategory_ids ?? [])
             ->pluck('name')
             ->all();
@@ -62,6 +77,7 @@ class GenerateListingAiContent implements ShouldQueue
             'city'          => $listing->city,
             'state'         => $listing->state,
             'subcategories' => $subcategories,
+            'details_style' => $this->localStyle ? 'local' : null,
         ]));
 
         $body = $response->getData(true);
@@ -88,5 +104,7 @@ class GenerateListingAiContent implements ShouldQueue
         }
 
         $listing->save();
+
+        \Illuminate\Support\Facades\Cache::forever(self::autoKey($listing->id), md5((string) $listing->fresh()->details));
     }
 }

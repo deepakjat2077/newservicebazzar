@@ -12,6 +12,8 @@
   *{box-sizing:border-box;}
   button,input,select,textarea{font-family:'Poppins',sans-serif;} body{margin:0;background:#f4f6fb;font-family:'Poppins',sans-serif;color:#1a2235;}
   .cmp-wrap{max-width:1180px;margin:0 auto;padding:18px 20px 70px;}
+  .cmp-lead{display:flex;align-items:center;gap:16px;}
+  .cmp-logo{height:30px;width:auto;display:block;}
   .cmp-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
   .cmp-back{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #d7dceb;border-radius:22px;
     padding:8px 16px;color:#374151;font-weight:600;text-decoration:none;font-size:14px;}
@@ -124,7 +126,7 @@
     .cmp-detail{gap:16px;}
     .cmp-shot{flex:1 1 100%;}
     .cmp-shot img{max-height:320px;object-fit:contain;}
-    .cmp-info{min-width:0;}
+    .cmp-info{flex:1 1 100%;min-width:0;}
     .cmp-info h1{font-size:19px;}
     .cmp-plan{flex:1 1 calc(50% - 5px);min-width:0;padding:11px 12px;}
     .cmp-plan span.p{font-size:16px;}
@@ -133,11 +135,61 @@
     .cmp-card{padding:16px 14px;}
     .cmp-cart td{font-size:13px;}
   }
+
+  .cmp-mhead,.cmp-mlist{display:none;}
+  /* Phone: app-style campaign selection — header with cart, a card per
+     package on the landing screen, the chosen package on its own screen. */
+  @media (max-width:760px){
+    .sg-nav{display:none;}
+    body{background:#fff;}
+    .cmp-mhead{display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;background:#fff;
+      padding:14px 16px;border-bottom:1px solid #eef0f4;}
+    .cmp-mhead a{color:#1a1a2e;text-decoration:none;}
+    .cmp-mhead .b{font-size:20px;}
+    .cmp-mhead .t{flex:1;text-align:center;font-size:17px;font-weight:500;color:#1a1a2e;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .cmp-mhead .c{position:relative;font-size:21px;padding-right:6px;}
+    .cmp-mhead .c b{position:absolute;top:-8px;right:-6px;min-width:18px;height:18px;line-height:18px;border-radius:9px;
+      background:#e53935;color:#fff;font-size:11px;text-align:center;padding:0 4px;}
+    .cmp-wrap{padding:6px 16px 32px !important;}
+    .cmp-top .cmp-back,.cmp-top .cmp-logo{display:none;}
+    .cmp-top{margin-bottom:6px;}
+    .cmp-biz{font-size:13px;color:#7a8296;}
+    .cmp-side{display:none !important;}
+    .cmp-wrap.is-list .cmp-panel{display:none;}
+
+    .cmp-mlist{display:block;flex:1 1 100%;}
+    .cmp-mlist h3{font-size:15px;font-weight:400;color:#6b7285;margin:18px 0 12px;}
+    .cmp-mlist h3:first-child{margin-top:6px;}
+    .cmp-mcard{display:flex;align-items:center;gap:16px;border:1px solid #dfe3ec;border-radius:6px;
+      padding:16px;margin-bottom:12px;text-decoration:none;color:#1a1a2e;background:#fff;}
+    .cmp-mcard:active{background:#f5f8fe;}
+    .cmp-mcard .ic{width:24px;text-align:center;font-size:20px;color:#1a1a2e;}
+    .cmp-mcard .tx{flex:1;min-width:0;}
+    .cmp-mcard .tx b{display:block;font-size:16px;font-weight:500;}
+    .cmp-mcard .tx small{display:block;font-size:13.5px;color:#7a8296;margin-top:3px;line-height:1.4;}
+    .cmp-mcard .tx em{display:inline-block;margin-top:6px;font-style:normal;font-size:11.5px;font-weight:600;
+      color:#1f7a45;background:#eafaf1;border-radius:10px;padding:2px 9px;}
+    .cmp-mcard .go{font-size:16px;color:#37415a;}
+
+    /* A package on its own screen: picture, benefits, one pinned action. */
+    .cmp-wrap.is-detail{padding-bottom:110px !important;}
+    .cmp-wrap.is-detail .cmp-top{display:none;}
+    .cmp-wrap.is-detail .cmp-panel{border:0;padding:0;box-shadow:none;}
+    .cmp-wrap.is-detail .cmp-shot{margin:0 -16px;padding:22px 16px;background:linear-gradient(180deg,#eef1f7,#f7f8fb);}
+    .cmp-wrap.is-detail .cmp-info h1{display:none;}
+    .cmp-wrap.is-detail .cmp-info h2{font-size:19px;font-weight:600;margin:20px 0 12px;color:#12203f;}
+    .cmp-wrap.is-detail .cmp-ben li{font-size:15px;line-height:1.5;margin-bottom:12px;}
+    .cmp-wrap.is-detail .cmp-actions{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0;background:#fff;
+      border-top:1px solid #eef0f4;display:flex;gap:12px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));}
+    .cmp-wrap.is-detail .cmp-actions > *{flex:1 1 0 !important;border-radius:6px;padding:13px 10px;font-size:16.5px;font-weight:500;}
+  }
 </style>
 </head>
 <body>
 
 @include('sales_genio.partials.topnav')
+@include('sales_genio.partials.flow_chrome')
 
 @php
   $missingRequired = collect($required)->where('done', false)->values();
@@ -146,20 +198,35 @@
   $sym = '₹';
 @endphp
 
-<div class="cmp-wrap">
+{{-- Phone header: back, title, this business's cart. --}}
+<div class="cmp-mhead">
+  <a href="{{ $selected ? route('sales_genio.business.campaign', $business->id) : route('sales_genio.business.profile', $business->id) }}"
+     class="b" aria-label="Back"><i class="fas fa-arrow-left"></i></a>
+  <span class="t">{{ $selected ? $selected->name : 'Campaign Selection' }}</span>
+  <a href="{{ route('sales_genio.business.cart', $business->id) }}" class="c" aria-label="Cart for {{ $business->name }}">
+    <i class="fas fa-cart-shopping"></i><b>{{ $cart->count() }}</b>
+  </a>
+</div>
+
+<div class="cmp-wrap {{ $selected ? 'is-detail' : 'is-list' }}">
   <div class="cmp-top">
-    <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="cmp-back"><i class="fas fa-arrow-left"></i> Back to profile</a>
+    <div class="cmp-lead">
+      <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="cmp-back"><i class="fas fa-arrow-left"></i> Back to profile</a>
+      <img class="cmp-logo" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar" width="128" height="28">
+    </div>
+    @include('sales_genio.partials.campaign_dcart')
     <div class="cmp-biz">
       <strong>{{ $business->name }}</strong>
       {{ $business->area ? $business->area.', ' : '' }}{{ $business->city }}
     </div>
+    @include('sales_genio.partials.flow_avatar')
   </div>
 
   @if(session('success'))<div class="cmp-flash ok"><i class="fas fa-circle-check"></i> {{ session('success') }}</div>@endif
   @if(session('error'))<div class="cmp-flash warn"><i class="fas fa-circle-exclamation"></i> {{ session('error') }}</div>@endif
 
   <div class="cmp-layout">
-    @include('sales_genio.partials.campaign_sidebar')
+    @include('sales_genio.partials.campaign_sidebar', ['mobileList' => !$selected])
 
     {{-- right: the chosen package --}}
     <div class="cmp-panel {{ $locked ? 'cmp-dim' : '' }}">
@@ -177,7 +244,72 @@
         @endphp
         <div class="cmp-detail">
           <div class="cmp-shot">
-            @if($shot)<img src="{{ $shot }}" alt="{{ $selected->name }}">@endif
+            @if($selected->id === 7)
+              {{-- Combo: the web banner, then the mobile banner, taking turns. --}}
+              <div class="bm-slides" id="bmSlides">
+                <div class="bm-slide on">@include('sales_genio.partials.banner_mock', ['kind' => 'web'])<p>On the website</p></div>
+                <div class="bm-slide">@include('sales_genio.partials.banner_mock', ['kind' => 'mobile'])<p>On mobile</p></div>
+                <div class="bm-dots"><button type="button" class="on" aria-label="Website banner"></button><button type="button" aria-label="Mobile banner"></button></div>
+              </div>
+            @elseif($selected->id === 10)
+              @php
+                $topThumb = null;
+                foreach ((array) $business->photos as $tp) {
+                    $tf = public_path('assets/images/listing/photos/' . $tp);
+                    if (is_file($tf) && ($ts = @imagecreatefromwebp($tf) ?: @imagecreatefromstring((string) file_get_contents($tf)))) {
+                        $tt = imagescale($ts, 160);
+                        ob_start(); imagewebp($tt, null, 70); $topThumb = 'data:image/webp;base64,' . base64_encode(ob_get_clean());
+                        imagedestroy($ts); imagedestroy($tt);
+                        break;
+                    }
+                }
+              @endphp
+              {{-- Top 3: the business shown at position 1, then 2, then 3, taking turns. --}}
+              <div class="bm-slides" id="bmSlides">
+                @foreach([1, 2, 3] as $r)
+                  <div class="bm-slide {{ $r === 1 ? 'on' : '' }}">@include('sales_genio.partials.banner_mock', ['kind' => 'top', 'rank' => $r, 'thumb' => $topThumb ?: null])<p>Top {{ $r }} position</p></div>
+                @endforeach
+                <div class="bm-dots">@foreach([1, 2, 3] as $r)<button type="button" class="{{ $r === 1 ? 'on' : '' }}" aria-label="Top {{ $r }}"></button>@endforeach</div>
+              </div>
+            @elseif(in_array($selected->id, [5, 6], true))
+              @include('sales_genio.partials.banner_mock', ['kind' => $selected->id === 6 ? 'mobile' : 'web'])
+            @elseif(in_array($selected->id, [8, 9], true) && count($selected->imageUrls()) > 1)
+              {{-- Website combos: the website first, then the Google / social picture, taking turns. --}}
+              @php $urls = $selected->imageUrls(); $pics = array_merge(array_slice($urls, 1), [$urls[0]]); @endphp
+              <div class="bm-slides" id="bmSlides">
+                @foreach($pics as $k => $u)
+                  <div class="bm-slide {{ $k === 0 ? 'on' : '' }}"><img src="{{ $u }}" alt="{{ $selected->name }}"><p>{{ $k === 0 ? 'Your website' : ($selected->id === 8 ? 'Google Business Profile' : 'Facebook & Instagram') }}</p></div>
+                @endforeach
+                <div class="bm-dots">@foreach($pics as $k => $u)<button type="button" class="{{ $k === 0 ? 'on' : '' }}" aria-label="Picture {{ $k + 1 }}"></button>@endforeach</div>
+              </div>
+            @elseif($shot)<img src="{{ $shot }}" alt="{{ $selected->name }}">@endif
+              <style>
+                .bm-slides{position:relative;}
+                .bm-slide{display:none;}
+                .bm-slide.on{display:block;animation:bmFade .4s ease;}
+                .bm-slide p{text-align:center;font-size:13px;color:#6b7285;margin:8px 0 0;}
+                .bm-dots{display:flex;justify-content:center;gap:8px;margin-top:10px;}
+                .bm-dots button{width:9px;height:9px;border-radius:50%;border:0;padding:0;background:#cfd5e2;cursor:pointer;}
+                .bm-dots button.on{background:#1a73e8;width:22px;border-radius:5px;}
+                @keyframes bmFade{from{opacity:0}to{opacity:1}}
+              </style>
+              <script>
+                (function () {
+                  var box = document.getElementById('bmSlides');
+                  if (!box) { return; }
+                  var slides = box.querySelectorAll('.bm-slide');
+                  var dots = box.querySelectorAll('.bm-dots button');
+                  var i = 0, timer;
+                  function show(n) {
+                    i = n % slides.length;
+                    slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
+                    dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });
+                  }
+                  function start() { clearInterval(timer); timer = setInterval(function () { show(i + 1); }, 3500); }
+                  dots.forEach(function (d, k) { d.addEventListener('click', function () { show(k); start(); }); });
+                  start();
+                })();
+              </script>
           </div>
 
           <div class="cmp-info">
@@ -194,9 +326,14 @@
               <span class="cmp-chip">{{ $hl }}</span>
             @endforeach
 
-            <form method="post" action="{{ route('sales_genio.business.campaign.cart', $business->id) }}">
-              @csrf
-              <input type="hidden" name="package_id" value="{{ $selected->id }}">
+            @if($selected->needsTemplate())
+              {{-- A website: the plan is chosen here, then the design on the next step. --}}
+              <form method="get" action="{{ route('sales_genio.business.campaign.template', ['id' => $business->id, 'pkg' => $selected->id]) }}">
+            @else
+              <form method="post" action="{{ route('sales_genio.business.campaign.cart', $business->id) }}">
+                @csrf
+                <input type="hidden" name="package_id" value="{{ $selected->id }}">
+            @endif
 
               @if(false)
                 <h2>Where should it run?</h2>
@@ -259,7 +396,7 @@
                 <a class="cmp-skip" href="{{ $nextId
                     ? route('sales_genio.business.campaign', ['id' => $business->id, 'pkg' => $nextId])
                     : route('sales_genio.business.campaign', $business->id) }}">Skip</a>
-                <button type="submit" class="cmp-add">Add to Cart</button>
+                <button type="submit" class="cmp-add">{{ $selected->needsTemplate() ? 'Continue' : 'Add to Cart' }}</button>
               </div>
               @endif
             </form>
@@ -268,33 +405,6 @@
       @endif
     </div>
   </div>
-
-  {{-- pitch list --}}
-  @if($cart->isNotEmpty())
-    <div class="cmp-card" id="pitch">
-      <h2>Pitch list</h2>
-      <p class="hint">What this business is being sold on this visit.</p>
-      <table class="cmp-cart" style="width:100%;border-collapse:collapse;">
-        @foreach($cart as $item)
-          <tr>
-            <td>
-              {{ $item['name'] }}
-              <span class="why" style="color:#8a92a6;font-size:12px;">{{ $item['plan'] }} · {{ $item['days'] }} days</span>
-            </td>
-            <td>
-              @if(!empty($item['free']))<span class="cmp-free">FREE</span>@else ₹{{ numberFormat($item['price']) }} @endif
-              <form method="post" action="{{ route('sales_genio.business.campaign.cart.remove', $business->id) }}" style="display:inline;">
-                @csrf
-                <input type="hidden" name="package_id" value="{{ $item['package_id'] }}">
-                <button type="submit" class="cmp-x" title="Remove"><i class="fas fa-xmark"></i></button>
-              </form>
-            </td>
-          </tr>
-        @endforeach
-      </table>
-      <div class="cmp-total"><span>Total</span><span>₹{{ numberFormat($cart->sum('price')) }}</span></div>
-    </div>
-  @endif
 
 </div>
 
@@ -316,7 +426,7 @@
         </div>
       </div>
       <div class="gift-foot">
-        <span>Added to the pitch list at <b>₹0</b></span>
+        <span>Included free when this campaign is paid — no cart line, no charge.</span>
         <button type="button" onclick="document.getElementById('giftModal').remove()">Continue</button>
       </div>
     </div>

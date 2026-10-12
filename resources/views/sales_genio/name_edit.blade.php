@@ -68,21 +68,25 @@
 <body>
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Business Name</div>
     </div>
 
-    <form method="POST" action="{{ route('sales_genio.business.name.update', $business->id) }}">
+    <form method="POST" action="{{ sg_route('sales_genio.business.name.update', $business->id) }}">
         @csrf
         <div class="content">
             <div class="info-note">
                 <i class="fas fa-circle-info"></i>
-                <span>Enter your business name exactly as you want it to appear to customers.</span>
+                <span>Enter the business name exactly as it should appear to customers. A new name goes to the admin for approval before it shows.</span>
             </div>
 
             <div class="field">
                 <label>Enter Business Name</label>
-                <input type="text" name="name" value="{{ old('name', $business->name) }}" required>
+                <input type="text" name="name" value="{{ old('name', $business->name_approval_status === 'pending' && $business->pending_name ? $business->pending_name : $business->name) }}" required>
+                @if($business->name_approval_status === 'pending' && $business->pending_name)
+                    <small style="display:block;color:#8a5a00;margin-top:6px;">Waiting for approval. Current name: {{ $business->name }}</small>
+                @endif
             </div>
 
             <span class="add-link" onclick="document.getElementById('legalModal').classList.add('show')">
@@ -105,7 +109,7 @@
         <div class="m-body">To add / edit legal business name, you need to complete the KYC process.</div>
         <div class="m-actions">
             <button type="button" class="btn-later" onclick="document.getElementById('legalModal').classList.remove('show')">Will Do It Later</button>
-            <a href="{{ route('sales_genio.business.kyc', $business->id) }}" class="btn-kyc">Complete KYC</a>
+            <a href="{{ sg_route('sales_genio.business.kyc', $business->id) }}" class="btn-kyc">Complete KYC</a>
         </div>
     </div>
 </div>

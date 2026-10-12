@@ -59,6 +59,26 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->stripPublicPrefixFromUrls();
 
+        /*
+         * Enquiry OTP sends. Many visitors can share one IP (a mobile network,
+         * an office Wi-Fi), so the cap is per number, with only a loose per-IP
+         * ceiling against abuse. Hitting either never shows an error: the
+         * visitor is told the code is already on WhatsApp (the last code stays
+         * valid for its full lifetime), which is what they need to hear.
+         */
+        \Illuminate\Support\Facades\RateLimiter::for('enquiry-otp', function (\Illuminate\Http\Request $request) {
+            $calm = fn () => response()->json([
+                'sent'    => true,
+                'message' => 'An OTP has been sent to your WhatsApp. Please enter that code.',
+            ]);
+            $phone = preg_replace('/\D+/', '', (string) $request->input('phone'));
+
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(6)->by('enquiry-otp:phone:' . $phone)->response($calm),
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(120)->by('enquiry-otp:ip:' . $request->ip())->response($calm),
+            ];
+        });
+
         $this->shareAdBanners();
 
         try {

@@ -6,303 +6,7 @@
         ->values();
 @endphp
 
-{{-- Empty state: no listings in this category/city combo --}}
-@if($allListings->isEmpty())
-    <div class="col-12">
-        <div style="
-            text-align: center;
-            padding: 120px 20px;
-            background: linear-gradient(135deg, #286efb 0%, #0d6efd 100%);
-            border-radius: 12px;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(40, 110, 251, 0.2);
-        ">
-            <!-- Decorative background circles -->
-            <div style="
-                position: absolute;
-                top: -50px;
-                right: -50px;
-                width: 200px;
-                height: 200px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
-            "></div>
-            <div style="
-                position: absolute;
-                bottom: -30px;
-                left: -30px;
-                width: 150px;
-                height: 150px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
-            "></div>
-
-            <!-- Main content -->
-            <div style="position: relative; z-index: 1;">
-                <!-- Coming Soon Badge -->
-                <div style="
-                    display: inline-block;
-                    background: rgba(255, 255, 255, 0.2);
-                    backdrop-filter: blur(10px);
-                    padding: 8px 24px;
-                    border-radius: 50px;
-                    margin-bottom: 24px;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                ">
-                    <span style="
-                        color: #fff;
-                        font-size: 13px;
-                        font-weight: 600;
-                        letter-spacing: 1px;
-                        text-transform: uppercase;
-                    ">🚀 Coming Soon</span>
-                </div>
-
-                <!-- Main heading -->
-                <h2 style="
-                    color: #fff;
-                    font-size: 36px;
-                    font-weight: 800;
-                    margin: 0 0 16px 0;
-                    line-height: 1.2;
-                ">
-                    {{ $headingName ?? 'This Service' }}
-                </h2>
-
-                <!-- Location text -->
-                <p style="
-                    color: rgba(255, 255, 255, 0.95);
-                    font-size: 20px;
-                    margin: 0 0 32px 0;
-                    font-weight: 500;
-                ">
-                    in <strong>{{ $locationText ?? 'your area' }}</strong>
-                </p>
-
-                <!-- Description -->
-                <p style="
-                    color: rgba(255, 255, 255, 0.85);
-                    font-size: 15px;
-                    margin: 0 auto 40px;
-                    max-width: 500px;
-                    line-height: 1.6;
-                ">
-                    We're working to bring the best {{ strtolower($headingName ?? 'service') }} providers to {{ $locationText ?? 'your area' }}.
-                    Get ready for an amazing experience!
-                </p>
-
-                <!-- CTA Buttons -->
-                <div style="
-                    display: flex;
-                    gap: 12px;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                    margin-bottom: 40px;
-                ">
-                    <button onclick="handleListYourBusiness(event)" style="
-                        display: inline-block;
-                        background: #fff;
-                        color: #286efb;
-                        padding: 14px 32px;
-                        border-radius: 8px;
-                        border: none;
-                        text-decoration: none;
-                        font-weight: 700;
-                        font-size: 15px;
-                        transition: all 0.3s ease;
-                        box-shadow: 0 4px 15px rgba(40, 110, 251, 0.25);
-                        cursor: pointer;
-                    "
-                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)';"
-                    >
-                        List Your Business
-                    </button>
-
-                    <script>
-                    function handleListYourBusiness(event) {
-                        event.preventDefault();
-                        fetch('{{ route("free.listing") }}', {
-                            method: 'GET',
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        })
-                        .then(response => {
-                            if (response.status === 401) {
-                                openSbAuthPopup();
-                                return;
-                            }
-                            if (response.ok) {
-                                window.location.href = '{{ route("free.listing") }}';
-                            }
-                        })
-                        .catch(() => {
-                            window.location.href = '{{ route("free.listing") }}';
-                        });
-                    }
-                    </script>
-                </div>
-
-                <!-- Related categories section -->
-                @if(!empty($relatedSubcategories) && $relatedSubcategories->count() > 0)
-                    <div style="
-                        margin-top: 50px;
-                        padding-top: 40px;
-                        border-top: 1px solid rgba(255, 255, 255, 0.2);
-                    ">
-                        <p style="
-                            color: rgba(255, 255, 255, 0.8);
-                            font-size: 13px;
-                            margin-bottom: 20px;
-                            font-weight: 600;
-                            text-transform: uppercase;
-                            letter-spacing: 0.5px;
-                        ">Explore Other Services</p>
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-                            @foreach($relatedSubcategories->take(5) as $related)
-                                <a href="{{ route('listings.subcategory', ['slug' => $related->slug]) }}"
-                                   style="
-                                       padding: 10px 18px;
-                                       background: rgba(255, 255, 255, 0.15);
-                                       color: #fff;
-                                       text-decoration: none;
-                                       border-radius: 25px;
-                                       font-size: 14px;
-                                       font-weight: 600;
-                                       border: 1px solid rgba(255, 255, 255, 0.3);
-                                       transition: all 0.3s ease;
-                                   "
-                                   onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'; this.style.transform='translateY(-2px)';"
-                                   onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(0)';"
-                                >
-                                    {{ $related->name }}
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-@else
-    @php
-        // 1. Fixed top-rank listings
-    $fixedListings = $allListings->filter(function ($item) {
-        return isset($item->top_rank) && in_array((int) $item->top_rank, [1, 2, 3, 4]);
-    })->sortBy(function ($item) {
-        return (int) ($item->top_rank ?? 999);
-    })->values();
-
-    // 2. Star paid listings (top-rank ke baad)
-    $starListings = $allListings->filter(function ($item) {
-        return ($item->is_star ?? 0) == 1
-            && (!isset($item->top_rank) || !in_array((int) $item->top_rank, [1, 2, 3, 4]));
-    })->values();
-
-    // 3. Normal rotating listings
-   $rotatingListings = $allListings->filter(function ($item) {
-    return ($item->is_star ?? 0) != 1
-        && (!isset($item->top_rank) || !in_array((int) $item->top_rank, [1, 2, 3, 4]));
-})->values();
-
-    function getTopBadge($rank) {
-        if ($rank == 1) return 'P';
-        if ($rank == 2) return 'D';
-        if ($rank == 3) return 'G';
-        if ($rank == 4) return 'S';
-        return '';
-    }
-
-
-    function listingAddress($listing)
-{
-    if (!empty($listing->address)) {
-        return $listing->address;
-    }
-
-    return collect([
-        $listing->plot_no,
-        $listing->building_name,
-        $listing->street_name,
-        $listing->landmark,
-        $listing->area,
-        $listing->city,
-        $listing->state,
-        $listing->pincode,
-    ])->filter()->implode(', ');
-}
-
-@endphp
-
-@php
-    // Link a card's area straight to that area's page for this category, so
-    // "Vidhyadhar Nagar, Jaipur" opens the Vidhyadhar Nagar list, not the city.
-    $areaFallbackCategory = $selectedCategory ?? null;
-    $areaFallbackSubcategory = $selectedSubcategory ?? null;
-
-    $areaPageUrl = function ($listing) use ($areaFallbackCategory, $areaFallbackSubcategory) {
-        $categorySlug = optional($listing->category)->slug
-            ?? optional($areaFallbackCategory)->slug
-            ?? optional($areaFallbackSubcategory)->slug;
-
-        if (!$categorySlug || !$listing->area || !$listing->city) {
-            return null;
-        }
-
-        // The listing's own `city` can be a district or sub-region ("Gautam
-        // Buddha Nagar", "West Delhi"); /{that}/... only 301s to the real
-        // city page, so link the location's slug directly.
-        $citySlug = optional($listing->location)->slug ?: \Illuminate\Support\Str::slug($listing->city);
-
-        return url($citySlug . '/'
-            . $categorySlug . '-in-' . \Illuminate\Support\Str::slug($listing->area));
-    };
-@endphp
-
-{{-- ================= FIXED TOP RANK LISTINGS ================= --}}
-@forelse($fixedListings as $listing)
-    @php
-        $phone = '';
-
-        if (is_array($listing->contact)) {
-            $phone = $listing->contact['content'][0] ?? '';
-        } else {
-            $phone = $listing->contact;
-        }
-
-        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
-
-        $topBadge = getTopBadge($listing->top_rank);
-
-        $whatsappNumber = is_array($listing->whatsapp_numbers)
-            ? ($listing->whatsapp_numbers[0] ?? '')
-            : $listing->whatsapp_numbers;
-
-        $mobile_numbers = is_array($listing->mobile_numbers)
-            ? ($listing->mobile_numbers[0] ?? '')
-            : $listing->mobile_numbers;
-
-        $popupCategoryName = $selectedCategory->name ?? request('categorysearch') ?? $listing->category->name ?? 'Listings';
-    @endphp
-
-    <div class="col-12 listing-card fixed-listing-card"
-       data-location="{{ strtolower(listingAddress($listing)) }}"
-         data-name="{{ strtolower($listing->name ?? '') }}"
-         data-category="{{ strtolower($listing->category->name ?? '') }}">
-
-     <div class="listing-area position-relative border p-4 rounded shadow-sm listing-box-clickable"
-     data-url="{{ route('listings.details', ['category' => optional($listing->category)->slug, 'slug' => $listing->slug]) }}"
-     data-track="listing_click" data-listing-id="{{ $listing->id }}" data-category-id="{{ optional($listing->category)->id }}" data-location-id="{{ optional($listing->location)->id ?? $listing->location_id }}">
-
-            @if(!empty($topBadge))
-                <div class="jd-top-badge">
-                    {{ $topBadge }}
-                </div>
-            @endif
-
+{{-- Card styles come first so the cards never paint unstyled while the page loads. --}}
             <style>
               .listing-img-box {
     width: 100%;
@@ -369,520 +73,6 @@
 }
 
             </style>
-
-            <div style="cursor: pointer;" class="row align-items-center ">
-             <div class="col-4 col-md-3">
-                    <div class="listing-img-box">
-                       <div class="listing-gallery">
-    
-    <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
-         class="img-fluid rounded listing-img active"
-         alt="{{ $listing->name }}"
-           loading="lazy">
-
-    @if(!empty($listing->images))
-        @php
-            $extraImages = is_array($listing->images)
-                ? $listing->images
-                : json_decode($listing->images, true);
-        @endphp
-
-        @if(is_array($extraImages))
-            @foreach($extraImages as $img)
-                <img src="{{ loadImage('assets/images/listing/' . $img) }}"
-                     class="img-fluid rounded listing-img"
-                     alt="{{ $listing->name }}"
-                       loading="lazy">
-            @endforeach
-        @endif
-    @endif
-@if(!empty($extraImages) && count($extraImages) > 0)
-    <button type="button" class="gallery-arrow prev">
-        <i class="las la-angle-left"></i>
-    </button>
-
-    <button type="button" class="gallery-arrow next">
-        <i class="las la-angle-right"></i>
-    </button>
-@endif
-</div>
-                    </div>
-                </div>
-
-               <div class="col-7 col-md-8">
-                    <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
-                        @if(($listing->is_star ?? 0) == 1)
-                            <i class="fas fa-star ico"></i>
-                        @endif
-                     <a href="{{ route('listings.details', [
-    'category' => optional($listing->category)->slug,
-    'slug' => $listing->slug
-]) }}">
-    {{ __($listing->name) }}
-</a>
-                    </h3>
-
-                    @php
-                        $rating = 0;
-                        $ratingCount = 0;
-
-                        if (!empty($listing->review) && is_numeric($listing->review)) {
-                            $rating = (float) $listing->review;
-                        } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
-                            $rating = (float) $listing->avg_rating;
-                        } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
-                            $rating = (float) $listing->rating;
-                        }
-
-                        if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
-                            $ratingCount = (int) $listing->total_review;
-                        } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
-                            $ratingCount = (int) $listing->review_count;
-                        } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
-                            $ratingCount = (int) $listing->ratings_count;
-                        }
-                    @endphp
-
-                    @php
-                        $hasRatingBlock = $rating > 0
-                            || $ratingCount > 0
-                            || ($listing->trust ?? 0) == 1
-                            || ($listing->verified ?? 0) == 1;
-                    @endphp
-
-                    <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap"
-                         style="{{ !$hasRatingBlock ? 'visibility:hidden;' : '' }}">
-
-                        @if($rating > 0)
-                            <span class="jd-rating-badge">
-                                {{ number_format($rating, 1) }} ★
-                            </span>
-                        @endif
-
-                        @if($ratingCount > 0)
-                            <span class="jd-rating-count">
-                                {{ $ratingCount }} Ratings
-                            </span>
-                        @endif
-
-                        @if(($listing->trust ?? 0) == 1)
-                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Trusted Business: Verified identity plus additional certifications or high customer ratings">
-                                <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
-                            </a>
-                        @endif
-
-                        @if(($listing->verified ?? 0) == 1)
-                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by Service Bazzar">
-                                <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
-                            </a>
-                        @endif
-                    </div>
-
-                    @php
-                        $locationName = optional($listing->location)->name;
-                        $yearsInBusiness = (!empty($listing->established_year))
-                            ? date('Y') - (int) $listing->established_year
-                            : 0;
-                    @endphp
-
-                    <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
-                        @if(!empty($locationName))
-                            @php $areaUrl = $areaPageUrl($listing); @endphp
-                            <span>
-                                <i class="las la-map-marker"></i>
-                                @if($areaUrl)
-                                    <a href="{{ $areaUrl }}" class="listing-area-link">{{ $locationName }}</a>
-                                @else
-                                    {{ $locationName }}
-                                @endif
-                            </span>
-                        @else
-                            <span>&nbsp;</span>
-                        @endif
-
-                        @if($yearsInBusiness > 0)
-                            <span class="dot-separator">•</span>
-                            <span class="business-years">
-                                <i class="las la-briefcase"></i> {{ $yearsInBusiness }} Years in Business
-                            </span>
-                        @else
-                            <span>&nbsp;</span>
-                        @endif
-
-                        
-                    </div>
-
-                    @php
-                        $subs = collect($listing->subcategory ?? [])->take(3);
-                    @endphp
-
-                    <div class="listing-subcategories mt-2">
-                        @if($subs->count())
-                            @foreach($subs as $sub)
-                                <span class="subcat-chip">{{ $sub->name }}</span>
-                            @endforeach
-                        @else
-                            <span>&nbsp;</span>
-                        @endif
-                    </div>
-
-                    <div class="listing-contact mt-3 desktop-buttons">
-                      @if(!empty($mobile_numbers))
-
-   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_country_code[0] ?? '+91' }}
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
-
-                        @if(!empty($whatsappNumber))
-                          <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
-   target="_blank"
-   class="btn-whatsapp list-track-click"
-   data-type="whatsapp"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-   data-number="{{ $whatsappNumber }}">
-                                <i class="lab la-whatsapp"></i>
-                                WhatsApp
-                            </a>
-                        @endif
-
-                       <button type="button"
-        class="btn-best-price open-enquiry-modal list-track-click"
-        data-type="enquiry"
-        data-listing-id="{{ $listing->id }}"
-        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-        data-category="{{ $popupCategoryName }}">
-                            <i class="las la-comment-alt-dots"></i>
-                            Get Best Price
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="listing-contact mobile-buttons mt-3">
-               @if(!empty($mobile_numbers))
-
- <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
-
-              <button type="button"
-        class="btn-best-price open-enquiry-modal list-track-click"
-        data-type="enquiry"
-        data-listing-id="{{ $listing->id }}"
-        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-        data-category="{{ $popupCategoryName }}">
-                    <i class="las la-comment-alt-dots"></i>
-                    Get Best Price
-                </button>
-            </div>
-        </div>
-    </div>
-@empty
-@endforelse
-
-
-{{-- ================= STAR PAID LISTINGS ================= --}}
-@foreach($starListings as $listing)
-    @php
-        $phone = '';
-
-        if (is_array($listing->contact)) {
-            $phone = $listing->contact['content'][0] ?? '';
-        } else {
-            $phone = $listing->contact;
-        }
-
-        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
-
-        $whatsappNumber = is_array($listing->whatsapp_numbers)
-            ? ($listing->whatsapp_numbers[0] ?? '')
-            : $listing->whatsapp_numbers;
-
-        $mobile_numbers = is_array($listing->mobile_numbers)
-            ? ($listing->mobile_numbers[0] ?? '')
-            : $listing->mobile_numbers;
-
-        $popupCategoryName = $selectedCategory->name ?? request('categorysearch') ?? $listing->category->name ?? 'Listings';
-    @endphp
-
-    <div class="col-12 listing-card star-paid-card"
-        data-location="{{ strtolower(listingAddress($listing)) }}"
-         data-name="{{ strtolower($listing->name ?? '') }}"
-         data-category="{{ strtolower($listing->category->name ?? '') }}">
-
-      <div class="listing-area position-relative border p-4 rounded shadow-sm listing-box-clickable"
-     data-url="{{ route('listings.details', ['category' => optional($listing->category)->slug, 'slug' => $listing->slug]) }}"
-     data-track="listing_click" data-listing-id="{{ $listing->id }}" data-category-id="{{ optional($listing->category)->id }}" data-location-id="{{ optional($listing->location)->id ?? $listing->location_id }}">
-            <div style="cursor: pointer;" class="row align-items-center ">
-       <div class="col-4 col-md-3">
-                    <div class="listing-gallery">
-    
-    <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
-         class="img-fluid rounded listing-img active"
-         alt="{{ $listing->name }}"
-         loading="lazy">
-
-    @if(!empty($listing->images))
-        @php
-            $extraImages = is_array($listing->images)
-                ? $listing->images
-                : json_decode($listing->images, true);
-        @endphp
-
-        @if(is_array($extraImages))
-            @foreach($extraImages as $img)
-                <img src="{{ loadImage('assets/images/listing/' . $img) }}"
-                     class="img-fluid rounded listing-img"
-                     alt="{{ $listing->name }}"
-                     loading="lazy">
-            @endforeach
-        @endif
-    @endif
-
- @if(!empty($extraImages) && count($extraImages) > 0)
-    <button type="button" class="gallery-arrow prev">
-        <i class="las la-angle-left"></i>
-    </button>
-
-    <button type="button" class="gallery-arrow next">
-        <i class="las la-angle-right"></i>
-    </button>
-@endif
-</div>
-                </div>
-
-             <div class="col-7 col-md-8">
-                    <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
-                        @if(($listing->is_star ?? 0) == 1)
-                            <i class="fas fa-star ico"></i>
-                        @endif
-                       <a href="{{ route('listings.details', [
-    'category' => optional($listing->category)->slug,
-    'slug' => $listing->slug
-]) }}">
-                            {{ __($listing->name) }}
-                        </a>
-                    </h3>
-
-                    @php
-                        $rating = 0;
-                        $ratingCount = 0;
-
-                        if (!empty($listing->review) && is_numeric($listing->review)) {
-                            $rating = (float) $listing->review;
-                        } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
-                            $rating = (float) $listing->avg_rating;
-                        } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
-                            $rating = (float) $listing->rating;
-                        }
-
-                        if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
-                            $ratingCount = (int) $listing->total_review;
-                        } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
-                            $ratingCount = (int) $listing->review_count;
-                        } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
-                            $ratingCount = (int) $listing->ratings_count;
-                        }
-                    @endphp
-
-                    @php
-                        $hasRatingBlock = $rating > 0
-                            || $ratingCount > 0
-                            || ($listing->trust ?? 0) == 1
-                            || ($listing->verified ?? 0) == 1;
-                    @endphp
-
-                    <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap"
-                         style="{{ !$hasRatingBlock ? 'visibility:hidden;' : '' }}">
-                        @if($rating > 0)
-                            <span class="jd-rating-badge">
-                                {{ number_format($rating, 1) }} ★
-                            </span>
-                        @endif
-
-                        @if($ratingCount > 0)
-                            <span class="jd-rating-count">
-                                {{ $ratingCount }} Ratings
-                            </span>
-                        @endif
-
-                        @if(($listing->trust ?? 0) == 1)
-                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Trusted Business: Verified identity plus additional certifications or high customer ratings">
-                                <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
-                            </a>
-                        @endif
-
-                        @if(($listing->verified ?? 0) == 1)
-                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by Service Bazzar">
-                                <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
-                            </a>
-                        @endif
-                    </div>
-
-                    <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
-                        @php $areaUrl = $areaPageUrl($listing); @endphp
-                        <span>
-                            <i class="las la-map-marker"></i>
-                            @if($areaUrl)
-                                <a href="{{ $areaUrl }}" class="listing-area-link">{{ $listing->area ? $listing->area.', '.$listing->city : optional($listing->location)->name }}</a>
-                            @else
-                                {{ optional($listing->location)->name }}
-                            @endif
-                        </span>
-
-                        @if(!empty($listing->established_year))
-                            @php
-                                $yearsInBusiness = date('Y') - (int) $listing->established_year;
-                            @endphp
-
-                            @if($yearsInBusiness > 0)
-                                <span class="dot-separator">•</span>
-                                <span class="business-years">
-                                    <i class="las la-briefcase"></i>
-                                    {{ $yearsInBusiness }} Years in Business
-                                </span>
-                            @endif
-                        @endif
-
-                      
-
-
-                    </div>
-
-                    @if(isset($listing->subcategory) && $listing->subcategory->count())
-                        <div class="listing-subcategories mt-2">
-                            @foreach($listing->subcategory->take(3) as $sub)
-                                <span class="subcat-chip">{{ $sub->name }}</span>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <div class="listing-contact mt-3 desktop-buttons">
-                    @if(!empty($mobile_numbers))
-
-<a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_country_code[0] ?? '+91' }}
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
-
-                        @if(!empty($whatsappNumber))
-                          <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
-   target="_blank"
-   class="btn-whatsapp list-track-click"
-   data-type="whatsapp"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-   data-number="{{ $whatsappNumber }}">
-                                <i class="lab la-whatsapp"></i>
-                                WhatsApp
-                            </a>
-                        @endif
-
-                     <button type="button"
-        class="btn-best-price open-enquiry-modal list-track-click"
-        data-type="enquiry"
-        data-listing-id="{{ $listing->id }}"
-        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-        data-category="{{ $popupCategoryName }}">
-                            <i class="las la-comment-alt-dots"></i>
-                            Get Best Price
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="listing-contact mobile-buttons mt-3">
-              @if(!empty($mobile_numbers))
-
-   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    Call Now
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
-
-               <button type="button"
-        class="btn-best-price open-enquiry-modal list-track-click"
-        data-type="enquiry"
-        data-listing-id="{{ $listing->id }}"
-        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-        data-category="{{ $popupCategoryName }}">
-                    <i class="las la-comment-alt-dots"></i>
-                    Get Best Price
-                </button>
-            </div>
-        </div>
-    </div>
-@endforeach
     <style>
         .listing-gallery {
     position: relative !important;
@@ -951,433 +141,6 @@
 }
 
     </style>
-
-{{-- ================= ROTATING LISTINGS ================= --}}
-@if($rotatingListings->count() > 0)
-    <div class="col-12 p-0">
-        <div id="rotatingListingsWrapper">
-            @foreach($rotatingListings as $listing)
-                @php
-                    $phone = '';
-
-                    if (is_array($listing->contact)) {
-                        $phone = $listing->contact['content'][0] ?? '';
-                    } else {
-                        $phone = $listing->contact;
-                    }
-
-                    $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
-
-                    $whatsappNumber = is_array($listing->whatsapp_numbers)
-                        ? ($listing->whatsapp_numbers[0] ?? '')
-                        : $listing->whatsapp_numbers;
-
-                    $mobile_numbers = is_array($listing->mobile_numbers)
-                        ? ($listing->mobile_numbers[0] ?? '')
-                        : $listing->mobile_numbers;
-
-                    $popupCategoryName = $selectedCategory->name ?? request('categorysearch') ?? $listing->category->name ?? 'Listings';
-                @endphp
-
-           <div class="col-12 listing-card rotating-card"
-     data-id="{{ $listing->id }}"
-     data-distance="{{ isset($listing->distance) ? (float) $listing->distance : 999999 }}"
-    data-location="{{ strtolower(listingAddress($listing)) }}"
-     data-name="{{ strtolower($listing->name ?? '') }}"
-     data-category="{{ strtolower($listing->category->name ?? '') }}">
-
-               @php
-    $categorySlug = optional($listing->category)->slug;
-    $listingSlug = $listing->slug ?? '';
-    $detailUrl = (!empty($categorySlug) && !empty($listingSlug))
-        ? route('listings.details', [
-            'category' => $categorySlug,
-            'slug' => $listingSlug
-        ])
-        : '';
-@endphp
-
-<div class="listing-area position-relative border p-4 rounded shadow-sm listing-box-clickable"
-     data-url="{{ $detailUrl }}">  
-                        <div style="cursor: pointer;" class="row align-items-center ">
-                          <div class="col-4 col-md-3">
-                              <div class="listing-gallery">
-
-  
-    <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
-         class="img-fluid rounded listing-img active"
-         alt="{{ $listing->name }}"
-         loading="lazy">
-
-   
-    @if(!empty($listing->photos))
-        @php
-            $extraImages = is_array($listing->photos)
-                ? $listing->photos
-                : json_decode($listing->photos, true);
-        @endphp
-
-        @if(is_array($extraImages))
-            @foreach($extraImages as $img)
-                <img src="{{ asset('assets/images/listing/photos/' . $img) }}"
-                     class="img-fluid rounded listing-img"
-                     alt="{{ $listing->name }}"
-                      loading="lazy">
-            @endforeach
-        @endif
-    @endif
-
-    @if(!empty($listing->photos) && count($extraImages ?? []) > 0)
-        <button type="button" class="gallery-arrow prev"><i class="las la-angle-left"></i></button>
-        <button type="button" class="gallery-arrow next">   <i class="las la-angle-right"></i></button>
-    @endif
-
-</div>
-                            </div>
-
-                           <div class="col-7 col-md-8">
-                                <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
-                                    @if(($listing->is_star ?? 0) == 1)
-                                         <i class="fas fa-star ico"></i>
-                                    @endif
-                               @php
-    $categorySlug = optional($listing->category)->slug;
-    $listingSlug = $listing->slug ?? '';
-    $detailUrl = (!empty($categorySlug) && !empty($listingSlug))
-        ? route('listings.details', [
-            'category' => $categorySlug,
-            'slug' => $listingSlug
-        ])
-        : '';
-@endphp
-
-@if(!empty($detailUrl))
-    <a href="{{ $detailUrl }}">
-        {{ __($listing->name) }}
-    </a>
-@else
-    <span>{{ __($listing->name) }}</span>
-@endif
-                                </h3>
-
-                                @php
-                                    $rating = 0;
-                                    $ratingCount = 0;
-
-                                    if (!empty($listing->review) && is_numeric($listing->review)) {
-                                        $rating = (float) $listing->review;
-                                    } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
-                                        $rating = (float) $listing->avg_rating;
-                                    } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
-                                        $rating = (float) $listing->rating;
-                                    }
-
-                                    if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
-                                        $ratingCount = (int) $listing->total_review;
-                                    } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
-                                        $ratingCount = (int) $listing->review_count;
-                                    } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
-                                        $ratingCount = (int) $listing->ratings_count;
-                                    }
-                                @endphp
-
-                                @php
-                                    $hasRatingBlock = $rating > 0
-                                        || $ratingCount > 0
-                                        || ($listing->trust ?? 0) == 1
-                                        || ($listing->verified ?? 0) == 1;
-                                @endphp
-
-                                <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
-                                    @if($hasRatingBlock)
-                                        @if($rating > 0)
-                                            <span class="jd-rating-badge">
-                                                {{ number_format($rating, 1) }} ★
-                                            </span>
-                                        @endif
-
-                                        @if($ratingCount > 0)
-                                            <span class="jd-rating-count">
-                                                {{ $ratingCount }} Ratings
-                                            </span>
-                                        @endif
-
-                                        @if(($listing->trust ?? 0) == 1)
-                                            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
-                                        @endif
-
-                                        @if(($listing->verified ?? 0) == 1)
-                                            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
-                                        @endif
-                                    @endif
-                                </div>
-
-                                <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
-                             {{-- @if(isset($listing->distance) && $listing->distance !== null)
-    <span class="dot-separator">•</span>
-    <span class="text-muted">
-        @if((float) $listing->distance < 0.5)
-            Very close
-        @elseif((float) $listing->distance < 2)
-            Nearby
-        @else
-            {{ number_format((float) $listing->distance, 1) }} km away
-        @endif
-    </span>
-@endif --}}
-                                  @php $areaUrl = $areaPageUrl($listing); @endphp
-<span>
-    <i class="las la-map-marker"></i>
-    @php $areaLabel = collect([$listing->area, optional($listing->location)->name])->filter()->implode(', '); @endphp
-    @if($areaUrl)
-        <a href="{{ $areaUrl }}" class="listing-area-link">{{ $areaLabel }}</a>
-    @else
-        {{ $areaLabel }}
-    @endif
-</span>
-                                    @if(!empty($listing->established_year))
-                                        @php
-                                            $yearsInBusiness = date('Y') - (int) $listing->established_year;
-                                        @endphp
-
-                                        @if($yearsInBusiness > 0)
-                                            <span class="dot-separator">•</span>
-                                            <span class="business-years">
-                                                <i class="las la-briefcase"></i>
-                                                {{ $yearsInBusiness }} Years in Business
-                                            </span>
-                                        @endif
-                                    @endif
-                                </div>
-
-                                @if(isset($listing->subcategory) && $listing->subcategory->count())
-                                    <div class="listing-subcategories mt-2">
-                                        @foreach($listing->subcategory->take(3) as $sub)
-                                            <span class="subcat-chip">{{ $sub->name }}</span>
-                                        @endforeach
-                                    </div>
-                                @endif
-
-                                <div class="listing-contact mt-3 desktop-buttons">
-                                  @if(!empty($mobile_numbers))
-
-  <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_country_code[0] ?? '+91' }}
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
-
-                                    @if(!empty($whatsappNumber))
-                                      <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
-   target="_blank"
-   class="btn-whatsapp list-track-click"
-   data-type="whatsapp"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-   data-number="{{ $whatsappNumber }}">
-                                            <i class="lab la-whatsapp"></i>
-                                            WhatsApp
-                                        </a>
-                                    @endif
-<button type="button"
-        class="btn-best-price open-enquiry-modal list-track-click"
-        data-type="enquiry"
-        data-listing-id="{{ $listing->id }}"
-        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-        data-category="{{ $popupCategoryName }}">
-                                        <i class="las la-comment-alt-dots"></i>
-                                        Get Best Price
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="listing-contact mobile-buttons mt-3">
-                           @if(!empty($mobile_numbers))
-
-   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    Call Now
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
-
-                        <button type="button"
-        class="btn-best-price open-enquiry-modal list-track-click"
-        data-type="enquiry"
-        data-listing-id="{{ $listing->id }}"
-        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-        data-category="{{ $popupCategoryName }}">
-                                <i class="las la-comment-alt-dots"></i>
-                                Get Best Price
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                @if(($loop->iteration % 4 == 0) && !$loop->last)
-                    <div class="col-12 pb-4 rotating-card enquiry-rotating-card">
-                        <section class="py-4 enquiry-box" style="background:#eaf3fb;margin-right: 10px;">
-                            <div class="container">
-                                <div class="rounded-3 overflow-hidden">
-                                    <div class="row g-0 align-items-center">
-                                        <div class="col-lg-4 p-4">
-                                            <h3 class="fw-bold mb-1 hh-h4-size">
-                                                Get the List of Top
-                                                <span class="text-primary">
-                                                    {{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}
-                                                </span>
-                                            </h3>
-                                            <p class="mb-0 small text-dark">
-                                                We'll send you contact details in seconds for free
-                                            </p>
-                                        </div>
-
-                                        <div class="col-lg-8 p-5 bg-white border-start">
-                                            <form action="{{ route('contact.author') }}" method="POST">
-                                                @csrf
-                                                @include('themes.servicebazzar.partials.form-guard')
-
-                                                <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
-                                                <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">
-                                                <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-                                                 <input type="hidden" name="location_id"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}">
-
-                                                <div style="cursor: pointer;" class="row align-items-center ">
-                                                    <div class="col-md-5">
-                                                        <input type="text" class="form-control form-control-sm" name="name" placeholder="Name">
-                                                    </div>
-
-                                                    <div class="col-md-5 mobile-input-fix" style="margin-left: -25px;">
-                                                        <input name="phone" type="text" class="form-control form-control-sm" placeholder="Mobile Number">
-                                                    </div>
-
-                                                    <div class="col-md-2">
-                                                        <button type="submit" class="btn btn-primary btn-sm send-enquiry-btn">
-                                                            Send Enquiry
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </form>
-
-                                            <div class="form-check mt-2">
-                                                <input class="form-check-input" type="checkbox" checked>
-                                                <label class="form-check-label small">
-                                                    I Agree to
-                                                    <a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-                @endif
-            @endforeach
-        </div>
-    </div>
-@endif
-
-{{-- Close the empty-state if/else block --}}
-@endif
-
-
-
-<div id="bestPriceModal" class="best-price-modal">
-    <div class="best-price-modal-dialog">
-        <button type="button" class="best-price-close" id="closeBestPriceModal">&times;</button>
-
-        <div class="best-price-modal-content">
-            <div class="best-price-left">
-                <h2 class="best-price-title">
-                    Get the list of best <span id="popupCategoryName">Listings</span>
-                </h2>
-
-                <form action="{{ route('contact.author') }}" method="POST">
-                    @csrf
-                    @include('themes.servicebazzar.partials.form-guard')
-
-                    {{-- Filled by the opener below from the card whose "Get Best
-                         Price" was clicked. Without it every enquiry from this
-                         shared popup reached the admin with no business against
-                         it, so nobody could tell which listing it was for. --}}
-                    <input type="hidden" name="listing_id" id="popupListingInput" value="">
-
-                    <input type="hidden" name="category_id" id="popupCategoryIdInput" value="{{ $selectedCategory->id ?? '' }}" data-page-value="{{ $selectedCategory->id ?? '' }}">
-                    <input type="hidden" name="category_name" id="popupCategoryInput" value="{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}">
-                    <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-                     <input type="hidden" name="location_id" id="popupLocationIdInput"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}"
-       data-page-value="{{ request('location_id') ?? ($location->id ?? '') }}">
-
-                    <div class="best-price-field">
-                        <label>Name*</label>
-                        <input type="text" name="name" required>
-                    </div>
-
-                    <div class="best-price-field">
-                        <label>Mobile Number*</label>
-                        <input type="text" name="phone" required>
-                    </div>
-
-                    <div class="best-price-check">
-                        <input type="checkbox" id="agreePolicy" checked>
-                        <label for="agreePolicy">
-                            I Agree to Terms and Conditions
-                            <a href="{{ route('single.slug',38) }}"><a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a></a>
-                        </label>
-                    </div>
-
-                    <button type="submit" class="best-price-submit">
-                        GET BEST PRICE
-                    </button>
-                </form>
-
-                {{-- One line, not three bullets. This sits below the button,
-                     where it is reassurance for someone already deciding —
-                     three separate claims there only made the box taller than
-                     the screen. --}}
-                <p class="best-price-points">
-                    Businesses compete for your order — details come by SMS/Email.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
     @media (max-width: 767px) {
     .listing-subcategories {
@@ -1944,6 +707,1237 @@
 }
 
 </style>
+
+
+{{-- Empty state: no listings in this category/city combo --}}
+@if($allListings->isEmpty())
+    <div class="col-12">
+        <div style="
+            text-align: center;
+            padding: 120px 20px;
+            background: linear-gradient(135deg, #286efb 0%, #0d6efd 100%);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(40, 110, 251, 0.2);
+        ">
+            <!-- Decorative background circles -->
+            <div style="
+                position: absolute;
+                top: -50px;
+                right: -50px;
+                width: 200px;
+                height: 200px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+            "></div>
+            <div style="
+                position: absolute;
+                bottom: -30px;
+                left: -30px;
+                width: 150px;
+                height: 150px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+            "></div>
+
+            <!-- Main content -->
+            <div style="position: relative; z-index: 1;">
+                <!-- Coming Soon Badge -->
+                <div style="
+                    display: inline-block;
+                    background: rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(10px);
+                    padding: 8px 24px;
+                    border-radius: 50px;
+                    margin-bottom: 24px;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                ">
+                    <span style="
+                        color: #fff;
+                        font-size: 13px;
+                        font-weight: 600;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                    ">🚀 Coming Soon</span>
+                </div>
+
+                <!-- Main heading -->
+                <h2 style="
+                    color: #fff;
+                    font-size: 36px;
+                    font-weight: 800;
+                    margin: 0 0 16px 0;
+                    line-height: 1.2;
+                ">
+                    {{ $headingName ?? 'This Service' }}
+                </h2>
+
+                <!-- Location text -->
+                <p style="
+                    color: rgba(255, 255, 255, 0.95);
+                    font-size: 20px;
+                    margin: 0 0 32px 0;
+                    font-weight: 500;
+                ">
+                    in <strong>{{ $locationText ?? 'your area' }}</strong>
+                </p>
+
+                <!-- Description -->
+                <p style="
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 15px;
+                    margin: 0 auto 40px;
+                    max-width: 500px;
+                    line-height: 1.6;
+                ">
+                    We're working to bring the best {{ strtolower($headingName ?? 'service') }} providers to {{ $locationText ?? 'your area' }}.
+                    Get ready for an amazing experience!
+                </p>
+
+                <!-- CTA Buttons -->
+                <div style="
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    margin-bottom: 40px;
+                ">
+                    <button onclick="handleListYourBusiness(event)" style="
+                        display: inline-block;
+                        background: #fff;
+                        color: #286efb;
+                        padding: 14px 32px;
+                        border-radius: 8px;
+                        border: none;
+                        text-decoration: none;
+                        font-weight: 700;
+                        font-size: 15px;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 4px 15px rgba(40, 110, 251, 0.25);
+                        cursor: pointer;
+                    "
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 0, 0, 0.25)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 0, 0, 0.2)';"
+                    >
+                        List Your Business
+                    </button>
+
+                    <script>
+                    function handleListYourBusiness(event) {
+                        event.preventDefault();
+                        fetch('{{ route("free.listing") }}', {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => {
+                            if (response.status === 401) {
+                                openSbAuthPopup();
+                                return;
+                            }
+                            if (response.ok) {
+                                window.location.href = '{{ route("free.listing") }}';
+                            }
+                        })
+                        .catch(() => {
+                            window.location.href = '{{ route("free.listing") }}';
+                        });
+                    }
+                    </script>
+                </div>
+
+                <!-- Related categories section -->
+                @if(!empty($relatedSubcategories) && $relatedSubcategories->count() > 0)
+                    <div style="
+                        margin-top: 50px;
+                        padding-top: 40px;
+                        border-top: 1px solid rgba(255, 255, 255, 0.2);
+                    ">
+                        <p style="
+                            color: rgba(255, 255, 255, 0.8);
+                            font-size: 13px;
+                            margin-bottom: 20px;
+                            font-weight: 600;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        ">Explore Other Services</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                            @foreach($relatedSubcategories->take(5) as $related)
+                                <a href="{{ route('listings.subcategory', ['slug' => $related->slug]) }}"
+                                   style="
+                                       padding: 10px 18px;
+                                       background: rgba(255, 255, 255, 0.15);
+                                       color: #fff;
+                                       text-decoration: none;
+                                       border-radius: 25px;
+                                       font-size: 14px;
+                                       font-weight: 600;
+                                       border: 1px solid rgba(255, 255, 255, 0.3);
+                                       transition: all 0.3s ease;
+                                   "
+                                   onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'; this.style.transform='translateY(-2px)';"
+                                   onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'; this.style.transform='translateY(0)';"
+                                >
+                                    {{ $related->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+@else
+    @php
+        // 1. Fixed top-rank listings
+    $fixedListings = $allListings->filter(function ($item) {
+        return isset($item->top_rank) && in_array((int) $item->top_rank, [1, 2, 3, 4]);
+    })->sortBy(function ($item) {
+        return (int) ($item->top_rank ?? 999);
+    })->values();
+
+    // 2. Star paid listings (top-rank ke baad)
+    $starListings = $allListings->filter(function ($item) {
+        return ($item->is_star ?? 0) == 1
+            && (!isset($item->top_rank) || !in_array((int) $item->top_rank, [1, 2, 3, 4]));
+    })->values();
+
+    // 3. Normal rotating listings
+   $rotatingListings = $allListings->filter(function ($item) {
+    return ($item->is_star ?? 0) != 1
+        && (!isset($item->top_rank) || !in_array((int) $item->top_rank, [1, 2, 3, 4]));
+})->values();
+
+    function getTopBadge($rank) {
+        if ($rank == 1) return 'P';
+        if ($rank == 2) return 'D';
+        if ($rank == 3) return 'G';
+        if ($rank == 4) return 'S';
+        return '';
+    }
+
+
+    function listingAddress($listing)
+{
+    if (!empty($listing->address)) {
+        return $listing->address;
+    }
+
+    return collect([
+        $listing->plot_no,
+        $listing->building_name,
+        $listing->street_name,
+        $listing->landmark,
+        $listing->area,
+        $listing->city,
+        $listing->state,
+        $listing->pincode,
+    ])->filter()->implode(', ');
+}
+
+@endphp
+
+@php
+    // Link a card's area straight to that area's page for this category, so
+    // "Vidhyadhar Nagar, Jaipur" opens the Vidhyadhar Nagar list, not the city.
+    $areaFallbackCategory = $selectedCategory ?? null;
+    $areaFallbackSubcategory = $selectedSubcategory ?? null;
+
+    $areaPageUrl = function ($listing) use ($areaFallbackCategory, $areaFallbackSubcategory) {
+        $categorySlug = optional($listing->category)->slug
+            ?? optional($areaFallbackCategory)->slug
+            ?? optional($areaFallbackSubcategory)->slug;
+
+        if (!$categorySlug || !$listing->area || !$listing->city) {
+            return null;
+        }
+
+        // The listing's own `city` can be a district or sub-region ("Gautam
+        // Buddha Nagar", "West Delhi"); /{that}/... only 301s to the real
+        // city page, so link the location's slug directly.
+        $citySlug = optional($listing->location)->slug ?: \Illuminate\Support\Str::slug($listing->city);
+
+        return url($citySlug . '/'
+            . $categorySlug . '-in-' . \Illuminate\Support\Str::slug($listing->area));
+    };
+@endphp
+
+{{-- ================= FIXED TOP RANK LISTINGS ================= --}}
+@forelse($fixedListings as $listing)
+    @php
+        $phone = '';
+
+        if (is_array($listing->contact)) {
+            $phone = $listing->contact['content'][0] ?? '';
+        } else {
+            $phone = $listing->contact;
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+
+        $topBadge = getTopBadge($listing->top_rank);
+
+        $whatsappNumber = is_array($listing->whatsapp_numbers)
+            ? ($listing->whatsapp_numbers[0] ?? '')
+            : $listing->whatsapp_numbers;
+
+        $mobile_numbers = is_array($listing->mobile_numbers)
+            ? ($listing->mobile_numbers[0] ?? '')
+            : $listing->mobile_numbers;
+
+        $popupCategoryName = $selectedCategory->name ?? request('categorysearch') ?? $listing->category->name ?? 'Listings';
+    @endphp
+
+    <div class="col-12 listing-card fixed-listing-card"
+       data-location="{{ strtolower(listingAddress($listing)) }}"
+         data-name="{{ strtolower($listing->name ?? '') }}"
+         data-category="{{ strtolower($listing->category->name ?? '') }}">
+
+     <div class="listing-area position-relative border p-4 rounded shadow-sm listing-box-clickable"
+     data-url="{{ route('listings.details', ['category' => optional($listing->category)->slug, 'slug' => $listing->slug]) }}"
+     data-track="listing_click" data-listing-id="{{ $listing->id }}" data-category-id="{{ optional($listing->category)->id }}" data-location-id="{{ optional($listing->location)->id ?? $listing->location_id }}">
+
+            @if(!empty($topBadge))
+                <div class="jd-top-badge">
+                    {{ $topBadge }}
+                </div>
+            @endif
+
+
+            <div style="cursor: pointer;" class="row align-items-center ">
+             <div class="col-4 col-md-3">
+                    <div class="listing-img-box">
+                       <div class="listing-gallery">
+    
+    <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
+         class="img-fluid rounded listing-img active"
+         alt="{{ $listing->name }}"
+           loading="lazy">
+
+    @if(!empty($listing->images))
+        @php
+            $extraImages = is_array($listing->images)
+                ? $listing->images
+                : json_decode($listing->images, true);
+        @endphp
+
+        @if(is_array($extraImages))
+            @foreach($extraImages as $img)
+                <img src="{{ loadImage('assets/images/listing/' . $img) }}"
+                     class="img-fluid rounded listing-img"
+                     alt="{{ $listing->name }}"
+                       loading="lazy">
+            @endforeach
+        @endif
+    @endif
+@if(!empty($extraImages) && count($extraImages) > 0)
+    <button type="button" class="gallery-arrow prev">
+        <i class="las la-angle-left"></i>
+    </button>
+
+    <button type="button" class="gallery-arrow next">
+        <i class="las la-angle-right"></i>
+    </button>
+@endif
+</div>
+                    </div>
+                </div>
+
+               <div class="col-7 col-md-8">
+                    <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
+                        @if(($listing->is_star ?? 0) == 1)
+                            <i class="fas fa-star ico"></i>
+                        @endif
+                     <a href="{{ route('listings.details', [
+    'category' => optional($listing->category)->slug,
+    'slug' => $listing->slug
+]) }}">
+    {{ __($listing->name) }}
+</a>
+                    </h3>
+
+                    @php
+                        $rating = 0;
+                        $ratingCount = 0;
+
+                        if (!empty($listing->review) && is_numeric($listing->review)) {
+                            $rating = (float) $listing->review;
+                        } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
+                            $rating = (float) $listing->avg_rating;
+                        } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
+                            $rating = (float) $listing->rating;
+                        }
+
+                        if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
+                            $ratingCount = (int) $listing->total_review;
+                        } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
+                            $ratingCount = (int) $listing->review_count;
+                        } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
+                            $ratingCount = (int) $listing->ratings_count;
+                        }
+                    @endphp
+
+                    @php
+                        $hasRatingBlock = $rating > 0
+                            || $ratingCount > 0
+                            || ($listing->trust ?? 0) == 1
+                            || ($listing->verified ?? 0) == 1;
+                    @endphp
+
+                    <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap"
+                         style="{{ !$hasRatingBlock ? 'visibility:hidden;' : '' }}">
+
+                        @if($rating > 0)
+                            <span class="jd-rating-badge">
+                                {{ number_format($rating, 1) }} ★
+                            </span>
+                        @endif
+
+                        @if($ratingCount > 0)
+                            <span class="jd-rating-count">
+                                {{ $ratingCount }} Ratings
+                            </span>
+                        @endif
+
+                        @if(($listing->trust ?? 0) == 1)
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Trusted Business: Verified identity plus additional certifications or high customer ratings">
+                                <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
+                            </a>
+                        @endif
+
+                        @if(($listing->verified ?? 0) == 1)
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by Service Bazzar">
+                                <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
+                            </a>
+                        @endif
+                    </div>
+
+                    @php
+                        $locationName = optional($listing->location)->name;
+                        $yearsInBusiness = (!empty($listing->established_year))
+                            ? date('Y') - (int) $listing->established_year
+                            : 0;
+                    @endphp
+
+                    <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
+                        @if(!empty($locationName))
+                            @php $areaUrl = $areaPageUrl($listing); @endphp
+                            <span>
+                                <i class="las la-map-marker"></i>
+                                {{-- Plain text: a tap here opens the listing like the rest of the card. --}}
+{{ $locationName }}
+                            </span>
+                        @else
+                            <span>&nbsp;</span>
+                        @endif
+
+                        @if($yearsInBusiness > 0)
+                            <span class="dot-separator">•</span>
+                            <span class="business-years">
+                                <i class="las la-briefcase"></i> {{ $yearsInBusiness }} Years in Business
+                            </span>
+                        @else
+                            <span>&nbsp;</span>
+                        @endif
+
+                        
+                    </div>
+
+                    @php
+                        $subs = collect($listing->subcategory ?? [])->take(3);
+                    @endphp
+
+                    <div class="listing-subcategories mt-2">
+                        @if($subs->count())
+                            @foreach($subs as $sub)
+                                <span class="subcat-chip">{{ $sub->name }}</span>
+                            @endforeach
+                        @else
+                            <span>&nbsp;</span>
+                        @endif
+                    </div>
+
+                    <div class="listing-contact mt-3 desktop-buttons">
+                      @if(!empty($mobile_numbers))
+
+   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
+   class="btn-call list-track-click"
+   data-type="call"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id }}"
+   data-location-id="{{ $listing->location_id }}"
+   data-number="{{ $mobile_numbers }}">
+    <i class="las la-phone"></i>
+    {{ $mobile_numbers }}
+</a>
+
+@elseif(!empty($listing->landline_numbers[0]))
+
+    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
+        <i class="las la-headset"></i>
+        {{ $listing->landline_country_code[0] ?? '+91' }}
+        {{ $listing->landline_numbers[0] }}
+    </a>
+
+@endif
+
+                        @if(!empty($whatsappNumber))
+                          <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
+   target="_blank"
+   class="btn-whatsapp list-track-click"
+   data-type="whatsapp"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+   data-number="{{ $whatsappNumber }}">
+                                <i class="lab la-whatsapp"></i>
+                                WhatsApp
+                            </a>
+                        @endif
+
+                       <button type="button"
+        class="btn-best-price open-enquiry-modal list-track-click"
+        data-type="enquiry"
+        data-listing-id="{{ $listing->id }}"
+        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+        data-category="{{ $popupCategoryName }}">
+                            <i class="las la-comment-alt-dots"></i>
+                            Get Best Price
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="listing-contact mobile-buttons mt-3">
+               @if(!empty($mobile_numbers))
+
+ <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
+   class="btn-call list-track-click"
+   data-type="call"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id }}"
+   data-location-id="{{ $listing->location_id }}"
+   data-number="{{ $mobile_numbers }}">
+    <i class="las la-phone"></i>
+    {{ $mobile_numbers }}
+</a>
+
+@elseif(!empty($listing->landline_numbers[0]))
+
+    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
+        <i class="las la-headset"></i>
+        {{ $listing->landline_numbers[0] }}
+    </a>
+
+@endif
+
+              <button type="button"
+        class="btn-best-price open-enquiry-modal list-track-click"
+        data-type="enquiry"
+        data-listing-id="{{ $listing->id }}"
+        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+        data-category="{{ $popupCategoryName }}">
+                    <i class="las la-comment-alt-dots"></i>
+                    Get Best Price
+                </button>
+            </div>
+        </div>
+    </div>
+@empty
+@endforelse
+
+
+{{-- ================= STAR PAID LISTINGS ================= --}}
+@foreach($starListings as $listing)
+    @php
+        $phone = '';
+
+        if (is_array($listing->contact)) {
+            $phone = $listing->contact['content'][0] ?? '';
+        } else {
+            $phone = $listing->contact;
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+
+        $whatsappNumber = is_array($listing->whatsapp_numbers)
+            ? ($listing->whatsapp_numbers[0] ?? '')
+            : $listing->whatsapp_numbers;
+
+        $mobile_numbers = is_array($listing->mobile_numbers)
+            ? ($listing->mobile_numbers[0] ?? '')
+            : $listing->mobile_numbers;
+
+        $popupCategoryName = $selectedCategory->name ?? request('categorysearch') ?? $listing->category->name ?? 'Listings';
+    @endphp
+
+    <div class="col-12 listing-card star-paid-card"
+        data-location="{{ strtolower(listingAddress($listing)) }}"
+         data-name="{{ strtolower($listing->name ?? '') }}"
+         data-category="{{ strtolower($listing->category->name ?? '') }}">
+
+      <div class="listing-area position-relative border p-4 rounded shadow-sm listing-box-clickable"
+     data-url="{{ route('listings.details', ['category' => optional($listing->category)->slug, 'slug' => $listing->slug]) }}"
+     data-track="listing_click" data-listing-id="{{ $listing->id }}" data-category-id="{{ optional($listing->category)->id }}" data-location-id="{{ optional($listing->location)->id ?? $listing->location_id }}">
+            <div style="cursor: pointer;" class="row align-items-center ">
+       <div class="col-4 col-md-3">
+                    <div class="listing-gallery">
+    
+    <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
+         class="img-fluid rounded listing-img active"
+         alt="{{ $listing->name }}"
+         loading="lazy">
+
+    @if(!empty($listing->images))
+        @php
+            $extraImages = is_array($listing->images)
+                ? $listing->images
+                : json_decode($listing->images, true);
+        @endphp
+
+        @if(is_array($extraImages))
+            @foreach($extraImages as $img)
+                <img src="{{ loadImage('assets/images/listing/' . $img) }}"
+                     class="img-fluid rounded listing-img"
+                     alt="{{ $listing->name }}"
+                     loading="lazy">
+            @endforeach
+        @endif
+    @endif
+
+ @if(!empty($extraImages) && count($extraImages) > 0)
+    <button type="button" class="gallery-arrow prev">
+        <i class="las la-angle-left"></i>
+    </button>
+
+    <button type="button" class="gallery-arrow next">
+        <i class="las la-angle-right"></i>
+    </button>
+@endif
+</div>
+                </div>
+
+             <div class="col-7 col-md-8">
+                    <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
+                        @if(($listing->is_star ?? 0) == 1)
+                            <i class="fas fa-star ico"></i>
+                        @endif
+                       <a href="{{ route('listings.details', [
+    'category' => optional($listing->category)->slug,
+    'slug' => $listing->slug
+]) }}">
+                            {{ __($listing->name) }}
+                        </a>
+                    </h3>
+
+                    @php
+                        $rating = 0;
+                        $ratingCount = 0;
+
+                        if (!empty($listing->review) && is_numeric($listing->review)) {
+                            $rating = (float) $listing->review;
+                        } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
+                            $rating = (float) $listing->avg_rating;
+                        } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
+                            $rating = (float) $listing->rating;
+                        }
+
+                        if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
+                            $ratingCount = (int) $listing->total_review;
+                        } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
+                            $ratingCount = (int) $listing->review_count;
+                        } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
+                            $ratingCount = (int) $listing->ratings_count;
+                        }
+                    @endphp
+
+                    @php
+                        $hasRatingBlock = $rating > 0
+                            || $ratingCount > 0
+                            || ($listing->trust ?? 0) == 1
+                            || ($listing->verified ?? 0) == 1;
+                    @endphp
+
+                    <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap"
+                         style="{{ !$hasRatingBlock ? 'visibility:hidden;' : '' }}">
+                        @if($rating > 0)
+                            <span class="jd-rating-badge">
+                                {{ number_format($rating, 1) }} ★
+                            </span>
+                        @endif
+
+                        @if($ratingCount > 0)
+                            <span class="jd-rating-count">
+                                {{ $ratingCount }} Ratings
+                            </span>
+                        @endif
+
+                        @if(($listing->trust ?? 0) == 1)
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Trusted Business: Verified identity plus additional certifications or high customer ratings">
+                                <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
+                            </a>
+                        @endif
+
+                        @if(($listing->verified ?? 0) == 1)
+                            <a href="{{ route('badges.guide') }}" class="badge-link" title="Verified Business: Identity and credentials verified by Service Bazzar">
+                                <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
+                            </a>
+                        @endif
+                    </div>
+
+                    <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
+                        @php $areaUrl = $areaPageUrl($listing); @endphp
+                        <span>
+                            <i class="las la-map-marker"></i>
+                            {{-- Plain text: a tap here opens the listing like the rest of the card. --}}
+{{ $listing->area ? $listing->area.', '.$listing->city : optional($listing->location)->name }}
+                        </span>
+
+                        @if(!empty($listing->established_year))
+                            @php
+                                $yearsInBusiness = date('Y') - (int) $listing->established_year;
+                            @endphp
+
+                            @if($yearsInBusiness > 0)
+                                <span class="dot-separator">•</span>
+                                <span class="business-years">
+                                    <i class="las la-briefcase"></i>
+                                    {{ $yearsInBusiness }} Years in Business
+                                </span>
+                            @endif
+                        @endif
+
+                      
+
+
+                    </div>
+
+                    @if(isset($listing->subcategory) && $listing->subcategory->count())
+                        <div class="listing-subcategories mt-2">
+                            @foreach($listing->subcategory->take(3) as $sub)
+                                <span class="subcat-chip">{{ $sub->name }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div class="listing-contact mt-3 desktop-buttons">
+                    @if(!empty($mobile_numbers))
+
+<a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
+   class="btn-call list-track-click"
+   data-type="call"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id }}"
+   data-location-id="{{ $listing->location_id }}"
+   data-number="{{ $mobile_numbers }}">
+    <i class="las la-phone"></i>
+    {{ $mobile_numbers }}
+</a>
+
+@elseif(!empty($listing->landline_numbers[0]))
+
+    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
+        <i class="las la-headset"></i>
+        {{ $listing->landline_country_code[0] ?? '+91' }}
+        {{ $listing->landline_numbers[0] }}
+    </a>
+
+@endif
+
+                        @if(!empty($whatsappNumber))
+                          <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
+   target="_blank"
+   class="btn-whatsapp list-track-click"
+   data-type="whatsapp"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+   data-number="{{ $whatsappNumber }}">
+                                <i class="lab la-whatsapp"></i>
+                                WhatsApp
+                            </a>
+                        @endif
+
+                     <button type="button"
+        class="btn-best-price open-enquiry-modal list-track-click"
+        data-type="enquiry"
+        data-listing-id="{{ $listing->id }}"
+        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+        data-category="{{ $popupCategoryName }}">
+                            <i class="las la-comment-alt-dots"></i>
+                            Get Best Price
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="listing-contact mobile-buttons mt-3">
+              @if(!empty($mobile_numbers))
+
+   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
+   class="btn-call list-track-click"
+   data-type="call"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id }}"
+   data-location-id="{{ $listing->location_id }}"
+   data-number="{{ $mobile_numbers }}">
+    <i class="las la-phone"></i>
+    Call Now
+</a>
+
+@elseif(!empty($listing->landline_numbers[0]))
+
+    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
+        <i class="las la-headset"></i>
+        {{ $listing->landline_numbers[0] }}
+    </a>
+
+@endif
+
+               <button type="button"
+        class="btn-best-price open-enquiry-modal list-track-click"
+        data-type="enquiry"
+        data-listing-id="{{ $listing->id }}"
+        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+        data-category="{{ $popupCategoryName }}">
+                    <i class="las la-comment-alt-dots"></i>
+                    Get Best Price
+                </button>
+            </div>
+        </div>
+    </div>
+@endforeach
+
+{{-- ================= ROTATING LISTINGS ================= --}}
+@if($rotatingListings->count() > 0)
+    <div class="col-12 p-0">
+        <div id="rotatingListingsWrapper">
+            @foreach($rotatingListings as $listing)
+                @php
+                    $phone = '';
+
+                    if (is_array($listing->contact)) {
+                        $phone = $listing->contact['content'][0] ?? '';
+                    } else {
+                        $phone = $listing->contact;
+                    }
+
+                    $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+
+                    $whatsappNumber = is_array($listing->whatsapp_numbers)
+                        ? ($listing->whatsapp_numbers[0] ?? '')
+                        : $listing->whatsapp_numbers;
+
+                    $mobile_numbers = is_array($listing->mobile_numbers)
+                        ? ($listing->mobile_numbers[0] ?? '')
+                        : $listing->mobile_numbers;
+
+                    $popupCategoryName = $selectedCategory->name ?? request('categorysearch') ?? $listing->category->name ?? 'Listings';
+                @endphp
+
+           <div class="col-12 listing-card rotating-card"
+     data-id="{{ $listing->id }}"
+     data-distance="{{ isset($listing->distance) ? (float) $listing->distance : 999999 }}"
+    data-location="{{ strtolower(listingAddress($listing)) }}"
+     data-name="{{ strtolower($listing->name ?? '') }}"
+     data-category="{{ strtolower($listing->category->name ?? '') }}">
+
+               @php
+    $categorySlug = optional($listing->category)->slug;
+    $listingSlug = $listing->slug ?? '';
+    $detailUrl = (!empty($categorySlug) && !empty($listingSlug))
+        ? route('listings.details', [
+            'category' => $categorySlug,
+            'slug' => $listingSlug
+        ])
+        : '';
+@endphp
+
+<div class="listing-area position-relative border p-4 rounded shadow-sm listing-box-clickable"
+     data-url="{{ $detailUrl }}">  
+                        <div style="cursor: pointer;" class="row align-items-center ">
+                          <div class="col-4 col-md-3">
+                              <div class="listing-gallery">
+
+  
+    <img src="{{ loadImage('assets/images/listing/thumb/' . $listing->thumb) }}"
+         class="img-fluid rounded listing-img active"
+         alt="{{ $listing->name }}"
+         loading="lazy">
+
+   
+    @if(!empty($listing->photos))
+        @php
+            $extraImages = is_array($listing->photos)
+                ? $listing->photos
+                : json_decode($listing->photos, true);
+        @endphp
+
+        @if(is_array($extraImages))
+            @foreach($extraImages as $img)
+                <img src="{{ asset('assets/images/listing/photos/' . $img) }}"
+                     class="img-fluid rounded listing-img"
+                     alt="{{ $listing->name }}"
+                      loading="lazy">
+            @endforeach
+        @endif
+    @endif
+
+    @if(!empty($listing->photos) && count($extraImages ?? []) > 0)
+        <button type="button" class="gallery-arrow prev"><i class="las la-angle-left"></i></button>
+        <button type="button" class="gallery-arrow next">   <i class="las la-angle-right"></i></button>
+    @endif
+
+</div>
+                            </div>
+
+                           <div class="col-7 col-md-8">
+                                <h3 class="title mb-2 listing-title d-flex align-items-center flex-wrap">
+                                    @if(($listing->is_star ?? 0) == 1)
+                                         <i class="fas fa-star ico"></i>
+                                    @endif
+                               @php
+    $categorySlug = optional($listing->category)->slug;
+    $listingSlug = $listing->slug ?? '';
+    $detailUrl = (!empty($categorySlug) && !empty($listingSlug))
+        ? route('listings.details', [
+            'category' => $categorySlug,
+            'slug' => $listingSlug
+        ])
+        : '';
+@endphp
+
+@if(!empty($detailUrl))
+    <a href="{{ $detailUrl }}">
+        {{ __($listing->name) }}
+    </a>
+@else
+    <span>{{ __($listing->name) }}</span>
+@endif
+                                </h3>
+
+                                @php
+                                    $rating = 0;
+                                    $ratingCount = 0;
+
+                                    if (!empty($listing->review) && is_numeric($listing->review)) {
+                                        $rating = (float) $listing->review;
+                                    } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
+                                        $rating = (float) $listing->avg_rating;
+                                    } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
+                                        $rating = (float) $listing->rating;
+                                    }
+
+                                    if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
+                                        $ratingCount = (int) $listing->total_review;
+                                    } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
+                                        $ratingCount = (int) $listing->review_count;
+                                    } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
+                                        $ratingCount = (int) $listing->ratings_count;
+                                    }
+                                @endphp
+
+                                @php
+                                    $hasRatingBlock = $rating > 0
+                                        || $ratingCount > 0
+                                        || ($listing->trust ?? 0) == 1
+                                        || ($listing->verified ?? 0) == 1;
+                                @endphp
+
+                                <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
+                                    @if($hasRatingBlock)
+                                        @if($rating > 0)
+                                            <span class="jd-rating-badge">
+                                                {{ number_format($rating, 1) }} ★
+                                            </span>
+                                        @endif
+
+                                        @if($ratingCount > 0)
+                                            <span class="jd-rating-count">
+                                                {{ $ratingCount }} Ratings
+                                            </span>
+                                        @endif
+
+                                        @if(($listing->trust ?? 0) == 1)
+                                            <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
+                                        @endif
+
+                                        @if(($listing->verified ?? 0) == 1)
+                                            <img src="{{ asset('assets/images/verified_2x.gif') }}" class="jd-badge-img" alt="Verified Business badge" loading="lazy">
+                                        @endif
+                                    @endif
+                                </div>
+
+                                <div class="listing-location text-muted d-flex align-items-center flex-wrap gap-2">
+                             {{-- @if(isset($listing->distance) && $listing->distance !== null)
+    <span class="dot-separator">•</span>
+    <span class="text-muted">
+        @if((float) $listing->distance < 0.5)
+            Very close
+        @elseif((float) $listing->distance < 2)
+            Nearby
+        @else
+            {{ number_format((float) $listing->distance, 1) }} km away
+        @endif
+    </span>
+@endif --}}
+                                  @php $areaUrl = $areaPageUrl($listing); @endphp
+<span>
+    <i class="las la-map-marker"></i>
+    @php $areaLabel = collect([$listing->area, optional($listing->location)->name])->filter()->implode(', '); @endphp
+    {{-- Plain text: a tap here opens the listing like the rest of the card. --}}
+{{ $areaLabel }}
+</span>
+                                    @if(!empty($listing->established_year))
+                                        @php
+                                            $yearsInBusiness = date('Y') - (int) $listing->established_year;
+                                        @endphp
+
+                                        @if($yearsInBusiness > 0)
+                                            <span class="dot-separator">•</span>
+                                            <span class="business-years">
+                                                <i class="las la-briefcase"></i>
+                                                {{ $yearsInBusiness }} Years in Business
+                                            </span>
+                                        @endif
+                                    @endif
+                                </div>
+
+                                @if(isset($listing->subcategory) && $listing->subcategory->count())
+                                    <div class="listing-subcategories mt-2">
+                                        @foreach($listing->subcategory->take(3) as $sub)
+                                            <span class="subcat-chip">{{ $sub->name }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                <div class="listing-contact mt-3 desktop-buttons">
+                                  @if(!empty($mobile_numbers))
+
+  <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
+   class="btn-call list-track-click"
+   data-type="call"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id }}"
+   data-location-id="{{ $listing->location_id }}"
+   data-number="{{ $mobile_numbers }}">
+    <i class="las la-phone"></i>
+    {{ $mobile_numbers }}
+</a>
+
+@elseif(!empty($listing->landline_numbers[0]))
+
+    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
+        <i class="las la-headset"></i>
+        {{ $listing->landline_country_code[0] ?? '+91' }}
+        {{ $listing->landline_numbers[0] }}
+    </a>
+
+@endif
+
+                                    @if(!empty($whatsappNumber))
+                                      <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
+   target="_blank"
+   class="btn-whatsapp list-track-click"
+   data-type="whatsapp"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+   data-number="{{ $whatsappNumber }}">
+                                            <i class="lab la-whatsapp"></i>
+                                            WhatsApp
+                                        </a>
+                                    @endif
+<button type="button"
+        class="btn-best-price open-enquiry-modal list-track-click"
+        data-type="enquiry"
+        data-listing-id="{{ $listing->id }}"
+        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+        data-category="{{ $popupCategoryName }}">
+                                        <i class="las la-comment-alt-dots"></i>
+                                        Get Best Price
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="listing-contact mobile-buttons mt-3">
+                           @if(!empty($mobile_numbers))
+
+   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
+   class="btn-call list-track-click"
+   data-type="call"
+   data-listing-id="{{ $listing->id }}"
+   data-category-id="{{ $listing->category_id }}"
+   data-location-id="{{ $listing->location_id }}"
+   data-number="{{ $mobile_numbers }}">
+    <i class="las la-phone"></i>
+    Call Now
+</a>
+
+@elseif(!empty($listing->landline_numbers[0]))
+
+    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
+        <i class="las la-headset"></i>
+        {{ $listing->landline_numbers[0] }}
+    </a>
+
+@endif
+
+                        <button type="button"
+        class="btn-best-price open-enquiry-modal list-track-click"
+        data-type="enquiry"
+        data-listing-id="{{ $listing->id }}"
+        data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
+        data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
+        data-category="{{ $popupCategoryName }}">
+                                <i class="las la-comment-alt-dots"></i>
+                                Get Best Price
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                @if(($loop->iteration % 4 == 0) && !$loop->last)
+                    <div class="col-12 pb-4 rotating-card enquiry-rotating-card">
+                        <section class="py-4 enquiry-box" style="background:#eaf3fb;margin-right: 10px;">
+                            <div class="container">
+                                <div class="rounded-3 overflow-hidden">
+                                    <div class="row g-0 align-items-center">
+                                        <div class="col-lg-4 p-4">
+                                            <h3 class="fw-bold mb-1 hh-h4-size">
+                                                Get the List of Top
+                                                <span class="text-primary">
+                                                    {{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}
+                                                </span>
+                                            </h3>
+                                            <p class="mb-0 small text-dark">
+                                                We'll send you contact details in seconds for free
+                                            </p>
+                                        </div>
+
+                                        <div class="col-lg-8 p-5 bg-white border-start">
+                                            <form action="{{ route('contact.author') }}" method="POST">
+                                                @csrf
+                                                @include('themes.servicebazzar.partials.form-guard')
+
+                                                <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
+                                                <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">
+                                                <input type="hidden" name="location_name" value="{{ request('location_name') }}">
+                                                 <input type="hidden" name="location_id"
+       value="{{ request('location_id') ?? ($location->id ?? '') }}">
+
+                                                <div style="cursor: pointer;" class="row align-items-center ">
+                                                    <div class="col-md-5">
+                                                        <input type="text" class="form-control form-control-sm" name="name" placeholder="Name">
+                                                    </div>
+
+                                                    <div class="col-md-5 mobile-input-fix" style="margin-left: -25px;">
+                                                        <input name="phone" type="text" class="form-control form-control-sm" placeholder="Mobile Number">
+                                                    </div>
+
+                                                    <div class="col-md-2">
+                                                        <button type="submit" class="btn btn-primary btn-sm send-enquiry-btn">
+                                                            Send Enquiry
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+
+                                            <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" checked>
+                                                <label class="form-check-label small">
+                                                    I Agree to
+                                                    <a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                @endif
+            @endforeach
+        </div>
+    </div>
+@endif
+
+{{-- Close the empty-state if/else block --}}
+@endif
+
+
+
+<div id="bestPriceModal" class="best-price-modal">
+    <div class="best-price-modal-dialog">
+        <button type="button" class="best-price-close" id="closeBestPriceModal">&times;</button>
+
+        <div class="best-price-modal-content">
+            <div class="best-price-left">
+                <h2 class="best-price-title">
+                    Get the list of best <span id="popupCategoryName">Listings</span>
+                </h2>
+
+                <form action="{{ route('contact.author') }}" method="POST">
+                    @csrf
+                    @include('themes.servicebazzar.partials.form-guard')
+
+                    {{-- Filled by the opener below from the card whose "Get Best
+                         Price" was clicked. Without it every enquiry from this
+                         shared popup reached the admin with no business against
+                         it, so nobody could tell which listing it was for. --}}
+                    <input type="hidden" name="listing_id" id="popupListingInput" value="">
+
+                    <input type="hidden" name="category_id" id="popupCategoryIdInput" value="{{ $selectedCategory->id ?? '' }}" data-page-value="{{ $selectedCategory->id ?? '' }}">
+                    <input type="hidden" name="category_name" id="popupCategoryInput" value="{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}">
+                    <input type="hidden" name="location_name" value="{{ request('location_name') }}">
+                     <input type="hidden" name="location_id" id="popupLocationIdInput"
+       value="{{ request('location_id') ?? ($location->id ?? '') }}"
+       data-page-value="{{ request('location_id') ?? ($location->id ?? '') }}">
+
+                    <div class="best-price-field">
+                        <label>Name*</label>
+                        <input type="text" name="name" required>
+                    </div>
+
+                    <div class="best-price-field">
+                        <label>Mobile Number*</label>
+                        <input type="text" name="phone" required>
+                    </div>
+
+                    <div class="best-price-check">
+                        <input type="checkbox" id="agreePolicy" checked>
+                        <label for="agreePolicy">
+                            I Agree to Terms and Conditions
+                            <a href="{{ route('single.slug',38) }}"><a href="{{ url('/terms-and-conditions') }}">Terms & Conditions</a> & <a href="{{ url('/privacy-policy') }}">Privacy Policy</a></a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="best-price-submit">
+                        GET BEST PRICE
+                    </button>
+                </form>
+
+                {{-- One line, not three bullets. This sits below the button,
+                     where it is reassurance for someone already deciding —
+                     three separate claims there only made the box taller than
+                     the screen. --}}
+                <p class="best-price-points">
+                    Businesses compete for your order — details come by SMS/Email.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
 /*

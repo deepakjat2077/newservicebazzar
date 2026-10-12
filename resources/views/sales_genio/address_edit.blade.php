@@ -75,16 +75,18 @@
 <div class="page">
 
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Business Address</div>
     </div>
 
-    <form method="POST" action="{{ route('sales_genio.business.address.update', $business->id) }}">
+    @php $pendingAddr = $business->address_approval_status === 'pending' ? ($business->pendingAddressFields() ?? []) : []; @endphp
+    <form method="POST" action="{{ sg_route('sales_genio.business.address.update', $business->id) }}">
         @csrf
         <div class="content">
             <div class="info-note">
                 <i class="fas fa-circle-info"></i>
-                <span>Provide the address that customers will use to find this business.</span>
+                <span>Provide the address that customers will use to find this business. A change goes to the admin for approval before it shows.</span>
             </div>
 
             <div class="field boxed" style="background:#f5f6f9;">
@@ -100,11 +102,11 @@
             </div>
 
             <div class="field line">
-                <input type="text" name="plot_no" value="{{ old('plot_no', $business->plot_no) }}" placeholder="Plot No. / Bldg No. / Wing / Shop No. / Floor">
+                <input type="text" name="plot_no" value="{{ old('plot_no', array_key_exists('plot_no', $pendingAddr) ? $pendingAddr['plot_no'] : $business->plot_no) }}" placeholder="Plot No. / Bldg No. / Wing / Shop No. / Floor">
             </div>
 
             <div class="field line">
-                <input type="text" name="building_name" value="{{ old('building_name', $business->building_name) }}" placeholder="Building Name / Market / Colony / Society">
+                <input type="text" name="building_name" value="{{ old('building_name', array_key_exists('building_name', $pendingAddr) ? $pendingAddr['building_name'] : $business->building_name) }}" placeholder="Building Name / Market / Colony / Society">
             </div>
 
             <div class="click-here">
@@ -112,11 +114,11 @@
             </div>
 
             <div class="field line">
-                <input type="text" name="street_name" value="{{ old('street_name', $business->street_name) }}" placeholder="Street / Road Name">
+                <input type="text" name="street_name" value="{{ old('street_name', array_key_exists('street_name', $pendingAddr) ? $pendingAddr['street_name'] : $business->street_name) }}" placeholder="Street / Road Name">
             </div>
 
             <div class="field line">
-                <input type="text" name="landmark" value="{{ old('landmark', $business->landmark) }}" placeholder="Landmark">
+                <input type="text" name="landmark" value="{{ old('landmark', array_key_exists('landmark', $pendingAddr) ? $pendingAddr['landmark'] : $business->landmark) }}" placeholder="Landmark">
             </div>
 
             <div class="two-col">

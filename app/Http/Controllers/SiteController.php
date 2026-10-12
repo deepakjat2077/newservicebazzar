@@ -177,6 +177,24 @@ if (!empty($location)) {
     };
 
     $data['featureds'] = Cache::remember('home:featured_listings:v1', now()->addMinutes(5), function () use ($verifiedRatings) {
+        // Listings the admin picked by hand (Admin > Featured Listings) come
+        // first and, when there are any, are the whole section — no payment
+        // involved. Only with none picked does it fall back to trusted listings.
+        $picked = \App\Models\HomeFeaturedListing::live()->orderBy('sort_order')->orderBy('id')->pluck('listing_id');
+        if ($picked->isNotEmpty()) {
+            $byId = Listing::whereIn('id', $picked)
+                ->where('status', 1)
+                ->with(['category', 'location'])
+                ->withAvg(['ratings as verified_ratings_avg' => $verifiedRatings], 'ratings')
+                ->withCount(['ratings as verified_ratings_count' => $verifiedRatings])
+                ->get()->keyBy('id');
+
+            $ordered = $picked->map(fn ($id) => $byId->get($id))->filter()->values();
+            if ($ordered->isNotEmpty()) {
+                return new \Illuminate\Database\Eloquent\Collection($ordered->all());
+            }
+        }
+
         return Listing::notExpired()
             ->where('status', 1)
             ->where('trust', 1)
@@ -649,7 +667,86 @@ public function getPopularCategories()
         ->sortByDesc('view')
         ->take(5);
 
+    $data['comments'] = \App\Models\BlogComment::visible()
+        ->where('blog_id', $data['blog']->id)
+        ->orderBy('id')
+        ->get();
+
     return view($this->theme . 'blog_details', $data);
+}
+
+/**
+ * A visitor's comment on a blog post — no login. Answered as JSON: the blog
+ * page is served from the full-page cache, so a flashed message rendered into
+ * it would be cached and shown to everyone.
+ */
+public function blogComment(Request $request, $slug)
+{
+    $blog = $this->themeCollection()->where('name', 'blog')->where('is_multiple', 1)
+        ->first(fn ($item) => isset($item->content->slug) && $item->content->slug == $slug);
+
+    if (!$blog) {
+        abort(404);
+    }
+
+    // A caught bot is told it worked, as on the other public forms.
+    if (FormGuard::looksAutomated($request, $why)) {
+        Log::info('Blog comment rejected as automated', ['reason' => $why, 'ip' => $request->ip()]);
+        return response()->json(['ok' => true, 'held' => true, 'message' => 'Thank you! Your comment has been received.']);
+    }
+
+    $data = $request->validate([
+        'comment' => 'required|string|min:2|max:2000',
+        'name'    => ['required', 'string', 'max:100', new RealName()],
+        'email'   => 'required|email|max:191',
+        'website' => 'nullable|string|max:255',
+    ], [
+        'comment.required' => 'Please write your comment.',
+        'name.required'    => 'Please enter your name.',
+        'email.required'   => 'Please enter your email.',
+        'email.email'      => 'Please enter a valid email address.',
+    ]);
+
+    $website = trim((string) ($data['website'] ?? ''));
+    if ($website !== '' && !preg_match('#^https?://#i', $website)) {
+        $website = 'https://' . $website;
+    }
+    if ($website !== '' && !filter_var($website, FILTER_VALIDATE_URL)) {
+        return response()->json(['ok' => false, 'errors' => ['website' => ['Please enter a valid website address.']]], 422);
+    }
+
+    // Comments carrying several links are the usual spam: keep them, but out of sight.
+    $links = preg_match_all('#https?://|www\.#i', $data['comment']);
+    $status = $links > 1 ? 0 : 1;
+
+    $comment = \App\Models\BlogComment::create([
+        'blog_id'    => $blog->id,
+        'name'       => trim($data['name']),
+        'email'      => strtolower(trim($data['email'])),
+        'website'    => $website ?: null,
+        'comment'    => trim($data['comment']),
+        'status'     => $status,
+        'ip_address' => $request->ip(),
+        'user_agent' => Str::limit((string) $request->userAgent(), 250, ''),
+    ]);
+
+    // The post's cached HTML must show the new comment on the next visit.
+    try {
+        Cache::store(config('cache.public_pages.store'))
+            ->forget('page:' . sha1($request->getHost() . '|blog/' . $slug));
+    } catch (\Throwable $e) {
+        Log::warning('Blog comment: page cache forget failed', ['error' => $e->getMessage()]);
+    }
+
+    if ($status === 0) {
+        return response()->json(['ok' => true, 'held' => true, 'message' => 'Thank you! Your comment will appear after a quick review.']);
+    }
+
+    return response()->json([
+        'ok'      => true,
+        'message' => 'Thank you! Your comment has been posted.',
+        'html'    => view($this->theme . 'partials.blog_comment', ['c' => $comment])->render(),
+    ]);
 }
 
 public function contact()
@@ -880,7 +977,7 @@ public function authorContact(Request $request)
         }
     } else {
         // No usable phone number, so nothing to recognise a repeat by.
-        Enquiry::create([
+        $enquiry = Enquiry::create([
             'listing_id'  => $listingId,
             'category_id' => $categoryId,
             'name'        => $request->name,
@@ -895,7 +992,24 @@ public function authorContact(Request $request)
 
     event(new AdminNotification('enquiry', $count));
 
+    \App\Support\AdminPush::send(
+        'New Enquiry Received',
+        $request->name . ' submitted an enquiry' . ($listingId ? ' on listing #' . $listingId : '') . '.',
+        '/admin/enquiries'
+    );
+
     \App\Support\Tracking\Tracker::conversion($request, 'enquiry', ['listing_id' => $listingId]);
+
+    if ($listingId) {
+        $this->notifyListingOwner($listingId, $request->name, [
+            'phone'    => $request->phone,
+            'email'    => $request->email,
+            'location' => $locationId,
+            'category' => $categoryId ? \App\Models\Category::whereKey($categoryId)->value('name') : null,
+            'message'  => $request->input('message'),
+            'enquiry_id' => $enquiry->id ?? null,
+        ]);
+    }
 
     // One code, one enquiry — the next one asks again. See OtpGate.
     OtpGate::consume($request->phone);
@@ -2506,31 +2620,37 @@ public function listingClickTrack(Request $request)
         $ownerNumber = $numbers[0] ?? $listing->mobile ?? null;
     }
 
-    $click = new ListingClick();
-    $click->listing_id = $listing->id ?? $request->listing_id;
-    $click->listing_name = $listing->name ?? null;
-    $click->category_id = $request->category_id ?? $listing->category_id ?? null;
-    $click->category_name = optional($listing->category)->name;
-    $click->location_id = $request->location_id ?? $listing->location_id ?? null;
-    $click->location_name = optional($listing->location)->name;
-    $click->owner_name = $listing->contact_person ?? null;
-    $click->owner_number = $ownerNumber;
-    $click->clicked_number = $request->clicked_number;
-
-    // `type` is an enum of call/whatsapp/enquiry, but the detail page fires
-    // this for landline numbers too — that value was written straight through
-    // and MySQL rejected the whole insert, so every landline click was lost.
-    // Pressing a landline number is a call, and that is how the reports in
-    // EnquiryController already count it, so map rather than widen the enum.
-    $click->type = [
+    $listingId  = $listing->id ?? $request->listing_id;
+    $clickType  = [
         'call'     => 'call',
         'landline' => 'call',
         'whatsapp' => 'whatsapp',
         'enquiry'  => 'enquiry',
     ][$request->type] ?? 'call';
-    $click->ip_address = $request->ip();
-    $click->user_agent = $request->userAgent();
-    $click->save();
+
+    // Deduplicate: same IP + same listing + same type within 30 minutes = one click
+    $alreadyRecorded = ListingClick::where('listing_id', $listingId)
+        ->where('type', $clickType)
+        ->where('ip_address', $request->ip())
+        ->where('created_at', '>=', now()->subMinutes(30))
+        ->exists();
+
+    if (!$alreadyRecorded) {
+        $click = new ListingClick();
+        $click->listing_id    = $listingId;
+        $click->listing_name  = $listing->name ?? null;
+        $click->category_id   = $request->category_id ?? $listing->category_id ?? null;
+        $click->category_name = optional($listing->category)->name;
+        $click->location_id   = $request->location_id ?? $listing->location_id ?? null;
+        $click->location_name = optional($listing->location)->name;
+        $click->owner_name    = $listing->contact_person ?? null;
+        $click->owner_number  = $ownerNumber;
+        $click->clicked_number = $request->clicked_number;
+        $click->type          = $clickType;
+        $click->ip_address    = $request->ip();
+        $click->user_agent    = $request->userAgent();
+        $click->save();
+    }
 
     return response()->json(['success' => true]);
 }
@@ -3444,6 +3564,49 @@ public function voiceConnect(\Illuminate\Http\Request $request)
         'outgoing_phone_number' => config('exotel.virtual_number'),
         'record'                => (bool) config('exotel.recording'),
     ]);
+}
+
+/**
+ * Notify the listing owner by email, FCM push, and browser push
+ * when a new enquiry arrives on their listing.
+ */
+private function notifyListingOwner(int $listingId, string $enquirerName, array $info = []): void
+{
+    $listing = Listing::with('user')->find($listingId);
+    if (!$listing || !$listing->user) {
+        return;
+    }
+
+    $owner       = $listing->user;
+    $leadsUrl    = route('user.listing.leads', $listing->id);
+    $title       = 'New Enquiry — ' . $listing->name;
+    $body        = $enquirerName . ' has enquired about your listing.';
+
+    // 1. Email
+    $ownerEmail = $listing->email ?? $owner->email;
+    if (filled($ownerEmail) && !str_ends_with(strtolower($ownerEmail), '@whatsapp.servicebazzar.com')) {
+        try {
+            app(SendMail::class)->sendMailProcess([
+                'email'    => $ownerEmail,
+                'name'     => $owner->fullname(),
+                'subject'  => $title,
+                'template' => null,
+                'value'    => [
+                    'message' =>
+                        '<p>Hello,</p>' .
+                        '<p><strong>' . e($enquirerName) . '</strong> has submitted an enquiry on your listing ' .
+                        '<strong>' . e($listing->name) . '</strong>.</p>' .
+                        \App\Support\VendorEnquiryNotifier::emailTable($listing, ['name' => $enquirerName] + $info) .
+                        '<p><a href="' . $leadsUrl . '" style="background:#e63c3c;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;">View Enquiry</a></p>',
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Enquiry owner email failed', ['listing_id' => $listingId, 'error' => $e->getMessage()]);
+        }
+    }
+
+    // 2 + 3. Header bell, mobile app (FCM) and browser push — with the whole enquiry in them.
+    \App\Support\VendorEnquiryNotifier::notify($listing, ['name' => $enquirerName] + $info);
 }
 
 }

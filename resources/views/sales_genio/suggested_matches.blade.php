@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suggested Matches – Sales Genio</title>
+    <title>Suggested Matches – SB Sales</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -18,7 +18,7 @@
         .topbar .back { color: #444; font-size: 18px; text-decoration: none; margin-right: 16px; }
         .topbar .title { font-size: 16px; font-weight: 600; flex: 1; text-align: center; margin-right: 34px; }
 
-        .wrap { max-width: 720px; margin: 20px auto; padding: 0 16px; }
+        .wrap { max-width: 720px; margin: 20px auto; padding: 0 16px 96px; }
         .intro { text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; }
         .intro strong { color: #1a73e8; }
 
@@ -32,8 +32,10 @@
         .match-card .tag {
             font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 12px;
         }
-        .match-card .tag.live { background: #e8f5e9; color: #2e7d32; }
-        .match-card .tag.free { background: #fff3e0; color: #e65100; }
+        a.match-card { text-decoration: none; color: inherit; transition: box-shadow .15s; }
+        a.match-card:hover { box-shadow: 0 4px 14px rgba(16,24,40,.12); }
+        a.match-card:active { background: #f5f8fe; }
+        .match-card .go { color: #9aa2b4; font-size: 14px; margin-left: 12px; }
 
         .section-label {
             font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase;
@@ -57,6 +59,7 @@
 
 <div class="topbar">
     <a href="{{ route('sales_genio.create.business') }}" class="back"><i class="fas fa-arrow-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
     <div class="title">Suggested Matches</div>
 </div>
 
@@ -67,9 +70,9 @@
     </p>
 
     @if($matches->count())
-        <div class="section-label">Live Listings</div>
+        <div class="section-label">Existing Businesses</div>
         @foreach($matches as $m)
-            <div class="match-card">
+            <a class="match-card" href="{{ route('sales_genio.business.profile', $m->id) }}">
                 <div class="info">
                     <div class="name">{{ $m->name }}</div>
                     <div class="meta">
@@ -77,15 +80,15 @@
                         <span class="pin">{{ $m->pincode ?? '' }}</span>
                     </div>
                 </div>
-                <span class="tag live">Live</span>
-            </div>
+                <i class="fas fa-chevron-right go"></i>
+            </a>
         @endforeach
     @endif
 
     @if($freeMatches->count())
         <div class="section-label">Pending / Sales Entries</div>
         @foreach($freeMatches as $m)
-            <div class="match-card">
+            <a class="match-card" href="{{ route('sales_genio.business.profile', $m->id) }}">
                 <div class="info">
                     <div class="name">{{ $m->name }}</div>
                     <div class="meta">
@@ -93,8 +96,8 @@
                         <span class="pin">{{ $m->pincode ?? '' }}</span>
                     </div>
                 </div>
-                <span class="tag free">Entry</span>
-            </div>
+                <i class="fas fa-chevron-right go"></i>
+            </a>
         @endforeach
     @endif
 </div>

@@ -148,11 +148,12 @@
 <body>
 <div class="page">
     <div class="topbar">
-        <a href="{{ route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        <a href="{{ sg_route('sales_genio.business.profile', $business->id) }}" class="back"><i class="fas fa-chevron-left"></i></a>
+        @include('sales_genio.partials.topbar_logo')
         <div class="title">Add Business Categories</div>
     </div>
 
-    <form method="POST" action="{{ route('sales_genio.business.categories.update', $business->id) }}" id="catForm">
+    <form method="POST" action="{{ sg_route('sales_genio.business.categories.update', $business->id) }}" id="catForm">
         @csrf
         <div class="content">
             <div class="info-note">
@@ -219,7 +220,7 @@
 
 <script>
     let available = @json($available->map(fn($s) => ['id' => $s->id, 'name' => $s->name])->values());
-    const subcatUrl = '{{ route("sales_genio.subcategories.by.category") }}';
+    const subcatUrl = '{{ sg_route("sales_genio.subcategories.by.category") }}';
     const allCategories = @json($categories->map(fn($c) => ['id' => $c->id, 'name' => $c->name])->values());
 
     // ── Main category searchable dropdown ──

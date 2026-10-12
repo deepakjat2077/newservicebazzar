@@ -5,7 +5,7 @@
 <section class="pt-30 pb-80">
     <div class="container" style="max-width:720px;">
         <div class="sb-biz-header">
-            <a href="{{ request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
+            <a href="{{ request('from') === 'profile' ? route('user.listing.profile', $listing->id) : (request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id)) }}" class="sb-biz-back"><i class="fas fa-arrow-left"></i></a>
             <div class="sb-biz-header-title">
                 <h4>Rate Card / Catalogue</h4>
                 <span>{{ $listing->name }}</span>
@@ -51,7 +51,7 @@
             </div>
         @endif
 
-        <a href="{{ request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id) }}" class="sb-wizard-primary-btn sb-biz-form-submit">
+        <a href="{{ request('from') === 'profile' ? route('user.listing.profile', $listing->id) : (request('from') === 'manage' ? route('user.listing.manage', $listing->id) : route('user.listing.dashboard', $listing->id)) }}" class="sb-wizard-primary-btn sb-biz-form-submit">
             Save and Proceed <i class="fas fa-arrow-right"></i>
         </a>
     </div>

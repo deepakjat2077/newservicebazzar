@@ -3,17 +3,8 @@
     $navCounts = $counts ?? [];
     $navTab = $tab ?? null;
 
-    // Pitch lists are kept per business; the icon shows everything waiting.
-    $navCart = collect(session()->all())
-        ->filter(fn ($value, $key) => str_starts_with($key, 'campaign_cart_') && is_array($value))
-        ->flatMap(fn ($value) => array_values($value));
-    $navCartCount = $navCart->count();
-    $navCartTotal = $navCart->sum('price');
     $navCity = session('sales_city') ?: 'All cities';
     $navCities = \App\Models\Location::where('status', 1)->orderBy('name')->pluck('name');
-    $navCartLink = isset($business)
-        ? route('sales_genio.business.cart', $business->id)
-        : route('sales_genio.carts');
 
     // The box searches the list the rep is actually looking at — on Follow Up
     // it searches follow-ups, not every business on the site.
@@ -22,6 +13,22 @@
 
 <nav class="sg-nav">
     <div class="sg-nav__top">
+        {{-- Phone only: app-style greeting; the photo opens the profile/logout menu. --}}
+        <div class="sg-mhello">
+            <button type="button" class="sg-mhello__avatar" aria-label="Account menu"
+                    onclick="event.stopPropagation();document.getElementById('sgAvatarMenu').classList.toggle('open')">
+                @if(optional($user)->avatarUrl())
+                    <img src="{{ $user->avatarUrl() }}" alt="">
+                @else
+                    {{ strtoupper(substr($user->name ?? 'S', 0, 1)) }}
+                @endif
+            </button>
+            <div class="sg-mhello__text">
+                <div class="sg-mhello__name">Hello, <b>{{ $user->name }}</b></div>
+                <div class="sg-mhello__sub">{{ $user->empcode }} · {{ now()->format('d M Y') }}</div>
+            </div>
+        </div>
+
         <a href="{{ route('sales_genio.dashboard') }}" class="sg-nav__logo">
             <img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar">
         </a>
@@ -58,7 +65,7 @@
             $navBy = $searchBy ?? 'name';
         @endphp
         {{-- The dashboard has no list to search, so the box is hidden there. --}}
-        @unless(request()->is('sales_genio/dashboard'))
+        @unless(request()->routeIs('sales_genio.dashboard'))
         <form class="sg-nav__search" method="get" action="{{ route('sales_genio.leads', $navSearchTab) }}" id="sgSearchForm"
               data-tab="{{ $navSearchTab }}">
             <i class="fas fa-magnifying-glass"></i>
@@ -82,11 +89,6 @@
         @endunless
 
         <div class="sg-nav__right">
-            <a href="{{ $navCartLink }}" class="sg-nav__cart" title="{{ $navCartCount ? $navCartCount.' item(s) · ₹'.numberFormat($navCartTotal) : 'Pitch list is empty' }}">
-                <i class="fas fa-cart-shopping"></i>
-                <span>Cart</span>
-                @if($navCartCount)<b>{{ $navCartCount }}</b>@endif
-            </a>
             <a href="{{ route('sales_genio.create.business') }}" class="sg-nav__create">Create New Business</a>
             <div class="sg-nav__avatar" onclick="document.getElementById('sgAvatarMenu').classList.toggle('open')">
                 @if(optional($user)->avatarUrl())
@@ -110,35 +112,63 @@
                 </form>
             </div>
         </div>
+
+        <aside class="sg-rail">
+            @php
+                $navItems = [
+                    ['label' => 'Dashboard',    'icon' => 'fa-gauge-high',   'url' => route('sales_genio.dashboard'),
+                     'on' => request()->routeIs('sales_genio.dashboard'), 'count' => null],
+                    ['label' => 'Deal Closed',  'icon' => 'fa-handshake',    'url' => route('sales_genio.leads', 'deal-closed'),
+                     'on' => $navTab === 'deal-closed', 'count' => $navCounts['deal-closed'] ?? null],
+                    ['label' => 'Reports',      'icon' => 'fa-chart-line',   'url' => route('sales_genio.reports'),
+                     'on' => request()->routeIs('sales_genio.reports'), 'count' => null],
+                    ['label' => 'Follow Up',    'icon' => 'fa-rotate-right', 'url' => route('sales_genio.leads', 'follow-up'),
+                     'on' => $navTab === 'follow-up', 'count' => $navCounts['follow-up'] ?? null],
+                    ['label' => 'New Business', 'icon' => 'fa-briefcase',    'url' => route('sales_genio.leads', 'new-business'),
+                     'on' => $navTab === 'new-business', 'count' => $navCounts['new-business'] ?? null],
+                    ['label' => 'All Businesses', 'icon' => 'fa-magnifying-glass', 'url' => route('sales_genio.leads', 'all-business'),
+                     'on' => $navTab === 'all-business', 'count' => null],
+                ];
+            @endphp
+        
+            @foreach($navItems as $item)
+                <a href="{{ $item['url'] }}" class="{{ $item['on'] ? 'is-on' : '' }}">
+                    <i class="fas {{ $item['icon'] }}"></i>
+                    <span>{{ $item['label'] }}</span>
+                    @if(!empty($item['count']))<b>{{ $item['count'] }}</b>@endif
+                </a>
+            @endforeach
+        </aside>
     </div>
 </nav>
 
-<aside class="sg-rail">
-    @php
-        $navItems = [
-            ['label' => 'Dashboard',    'icon' => 'fa-gauge-high',   'url' => route('sales_genio.dashboard'),
-             'on' => request()->routeIs('sales_genio.dashboard'), 'count' => null],
-            ['label' => 'Deal Closed',  'icon' => 'fa-handshake',    'url' => route('sales_genio.leads', 'deal-closed'),
-             'on' => $navTab === 'deal-closed', 'count' => $navCounts['deal-closed'] ?? null],
-            ['label' => 'Reports',      'icon' => 'fa-chart-line',   'url' => route('sales_genio.reports'),
-             'on' => request()->routeIs('sales_genio.reports'), 'count' => null],
-            ['label' => 'Follow Up',    'icon' => 'fa-rotate-right', 'url' => route('sales_genio.leads', 'follow-up'),
-             'on' => $navTab === 'follow-up', 'count' => $navCounts['follow-up'] ?? null],
-            ['label' => 'New Business', 'icon' => 'fa-briefcase',    'url' => route('sales_genio.leads', 'new-business'),
-             'on' => $navTab === 'new-business', 'count' => $navCounts['new-business'] ?? null],
-            ['label' => 'All Businesses', 'icon' => 'fa-magnifying-glass', 'url' => route('sales_genio.leads', 'all-business'),
-             'on' => $navTab === 'all-business', 'count' => null],
-        ];
-    @endphp
 
-    @foreach($navItems as $item)
+
+{{-- Mobile only: app-style bottom navigation, on the dashboard (Home) only. --}}
+@if(request()->routeIs('sales_genio.dashboard'))
+@php
+    $bottomItems = [
+        ['label' => 'Home',       'icon' => 'fa-house',        'url' => route('sales_genio.dashboard'),
+         'on' => request()->routeIs('sales_genio.dashboard')],
+        ['label' => 'Follow Up',  'icon' => 'fa-rotate-right', 'url' => route('sales_genio.leads', 'follow-up'),
+         'on' => $navTab === 'follow-up'],
+        ['label' => 'Create',     'icon' => 'fa-circle-plus',  'url' => route('sales_genio.create.business'),
+         'on' => request()->routeIs('sales_genio.create.business')],
+        ['label' => 'Businesses', 'icon' => 'fa-briefcase',    'url' => route('sales_genio.leads', 'all-business'),
+         'on' => in_array($navTab, ['all-business', 'new-business', 'deal-closed'], true)],
+        ['label' => 'Profile',    'icon' => 'fa-user',         'url' => route('sales_genio.profile'),
+         'on' => request()->routeIs('sales_genio.profile')],
+    ];
+@endphp
+<nav class="sg-bottom" aria-label="Main">
+    @foreach($bottomItems as $item)
         <a href="{{ $item['url'] }}" class="{{ $item['on'] ? 'is-on' : '' }}">
             <i class="fas {{ $item['icon'] }}"></i>
             <span>{{ $item['label'] }}</span>
-            @if(!empty($item['count']))<b>{{ $item['count'] }}</b>@endif
         </a>
     @endforeach
-</aside>
+</nav>
+@endif
 
 
 <style>
@@ -187,13 +217,6 @@
 .sg-nav__search input{width:100%;border:1px solid #dfe3ec;border-radius:26px;padding:12px 44px 12px 20px;font-size:15px;color:#1a2235;}
 .sg-nav__search input:focus{outline:none;border-color:#1a73e8;box-shadow:0 0 0 3px rgba(26,115,232,.12);}
 .sg-nav__right{display:flex;align-items:center;gap:12px;margin-left:auto;position:relative;}
-.sg-nav__cart{position:relative;display:inline-flex;align-items:center;gap:7px;color:#37415a;text-decoration:none;
-  font-size:14px;font-weight:600;padding:8px 10px;border-radius:8px;}
-.sg-nav__cart:hover{background:#f4f7fc;color:#1a73e8;}
-.sg-nav__cart i{font-size:16px;}
-.sg-nav__cart b{position:absolute;top:0;left:18px;background:#e53935;color:#fff;border-radius:11px;min-width:18px;
-  height:18px;line-height:18px;text-align:center;font-size:11px;font-weight:700;padding:0 5px;}
-@media (max-width:760px){.sg-nav__cart span{display:none;}}
 .sg-nav__create{background:#1a73e8;color:#fff;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;text-decoration:none;}
 .sg-nav__create:hover{background:#1662c4;color:#fff;}
 .sg-nav__avatar{width:38px;height:38px;border-radius:50%;background:#1a73e8;color:#fff;display:flex;align-items:center;
@@ -222,7 +245,9 @@
 .sg-rail b{margin-left:auto;background:#eef4fb;color:#1a73e8;border-radius:10px;padding:1px 8px;font-size:11.5px;}
 /* The rail sits under the header; only the page body clears it, so the
    logo stays at the far left where it belongs. */
-body > *:not(.sg-nav):not(.sg-rail){margin-left:268px;}
+body > *:not(.sg-nav):not(.sg-rail):not(.sg-bottom){margin-left:268px;}
+.sg-bottom{display:none;}
+.sg-mhello{display:none;}
 .sg-badge{background:#eef4fb;color:#1a73e8;border-radius:10px;padding:1px 7px;font-size:11.5px;font-weight:700;}
 .sg-drop{position:relative;}
 .sg-drop__menu{display:none;position:absolute;left:0;top:100%;background:#fff;border:1px solid #e6e9f2;border-radius:10px;
@@ -232,28 +257,52 @@ body > *:not(.sg-nav):not(.sg-rail){margin-left:268px;}
 .sg-drop__menu a{display:block;padding:9px 12px;font-size:13.5px;color:#37415a;text-decoration:none;border-radius:7px;}
 .sg-drop__menu a:hover{background:#f4f7fc;color:#1a73e8;}
 @media (max-width:992px){
-  body > *:not(.sg-nav):not(.sg-rail){margin-left:0;}
+  body > *:not(.sg-nav):not(.sg-rail):not(.sg-bottom){margin-left:0;}
+  /* The rail lives inside the top row, so here it wraps onto its own full-width line. */
   .sg-rail{position:static;width:auto;flex-direction:row;padding:8px 12px;border-right:0;
-    border-bottom:1px solid #e8eaf0;overflow-x:auto;gap:6px;}
+    border-bottom:1px solid #e8eaf0;overflow-x:auto;gap:6px;flex:0 0 calc(100% + 40px);margin:0 -20px -10px;}
   .sg-rail a{white-space:nowrap;padding:9px 12px;}
   .sg-rail i{display:none;}
 }
 @media (max-width:760px){
-  /* Row 1: logo, cart, profile. Row 2: city + Create New Business. */
-  .sg-nav__top{flex-wrap:wrap;gap:10px;padding:10px 14px;}
+  /* Same header on every page: greeting + city, then tabs, then search.
+     Create New Business lives in the bottom bar. */
+  .sg-nav{position:static;border-bottom:0;}
+  .sg-nav__top{gap:12px;padding:16px 16px 0;}
   .sg-nav__right{display:contents;}
-  .sg-nav__logo{order:1;margin-right:auto;}
-  .sg-nav__cart{order:2;padding:6px 8px;}
-  .sg-nav__avatar{order:3;}
-  .sg-nav__menu{order:3;top:56px;}
-  /* City and Create sit side by side at the same height; Create sizes to
-     its one-line label instead of a 46% slot that wrapped it onto two lines. */
-  .sg-city{order:4;flex:1 1 40%;min-width:0;}
-  .sg-city__btn{width:100%;height:44px;justify-content:center;padding:0 12px;font-size:14px;}
-  .sg-city__menu{width:min(290px,80vw);}
-  .sg-nav__create{order:5;flex:0 0 auto;height:44px;display:inline-flex;align-items:center;justify-content:center;
-    padding:0 16px;font-size:13px;white-space:nowrap;border-radius:26px;}
-  .sg-nav__search{order:6;max-width:100%;flex-basis:100%;}
+  .sg-nav__logo,.sg-nav__create,.sg-nav__avatar{display:none;}
+  .sg-mhello{display:flex;align-items:center;gap:12px;order:1;flex:1 1 0;min-width:0;}
+  .sg-mhello__avatar{width:48px;height:48px;flex:0 0 48px;border-radius:50%;overflow:hidden;border:0;padding:0;
+    background:#1a73e8;color:#fff;font-size:19px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .sg-mhello__avatar img{width:100%;height:100%;object-fit:cover;}
+  .sg-mhello__text{min-width:0;}
+  .sg-mhello__name{font-size:16.5px;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sg-mhello__name b{font-weight:600;}
+  .sg-mhello__sub{font-size:12px;color:#7a8296;margin-top:1px;}
+  .sg-nav__menu{left:16px;right:auto;top:70px;}
+  .sg-city{order:2;flex:0 0 auto;}
+  .sg-city__btn{height:38px;padding:0 12px;font-size:13px;gap:6px;}
+  .sg-city__btn .caret{display:none;}
+  .sg-city__menu{left:auto;right:0;width:min(290px,86vw);}
+  .sg-rail{order:3;flex:0 0 calc(100% + 32px);margin:0 -16px;}
+  .sg-nav__search{order:4;max-width:100%;flex-basis:100%;margin-bottom:12px;}
+  .sg-nav__search input{padding:13px 44px 13px 18px;border-radius:12px;}
+
+  /* Tabs read as an underlined strip, like an app. */
+  .sg-rail{background:#fff;padding:0 8px;gap:4px;box-shadow:0 2px 6px rgba(16,24,40,.06);scrollbar-width:none;}
+  .sg-rail::-webkit-scrollbar{display:none;}
+  .sg-rail a{border-radius:0;padding:14px 10px 11px;border-bottom:3px solid transparent;font-size:15px;color:#1a1a2e;}
+  .sg-rail a:hover{background:none;}
+  .sg-rail a.is-on{background:none;color:#1a73e8;border-bottom-color:#1a73e8;}
+
+  .sg-bottom{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;background:#fff;
+    border-top:1px solid #e8eaf0;box-shadow:0 -2px 10px rgba(16,24,40,.06);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
+  .sg-bottom a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;
+    color:#37415a;text-decoration:none;font-size:11.5px;font-weight:500;font-family:'Poppins',sans-serif;}
+  .sg-bottom i{font-size:19px;}
+  .sg-bottom a.is-on{color:#1a73e8;font-weight:600;}
+  body:has(.sg-bottom){padding-bottom:72px;}
 }
 </style>
 

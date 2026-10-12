@@ -332,7 +332,7 @@
     }
 
 
-    @media (max-width:767px){
+    @media (max-width: 991px){
 
         .address-tooltip{
             top:100% !important;
@@ -511,7 +511,7 @@
 
     /* --- relocated from inline <style> block (originally after line 1106) to prevent FOUC --- */
 
-        @media (max-width:767px){
+        @media (max-width: 991px){
 
         div.listing-action-buttons{
             display:grid !important;
@@ -538,7 +538,7 @@
         }
     }
 
-        @media (max-width:767px){
+        @media (max-width: 991px){
 
     
         
@@ -660,11 +660,19 @@
         transition:0.2s;
     }
 
-    .jd-star.active,
-    .jd-star:hover{
+    .jd-star.active{
         background:#ff5a00;
         color:#fff;
         border-color:#ff5a00;
+    }
+    /* Hovering a star fills it and every star before it (hover the 4th → 1-4),
+       not just the one under the pointer. Saved stars come back when the pointer leaves. */
+    @media (hover:hover){
+        #quickRatingStars:hover .jd-star{ background:#fff; color:#bbb; border-color:#ddd; }
+        #quickRatingStars:hover .jd-star:hover,
+        #quickRatingStars .jd-star:has(~ .jd-star:hover){
+            background:#ff5a00; color:#fff; border-color:#ff5a00;
+        }
     }
 
     .btn-success {
@@ -684,7 +692,7 @@
         display:block;
         margin-top:4px;
     }
-        @media (max-width: 767px) {
+        @media (max-width: 991px) {
 
             .listing-breadcrumb {
                 display: none;
@@ -1168,7 +1176,7 @@
         }
     }
 
-    @media (max-width: 767px){
+    @media (max-width: 991px){
         .sticky-info h6{
             font-size: 14px;
         }
@@ -1189,7 +1197,7 @@
     }
 
    
-    @media (max-width: 768px) {
+    @media (max-width: 991px) {
         #stickyListingBar .sticky-left {
             display: none;
         }
@@ -1259,7 +1267,7 @@
         }
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 991px) {
 
         .best-price-modal {
             padding: 14px;
@@ -1278,7 +1286,7 @@
         }
     }
 
-    @media (min-width:768px){
+    @media (min-width: 992px){
     
         .listing-card-section{
             margin-top:0;
@@ -1287,7 +1295,7 @@
 
 
 
-    @media (max-width:767px){
+    @media (max-width: 991px){
 
         .review-actions{
             display:grid;
@@ -1368,7 +1376,7 @@
         color:#0d6efd;
     }
 
-    @media(max-width:767px){
+    @media(max-width: 991px){
 
         .user-reviews-title{
             font-size:18px;
@@ -1419,7 +1427,7 @@
         line-height:1.4;
     }
 
-    @media(max-width:767px){
+    @media(max-width: 991px){
 
         .rating-summary-score{
             width:60px;
@@ -1489,7 +1497,7 @@
     }
 
     /* Desktop only: at 11px the actions were hard to see and hit. Phones keep their own size. */
-    @media (min-width:768px){
+    @media (min-width: 992px){
         .review-actions{ gap:12px; margin-top:14px; }
         .review-action-btn{
             display:inline-flex;
@@ -1616,8 +1624,17 @@
     .add-review-star.active{
         color:#ff5a00;
     }
+    /* Hover fills that star and every one before it, like the "Click to Rate" stars. */
+    @media (hover:hover){
+        #addReviewStars:hover .add-review-star{ color:#d6d6d6; }
+        #addReviewStars:hover .add-review-star:hover,
+        #addReviewStars .add-review-star:has(~ .add-review-star:hover){ color:#ff5a00; }
+    }
+    .review-cancel-btn{ display:block; width:100%; margin-top:8px; border:1px solid #d5dae5; background:#fff; color:#555;
+        border-radius:6px; padding:9px; font-size:14px; cursor:pointer; }
+    .review-cancel-btn:hover{ background:#f5f6f9; }
 
-    @media (max-width:767px){
+    @media (max-width: 991px){
 
         .review-stars .fas,
         .review-stars .far{
@@ -1724,13 +1741,83 @@
 
     /* Mobile-only "Related Searches" dropdown toggle — mirrors the
        footer's "Popular Categories"/"Popular Cities" accordion pattern.
-       Hidden by default (desktop/tablet); only the max-width:767px block
+       Hidden by default (desktop/tablet); only the max-width: 991px block
        below turns it on, so wider viewports are unaffected. */
+    /* style.css sizes bare h4 as calc(1.275rem - 1.7vw), which shrinks as the
+       screen widens — this heading came out at 3px at 1024. Below 992px the
+       phone layout hides it. */
+    @media (min-width: 992px) and (max-width: 1200px) {
+        .related-searches-title { font-size: 20px !important; }
+    }
+
+    /* iPads (768–991px) get the phone layout of this page (its phone rules run
+       up to 991px). Bootstrap's own md classes in the top card still switch on
+       at 768px and would line name, icon buttons, Enquire Now and the rating box
+       up side by side — undo just those so the card stacks exactly like a phone. */
+    @media (min-width: 768px) and (max-width: 991px) {
+        #listingTopCard.p-md-4, #listingTopCard .p-md-4 { padding: 1rem !important; }
+        #listingTopCard .d-md-flex { display: block !important; }
+        #listingTopCard .mb-md-0 { margin-bottom: 1rem !important; }
+        #listingTopCard .text-md-right { text-align: left !important; align-items: stretch !important; }
+        #listingTopCard .row > .col-md-auto,
+        #listingTopCard .row > .col-md { flex: 0 0 100% !important; max-width: 100% !important; width: 100% !important; }
+
+        /* The phone design at iPad width looked stretched: 12–17px text, five
+           44px icons spread 150px apart, stars scattered across the card.
+           Same layout, sized for a tablet. */
+        #listingTopCard .listing-card { border-radius: 16px !important; margin: 12px 16px !important; padding: 18px !important; box-shadow: 0 4px 18px rgba(15,23,42,.06); }
+        #listingTopCard .listing-logo,
+        #listingTopCard .listing-logo img { border-radius: 14px !important; }
+        #listingTopCard h1 { font-size: 26px !important; line-height: 1.3 !important; margin: 16px 0 6px !important; }
+        #listingTopCard .listing-location { font-size: 15px !important; }
+        #listingTopCard .jd-meta-row { font-size: 15px !important; gap: 10px; }
+        #listingTopCard .jd-meta-row .badge, #listingTopCard .jd-meta-row a { font-size: 14px !important; }
+        #listingTopCard .jd-hours-old, #listingTopCard [class*="open-now"], #listingTopCard .jd-open { font-size: 15px !important; }
+
+        /* five actions as equal tiles filling the row */
+        .mobile-quick-actions { display: grid !important; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 18px !important; }
+        .mobile-quick-actions .mqa-btn { width: auto !important; align-items: center; padding: 14px 6px 12px; background: #f6f8fb; border: 1px solid #e6ebf2; border-radius: 14px; }
+        .mobile-quick-actions .mqa-icon { width: 52px !important; height: 52px !important; font-size: 24px !important; border-radius: 14px !important; }
+        .mobile-quick-actions .mqa-label { font-size: 14px !important; margin-top: 8px !important; font-weight: 500; }
+        .mqa-enquire-btn { height: auto !important; padding: 14px !important; font-size: 19px !important; border-radius: 14px !important; margin-top: 14px !important; }
+        .mqa-enquire-btn small { font-size: 13px !important; }
+
+        /* rating: title, five stars together, hint — one tidy row */
+        #listingTopCard .jd-rate-box form { display: flex !important; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eef1f5; }
+        #listingTopCard .jd-rate-title { font-size: 17px !important; margin: 0 !important; }
+        #listingTopCard .jd-rate-stars { display: flex !important; justify-content: flex-start !important; gap: 10px !important; width: auto !important; }
+        #listingTopCard .jd-star { width: 46px !important; height: 46px !important; font-size: 22px !important; border-radius: 10px !important; }
+        #listingTopCard .jd-rate-text { font-size: 13px !important; margin: 0 !important; }
+
+        #listingTopCard .jd-meta-row *, #listingTopCard .jd-hours-old, #listingTopCard .jd-hours-old * { font-size: 15px !important; }
+        #listingTopCard .jd-status-row, #listingTopCard .jd-status-row * { font-size: 15px !important; }
+        #listingTopCard .jd-meta-row .badge, #listingTopCard .jd-meta-row [class*="chip"], #listingTopCard .jd-meta-row [class*="cat"] { padding: 6px 12px !important; }
+        #listingTopCard .jd-meta-row, #listingTopCard .listing-location { margin-bottom: 8px !important; }
+        #photosSection h2, #photosSection h3, #photosSection .section-title { font-size: 20px !important; }
+        #photosSection img { width: 200px !important; height: 140px !important; object-fit: cover; }
+
+        /* tabs + body text */
+        #listingTabs a, #listingTabs button { font-size: 16px !important; padding: 14px 16px !important; }
+        #overview_view p, #overview_view li { font-size: 16px !important; line-height: 1.7 !important; }
+    }
+
+    /* 992–1199px: the right column (contact, address, hours) was 25% — about
+       190px of text, so the address and hours box wrapped word by word. */
+    @media (min-width: 992px) and (max-width: 1199px) {
+        .col-lg-9:has(+ #sidebarColumn), .row > .col-lg-9 { flex: 0 0 64% !important; max-width: 64% !important; }
+        #sidebarColumn.col-lg-3 { flex: 0 0 36% !important; max-width: 36% !important; }
+        #overview_view p, #overview_view li { font-size: 15px !important; line-height: 1.7 !important; }
+    }
+
+    /* a review opened from a shared #review-N link */
+    .review-item.sb-review-flash { animation: sbReviewFlash 2.6s ease-out; border-radius: 10px; }
+    @keyframes sbReviewFlash { 0%,35% { background: #fff4d6; box-shadow: 0 0 0 6px #fff4d6; } 100% { background: transparent; box-shadow: 0 0 0 6px transparent; } }
+
     .related-searches-mobile-toggle {
         display: none;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 991px) {
         .related-searches-title {
             display: none;
         }
@@ -1888,7 +1975,7 @@
         }
     }
 
-    @media (max-width: 767px){
+    @media (max-width: 991px){
         .related-search-card{
             padding:15px;
             border-radius:12px;
@@ -2181,7 +2268,7 @@
         }
     }
 
-    @media (max-width: 767px){
+    @media (max-width: 991px){
         .enquiry-title{
             font-size:16px;
         }
@@ -2430,7 +2517,7 @@
     {{-- .popular-city-section / .popular-category-section styling now lives
          once in popular-sections.css, loaded from the shared footer --}}
 
-    @media (max-width:767px){
+    @media (max-width: 991px){
 
         /*
          * Scoped to .listing-action-buttons: this block was written for
@@ -2711,7 +2798,7 @@
             text-align:right;
         }
 
-        @media(max-width:767px){
+        @media(max-width: 991px){
             .media-title{
                 font-size:15px;
             }
@@ -2814,6 +2901,50 @@
             font-weight: 500;
             margin-bottom: 10px;
             color: #222;
+        }
+
+        .sb-photos-of, .sb-photo-chips{ display:none; }
+        /* Photos slider: no grey scrollbar under it — round arrows on the sides
+           instead (shown only when there is more to scroll that way). */
+        #photosSection .photo-category-slider{ scrollbar-width:none; scroll-behavior:smooth; }
+        #photosSection .photo-category-slider::-webkit-scrollbar{ display:none; }
+        #photosSection #photos_view{ position:relative; }
+        .sb-ph-arrow{
+            position:absolute; top:58px; transform:translateY(-50%); z-index:3;
+            width:38px; height:38px; border-radius:50%; border:0; cursor:pointer;
+            background:#fff; color:#12203f; font-size:18px;
+            box-shadow:0 4px 14px rgba(15,23,42,.22);
+            display:flex; align-items:center; justify-content:center;
+            transition:opacity .2s ease, transform .2s ease;
+        }
+        .sb-ph-arrow:hover{ transform:translateY(-50%) scale(1.08); }
+        .sb-ph-arrow.prev{ left:-6px; }
+        .sb-ph-arrow.next{ right:-6px; }
+        .sb-ph-arrow[hidden]{ display:none; }
+        #photosSection.is-grid .sb-ph-arrow{ display:none !important; }
+        @media (max-width: 991px){
+            /* Phone: JustDial-style — "Photos of X in Area, City", filter chips,
+               and a two-column masonry grid — shown once the Photos tab (or the
+               "+N Photos" badge) is tapped; until then the usual slider. */
+            #photosSection.is-grid .sb-photos-of{ display:inline; }
+            #photosSection.is-grid .media-title{ font-size:16px; font-weight:600; line-height:1.35; }
+            #photosSection.is-grid .sb-photo-chips{ display:flex; gap:8px; margin:4px 0 12px; overflow-x:auto; }
+            #photosSection.is-grid .sb-photo-chips button{
+                flex:none; border:1px solid #d9dde6; background:#fff; color:#333; border-radius:8px;
+                padding:6px 12px; font-size:13px; font-weight:500;
+            }
+            #photosSection.is-grid .sb-photo-chips button.on{ border-color:#1a73e8; color:#1a73e8; background:#eef5ff; }
+            #photosSection.is-grid .photo-category-slider{
+                display:block !important; column-count:2; column-gap:6px; overflow:visible !important; padding:0 !important;
+            }
+            #photosSection.is-grid .photo-card{
+                display:inline-block; width:100% !important; min-width:0 !important; max-width:none !important;
+                margin:0 0 6px; break-inside:avoid;
+            }
+            #photosSection.is-grid .photo-card.is-off{ display:none; }
+            #photosSection.is-grid .photo-thumb{ height:auto !important; margin:0 !important; border-radius:6px !important; }
+            #photosSection.is-grid .photo-thumb img{ height:auto !important; min-height:90px; }
+            #photosSection.is-grid .photo-thumb video{ height:auto !important; aspect-ratio:3/4; }
         }
 
         .photo-category-slider {
@@ -2923,7 +3054,7 @@
             }
         }
 
-        @media (max-width: 767px) {
+        @media (max-width: 991px) {
             .media-title {
                 font-size: 15px;
             }
@@ -2979,13 +3110,29 @@
             justify-content:center;
         }
 
+        /* The photo is shown whole (contain) — cropping a square or portrait
+           photo into this wide box kept only its top (sky) and cut the
+           building off. A blurred copy of the same photo fills the sides. */
+        .listing-logo{ position:relative; }
+        .sb-hero-slide, .sb-hero-dots{ display:none; }
+        .sb-hero-count{
+            position:absolute; right:10px; bottom:10px; z-index:2;
+            border:0; border-radius:6px; padding:5px 9px;
+            background:rgba(17,24,39,.78); color:#fff;
+            font-size:12px; font-weight:600; line-height:1; cursor:pointer;
+            display:inline-flex; align-items:center; gap:3px;
+        }
+        .listing-logo::before{
+            content:""; position:absolute; inset:-20px;
+            background:var(--sb-logo-bg) center / cover no-repeat;
+            filter:blur(18px) brightness(.9); transform:scale(1.1);
+        }
         .listing-logo img{
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            /* Shop-front photos are usually portrait with the signboard at the
-               top — crop from the top so the name isn't the bit we cut off. */
-            object-position:center top;
+            position:relative; z-index:1;
+            width:100% !important;
+            height:100% !important;
+            object-fit:contain !important;
+            object-position:center !important;
         }
 
         .listing-title{
@@ -3131,22 +3278,41 @@
             }
         }
 
-        @media (max-width: 767px){
+        @media (max-width: 991px){
             .listing-title{
                 font-size:20px;
             }
 
-            .listing-logo{
+            /* Phone: like JustDial — the photo fills the whole box (no blurred
+           sides), a little taller, cropped around its middle. */
+        .listing-logo{
             width:100%;
-            height:180px;   /* banner height */
+            height:auto !important;
+            aspect-ratio:16 / 9;
             border-radius:12px;
         }
+        .listing-logo::before{ display:none; }
+        .listing-logo img{
+            object-fit:cover !important;
+            object-position:center !important;
+        }
+        /* Phone: the cover and the gallery photos slide by on their own. */
+        .listing-logo .sb-hero-slide{
+            display:block; position:absolute; inset:0; z-index:1;
+            opacity:0; transition:opacity .6s ease;
+        }
+        .listing-logo > img{ transition:opacity .6s ease; }
+        .listing-logo .is-hidden{ opacity:0 !important; pointer-events:none; }
+        .listing-logo .is-shown{ opacity:1 !important; }
+        .sb-hero-dots{
+            display:flex; position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:2; gap:5px;
+        }
+        .sb-hero-dots span{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.55); transition:all .25s; }
+        .sb-hero-dots span.on{ width:16px; border-radius:3px; background:#fff; }
 
         .listing-logo img{
             width:100%;
             height:100%;
-            object-fit:cover;   /* 🔥 important for cover image */
-            object-position:center top;
         }
 
             .star-btn{
@@ -3217,11 +3383,38 @@
                     
                     <!-- Left Image -->
                 <div class="col-12 col-md-auto">
-        <div class="listing-logo">
+        {{-- The whole photo is shown (no crop) over a blurred copy of itself that fills the box. --}}
+        <div class="listing-logo" style="--sb-logo-bg:url('{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}')">
             <img src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}"
                 class="img-fluid listing-photo-click"
                 data-src="{{ loadImage('assets/images/listing/thumb/'.$listing->thumb) }}"
             alt="{{ $listing->name }} Logo" fetchpriority="high">
+            @php
+                // The rest of the gallery, slid through on phones after the cover (max 10 in all).
+                $sbHeroSlides = collect($listing->photos ?? [])
+                    ->filter(fn ($f) => $f && $f !== $listing->thumb)
+                    ->map(fn ($f) => asset('assets/images/listing/photos/' . $f))
+                    ->merge($listing->extraImages()->where(fn ($q) => $q->where('type', 'gallery')->orWhereNull('type')->orWhere('type', ''))->latest()->pluck('image')
+                        ->map(fn ($f) => asset('assets/images/listing/extra/' . $f)))
+                    ->unique()->take(9)->values();
+            @endphp
+            @foreach($sbHeroSlides as $sbSlide)
+                <img src="{{ $sbSlide }}" data-src="{{ $sbSlide }}" class="sb-hero-slide" alt="{{ $listing->name }} photo" loading="lazy" decoding="async">
+            @endforeach
+            @if($sbHeroSlides->isNotEmpty())
+                <div class="sb-hero-dots"><span class="on"></span>@foreach($sbHeroSlides as $sbSlide)<span></span>@endforeach</div>
+            @endif
+            @php
+                $sbHeroPhotoCount = count($listing->photos ?? [])
+                    + $listing->extraImages()->where(fn ($q) => $q->where('type', 'gallery')->orWhereNull('type')->orWhere('type', ''))->count()
+                    + ((!empty($listing->thumb) && !in_array($listing->thumb, $listing->photos ?? [], true)) ? 1 : 0);
+            @endphp
+            @if($sbHeroPhotoCount > 1)
+                {{-- JustDial-style count badge; takes you to the photos. --}}
+                <button type="button" class="sb-hero-count" onclick="var t=document.getElementById('photosSection'); if(t){ t.scrollIntoView({behavior:'smooth', block:'start'}); }">
+                    +{{ $sbHeroPhotoCount - 1 }} Photos <i class="las la-angle-right"></i>
+                </button>
+            @endif
 
         </div>
     </div>
@@ -3353,7 +3546,7 @@
          (span.badge.badge-light in .text-md-right) and (b) the
          "Years in Business" text already inside .listing-location above —
          combined on their own row here instead. Hidden by default / shown
-         only at max-width:768px below; the desktop badge and the
+         only at max-width: 991px below; the desktop badge and the
          .listing-location copy of the business-age text are both hidden
          at that same breakpoint so nothing is ever shown twice. No
          interactivity in either piece, so duplicating this plain text is
@@ -3416,23 +3609,13 @@
          * here so "Open Now", "Opens at ...", and the weekly list all treat
          * every shift a day has, not just the first one found.
          */
+        // Listing::shiftsByDay() reads every way hours were ever saved (one row
+        // per day per shift, or ticked days + slots that apply to all of them).
         $jdShiftsByDay = [];
-
-        foreach ($businessDays as $jdIndex => $jdDay) {
-            $jdDay = is_string($jdDay) ? trim($jdDay) : $jdDay;
-
-            if (empty($jdDay)) {
-                continue;
+        foreach ($listing->shiftsByDay() as $jdDay => $jdShifts) {
+            foreach ($jdShifts as [$jdOpenRaw, $jdCloseRaw]) {
+                $jdShiftsByDay[$jdDay][] = ['open' => $jdOpenRaw, 'close' => $jdCloseRaw];
             }
-
-            $jdOpenRaw = count($openTimes) === 1 ? ($openTimes[0] ?? null) : ($openTimes[$jdIndex] ?? null);
-            $jdCloseRaw = count($closeTimes) === 1 ? ($closeTimes[0] ?? null) : ($closeTimes[$jdIndex] ?? null);
-
-            if (empty($jdOpenRaw) || empty($jdCloseRaw)) {
-                continue;
-            }
-
-            $jdShiftsByDay[$jdDay][] = ['open' => $jdOpenRaw, 'close' => $jdCloseRaw];
         }
 
         $isOpenToday = !empty($jdShiftsByDay[$today]);
@@ -3592,7 +3775,17 @@
                 {{ $isOpenNow ? 'Open Now' : 'Closed Now' }}
             </span>
             <span class="jd-status-detail">
-                @if($isOpenNow && $formattedCloseTime)
+                @php
+                    // Open round the clock today (saved as 12:00 AM – 11:59 PM): say so,
+                    // rather than "Until 11:59 PM".
+                    $jdOpen24Today = collect($jdShiftsByDay[$today] ?? [])->contains(function ($sh) use ($jdFormatTime) {
+                        return strtoupper((string) $jdFormatTime($sh['open'])) === '12:00 AM'
+                            && strtoupper((string) $jdFormatTime($sh['close'])) === '11:59 PM';
+                    });
+                @endphp
+                @if($isOpenNow && $jdOpen24Today)
+                    : 24 Hours
+                @elseif($isOpenNow && $formattedCloseTime)
                     : Until {{ $formattedCloseTime }}
                 @elseif(!$isOpenNow && $jdNextOpenTime)
                     : Opens at {{ $jdNextOpenTime }}
@@ -3766,10 +3959,14 @@
 
     </div>
 
-    {{-- Edit Button - Only visible to listing owner --}}
-    @if(auth()->check() && auth()->id() === $listing->user_id)
-        <a href="{{ route('user.listing.manage', $listing->id) }}"
-           class="listing-btn edit-listing-btn"
+    {{-- Edit button — shown to everyone; the click decides (owner edits, guest logs in, anyone else is told no). --}}
+    @php
+        $sbEditState = !auth()->check() ? 'guest' : (auth()->id() === $listing->user_id ? 'owner' : 'other');
+    @endphp
+    @if(true)
+        <a href="{{ $sbEditState === 'owner' ? route('user.listing.profile', $listing->id) : '#' }}"
+           class="listing-btn edit-listing-btn sb-edit-btn"
+           data-edit-state="{{ $sbEditState }}"
            title="Edit Listing">
             @php
                 $editIconPath = 'assets/images/editicon';
@@ -3905,8 +4102,9 @@
                                     </div>
                                 </div>
 
-                                {{-- Edit Button - Only visible to listing owner (mobile) --}}
-                                @if(auth()->check() && auth()->id() === $listing->user_id)
+                                {{-- Edit button (mobile) — same rules as the desktop one. --}}
+                                @php $sbEditState = !auth()->check() ? 'guest' : (auth()->id() === $listing->user_id ? 'owner' : 'other'); @endphp
+                                @if(true)
                                     @php
                                         $editIconPath = 'assets/images/editicon';
                                         $editIconExt = '';
@@ -3918,8 +4116,9 @@
                                             }
                                         }
                                     @endphp
-                                    <a href="{{ route('user.listing.manage', $listing->id) }}"
-                                       class="mqa-btn mqa-edit"
+                                    <a href="{{ $sbEditState === 'owner' ? route('user.listing.profile', $listing->id) : '#' }}"
+                                       class="mqa-btn mqa-edit sb-edit-btn"
+                                       data-edit-state="{{ $sbEditState }}"
                                        title="Edit Listing">
                                         <span class="mqa-icon">
                                             @if($editIconExt)
@@ -4022,11 +4221,11 @@
     <style>
         /* ============================================================
            Mobile-only layout for the listing top card + tabs
-           (max-width: 768px). CSS-only, reuses existing classes/markup.
+           (max-width: 991px). CSS-only, reuses existing classes/markup.
            Every rule below is scoped inside this media query, so
            desktop/tablet (>768px) rendering is untouched.
         ============================================================ */
-        @media (max-width: 768px) {
+        @media (max-width: 991px) {
 
             /*
              * Fix: on this page (and only this page — verified against the
@@ -4041,7 +4240,7 @@
              * children, dumps all of it as blank space below the search
              * bar — which is what pushed it up and away from center.
              * Zeroing that margin (scoped to this page and to
-             * max-width:768px only) removes the stray space at its
+             * max-width: 991px only) removes the stray space at its
              * source: the row goes back to its natural 48px — identical
              * to every other mobile page — with the search bar already
              * flush and centered, no height/position overrides needed.
@@ -4192,8 +4391,17 @@
                 box-sizing: border-box;
             }
 
+            /* Edit sits next to Share and looks like it — a plain outlined circle
+               with the dark pencil — instead of a blue disc the black pencil vanished on. */
             #listingTopCard .mqa-edit .mqa-icon {
-                background: #0d6efd;
+                background: #fff !important;
+                color: #555;
+                border: 1.5px solid #d9d9d9;
+                box-sizing: border-box;
+            }
+            #listingTopCard .mqa-edit .mqa-edit-icon-img {
+                width: 18px;
+                height: 18px;
             }
 
             /* .mqa-share-trigger is a real <button>, which browsers give a
@@ -4515,7 +4723,7 @@
             display: contents;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 991px) {
             #listingMediaRow .media-tabs {
                 padding: 0 10px;
                 gap: 4px;
@@ -4527,7 +4735,7 @@
             }
         }
 
-        @media (max-width: 767px) {
+        @media (max-width: 991px) {
             /*
              * ROOT CAUSE (why position:sticky never worked here):
              *
@@ -4631,8 +4839,19 @@
             return;
         }
 
-        var mobileQuery = window.matchMedia('(max-width: 767px)');
-        var topOffset = 50; // shared site header's own fixed height (#stickyScrollHeader.scrolled)
+        var mobileQuery = window.matchMedia('(max-width: 991px)');
+        // Where the site header ends — measured, since the phone header is
+        // taller now (two rows: logo + actions, then search).
+        var topOffset = 50;
+        function measureHeader() {
+            var h = document.getElementById('stickyScrollHeader');
+            if (h) {
+                var b = h.getBoundingClientRect().bottom;
+                if (b > 0) topOffset = Math.round(b);
+            }
+            return topOffset;
+        }
+        measureHeader();
         var isFixed = false;
         var ticking = false;
 
@@ -4664,9 +4883,9 @@
                 return;
             }
 
-            var tabsHeight = isFixed
-                ? tabs.getBoundingClientRect().height
-                : tabs.getBoundingClientRect().height;
+            measureHeader();
+            if (isFixed) tabs.style.top = topOffset + 'px';
+            var tabsHeight = tabs.getBoundingClientRect().height;
 
             // Stop before the tab-content card ends so the bar never
             // overlaps whatever follows it (sidebar/footer etc).
@@ -4802,6 +5021,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content p-3">
 
+            <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="position:absolute;top:10px;right:16px;border:0;background:none;font-size:26px;line-height:1;color:#666;">&times;</button>
             <div class="modal-title" style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">{{ $popupRatingValue > 0 ? 'Update Review' : 'Add Review' }}</div>
     <input type="hidden" id="popup_rating_value" value="{{ $popupRatingValue }}">
                 <textarea id="popup_review"
@@ -5163,7 +5383,8 @@
 
                 <div class="content-section mb-4" id="photosSection">
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <h4 class="media-title mb-0">Photos</h4>
+            @php $sbPhotosWhere = collect([$listing->area, $listing->city])->filter()->unique()->implode(', '); @endphp
+            <h4 class="media-title mb-0">Photos<span class="sb-photos-of"> of {{ $listing->name }}{{ $sbPhotosWhere ? ' in ' . $sbPhotosWhere : '' }}</span></h4>
         </div>
 
         {{-- VIEW MODE --}}
@@ -5181,6 +5402,20 @@
             $sbCoverInGallery = !empty($listing->thumb)
                 && !in_array($listing->thumb, $listing->photos ?? [], true);
         @endphp
+        @php
+            $sbPhotoTotal = ($sbCoverInGallery ? 1 : 0) + count($listing->photos ?? []) + $sbGalleryExtra->count();
+            $sbVideoTotal = count($listing->videos ?? []);
+        @endphp
+        @if($sbPhotoTotal + $sbVideoTotal > 0)
+            {{-- JustDial-style filter chips over the photo grid (phone). --}}
+            <div class="sb-photo-chips" role="tablist">
+                <button type="button" class="on" data-kind="all">All ({{ $sbPhotoTotal + $sbVideoTotal }})</button>
+                @if($sbVideoTotal)
+                    <button type="button" data-kind="photo">Photos ({{ $sbPhotoTotal }})</button>
+                    <button type="button" data-kind="video">Videos ({{ $sbVideoTotal }})</button>
+                @endif
+            </div>
+        @endif
         <div id="photos_view">
             <div class="photo-category-slider">
                 @if($sbCoverInGallery || !empty($listing->photos) || $sbGalleryExtra->isNotEmpty() || !empty($listing->videos))
@@ -5224,7 +5459,7 @@
                         </div>
                     @endforeach
                     @foreach($listing->videos ?? [] as $video)
-                        <div class="photo-card">
+                        <div class="photo-card is-video">
                             <div class="photo-thumb" style="position:relative;cursor:pointer;"
                                  onclick="sbPlayListingVideo('{{ asset('assets/images/listing/videos/'.$video) }}')">
                                 <video src="{{ asset('assets/images/listing/videos/'.$video) }}#t=0.1"
@@ -5671,17 +5906,24 @@
     $totalRatings = $listing->ratings->count();
     @endphp
 
+    {{-- Only this listing's own ratings on Service Bazzar feed these numbers —
+         nothing from other sites, so the text must not say "across the web". --}}
     <div class="rating-summary-box">
         <div class="rating-summary-score">
-            {{ $avgRating > 0 ? $avgRating : '0.0' }}
+            {{ number_format($avgRating, 1) }}
         </div>
 
         <div class="rating-summary-content">
-            <h3>{{ $totalRatings }} Ratings</h3>
+            <h3>{{ $totalRatings }} {{ $totalRatings === 1 ? 'Rating' : 'Ratings' }}</h3>
 
             <p>
-                Service Bazzar rating index based on
-                {{ $totalRatings }} ratings across the web
+                @if($totalRatings === 0)
+                    No ratings yet. Be the first to rate this business.
+                @elseif($totalRatings === 1)
+                    Based on 1 rating from a customer on Service Bazzar
+                @else
+                    Average of {{ $totalRatings }} ratings from customers on Service Bazzar
+                @endif
             </p>
         </div>
     </div>
@@ -5747,6 +5989,7 @@
                         </button>
                     </div>
                 @endguest
+                <button type="button" class="review-cancel-btn" id="reviewCancelBtn">Cancel</button>
             </div>
         </form>
     </div>
@@ -6061,6 +6304,8 @@
         
         </div>
     </div>
+
+    @include('themes.servicebazzar.partials.google_reviews', ['listing' => $listing])
 
    {{-- RELATED SEARCHES START --}}
 @php
@@ -6391,18 +6636,10 @@
          * it has, instead of once per array entry.
          */
         $shiftsByDay = [];
-
-        foreach ($businessDays as $bIndex => $bDay) {
-            $bDay = is_string($bDay) ? trim($bDay) : $bDay;
-
-            if (empty($bDay)) {
-                continue;
+        foreach ($listing->shiftsByDay() as $bDay => $bShifts) {
+            foreach ($bShifts as [$bOpen, $bClose]) {
+                $shiftsByDay[$bDay][] = ['open' => $bOpen, 'close' => $bClose];
             }
-
-            $shiftsByDay[$bDay][] = [
-                'open'  => count($openTimes) === 1 ? ($openTimes[0] ?? null) : ($openTimes[$bIndex] ?? null),
-                'close' => count($closeTimes) === 1 ? ($closeTimes[0] ?? null) : ($closeTimes[$bIndex] ?? null),
-            ];
         }
 
         $formatShiftsForDay = function ($day) use ($shiftsByDay, $formatBusinessTime) {
@@ -6854,7 +7091,9 @@
             // Matches all.blade.php's own copy of this exactly: wait until the
             // trigger card is fully scrolled past (100px clear of the top),
             // not just past the header-clearance line.
-            const startSticky = triggerRect.bottom < -100;
+            // switch over the moment the sidebar box goes under the header —
+                            // waiting until it was 100px past the top left the column empty
+                            const startSticky = triggerRect.bottom < stickyTop;
             const stopSticky = listingRect.bottom <= (stickyTop + stickyHeight + 30);
 
             if (startSticky && !stopSticky) {
@@ -7496,7 +7735,7 @@
     .like-btn.liked i{
         color:#0d6efd;
     }
-    @media (min-width:768px){
+    @media (min-width: 992px){
 
         .jd-rate-box{
             text-align:center !important;
@@ -7713,6 +7952,95 @@
     });
     </script>
     <script>
+    // Phone: the Photos tab or the "+N Photos" badge opens the full grid view.
+    document.addEventListener('click', function (e) {
+        if (!window.matchMedia('(max-width: 991px)').matches) return;
+        if (e.target.closest('.tab-scroll-btn[data-target="#photosSection"], .sb-hero-count')) {
+            var sec = document.getElementById('photosSection');
+            if (sec) sec.classList.add('is-grid');
+        }
+    }, true);
+    </script>
+    <script>
+    // Photos slider arrows (replace the scrollbar).
+    document.addEventListener('DOMContentLoaded', function () {
+        var view = document.getElementById('photos_view');
+        var track = view && view.querySelector('.photo-category-slider');
+        if (!track) return;
+        function mk(cls, icon, dir) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'sb-ph-arrow ' + cls; b.setAttribute('aria-label', cls === 'prev' ? 'Previous photos' : 'Next photos');
+            b.innerHTML = '<i class="las ' + icon + '"></i>';
+            b.addEventListener('click', function () { track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' }); });
+            view.appendChild(b); return b;
+        }
+        var prev = mk('prev', 'la-angle-left', -1), next = mk('next', 'la-angle-right', 1);
+        function sync() {
+            var max = track.scrollWidth - track.clientWidth - 2;
+            prev.hidden = track.scrollLeft <= 2;
+            next.hidden = track.scrollLeft >= max;
+        }
+        track.addEventListener('scroll', sync, { passive: true });
+        window.addEventListener('resize', sync);
+        window.addEventListener('load', sync);
+        sync();
+    });
+    </script>
+    <script>
+    // Photos section chips: All / Photos / Videos.
+    document.addEventListener('click', function (e) {
+        var chip = e.target.closest('#photosSection .sb-photo-chips button');
+        if (!chip) return;
+        var kind = chip.getAttribute('data-kind');
+        chip.parentNode.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === chip); });
+        document.querySelectorAll('#photosSection .photo-category-slider .photo-card').forEach(function (card) {
+            var isVideo = card.classList.contains('is-video');
+            card.classList.toggle('is-off', (kind === 'photo' && isVideo) || (kind === 'video' && !isVideo));
+        });
+    });
+    </script>
+    <script>
+    // Phone hero: cover + gallery photos fade one into the next every 3s;
+    // swipe to move by hand; a tap opens that photo in the big viewer.
+    document.addEventListener("DOMContentLoaded", function () {
+        var box = document.querySelector('#listingTopCard .listing-logo');
+        if (!box || !window.matchMedia('(max-width: 991px)').matches) return;
+        var slides = [box.querySelector(':scope > img.listing-photo-click')].concat(Array.prototype.slice.call(box.querySelectorAll('.sb-hero-slide')));
+        slides = slides.filter(Boolean);
+        if (slides.length < 2) return;
+        var dots = box.querySelectorAll('.sb-hero-dots span'), i = 0, timer;
+
+        function show(n) {
+            i = (n + slides.length) % slides.length;
+            slides.forEach(function (el, k) {
+                el.classList.toggle('is-shown', k === i);
+                el.classList.toggle('is-hidden', k !== i);
+            });
+            dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });
+        }
+        function start() { clearInterval(timer); timer = setInterval(function () { if (!document.hidden) show(i + 1); }, 3000); }
+
+        // a tap on a gallery slide opens the same photo in the viewer
+        slides.forEach(function (el, k) {
+            if (k === 0) return;
+            el.addEventListener('click', function () {
+                var match = document.querySelector('#photosSection .listing-photo-click[data-src="' + el.dataset.src + '"]');
+                (match || slides[0]).click();
+            });
+        });
+
+        var x0 = null;
+        box.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+        box.addEventListener('touchend', function (e) {
+            if (x0 === null) return;
+            var dx = e.changedTouches[0].clientX - x0; x0 = null;
+            if (Math.abs(dx) > 40) { show(i + (dx < 0 ? 1 : -1)); start(); }
+        }, { passive: true });
+
+        show(0); start();
+    });
+    </script>
+    <script>
     document.addEventListener("DOMContentLoaded", function () {
 
         const images = document.querySelectorAll(".listing-photo-click");
@@ -7762,11 +8090,73 @@
             }
         });
 
+        // TOUCH SWIPE NAVIGATION
+        var touchStartX = 0;
+        modal.addEventListener("touchstart", function (e) {
+            touchStartX = e.changedTouches[0].clientX;
+        }, { passive: true });
+        modal.addEventListener("touchend", function (e) {
+            var diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) < 40) return;
+            if (diff > 0) {
+                currentIndex = (currentIndex + 1) % images.length;
+            } else {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+            }
+            showImage();
+        }, { passive: true });
+
+        // KEYBOARD NAVIGATION
+        document.addEventListener("keydown", function (e) {
+            if (!modal.classList.contains("show")) return;
+            if (e.key === "ArrowRight") {
+                currentIndex = (currentIndex + 1) % images.length;
+                showImage();
+            } else if (e.key === "ArrowLeft") {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                showImage();
+            } else if (e.key === "Home") {
+                e.preventDefault();
+                currentIndex = 0;
+                showImage();
+            } else if (e.key === "End") {
+                e.preventDefault();
+                currentIndex = images.length - 1;
+                showImage();
+            } else if (e.key === "Escape") {
+                modal.classList.remove("show");
+            }
+        });
+
     });
     </script>
 
     <script>
     document.addEventListener("DOMContentLoaded", function () {
+
+        // WhatsApp send-detection: fires GA4 conversion only when user
+        // spends 8+ seconds on WhatsApp (strong signal they sent the message).
+        var _waClickTime = null;
+        var _waListingId = null;
+        var _waNumber    = null;
+
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === 'visible' && _waClickTime !== null) {
+                var elapsed = (Date.now() - _waClickTime) / 1000;
+                if (elapsed >= 8 && typeof gtag === 'function') {
+                    gtag('event', 'whatsapp_lead', {
+                        event_category: 'Lead',
+                        event_label: 'WhatsApp Message Sent',
+                        listing_id: _waListingId,
+                        whatsapp_number: _waNumber
+                    });
+                }
+                _waClickTime = null;
+                _waListingId = null;
+                _waNumber    = null;
+            }
+        });
+
         document.querySelectorAll(".track-click").forEach(function (btn) {
             btn.addEventListener("click", function () {
 
@@ -7789,6 +8179,13 @@
                 }).catch(function(error) {
                     console.log('Click track error:', error);
                 });
+
+                // Start WhatsApp send-detection timer
+                if (this.dataset.track === 'whatsapp_click') {
+                    _waClickTime = Date.now();
+                    _waListingId = this.dataset.listingId || '';
+                    _waNumber    = this.dataset.number || '';
+                }
 
             });
         });
@@ -7884,8 +8281,41 @@
             }, true);
         });
 
+        // Stars only stay filled once a rating is really submitted. Picking one
+        // and then closing the popup (or the login box) puts them back as they
+        // were — the user's saved rating, or empty.
+        const savedRating = {{ (int) ($userRating ?? 0) }};
+        const savedText = quickRatingText ? quickRatingText.innerText : '';
+        let ratingSubmitted = false;
+        function restoreStars() {
+            if (ratingSubmitted) return;
+            selectedRating = savedRating;
+            if (quickRatingValue) quickRatingValue.value = savedRating || '';
+            document.querySelectorAll('#quickRatingStars .star-btn').forEach(s => {
+                s.classList.toggle('active', Number(s.dataset.value) <= savedRating);
+            });
+            if (quickRatingText) quickRatingText.innerText = savedText;
+        }
+        if (ratingModalEl) {
+            // closed by ×, the backdrop or Esc — watched on the element itself so it
+            // works whichever Bootstrap version fires (or doesn't fire) the events
+            let wasOpen = false;
+            new MutationObserver(() => {
+                const open = ratingModalEl.classList.contains('show');
+                if (wasOpen && !open) restoreStars();
+                wasOpen = open;
+            }).observe(ratingModalEl, { attributes: true, attributeFilter: ['class'] });
+        }
+        if (!isLoggedIn) {
+            // the login popup closing without a sign-in (a sign-in reloads the page)
+            const authPop = document.getElementById('sbAuthPopup');
+            if (authPop) new MutationObserver(() => { if (!authPop.classList.contains('show')) restoreStars(); })
+                .observe(authPop, { attributes: true, attributeFilter: ['class'] });
+        }
+
         if (isLoggedIn) {
             document.getElementById('submitRatingBtn')?.addEventListener('click', function () {
+                ratingSubmitted = true;
 
                 ajaxPost("{{ route('review') }}", {
                     listing_id: "{{ $listing->id }}",
@@ -7898,6 +8328,7 @@
                     }
                 })
                 .catch(err => {
+                    ratingSubmitted = false;
                     console.error(err);
                     alert(err.message || "Rating submit failed.");
                 });
@@ -8378,6 +8809,54 @@
         document.getElementById("reviewFormBox").classList.remove("d-none");
     });
 
+    // A guest who picks stars, writes a review and then has to log in: keep both
+    // in this tab, and put them back in the form when the page reloads signed in.
+    (function () {
+        var KEY = 'sbPendingReview:{{ $listing->id }}';
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#openReviewPopupBtn')) return;
+            try {
+                sessionStorage.setItem(KEY, JSON.stringify({
+                    rating: parseInt(document.getElementById('guest_review_ratings').value || '0', 10),
+                    review: (document.getElementById('guest_review_text') || {}).value || ''
+                }));
+            } catch (err) {}
+        }, true);
+
+        @auth
+        var saved = null;
+        try { saved = JSON.parse(sessionStorage.getItem(KEY) || 'null'); sessionStorage.removeItem(KEY); } catch (err) {}
+        if (saved && saved.rating > 0) {
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('guest_review_ratings').value = saved.rating;
+                document.getElementById('reviewStatusText').innerText = 'You rated';
+                document.querySelectorAll('.add-review-star').forEach(function (s) {
+                    s.classList.toggle('active', parseInt(s.dataset.value) <= saved.rating);
+                });
+                var box = document.getElementById('reviewFormBox');
+                var txt = document.getElementById('guest_review_text');
+                if (txt && saved.review) txt.value = saved.review;
+                if (box) {
+                    box.classList.remove('d-none');
+                    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+        @endauth
+    })();
+
+    // Cancel: close the form without saving and put the stars back as they were.
+    document.addEventListener("click", function(e){
+        if (!e.target.closest("#reviewCancelBtn")) return;
+        const saved = {{ (int) ($userRating ?? 0) }};
+        document.getElementById("guest_review_ratings").value = saved || "";
+        document.getElementById("reviewStatusText").innerText = saved > 0 ? "You rated" : "Start your Review";
+        document.querySelectorAll(".add-review-star").forEach(function(s){
+            s.classList.toggle("active", parseInt(s.dataset.value) <= saved);
+        });
+        document.getElementById("reviewFormBox").classList.add("d-none");
+    });
+
     </script>
     <script>
     document.addEventListener("DOMContentLoaded", function(){
@@ -8470,6 +8949,51 @@
         });
 
     });
+    /*
+     * Shared review links (…/listing#review-27, from the reviewer's profile and
+     * the review's own Share button) landed at the top of the page: only the
+     * newest 5 reviews are shown, the rest sit display:none behind "Load more",
+     * and the browser can't scroll to a hidden element. Reveal up to the linked
+     * review, scroll it clear of the sticky header and tabs, and flash it.
+     */
+    (function () {
+        function openReviewFromHash() {
+            var m = /^#review-(\d+)$/.exec(location.hash || '');
+            if (!m) return;
+            var target = document.getElementById('review-' + m[1]);
+            if (!target) return;
+
+            var wrap = target.closest('.review-item-load');
+            var all = Array.prototype.slice.call(document.querySelectorAll('.review-item-load'));
+            var upTo = wrap ? all.indexOf(wrap) : -1;
+            all.forEach(function (el, i) { if (i <= upTo && el.style.display === 'none') el.style.display = 'block'; });
+            var btn = document.getElementById('loadMoreReviewsBtn');
+            if (btn && !document.querySelector(".review-item-load[style*='display:none']")) btn.style.display = 'none';
+
+            function offset() {
+                var h = 0;
+                var hdr = document.getElementById('stickyScrollHeader');
+                if (hdr) h += hdr.getBoundingClientRect().height;
+                var tabs = document.getElementById('listingTabs');
+                if (tabs && /fixed|sticky/.test(getComputedStyle(tabs).position)) h += tabs.getBoundingClientRect().height;
+                return h + 16;
+            }
+            function go() {
+                var y = target.getBoundingClientRect().top + window.pageYOffset - offset();
+                window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+            }
+            go();
+            // photos above it load later and push it down — settle once more
+            window.addEventListener('load', function () { setTimeout(go, 50); }, { once: true });
+            setTimeout(go, 600);
+
+            target.classList.add('sb-review-flash');
+            setTimeout(function () { target.classList.remove('sb-review-flash'); }, 2600);
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openReviewFromHash);
+        else openReviewFromHash();
+        window.addEventListener('hashchange', openReviewFromHash);
+    })();
     document.querySelectorAll(".quick-star").forEach(star => {
 
         star.addEventListener("click", function () {
@@ -8559,7 +9083,13 @@
          */
         const POPUP_KEY = 'sb_best_price_popup_shown';
 
+        /*
+         * sessionStorage alone is per TAB, so every listing opened in a new tab
+         * showed the popup again. A cookie with no expiry is shared by all tabs
+         * and is dropped when the browser closes — once per visit, site-wide.
+         */
         function popupAlreadyShown() {
+            if (document.cookie.split('; ').indexOf(POPUP_KEY + '=1') !== -1) return true;
             try {
                 return sessionStorage.getItem(POPUP_KEY) === '1';
             } catch (e) {
@@ -8568,12 +9098,15 @@
         }
 
         function rememberPopupShown() {
+            document.cookie = POPUP_KEY + '=1; path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
             try {
                 sessionStorage.setItem(POPUP_KEY, '1');
             } catch (e) {}
         }
 
-        let popupShown = popupAlreadyShown();
+        // Someone following a link to a specific review came to read it — don't
+        // cover it with the enquiry popup on the way down.
+        let popupShown = popupAlreadyShown() || /^#review-\d+$/.test(location.hash || '');
 
         function openBestPriceOnScroll() {
             if (popupShown) return;
@@ -8666,12 +9199,15 @@
                 document.querySelector('.modal.show') ||
                 document.querySelector('.modal.fade.show');
 
+            // Lock scrolling on <html>. The old body{overflow:hidden;height:100vh}
+            // collapsed the page to one screen, so opening any popup threw the
+            // reader back to the very top.
+            const root = document.documentElement;
             if (hasOpenPopup) {
-                document.body.style.overflow = 'hidden';
-                document.body.style.height = '100vh';
-            } else {
+                if (root.style.overflow !== 'hidden') root.style.overflow = 'hidden';
+            } else if (root.style.overflow === 'hidden') {
+                root.style.overflow = '';
                 document.body.style.overflow = '';
-                document.body.style.height = '';
             }
         }
 
@@ -8819,5 +9355,51 @@
             }
         });
     });
+    </script>
+    {{-- "You can't edit this listing" — for a signed-in visitor who isn't the owner. --}}
+    <div id="sbEditDenied" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#fff;border-radius:14px;max-width:380px;width:100%;padding:26px 22px 20px;text-align:center;font-family:inherit;box-shadow:0 20px 50px rgba(15,23,42,.3);">
+            <div style="width:52px;height:52px;border-radius:50%;background:#fdecec;color:#e53935;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;"><i class="las la-lock"></i></div>
+            <h4 style="margin:0 0 8px;font-size:18px;font-weight:600;color:#12203f;">You can't edit this listing</h4>
+            <p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:#5a6478;">Only the owner of this business can make changes to it. If this is your business, please contact Service Bazzar support.</p>
+            <button type="button" id="sbEditDeniedOk" style="border:0;border-radius:8px;background:#1a73e8;color:#fff;padding:11px 30px;font-size:15px;font-weight:600;cursor:pointer;">OK</button>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var KEY = 'sbEditAfterLogin';
+        var listingId = '{{ $listing->id }}';
+        var box = document.getElementById('sbEditDenied');
+
+        function denied() { box.style.display = 'flex'; }
+        document.getElementById('sbEditDeniedOk').addEventListener('click', function () { box.style.display = 'none'; });
+        box.addEventListener('click', function (e) { if (e.target === box) box.style.display = 'none'; });
+
+        function act(btn, e) {
+            var state = btn.getAttribute('data-edit-state');
+            if (state === 'owner') return;            // a real link to the edit page
+            e.preventDefault();
+            if (state === 'other') { denied(); return; }
+            // Guest: sign in first; the page reloads after login and picks up from here.
+            try { sessionStorage.setItem(KEY, listingId); } catch (err) {}
+            if (typeof openSbAuthPopup === 'function') { openSbAuthPopup(); }
+            else { window.location.href = '{{ route('user.login') }}'; }
+        }
+
+        document.querySelectorAll('.sb-edit-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) { act(btn, e); });
+        });
+
+        // Just signed in after tapping Edit: carry on to the edit page, or say why not.
+        var pending = null;
+        try { pending = sessionStorage.getItem(KEY); } catch (err) {}
+        if (pending === listingId) {
+            try { sessionStorage.removeItem(KEY); } catch (err) {}
+            var btn = document.querySelector('.sb-edit-btn');
+            var state = btn ? btn.getAttribute('data-edit-state') : 'guest';
+            if (state === 'owner') { window.location.href = btn.getAttribute('href'); }
+            else if (state === 'other') { denied(); }
+        }
+    })();
     </script>
     @endsection

@@ -87,8 +87,29 @@ class LoginController extends Controller
         return $this->guard()->attempt($this->credentials($request), true);
     }
 
+    /** Logged to admin_login_logs: who signed in, when, from where, on what. */
+    protected function authenticated(Request $request, $user)
+    {
+        \App\Support\AdminLoginRecorder::record('login', $user->id, $user->username ?? null);
+        // start of this session, for the daily logout (RedirectIfNotAdmin)
+        $request->session()->put('admin_login_at', now()->timestamp);
+    }
+
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        $admin = Admin::where('username', $request->input('username'))->first();
+        \App\Support\AdminLoginRecorder::record('failed', optional($admin)->id, $request->input('username'));
+
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            $this->username() => [trans('auth.failed')],
+        ]);
+    }
+
     public function logout(Request $request)
     {
+        if ($admin = $this->guard()->user()) {
+            \App\Support\AdminLoginRecorder::record('logout', $admin->id, $admin->username ?? null);
+        }
         $this->guard('admin')->logout();
 
         $request->session()->invalidate();

@@ -73,8 +73,28 @@
 	<noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
 
 <style>
+    /* JustDial-style two-row header on a listing page, phones only. */
+    .jdh-top{display:none;}
+    @media (max-width: 991px){
+        body.jd-head #stickyScrollHeader .navbar{flex-wrap:wrap !important;row-gap:0 !important;}
+        body.jd-head .jdh-top{display:flex;align-items:center;gap:4px;width:100%;order:-1;padding:4px 4px 2px;}
+        body.jd-head .jdh-logo{display:flex;align-items:center;margin-right:auto;margin-left:2px;}
+        body.jd-head .jdh-logo img{height:28px;width:auto;}
+        body.jd-head .jdh-ico{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;
+            color:#111;font-size:24px;padding:0;position:relative;border-radius:50%;}
+        body.jd-head .jdh-ico i.fa-bell{font-size:19px;}
+        /* same share arrow as the listing's Share button */
+        body.jd-head .jdh-share-img{width:22px;height:22px;object-fit:contain;display:block;}
+        body.jd-head .jdh-ico:active{background:#f1f3f7;}
+        body.jd-head .jdh-ico .sbn-badge{top:2px;right:2px;}
+        /* the second row is the search bar on its own, full width */
+        body.jd-head #youtubeMobileSearch{width:100% !important;flex:1 1 100% !important;}
+        body.jd-head .yt-search-back,
+        body.jd-head .sb-bell-mobile,
+        body.jd-head .mobile-back-btn{display:none !important;}
+    }
 
-    @media (max-width:767px){
+    @media (max-width: 991px){
     body.mobile-yt-search-open .mobile-back-btn{
         display:none !important;
     }
@@ -195,7 +215,7 @@ body.header-fixed {
 				margin: 0 20px;
 			}
 			
-			@media (max-width: 767.98px){
+			@media (max-width: 991px){
 				body.header-fixed{
     padding-top:50px;
 }
@@ -222,13 +242,13 @@ body.header-fixed {
 			text-transform: capitalize !important;
 		}
 
-		@media (max-width: 767px){
+		@media (max-width: 991px){
 			#locationInput {
 				display: none !important;
 			}
 		}
 
-        @media (max-width: 767px){
+        @media (max-width: 991px){
 			.search-area {
 				display: none;
 			}
@@ -308,7 +328,7 @@ body.header-fixed {
 		}
 
 		/* MOBILE BOTTOM ACTION */
-		@media (max-width: 767.98px){
+		@media (max-width: 991px){
 			.mobile-bottom-action{
 				position: fixed;
 				left: 0;
@@ -362,7 +382,7 @@ body.header-fixed {
 				white-space: nowrap;
 			}
 		}
-		@media (min-width: 768px){
+		@media (min-width: 992px){
 			.mobile-bottom-action{
 				display: none !important;
 			}
@@ -372,7 +392,7 @@ body.header-fixed {
 		.jd-mobile-location-strip{
 			display:none;
 		}
-        @media (max-width: 767.98px){
+        @media (max-width: 991px){
 	/* parent ko column banao */
 	#stickyScrollHeader .container-fuldie.custom-right{
 		display:flex;
@@ -397,7 +417,7 @@ body.header-fixed {
 	
 }
 
-@media (max-width:767px){
+@media (max-width: 991px){
 
  body.mobile-yt-search-open .jd-mobile-location-strip{
     display:none !important;
@@ -411,6 +431,16 @@ body.mobile-yt-search-open.show-yt-location .jd-mobile-location-strip{
     background:#fff !important;
 }
 
+/* The strip is moved (script below) into the header row itself, right after
+   the logo row, so it reads logo → city → search instead of sitting above the
+   logo. Same order value as the logo row; DOM order puts it just after. */
+#stickyScrollHeader .navbar > .jd-mobile-location-strip{
+    order:-1 !important;
+    flex:0 0 100% !important;
+    width:100% !important;
+    padding:0 10px 4px !important;
+}
+
 
 
 
@@ -420,7 +450,7 @@ body.mobile-yt-search-open.show-yt-location .jd-mobile-location-strip{
 }
 
 
-		@media (max-width: 767.98px){
+		@media (max-width: 991px){
 			.jd-mobile-location-strip{
 				display:none;
 				width:100%;
@@ -545,7 +575,7 @@ body.mobile-yt-search-open.show-yt-location .jd-mobile-location-strip{
     overflow:hidden !important;
     text-overflow:ellipsis !important;
 }
-@media (max-width:767.98px){
+@media (max-width: 991px){
 
     .navbar{
         display:flex;
@@ -643,7 +673,7 @@ body.header-fixed .hide-on-scroll-menu{
     display:none;
 }
 
-@media (max-width:767px){
+@media (max-width: 991px){
 
     .mobile-header-search-btn{
         display:flex !important;
@@ -813,7 +843,7 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 }
 
 
-@media (max-width:767px){
+@media (max-width: 991px){
 
     body.mobile-yt-search-open .navbar-brand,
     body.mobile-yt-search-open .navbar-toggler,
@@ -828,7 +858,7 @@ body.mobile-yt-search-open #ytMobileSearchInput{
     }
 }
 
-@media (max-width:767px){
+@media (max-width: 991px){
 
     body.mobile-yt-search-open #scrollSearchHolder,
     body.mobile-yt-search-open .header-search-form{
@@ -850,7 +880,7 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 }
 
 /* Sirf mobile par show */
-@media (max-width:767px){
+@media (max-width: 991px){
     .mobile-header-search-btn{
         display:flex !important;
         align-items:center;
@@ -859,7 +889,7 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 }
 
 
-@media (max-width:767px){
+@media (max-width: 991px){
 
     body.mobile-yt-search-open .youtube-mobile-search{
         width:100% !important;
@@ -1202,6 +1232,18 @@ body.mobile-yt-search-open #ytMobileSearchInput{
 	<script>
 		var currentRoute = @json(request()->route() ? request()->route()->getName() : '');
 	</script>
+<style>
+/* location not in our list — shown under the box, before any search runs */
+.sb-loc-invalid { position: relative; border-color: #dc3545 !important; box-shadow: 0 0 0 3px rgba(220,53,69,.12) !important; }
+.sb-loc-tip { position: absolute; left: 0; top: calc(100% + 8px); z-index: 100050; width: max-content; max-width: min(360px, 90vw);
+    display: flex; gap: 8px; align-items: flex-start; background: #fff; color: #b42318; border: 1px solid #f3c0c0; border-radius: 10px;
+    padding: 9px 12px; font-size: 13px; line-height: 1.45; font-weight: 500; box-shadow: 0 8px 24px rgba(16,24,40,.12); white-space: normal; text-align: left; }
+.sb-loc-tip::before { content: ""; position: absolute; top: -6px; left: 22px; width: 10px; height: 10px; background: #fff;
+    border-left: 1px solid #f3c0c0; border-top: 1px solid #f3c0c0; transform: rotate(45deg); }
+.sb-loc-tip i { font-size: 16px; margin-top: 1px; color: #dc3545; }
+.sb-loc-tip--up { top: auto; bottom: calc(100% + 8px); }
+.sb-loc-tip--up::before { top: auto; bottom: -6px; transform: rotate(225deg); }
+</style>
 </head>
 @php
     $sbIsHomeLike = request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug');
@@ -1212,10 +1254,13 @@ body.mobile-yt-search-open #ytMobileSearchInput{
      * plain header first and swapped in the search bar a moment later — a
      * visible jump on every page. The class is written here instead, so the
      * right header is there in the first paint. Every rule that reads it sits
-     * inside @media (max-width:767px), so this changes nothing on desktop.
+     * inside @media (max-width: 991px), so this changes nothing on desktop.
      */
     $sbBodyClass = trim(($sbIsHomeLike ? 'home-page' : '')
-        . (request()->routeIs('home') ? '' : ' mobile-yt-search-open'));
+        . (request()->routeIs('home') ? '' : ' mobile-yt-search-open')
+        // Every page but the home page gets the two-row phone header (back +
+        // logo + actions, then the search bar), like JustDial's.
+        . (request()->routeIs('home') ? '' : ' jd-head'));
 @endphp
 <body class="{{ $sbBodyClass }}"
     data-page-name="{{ $pageName ?? request()->path() }}"
@@ -1275,6 +1320,43 @@ body.mobile-yt-search-open #ytMobileSearchInput{
         to{ transform:rotate(360deg); }
     }
 </style>
+<style>
+/* Phone header up to 991px (iPads too): search is the 🔍 button / the search
+   row, never the desktop location + search boxes. On a phone those boxes were
+   only "hidden" by being pushed off-screen; on an iPad they came back into
+   view, overflowing the header once the page scrolled. */
+@media (max-width:991px){
+    #stickyScrollHeader #scrollSearchHolder{ display:none !important; }
+}
+</style>
+<style>
+/* 992–1199px: the header's two search boxes didn't match — location
+   grey with a heavy black border, search white with a shadow — and the bell sat
+   on a grey square. One style for both boxes, a clean round bell. */
+@media (min-width:992px) and (max-width:1199px){
+    #stickyScrollHeader .header-input_location_box,
+    #stickyScrollHeader .header-input_search_box{
+        height:42px !important; background:#fff !important; border:1px solid #cfd6e0 !important;
+        border-radius:10px !important; box-shadow:none !important; overflow:hidden;
+        transition:border-color .15s ease, box-shadow .15s ease;
+    }
+    #stickyScrollHeader .header-input_location_box:focus-within,
+    #stickyScrollHeader .header-input_search_box:focus-within{ border-color:#0d6efd !important; box-shadow:0 0 0 3px rgba(13,110,253,.12) !important; }
+    #stickyScrollHeader .header-input_location,
+    #stickyScrollHeader .header-input_search{ height:40px !important; background:transparent !important; font-size:15px !important; }
+    #stickyScrollHeader .sb-bell{
+        width:40px !important; height:40px !important; border-radius:50% !important; background:transparent !important;
+        border:0 !important; display:inline-flex !important; align-items:center; justify-content:center; margin:0 4px 0 10px !important; font-size:19px; color:#1f2937;
+    }
+    #stickyScrollHeader .sb-bell:active, #stickyScrollHeader .sb-bell:hover{ background:#f1f3f7 !important; }
+    #stickyScrollHeader .navbar-toggler{ padding:0 !important; border:0 !important; }
+    #stickyScrollHeader .navbar-toggler .profile-icon{ width:38px !important; height:38px !important; border-radius:50%; object-fit:cover; }
+    #stickyScrollHeader .navbar{ align-items:center !important; }
+    /* the white fade at the box's right edge was cutting through the new border */
+    #stickyScrollHeader .header-input_location_box::after{ display:none !important; }
+}
+</style>
+
 
 <script>
 document.addEventListener('click', function (e) {
@@ -1322,6 +1404,19 @@ window.addEventListener('pageshow', function () {
 		<div class="bottom-header">
 			<div class="container-fuldie custom-right .head-right ">
 				<nav class="navbar navbar-expand-lg navbar-light">
+                @if(!request()->routeIs('home'))
+                {{-- Phone, every page but home: first header row — back, logo, share, bell/profile. --}}
+                <div class="jdh-top">
+                    <button type="button" class="jdh-ico" aria-label="Go back" onclick="goBackPage()"><i class="las la-angle-left"></i></button>
+                    <a href="{{ route('home') }}" class="jdh-logo"><img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar"></a>
+                    <button type="button" class="jdh-ico jdh-share" aria-label="Share this page" onclick="sbJdhShare()"><img src="{{ asset('assets/images/download.svg') }}" alt="" class="jdh-share-img"></button>
+                    @auth
+                        <button type="button" class="sb-bell jdh-ico" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span class="sbn-badge" hidden></span></button>
+                    @else
+                        <button type="button" class="jdh-ico" aria-label="Log in" onclick="openSbAuthPopup()"><i class="las la-user-circle"></i></button>
+                    @endauth
+                </div>
+                @endif
                 @if(!request()->routeIs('home') && !request()->routeIs('home.city') && !request()->routeIs('single.slug'))
 <button type="button" class="mobile-back-btn" aria-label="Go back" onclick="goBackPage()">
     <i class="las la-angle-left"></i>
@@ -1381,6 +1476,7 @@ window.addEventListener('pageshow', function () {
     <img src="{{ asset('assets/images/149071.png') }}" alt="User profile" class="profile-icon">
 </button>
 @else
+<button type="button" class="sb-bell sb-bell-mobile" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span class="sbn-badge" hidden></span></button>
 <a href="{{ route('user.dashboard') }}" class="navbar-toggler profile-dashboard-link">
     <img src="{{ userAvatarUrl(auth()->user()->image ?? null) }}" alt="{{ auth()->user()->name ?? 'User profile' }}" class="profile-icon">
 </a>
@@ -1476,6 +1572,9 @@ window.addEventListener('pageshow', function () {
 </a>
 								</li>
 							@else
+								<li class="nav-item d-none d-lg-flex align-items-center">
+									<button type="button" class="sb-bell" aria-label="Notifications"><i class="fa-regular fa-bell"></i><span class="sbn-badge" hidden></span></button>
+								</li>
 								<li class="nav-item profile-dashboard-item">
 									<a href="{{ route('user.dashboard') }}" class="nav-link nav-btn profile-dashboard-link d-flex align-items-center gap-2" title="{{ auth()->user()->fullname() }}">
 										<img src="{{ userAvatarUrl(auth()->user()->image ?? null) }}" alt="{{ auth()->user()->fullname() }}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;">
@@ -1621,7 +1720,7 @@ window.addEventListener('pageshow', function () {
     border:none !important;
 }
 
-@media (max-width:767px){
+@media (max-width: 991px){
 
    body.mobile-yt-search-open #stickyScrollHeader .navbar{
     order:2 !important;
@@ -1657,7 +1756,7 @@ window.addEventListener('pageshow', function () {
     background:#fff !important;
 }
 }
-@media (max-width:767px){
+@media (max-width: 991px){
     #jdMobileLocationBox{
         position:relative !important;
         z-index:99999999 !important;
@@ -1670,7 +1769,7 @@ window.addEventListener('pageshow', function () {
     }
 }
 
-@media (max-width:767px){
+@media (max-width: 991px){
 
 
     body.mobile-yt-search-open.show-yt-location #stickyScrollHeader{
@@ -1822,7 +1921,7 @@ window.addEventListener('pageshow', function () {
     color: #333;
 }
 
-@media (max-width:767px){
+@media (max-width: 991px){
     .location-permission-popup {
         align-items: flex-end;
         padding: 12px;
@@ -1840,7 +1939,7 @@ window.addEventListener('pageshow', function () {
         width: 100%;
     }
 }
-@media (max-width:767px){
+@media (max-width: 991px){
 
     body.mobile-yt-search-open.show-yt-location #jdMobileLocationSuggestions{
         position:fixed !important;
@@ -2329,7 +2428,7 @@ document.addEventListener("mousedown", function(e){
 const sessionSelectedLocation = @json(session('selected_location', ''));
 const sessionSelectedCategory = @json(session('selected_category', ''));
     function isMobile() {
-        return window.innerWidth <= 767.98;
+        return window.innerWidth <= 991;
     }
 
     function formatSlug(slug) {
@@ -2351,6 +2450,127 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
             .replace(/-+/g, "-")
             .replace(/^-+|-+$/g, "");
     }
+
+    /*
+     * Only real cities may become a URL. Typed text that was never picked from
+     * the list ("Xn, Ksj, B Dskj") used to be slugged straight into
+     * /ksj/it-consultants-in-xn and land on "Page Not Found".
+     */
+    @php
+        $sbCityKeys = \Illuminate\Support\Facades\Cache::remember('sb:city_keys:v1', 3600, fn () =>
+            \App\Models\Location::where('status', 1)->get(['name', 'slug'])
+                ->flatMap(fn ($l) => [strtolower((string) $l->slug), \Illuminate\Support\Str::slug((string) $l->name)])
+                ->filter()->unique()->values()->all());
+    @endphp
+    const SB_CITY_KEYS = new Set(@json($sbCityKeys));
+    function sbCityOf(text) {                 // "Vaishali Nagar, Jaipur" -> "Jaipur"
+        const parts = String(text || "").split(",");
+        return (parts.length > 1 ? parts[parts.length - 1] : parts[0]).trim();
+    }
+    function sbKnownCity(text) {
+        const c = sbCityOf(text);
+        if (!c) return false;
+        return SB_CITY_KEYS.has(slugify(c)) || SB_CITY_KEYS.has(c.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+    }
+    window.sbKnownCity = sbKnownCity;
+    function sbAskForRealCity() {
+        const msg = "Please choose your city or area from the suggestions list.";
+        ["homeLocationInput", "headerLocationInput", "jdMobileLocationInput"].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el && el.offsetParent !== null) { el.focus(); el.select && el.select(); }
+        });
+        if (window.Swal && Swal.fire) Swal.fire({ icon: "info", text: msg, timer: 3500, showConfirmButton: false });
+        else alert(msg);
+    }
+    window.sbAskForRealCity = sbAskForRealCity;
+
+    // Junk saved in this browser before the check existed: drop it.
+    try {
+        ["jf_city", "jf_detected_city", "jf_selected_location_name", "jf_user_city"].forEach(function (k) {
+            const v = localStorage.getItem(k);
+            if (v && !sbKnownCity(v)) { localStorage.removeItem(k); if (k === "jf_detected_city") { localStorage.removeItem("jf_lat"); localStorage.removeItem("jf_lng"); } }
+        });
+        const rec = JSON.parse(localStorage.getItem("service_bazzar_recent_locations") || "[]");
+        if (Array.isArray(rec)) {
+            const ok = rec.filter(function (r) { return r && sbKnownCity(r.value); });
+            if (ok.length !== rec.length) localStorage.setItem("service_bazzar_recent_locations", JSON.stringify(ok));
+        }
+    } catch (e) {}
+
+    /*
+     * Check the location BEFORE any search runs. The old search code builds the
+     * results URL in several places straight from whatever is in the box, so
+     * "sddddd" still searched and only bounced back afterwards. This runs first
+     * (window, capture phase) for: picking a category suggestion, pressing
+     * Enter in a search box, the search button, and form submit.
+     */
+    function sbLocInputFor(el) {
+        // the suggestion lists may be moved elsewhere in the page for positioning
+        if (el.closest("#homeCategorySuggestions")) return document.getElementById("homeLocationInput");
+        if (el.closest("#headerCategorySuggestions")) return document.getElementById("headerLocationInput");
+        if (el.closest("#homeSearchOriginalPlace, #homeSearchForm")) return document.getElementById("homeLocationInput");
+        if (el.closest("#scrollSearchHolder, #headerSearchForm")) return document.getElementById("headerLocationInput");
+        return null;
+    }
+    function sbClearLocError(input) {
+        const box = input && input.closest(".input_location_box, .header-input_location_box") || (input && input.parentElement);
+        if (!box) return;
+        box.classList.remove("sb-loc-invalid");
+        const holder = box.parentElement || box;
+        holder.querySelectorAll(".sb-loc-tip").forEach(function (t) { t.remove(); });
+    }
+    function sbShowLocError(input, text) {
+        if (!input) return;
+        const box = input.closest(".input_location_box, .header-input_location_box") || input.parentElement;
+        sbClearLocError(input);
+        box.classList.add("sb-loc-invalid");
+        const tip = document.createElement("div");
+        tip.className = "sb-loc-tip";
+        tip.setAttribute("role", "alert");
+        tip.innerHTML = '<i class="las la-map-marker-alt" aria-hidden="true"></i><span></span>';
+        tip.querySelector("span").textContent = text;
+        // above the box when there is room (hero search), so the location list
+        // that opens below it can't cover the message; below in the top bar
+        if (input.getBoundingClientRect().top > 100) tip.classList.add("sb-loc-tip--up");
+        // the box itself clips (overflow:hidden) — hang the message on its parent
+        const holder = box.parentElement || box;
+        if (getComputedStyle(holder).position === "static") holder.style.position = "relative";
+        holder.appendChild(tip);
+        input.focus();
+        try { input.select(); } catch (e) {}
+        input.dispatchEvent(new Event("focus"));
+    }
+    window.sbShowLocError = sbShowLocError;
+    function sbLocationBlocked(el) {
+        const input = sbLocInputFor(el);
+        if (!input) return false;
+        const v = input.value.trim();
+        if (v === "" || sbKnownCity(v)) return false;
+        sbShowLocError(input, '"' + v + '" is not a location we cover. Please pick your city or area from the list.');
+        return true;
+    }
+    window.addEventListener("click", function (e) {
+        const t = e.target;
+        if (!t || !t.closest) return;
+        const isSuggestion = t.closest("#homeCategorySuggestions a, #homeCategorySuggestions .dropdown-item, #homeCategorySuggestions li, #headerCategorySuggestions .header-dropdown-item, #headerCategorySuggestions a");
+        const isButton = t.closest("#homeSearchForm button, #homeSearchForm [type=submit], #homeSearchForm .search-icon, #headerSearchForm button, #headerSearchForm [type=submit], #headerSearchForm .search-icon");
+        if (!isSuggestion && !(isButton && !t.closest("#homeVoiceSearchBtn, #headerVoiceSearchBtn, #headerClearBtn"))) return;
+        if (sbLocationBlocked(t)) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }, true);
+    window.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter" || !e.target || !e.target.closest) return;
+        if (!e.target.matches("#homeCategorySearch, #headerCategorySearch, #homeLocationInput, #headerLocationInput")) return;
+        if (sbLocationBlocked(e.target)) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }, true);
+    window.addEventListener("submit", function (e) {
+        if (e.target && e.target.matches && e.target.matches("#homeSearchForm, #headerSearchForm") && sbLocationBlocked(e.target)) {
+            e.preventDefault(); e.stopImmediatePropagation();
+        }
+    }, true);
+    ["homeLocationInput", "headerLocationInput"].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", function () { sbClearLocError(el); });
+    });
 
     const englishLocationNames = {
         "जयपुर": "Jaipur",
@@ -2461,6 +2681,7 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
   function setCity(value, save = false, lat = "", lng = "") {
     const city = cleanCity(value);
     if (!city) return;
+    if (!sbKnownCity(city)) return;   // never show / store a place we don't have
 
     if (homeInput) {
         homeInput.value = city;
@@ -2932,6 +3153,7 @@ if (isHomePage && isMobile()) {
         if (catSlug === @json($sbCategoryRawSlug ?? '') && @json($sbCategorySlug ?? '')) catSlug = @json($sbCategorySlug ?? '');
 
         if (citySlug && catSlug) {
+            if (!sbKnownCity(city)) { sbAskForRealCity(); return; }
             window.location.href = "/" + citySlug + "/" + catSlug;
             return;
         }
@@ -3056,6 +3278,7 @@ if (isListingDetailsPage) {
     // Still the category this page is on: drop its own place ("...-in-south-delhi").
     if (catSlug === @json($sbCategoryRawSlug ?? '') && @json($sbCategorySlug ?? '')) catSlug = @json($sbCategorySlug ?? '');
 
+    if (citySlug && catSlug && !sbKnownCity(locationText)) { sbAskForRealCity(); return; }
     if (citySlug && catSlug) {
         let finalUrl = "/" + citySlug + "/" + catSlug;
 
@@ -3317,7 +3540,7 @@ if (jdCityBtn) jdCityBtn.style.display = "flex";
             selectedLocation = localStorage.getItem("jf_detected_city") || "";
         }
         selectedLocation = (selectedLocation || "").trim();
-        if (!selectedLocation) return null;
+        if (!selectedLocation || !sbKnownCity(selectedLocation)) return null;
 
         let city = selectedLocation, area = "";
         if (selectedLocation.includes(",")) {
@@ -3428,7 +3651,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!mobileBottomAction) return;
     window.addEventListener("scroll", function () {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        if (window.innerWidth <= 767.98) {
+        if (window.innerWidth <= 991) {
             if (scrollTop > 50) {
                 mobileBottomAction.classList.add("hide-on-scroll");
             } else {
@@ -3469,6 +3692,14 @@ document.addEventListener("DOMContentLoaded", function () {
     changePlaceholder();
     setInterval(changePlaceholder, 2000);
 });
+function sbJdhShare() {
+    var data = { title: document.title, url: window.location.href.split('#')[0] };
+    if (navigator.share) { navigator.share(data).catch(function () {}); return; }
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(data.url).then(function () { alert('Link copied'); });
+    }
+}
+
 function goBackPage() {
     if (document.referrer && document.referrer !== "") {
         history.back();
@@ -3587,7 +3818,7 @@ document.addEventListener("DOMContentLoaded", function () {
 }
     const input = document.getElementById("ytMobileSearchInput");
     const isHomePage = @json(request()->routeIs('home'));
-    if (window.innerWidth <= 767) {
+    if (window.innerWidth <= 991) {
         if (isHomePage) {
             document.body.classList.remove("mobile-yt-search-open");
         } else {
@@ -4427,39 +4658,30 @@ document.addEventListener("DOMContentLoaded", function () {
 .sb-social-login{
     display:flex;
     flex-direction:row;
-    gap:8px;
-    margin:12px 0 2px;
+    justify-content:center;
+    gap:16px;
+    margin:14px 0 2px;
 }
 .sb-social-btn{
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:6px;
-    flex:1;
-    min-width:0;
-    height:38px;
-    border-radius:7px;
-    border:1px solid #ddd;
+    flex:none;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    border:1px solid #dde1ea;
     background:#fff;
-    color:#222;
-    font-size:13px;
-    font-weight:600;
     text-decoration:none;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    transition:background .15s, box-shadow .15s;
 }
-@media(max-width:400px){
-    .sb-social-btn{
-        font-size:0;
-    }
-    .sb-social-btn svg{
-        flex-shrink:0;
-    }
+.sb-social-btn svg{
+    width:22px;
+    height:22px;
 }
 .sb-social-btn:hover{
-    background:#f6f6f6;
-    color:#222;
+    background:#f6f8fc;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 .sb-social-divider{
     display:flex;
@@ -4600,15 +4822,13 @@ document.addEventListener("DOMContentLoaded", function () {
             @if(config('services.google.client_id') || config('services.facebook.client_id'))
                 <div class="sb-social-login">
                     @if(config('services.google.client_id'))
-                        <a href="{{ route('user.social.login.redirect', ['provider' => 'google', 'redirect' => url()->current()]) }}" class="sb-social-btn sb-social-google">
+                        <a href="{{ route('user.social.login.redirect', ['provider' => 'google', 'redirect' => url()->current()]) }}" class="sb-social-btn sb-social-google" title="Continue with Google" aria-label="Continue with Google">
                             <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
-                            Continue with Google
                         </a>
                     @endif
                     @if(config('services.facebook.client_id'))
-                        <a href="{{ route('user.social.login.redirect', ['provider' => 'facebook', 'redirect' => url()->current()]) }}" class="sb-social-btn sb-social-facebook">
+                        <a href="{{ route('user.social.login.redirect', ['provider' => 'facebook', 'redirect' => url()->current()]) }}" class="sb-social-btn sb-social-facebook" title="Continue with Facebook" aria-label="Continue with Facebook">
                             <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.89v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
-                            Continue with Facebook
                         </a>
                     @endif
                 </div>
@@ -4726,7 +4946,8 @@ document.addEventListener("DOMContentLoaded", function () {
             <span>Dashboard</span>
         </a>
 
-        <a href="{{ route('user.guest-chats.index') }}" class="sb-profile-item">
+        {{-- Every enquiry this business has had (the Leads page, no filter) — not the guest chats. --}}
+        <a href="{{ $sbMyBusiness ? route('user.listing.leads', $sbMyBusiness->id) : route('user.listing.index') }}" class="sb-profile-item">
             <i class="fa-solid fa-inbox"></i>
             <span>Leads &amp; Enquiries</span>
         </a>
@@ -5361,5 +5582,13 @@ window.addEventListener("load", function () {
 });
 </script>
 
+@include('themes.servicebazzar.partials.notification_bell')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var strip = document.getElementById('jdMobileLocationStrip');
+    var top = document.querySelector('#stickyScrollHeader .jdh-top');
+    if (strip && top && top.parentElement) top.parentElement.insertBefore(strip, top.nextSibling);
+});
+</script>
 </body>
 </html>

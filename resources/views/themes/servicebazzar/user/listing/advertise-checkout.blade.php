@@ -1,6 +1,68 @@
-@extends($themeView.'layouts.site')
+@extends($themeView.'layouts.app')
+
+{{-- Styles go in <head> so the page never flashes unstyled while it loads. --}}
+@push('css')
+<style>.inner-banner{display:none !important;}</style>
+<style>
+.sbco-wrap{background:transparent;padding:24px 0 64px;min-height:70vh;}
+.sbco-top{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+.sbco-title{font-size:24px;font-weight:800;color:#12203f;margin:0;}
+.sbco-back{display:inline-flex;align-items:center;gap:6px;color:#1a73e8;font-weight:600;text-decoration:none;font-size:14px;}
+.sbco-back:hover{text-decoration:underline;}
+
+.sbco-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
+.sbco-card{background:#fff;border:1px solid #e6e9f2;border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,24,40,.05);}
+.sbco-card-title{font-size:16px;font-weight:800;color:#12203f;margin:0 0 16px;}
+
+.sbco-plan-line{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  border-bottom:1px dashed #e6e9f2;padding-bottom:14px;margin-bottom:14px;}
+.sbco-plan-name{font-size:18px;font-weight:700;color:#1a2235;}
+.sbco-incl{font-size:12px;color:#6b7285;}
+.sbco-ebill{display:flex;gap:12px;align-items:flex-start;background:#f2f6ff;border-radius:10px;padding:12px 14px;}
+.sbco-ebill i{font-size:22px;color:#1a73e8;}
+.sbco-ebill small{display:block;font-size:11px;color:#8a92a6;}
+.sbco-ebill strong{display:block;font-size:14px;color:#1a2235;}
+.sbco-ebill span{font-size:12.5px;color:#6b7285;}
+
+.sbco-methods{display:flex;flex-direction:column;gap:10px;}
+.sbco-method{display:block;cursor:pointer;margin:0;}
+.sbco-method input{position:absolute;opacity:0;pointer-events:none;}
+.sbco-method-body{display:flex;align-items:center;gap:14px;border:1.5px solid #e6e9f2;border-radius:10px;padding:12px 14px;transition:.15s;}
+.sbco-method:hover .sbco-method-body{border-color:#c3d3f5;background:#fafbff;}
+.sbco-method input:checked + .sbco-method-body{border-color:#1a73e8;background:#f2f7ff;box-shadow:0 0 0 2px rgba(26,115,232,.12);}
+.sbco-method-body img{width:46px;height:32px;object-fit:contain;flex-shrink:0;}
+.sbco-method-text{flex:1;min-width:0;display:flex;flex-direction:column;}
+.sbco-method-text strong{font-size:14.5px;color:#1a2235;}
+.sbco-method-text small{font-size:12px;color:#8a92a6;}
+.sbco-tick{font-size:22px;color:#d3d8e4;flex-shrink:0;}
+.sbco-method input:checked + .sbco-method-body .sbco-tick{color:#1a73e8;}
+
+.sbco-empty{color:#7a8296;font-size:14px;padding:8px 0;}
+
+.sbco-price{position:sticky;top:20px;}
+.sbco-save{background:#eafaf1;color:#1f9d55;font-size:13px;font-weight:600;border-radius:8px;padding:10px 12px;margin-bottom:16px;}
+.sbco-row{display:flex;justify-content:space-between;font-size:14px;color:#37415a;padding:9px 0;border-bottom:1px solid #f0f2f7;}
+.sbco-row.sbco-muted{color:#8a92a6;font-size:12.5px;}
+.sbco-green{color:#1f9d55;font-weight:700;}
+.sbco-total{display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:800;color:#12203f;padding:14px 0 4px;}
+.sbco-pay{width:100%;margin-top:16px;background:#1a73e8;color:#fff;border:0;border-radius:10px;padding:14px;
+  font-size:16px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s;}
+.sbco-pay:hover{background:#1662c4;}
+.sbco-trust{display:flex;justify-content:center;gap:16px;margin-top:14px;flex-wrap:wrap;}
+.sbco-trust span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:#8a92a6;font-weight:600;}
+.sbco-trust i{color:#1f9d55;font-size:15px;}
+
+@media (max-width:860px){
+  .sbco-grid{grid-template-columns:1fr;}
+  .sbco-price{position:static;}
+}
+</style>
+@endpush
 
 @section('content')
+{{-- Owner panel layout: the page has its own heading, so the layout's title banner is hidden
+     (the layout then pads the content by the fixed navbar's height). --}}
+
 @section('title','Checkout — '.$package->name)
 
 @php
@@ -143,60 +205,7 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
-<style>
-.sbco-wrap{background:#f4f6fb;padding:24px 0 64px;min-height:70vh;}
-.sbco-top{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
-.sbco-title{font-size:24px;font-weight:800;color:#12203f;margin:0;}
-.sbco-back{display:inline-flex;align-items:center;gap:6px;color:#1a73e8;font-weight:600;text-decoration:none;font-size:14px;}
-.sbco-back:hover{text-decoration:underline;}
 
-.sbco-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
-.sbco-card{background:#fff;border:1px solid #e6e9f2;border-radius:14px;padding:20px 22px;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,24,40,.05);}
-.sbco-card-title{font-size:16px;font-weight:800;color:#12203f;margin:0 0 16px;}
-
-.sbco-plan-line{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-  border-bottom:1px dashed #e6e9f2;padding-bottom:14px;margin-bottom:14px;}
-.sbco-plan-name{font-size:18px;font-weight:700;color:#1a2235;}
-.sbco-incl{font-size:12px;color:#6b7285;}
-.sbco-ebill{display:flex;gap:12px;align-items:flex-start;background:#f2f6ff;border-radius:10px;padding:12px 14px;}
-.sbco-ebill i{font-size:22px;color:#1a73e8;}
-.sbco-ebill small{display:block;font-size:11px;color:#8a92a6;}
-.sbco-ebill strong{display:block;font-size:14px;color:#1a2235;}
-.sbco-ebill span{font-size:12.5px;color:#6b7285;}
-
-.sbco-methods{display:flex;flex-direction:column;gap:10px;}
-.sbco-method{display:block;cursor:pointer;margin:0;}
-.sbco-method input{position:absolute;opacity:0;pointer-events:none;}
-.sbco-method-body{display:flex;align-items:center;gap:14px;border:1.5px solid #e6e9f2;border-radius:10px;padding:12px 14px;transition:.15s;}
-.sbco-method:hover .sbco-method-body{border-color:#c3d3f5;background:#fafbff;}
-.sbco-method input:checked + .sbco-method-body{border-color:#1a73e8;background:#f2f7ff;box-shadow:0 0 0 2px rgba(26,115,232,.12);}
-.sbco-method-body img{width:46px;height:32px;object-fit:contain;flex-shrink:0;}
-.sbco-method-text{flex:1;min-width:0;display:flex;flex-direction:column;}
-.sbco-method-text strong{font-size:14.5px;color:#1a2235;}
-.sbco-method-text small{font-size:12px;color:#8a92a6;}
-.sbco-tick{font-size:22px;color:#d3d8e4;flex-shrink:0;}
-.sbco-method input:checked + .sbco-method-body .sbco-tick{color:#1a73e8;}
-
-.sbco-empty{color:#7a8296;font-size:14px;padding:8px 0;}
-
-.sbco-price{position:sticky;top:20px;}
-.sbco-save{background:#eafaf1;color:#1f9d55;font-size:13px;font-weight:600;border-radius:8px;padding:10px 12px;margin-bottom:16px;}
-.sbco-row{display:flex;justify-content:space-between;font-size:14px;color:#37415a;padding:9px 0;border-bottom:1px solid #f0f2f7;}
-.sbco-row.sbco-muted{color:#8a92a6;font-size:12.5px;}
-.sbco-green{color:#1f9d55;font-weight:700;}
-.sbco-total{display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:800;color:#12203f;padding:14px 0 4px;}
-.sbco-pay{width:100%;margin-top:16px;background:#1a73e8;color:#fff;border:0;border-radius:10px;padding:14px;
-  font-size:16px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s;}
-.sbco-pay:hover{background:#1662c4;}
-.sbco-trust{display:flex;justify-content:center;gap:16px;margin-top:14px;flex-wrap:wrap;}
-.sbco-trust span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:#8a92a6;font-weight:600;}
-.sbco-trust i{color:#1f9d55;font-size:15px;}
-
-@media (max-width:860px){
-  .sbco-grid{grid-template-columns:1fr;}
-  .sbco-price{position:static;}
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

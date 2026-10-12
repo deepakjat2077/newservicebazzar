@@ -91,13 +91,7 @@
 		                <div class="col-md-4"><h3>{{ $setting->currency_symbol }}{{ $monthDeposits->sum('amount') }}</h3></div>
 		                <div class="col-md-4">
 		                	<p class="mb-0">
-		                		@if($prevDepo)
-			                		@if($diffDepo > 0)
-			                		<span class="badge custom-badge-success font-15">{{ $diffDepo }}% <i class="fas fa-long-arrow-alt-up"></i></span>
-			                		@else
-			                		<span class="badge custom-badge-danger font-15">{{ $diffDepo }}% <i class="fas fa-long-arrow-alt-down"></i></span>
-			                		@endif
-		                		@endif
+		                		{{-- Just this month's total; no comparison with last month. --}}
 		                	</p>
 		            	</div>
 		            </div>
