@@ -4131,7 +4131,7 @@ window.SB = {
                             @endif
 
                             @if(($featured->trust ?? 0) == 1)
-                                <img width="20" height="20" src="{{ asset('assets/images/trust_2x.gif') }}"
+                                <img  src="{{ asset('assets/images/trust_2x.gif') }}"
                                      class="jd-badge-img"
                                      loading="lazy"
                                      decoding="async"
@@ -4139,7 +4139,7 @@ window.SB = {
                             @endif
 
                             @if(($featured->verified ?? 0) == 1)
-                                <img width="20" height="20" src="{{ asset('assets/images/verified_2x.gif') }}"
+                                <img  src="{{ asset('assets/images/verified_2x.gif') }}"
                                      class="jd-badge-img"
                                      loading="lazy"
                                      decoding="async"
