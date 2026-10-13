@@ -1,0 +1,8 @@
+
+    /* The caret beside "Services" was a 14px-wide tap target. Widening the
+       padding gives it the 24px minimum; the arrow itself is unchanged. */
+    #servicesDropdown.dropdown-toggle-split {
+        padding-left: 10px;
+        padding-right: 10px;
+        min-width: 26px;
+    }

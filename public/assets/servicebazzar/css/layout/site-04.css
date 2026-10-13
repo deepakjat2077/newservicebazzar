@@ -1,0 +1,8 @@
+
+/* Phone header up to 991px (iPads too): search is the 🔍 button / the search
+   row, never the desktop location + search boxes. On a phone those boxes were
+   only "hidden" by being pushed off-screen; on an iPad they came back into
+   view, overflowing the header once the page scrolled. */
+@media (max-width:991px){
+    #stickyScrollHeader #scrollSearchHolder{ display:none !important; }
+}

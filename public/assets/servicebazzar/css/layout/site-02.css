@@ -1,0 +1,11 @@
+
+/* location not in our list — shown under the box, before any search runs */
+.sb-loc-invalid { position: relative; border-color: #dc3545 !important; box-shadow: 0 0 0 3px rgba(220,53,69,.12) !important; }
+.sb-loc-tip { position: absolute; left: 0; top: calc(100% + 8px); z-index: 100050; width: max-content; max-width: min(360px, 90vw);
+    display: flex; gap: 8px; align-items: flex-start; background: #fff; color: #b42318; border: 1px solid #f3c0c0; border-radius: 10px;
+    padding: 9px 12px; font-size: 13px; line-height: 1.45; font-weight: 500; box-shadow: 0 8px 24px rgba(16,24,40,.12); white-space: normal; text-align: left; }
+.sb-loc-tip::before { content: ""; position: absolute; top: -6px; left: 22px; width: 10px; height: 10px; background: #fff;
+    border-left: 1px solid #f3c0c0; border-top: 1px solid #f3c0c0; transform: rotate(45deg); }
+.sb-loc-tip i { font-size: 16px; margin-top: 1px; color: #dc3545; }
+.sb-loc-tip--up { top: auto; bottom: calc(100% + 8px); }
+.sb-loc-tip--up::before { top: auto; bottom: -6px; transform: rotate(225deg); }

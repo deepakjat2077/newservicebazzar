@@ -1,0 +1,16 @@
+
+    
+    .yt-search-input-box{ position:relative; }
+    .yt-mobile-clear-btn{
+        position:absolute;
+        right:38px;
+        top:50%;
+        transform:translateY(-50%);
+        cursor:pointer;
+        display:none;
+        font-size:14px;
+        color:#666;
+        z-index:999;
+    }
+
+    

@@ -1,0 +1,26 @@
+
+/* 992–1199px: the header's two search boxes didn't match — location
+   grey with a heavy black border, search white with a shadow — and the bell sat
+   on a grey square. One style for both boxes, a clean round bell. */
+@media (min-width:992px) and (max-width:1199px){
+    #stickyScrollHeader .header-input_location_box,
+    #stickyScrollHeader .header-input_search_box{
+        height:42px !important; background:#fff !important; border:1px solid #cfd6e0 !important;
+        border-radius:10px !important; box-shadow:none !important; overflow:hidden;
+        transition:border-color .15s ease, box-shadow .15s ease;
+    }
+    #stickyScrollHeader .header-input_location_box:focus-within,
+    #stickyScrollHeader .header-input_search_box:focus-within{ border-color:#0d6efd !important; box-shadow:0 0 0 3px rgba(13,110,253,.12) !important; }
+    #stickyScrollHeader .header-input_location,
+    #stickyScrollHeader .header-input_search{ height:40px !important; background:transparent !important; font-size:15px !important; }
+    #stickyScrollHeader .sb-bell{
+        width:40px !important; height:40px !important; border-radius:50% !important; background:transparent !important;
+        border:0 !important; display:inline-flex !important; align-items:center; justify-content:center; margin:0 4px 0 10px !important; font-size:19px; color:#1f2937;
+    }
+    #stickyScrollHeader .sb-bell:active, #stickyScrollHeader .sb-bell:hover{ background:#f1f3f7 !important; }
+    #stickyScrollHeader .navbar-toggler{ padding:0 !important; border:0 !important; }
+    #stickyScrollHeader .navbar-toggler .profile-icon{ width:38px !important; height:38px !important; border-radius:50%; object-fit:cover; }
+    #stickyScrollHeader .navbar{ align-items:center !important; }
+    /* the white fade at the box's right edge was cutting through the new border */
+    #stickyScrollHeader .header-input_location_box::after{ display:none !important; }
+}
