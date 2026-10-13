@@ -972,8 +972,6 @@ if (isListingDetailsPage) {
         if (jdInput) { jdInput.dataset.locationId = locationId; }
         const headerLocationIdInput = document.getElementById("headerSearchLocationId");
         if (headerLocationIdInput) { headerLocationIdInput.value = locationId; }
-        // localStorage.setItem("jf_location_id", locationId);
-        // localStorage.setItem("jf_selected_location_name", value);
         saveRecentLocation({ value: value, lat: item.dataset.lat || "", lng: item.dataset.lng || "" });
     if (!isListingDetailsPage) {
     const mobileCatInput = document.getElementById("ytMobileSearchInput");
