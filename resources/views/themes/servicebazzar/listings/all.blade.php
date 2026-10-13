@@ -3,13 +3,7 @@
 @php
     $seoCategory = $selectedCategory ?? $selectedSubcategory ?? null;
     $seoSiteName = $setting->site_name ?? config('app.name', 'Website');
-    // City×category combo pages (ListingController::cityCategoryArea) pass
-    // $locationText but no $seoTitle/$seoDescription — fold the location in
-    // here so every city variant of the same category isn't an identical,
-    // duplicate title/description.
-    // " in <place>" suffix, skipped when the name already names the place —
-    // ~1.9k subcategories are named like "affordable physiotherapy in Chandigarh",
-    // which otherwise rendered "... in Chandigarh in Chandigarh".
+   
     $sbPlaceText = trim((string) ($locationText ?? ''));
     $sbPlaceSuffix = function ($name) use ($sbPlaceText) {
         if ($sbPlaceText === '') {
@@ -24,10 +18,7 @@
     };
     $seoLocationSuffix = $sbPlaceSuffix($seoCategory?->name ?? '');
 
-    // Controller-provided values (e.g. SiteController::listingsCategory,
-    // which appends the site name to its fallback) must win over this
-    // block's own recomputation — previously this used plain `=`, silently
-    // discarding whatever the controller had already built.
+    
     $seoTitle ??= $seoCategory?->seo_title
         ?: (($seoCategory?->name ?? 'Listings') . $seoLocationSuffix . ' | ' . $seoSiteName);
 
@@ -41,12 +32,7 @@
         ? asset('assets/images/category/' . $seoCategory->image)
         : asset('assets/images/logo/logo.png');
 
-    // Pages with zero listings waste crawl budget; they are empty in a way
-    // users and search engines can't use. Noindex them so Google doesn't
-    // treat an empty city page the same as a populated one. $listings is
-    // provided by the controller; it is a Paginator on category pages with
-    // filters, and an array on static endpoints. Either way, count() or
-    // total() tell the true count.
+    
     $listingsCount = isset($listings)
         ? (method_exists($listings, 'total') ? $listings->total() : count($listings))
         : 0;
@@ -76,10 +62,7 @@
     @endphp
 
     <style>
-        /* ================= SEARCH SECTION ================= */
-
-        /* ================= FILTER BAR ================= */
-
+      
         .main-card {
             margin: 15px 12px;
             position: relative;

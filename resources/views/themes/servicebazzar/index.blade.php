@@ -1,24 +1,16 @@
 @extends($themeView.'layouts.site')
 @php
-    // Distinct social-share text so the homepage card isn't the generic site
-    // meta description (SEO include falls back to $seoDescription otherwise).
+  
     $ogTitle = 'Service Bazzar — Find Trusted Local Businesses Near You';
     $ogDescription = 'Discover and connect with verified local businesses across India — services, healthcare, repairs, restaurants and professionals. Compare ratings and prices, then contact them directly. Free to use.';
 @endphp
 @section('content')
-{{--
-    Block-form @section, not the two-argument shorthand: Blade's shorthand
-    `@section('title', '...')` runs the string through e() internally, and
-    <title>{{ $seoTitle }}</title> in includes/seo.blade.php escapes it
-    again — the shorthand form turned "&" into "&amp;amp;" in the rendered
-    <title> tag. Block form captures the text raw so it's escaped exactly
-    once, at render.
---}}
+
 @section('title')
 Local Businesses & Trusted Services Near You
 @endsection
 @include($themeView.'includes.rich-content')
-<!-- Banner Section -->
+
 @php
     $currentLocationName = request('location_name');
     $currentLatitude = request('latitude');
@@ -28,24 +20,17 @@ Local Businesses & Trusted Services Near You
 @php
     $usedCategoryIds = [];
 @endphp
-{{-- Homepage CSS lives in public/assets/servicebazzar/css/home/home-01..09.css,
-     one file per former <style> block, included below in the same order (they
-     override each other, so the order matters). The partial still inlines
-     them: a real external stylesheet cost ~7 mobile PageSpeed points when
-     tried on 2026-09-03. Edit the .css files, not this view. --}}
+
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-01.css'])
 <script>
-/* Card names: keep them as big as the card allows. A name that does not fit
-   its box (a long single word like "Physiotherapists", or a name that would
-   wrap past two lines) steps down 0.5px at a time until it does — never below
-   9px. Names that already fit keep the full size. */
+
 (function () {
     var SEL = '.trending-same-section .trend-card-title, .location-same-section .trend-card-title, .seasonal-same-section .trend-card-title, .popular-same-section .trend-card-title';
     function overflows(el) {
         return el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
     }
     function fit() {
-        if (window.innerWidth <= 767) return; // phones: one fixed size, see the CSS above
+        if (window.innerWidth <= 767) return; 
         document.querySelectorAll(SEL).forEach(function (el) {
             el.style.removeProperty('font-size');
             el.style.removeProperty('white-space');
@@ -56,7 +41,7 @@ Local Businesses & Trusted Services Near You
                 size -= 0.5;
                 el.style.setProperty('font-size', size + 'px', 'important');
             }
-            // Last resort for the longest words on the narrowest phones.
+          
             el.style.removeProperty('letter-spacing');
             if (overflows(el)) el.style.setProperty('letter-spacing', '-0.3px', 'important');
         });
@@ -77,9 +62,7 @@ Local Businesses & Trusted Services Near You
 </div>
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-05.css'])
 <script>
-/* Back here from a search with a place we don't have (the server sends
-   /?location_not_found=...): say so, clear that text everywhere, and put the
-   cursor in the location box so the visitor picks one from the list. */
+
 (function () {
     var params = new URLSearchParams(location.search);
     if (!params.has('location_not_found')) return;
@@ -120,8 +103,7 @@ Local Businesses & Trusted Services Near You
 </script>
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-06.css'])
 <script>
-/* Keep the two search boxes in step: whichever one the visitor sees gets the
-   city, the typed service and the placeholder of the other. */
+
 document.addEventListener('DOMContentLoaded', function () {
     var header = document.getElementById('stickyScrollHeader');
     if (!header) return;
@@ -218,13 +200,6 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
 </div>
 
-{{-- 68 KB of JavaScript used to be spread across 24 <script> blocks in this
-     file: re-downloaded inside the HTML on every visit, parsed before the page
-     could finish rendering, cacheable by nobody. It now lives in home.js and is
-     deferred, so it runs after the document is parsed instead of interrupting
-     it. The handful of values Blade had to fill in stay here, inline — the CSRF
-     token especially, because the public page cache swaps that token per
-     request and can only do so if it is in the HTML. --}}
 <script>
 window.SB = {
     csrf: "{{ csrf_token() }}",
@@ -273,20 +248,12 @@ window.SB = {
 
 </div>
 
-        {{-- If JavaScript is disabled, the input field and submit button remain
-             functional: the user types text and submits. The suggestions dropdown
-             is gone, but form submission still works. Explicit fallback via noscript
-             is shown below. --}}
+       
         <noscript>
-            {{-- When JavaScript is disabled, the text input above is fully functional
-                 and form submission works. A server-side category dropdown is shown as
-                 an extra convenience, but is NOT the primary fallback — the plain text
-                 input and form submission are. The dropdown submits the form directly
-                 (no JS required) by selecting a category and clicking a submit button. --}}
+        
             <div style="margin-top: 8px;">
                 <div style="display: flex; gap: 4px; align-items: center;">
-                    {{-- Dropdown of top 20 active categories. When selected, this
-                         form submits directly (standard HTML form behavior, no JS). --}}
+                   
                     <select name="categorysearch" id="noScriptCategoryFallback"
                             style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                         <option value="">Select a popular category</option>
@@ -432,13 +399,7 @@ window.SB = {
                             @endphp
 
                             @php
-                                // If a banner links to an internal
-                                // /{city}/{category} URL (admin often hardcodes
-                                // the city, e.g. /jaipur/packers-and-movers),
-                                // tag it so the same dynamic-category-link JS
-                                // rewrites the city to the visitor's location.
-                                // Otherwise the shared page cache would show one
-                                // baked city (Jaipur) to every visitor.
+                             
                                 $bannerLink    = $imgData['link'] ?? '';
                                 $bannerCatSlug = '';
                                 if (!empty($bannerLink)) {
@@ -509,13 +470,7 @@ window.SB = {
             </div>
 
      @php
-    // Category links use cityCategoryUrl(): a direct /{default-city}/{slug}
-    // URL (a live 200 page), NOT the /listings/{slug} shortcut that only
-    // 301-redirects — so crawlers don't spend a redirect hop on every
-    // internal category link. The city baked in is a stable default
-    // (config seo.default_city); this page is shared/full-page-cached, so the
-    // .dynamic-category-link JS in the layout rewrites each href to the
-    // visitor's own city on load and on hover, per visitor.
+   
     $fixedCategories = [
         'packers-and-movers',
         'real-estate',
@@ -613,10 +568,6 @@ window.SB = {
         ->values();
 @endphp
 
-{{-- Pure-CSS open/close switch for the "More Categories" panel. The
-     label-driven checkbox keeps the panel usable when JS is off or
-     has died earlier on the page; the JS below only syncs the blur +
-     scroll lock on top of it. --}}
 <input type="checkbox" id="categoryPopupToggle" class="category-popup-toggle" aria-hidden="true" tabindex="-1">
 
 <section class="custom-right category-area py-5">
@@ -667,8 +618,7 @@ window.SB = {
             @endforeach
 
             <div class="category-item text-center more-category-item">
-                {{-- role="button" is not allowed on a <label>; the label already
-                     activates its checkbox, so the role only broke the audit. --}}
+             
                 <label
                     for="categoryPopupToggle"
                     class="more-btn"
@@ -689,13 +639,7 @@ window.SB = {
 </section>
 
 <section class="featured pt-4 pb-4">
-    {{--
-        Slick FOUC guard: until slick.js runs and adds .slick-initialized, the
-        raw .listing-area cards stack full-width one under another — the big
-        stretched flash the user sees on load. Lay them out as a clipped 3-up
-        row (2-up on tablet, 1 on phone) beforehand so the pre-init state
-        already matches the finished slider instead of exploding vertically.
-    --}}
+   
     @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-07.css'])
     <div class="container">
         <div class="row justify-content-center">
@@ -728,9 +672,7 @@ window.SB = {
                     $rating = (float) ($featured->verified_ratings_avg ?? 0);
                     $ratingCount = (int) ($featured->verified_ratings_count ?? 0);
 
-                    // =========================
-                    // YEARS IN BUSINESS
-                    // =========================
+                    
 
                     $yearsInBusiness = null;
 
@@ -871,14 +813,7 @@ window.SB = {
 <!-- Panel -->
 <div class="category-popup" id="categoryPopup">
     <div class="popup-top">
-        {{--
-            This theme ships Bootstrap 4.0 (public/assets/servicebazzar/css/
-            bootstrap.min.css), which has no `.gap-*` utility — that's a
-            Bootstrap 5 class and silently does nothing here, which is why
-            the close "✕" and "Popular Categories" sat with no space between
-            them. `mr-3` (Bootstrap 4's margin utility) on the close button
-            instead.
-        --}}
+     
         <div class="d-flex align-items-center">
             <label for="categoryPopupToggle" class="close-btn mr-3" tabindex="0">✕</label>
             <h3 class="mb-0 hh-h5-size">Popular Categories</h3>
@@ -893,9 +828,7 @@ window.SB = {
         </div>
     </div>
 
-    {{-- Shown only when no city is known: category links still work (their
-         href redirects to a default city), but the results are not local
-         until the visitor turns location on. --}}
+  
     <div class="popup-location-notice" id="popupLocationNotice" hidden>
         <button type="button" class="popup-location-notice__close" id="popupLocationNoticeClose" aria-label="Close location popup">
             &times;
@@ -911,9 +844,7 @@ window.SB = {
             </button>
         </div>
 
-        {{-- Only used for the blocked case: once a site is blocked the
-             browser will not show its prompt again, so a button cannot fix
-             it — the visitor has to change it in the browser itself. --}}
+       
         <ol class="popup-location-notice__steps" id="popupLocationSteps" hidden>
             <li>Click the lock or info icon next to the website address.</li>
             <li>Open <strong>Site settings</strong> (or <strong>Permissions</strong>).</li>
@@ -924,14 +855,7 @@ window.SB = {
 
     
    @php
-    /*
-     * Fallback city for a visitor whose location we don't know yet. Hardcoding
-     * "jaipur" here made the homepage telegraph a Jaipur-first signal to Google
-     * (every no-location category link resolved to Jaipur). Instead rotate the
-     * default across the popular cities by day-of-year — deterministic, so the
-     * 30-minute page cache stays stable, but no single city is the permanent
-     * default. A visitor with a real detected/selected location is unaffected.
-     */
+    
     $rotationCities = function_exists('activeLocations')
         ? activeLocations()->where('is_popular', 1)->pluck('name')->values()
         : collect();
@@ -952,10 +876,7 @@ window.SB = {
 <div class="popup-grid" id="popupCategoryList">
     @foreach($categories as $categoryItem)
 
-        {{-- Real href, not "#": the JS handler below only takes over when it
-             can build a city-prefixed URL. With location denied/unset — or
-             with JS off entirely — the browser follows this link and
-             listings.category redirects to the visitor's city. --}}
+     
         <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
    class="popup-item dynamic-category-link"
    data-slug="{{ $categoryItem->slug }}">
@@ -1120,9 +1041,7 @@ window.SB = {
                 <div class="trending-scroll" >
                     @foreach($locations as $location)
                         <div class="trend-card-item">
-                      {{-- A real URL so the link is crawlable and can be opened
-                           in a new tab; the click handler still preventDefaults
-                           and keeps the on-page behaviour. --}}
+                     
                       <a href="{{ url($location->slug) }}"
    class="trend-card-link select-home-location"
    data-location-name="{{ $location->name }}"
@@ -1628,10 +1547,6 @@ WhatsApp
         
 
     </div>
-
-{{-- Popular Categories / Popular Cities now live once in the shared footer
-     (resources/views/themes/servicebazzar/includes/footer.blade.php), not
-     duplicated here — see popular_categories_ajax.blade.php / popular_cities.blade.php --}}
 
 </section>
 

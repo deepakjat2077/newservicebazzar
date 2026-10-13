@@ -1,29 +1,11 @@
 <!DOCTYPE html>
 <html lang="en-IN">
 <head>
-	{{-- The LCP image's preload has to be the first thing the parser sees.
-	     Pushed onto the css stack it landed after the analytics tag and the
-	     three blocking stylesheets, and the measured cost was 1.36s of "load
-	     delay" — the browser simply had not been told about the image yet
-	     while it fetched everything else. --}}
+	
 	@stack('lcp')
 
 	@include('includes.seo')
-	{{-- ============================================================
-	     CSS LOADING STRATEGY
-	     Critical (render-blocking): bootstrap, index, style — needed for LCP layout.
-	     Non-critical (async via preload/onload): everything else — icons, sliders,
-	     toasts, galleries, colors — deferred so they never block first paint.
-	     FontAwesome 7 alone is ~400KB; deferring it was the single biggest LCP win.
-	     ============================================================ --}}
 
-	{{-- Those three stylesheets are 254 KB and they blocked the first paint —
-	     measured at 590-1090 ms, and half of the LCP's "render delay" on top.
-	     What the first screen actually needs out of them is 31 KB, extracted
-	     with penthouse against both the phone and the desktop viewport, so
-	     neither paints unstyled. That goes inline (no request at all), and the
-	     full files then load the same asynchronous way every other stylesheet
-	     here already does — they arrive in time for anything below the fold. --}}
 	@include('themes.servicebazzar.partials.inline-css', ['file' => 'critical.css'])
 
 	<link rel="preload" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
@@ -35,10 +17,7 @@
 		<link rel="stylesheet" href="{{ asset($themeAsset.'css/style.css') }}">
 	</noscript>
 
-	{{-- LCP preload is set dynamically per-page (see index.blade.php @push('css')) --}}
 
-	{{-- NON-CRITICAL CSS — async load, never blocks paint --}}
-	{{-- FontAwesome 7 (~400KB) --}}
 	<link rel="preload" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset('assets/fontawesome-free-7.2.0-web/css/all.min.css') }}"></noscript>
 
@@ -46,27 +25,19 @@
 	<link rel="preload" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}"></noscript>
 
-	{{-- Select2 dropdown --}}
-
-	{{-- Slick slider --}}
+	
 	<link rel="preload" href="{{ asset($themeAsset.'css/slick.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}"></noscript>
 
-	{{-- Toastr notifications --}}
 	<link rel="preload" href="{{ asset($themeAsset.'css/toastr.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/toastr.min.css') }}"></noscript>
 
-	{{-- Lightcase gallery --}}
 
-	{{-- Star ratings --}}
-
-	{{-- Dynamic color CSS --}}
 	<link rel="preload" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/colorCss.php') }}?color={{ str_replace('#', '', $setting->first_color) }}"></noscript>
 
 	@stack('css')
 
-	{{-- Google Fonts — non-blocking with font-display:swap --}}
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
@@ -80,18 +51,10 @@
 @php
     $sbIsHomeLike = request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug');
 
-    /*
-     * The mobile header has two shapes, and which one a page uses was decided
-     * in JavaScript at the very end of a long script. So the phone painted the
-     * plain header first and swapped in the search bar a moment later — a
-     * visible jump on every page. The class is written here instead, so the
-     * right header is there in the first paint. Every rule that reads it sits
-     * inside @media (max-width: 991px), so this changes nothing on desktop.
-     */
+  
     $sbBodyClass = trim(($sbIsHomeLike ? 'home-page' : '')
         . (request()->routeIs('home') ? '' : ' mobile-yt-search-open')
-        // Every page but the home page gets the two-row phone header (back +
-        // logo + actions, then the search bar), like JustDial's.
+       
         . (request()->routeIs('home') ? '' : ' jd-head'));
 @endphp
 <body class="{{ $sbBodyClass }}"
@@ -106,11 +69,9 @@
 >
 @auth
     @php
-        // The business named in the profile menu must be a live (approved)
-        // one; a pending or rejected listing isn't the user's business yet.
+      
         $sbHeaderBusiness = auth()->user()->listings()->where('status', 1)->latest()->first();
-        // The header "My Business" link opens the user's listings page, which
-        // shows pending ones with their status, so any listing counts there.
+       
         $sbHasBusinessListing = $sbHeaderBusiness || auth()->user()->listings()->exists();
     @endphp
 @endauth
@@ -118,11 +79,6 @@
     Skip to main content
 </a>
 
-{{-- Page-transition loader — category/subcategory pages are the biggest
-     listing queries on the site, and a plain click gave no feedback while
-     the next page rendered. Shown on any same-site link click, hidden again
-     if the browser restores this page from bfcache (back button) instead of
-     actually navigating. See the script right after this markup. --}}
 <div id="pageLoader" class="page-loader" aria-hidden="true">
     <div class="page-loader-spinner"></div>
 </div>
@@ -139,7 +95,7 @@
 			<div class="container-fuldie custom-right .head-right ">
 				<nav class="navbar navbar-expand-lg navbar-light">
                 @if(!request()->routeIs('home'))
-                {{-- Phone, every page but home: first header row — back, logo, share, bell/profile. --}}
+              
                 <div class="jdh-top">
                     <button type="button" class="jdh-ico" aria-label="Go back" onclick="goBackPage()"><i class="las la-angle-left"></i></button>
                     <a href="{{ route('home') }}" class="jdh-logo"><img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar"></a>
@@ -348,8 +304,7 @@
 		</div>
 	</header>
 
-    {{-- The skip link at the top points here. Without an element carrying this
-	     id it had nothing to jump to, which is why it never took focus. --}}
+    
     <main id="main-content">
     @yield('content')
     </main>
@@ -421,28 +376,11 @@
 
 @include('themes.servicebazzar.partials.inline-js', ['file' => 'layout/site-02.js'])
 
-	{{-- ============================================================
-	     JS LOADING STRATEGY
-	     jquery + bootstrap + toastr: sync — inline scripts in this layout use
-	     $ and toastr directly, so they must be ready before those <script> blocks.
-	     app.js: deferred — it initialises the slick slider once the DOM is up.
-	     at parse time, saving ~30KB of main-thread blocking.
-	     tracking.js: defer (unchanged).
-	     ============================================================ --}}
-	{{-- SYNC (inline scripts below need these immediately): jQuery 88KB + Bootstrap 48KB + Toastr 5.5KB --}}
+
 	<script src="{{ asset($themeAsset.'js/jquery-3.6.0.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/bootstrap.min.js') }}"></script>
 	<script src="{{ asset($themeAsset.'js/toastr.min.js') }}"></script>
 
-	{{-- Every page used to carry select2 (72 KB), wow (8 KB) and
-	     bootstrap-notify (8 KB). Nothing in the theme calls any of them:
-	     no element carries class="select2" (app.js's `$('.select2').select2()`
-	     matched nothing), `new WOW` appears nowhere, and neither does
-	     `.notify(`. They were downloaded, parsed and evaluated on every visit
-	     for no effect, which is main-thread time the LCP image was waiting on.
-
-	     lightcase and starrr are real, but only on the listing detail page —
-	     they are pushed from there now instead of loading site-wide. --}}
 	<script src="{{ asset($themeAsset.'js/slick.min.js') }}" defer></script>
 	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}" defer></script>
 
@@ -566,18 +504,10 @@
     </div>
 </div>
 
-{{-- OTP step every enquiry form goes through before it submits. Sits here so
-     one copy covers every page, including forms injected after load. --}}
 @include('themes.servicebazzar.partials.enquiry-otp')
 
 @auth
-{{--
-    Logged-in profile panel — a JustDial-style slide-in from the right,
-    opened by the avatar icon in the header instead of that icon linking
-    straight to /dashboard. Every link below is a route that already
-    exists elsewhere on the site (dashboard, profile, listings, wallet,
-    leads inbox, password, contact) — nothing here is a placeholder.
---}}
+
 <div id="sbProfilePanelOverlay" class="sb-profile-overlay"></div>
 <div id="sbProfilePanel" class="sb-profile-panel">
     <div class="sb-profile-head">
@@ -592,10 +522,7 @@
     </div>
 
     @php
-        // Shown as "My Business" the way JustDial surfaces the listing you
-        // already run — pulled straight from this user's own listings
-        // rather than anything typed in on this page, so it's only ever as
-        // current as the listing itself.
+       
         $sbMyBusiness = $sbHeaderBusiness;
     @endphp
 
@@ -624,7 +551,7 @@
             <span>Dashboard</span>
         </a>
 
-        {{-- Every enquiry this business has had (the Leads page, no filter) — not the guest chats. --}}
+    
         <a href="{{ $sbMyBusiness ? route('user.listing.leads', $sbMyBusiness->id) : route('user.listing.index') }}" class="sb-profile-item">
             <i class="fa-solid fa-inbox"></i>
             <span>Leads &amp; Enquiries</span>
