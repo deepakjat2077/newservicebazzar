@@ -41,6 +41,15 @@
 						</form>
 
 						<div class="mt-2">
+							{{-- Same filters as the list (search / category / location), all pages. --}}
+							@if($subcategories->total() > 0)
+								<a href="{{ route('admin.subcategories.export', request()->except('page')) }}"
+								   id="exportExcelBtn"
+								   data-base="{{ route('admin.subcategories.export') }}"
+								   class="btn btn-sm btn-success float-right">
+									<i class="fas fa-file-excel"></i> @lang('Export Excel')
+								</a>
+							@endif
 							<span class="badge badge-primary">
 								@lang('Total'): {{ $subcategories->total() }}
 							</span>
@@ -222,6 +231,19 @@ $(document).ready(function(){
     /* =========================
        SEARCHABLE FILTER DROPDOWNS
     ========================== */
+    // Export what is chosen in the filter boxes right now, even if Filter
+    // wasn't pressed after changing them.
+    $('#exportExcelBtn').on('click', function (e) {
+        var $form = $('select[name="category_id"]').closest('form');
+        if (!$form.length) {
+            return;
+        }
+        e.preventDefault();
+        var params = $form.serializeArray().filter(function (f) { return f.value !== ''; });
+        var qs = $.param(params);
+        window.location.href = $(this).data('base') + (qs ? '?' + qs : '');
+    });
+
     $('.select2-filter').each(function () {
         $(this).select2({
             // The filter sits inside a Bootstrap column; without this select2

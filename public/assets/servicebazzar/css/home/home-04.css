@@ -1,0 +1,45 @@
+
+/* Tablets (768–1199px). Between phone and full desktop the page was using the
+   desktop layout squeezed: the banner cropped beside four cramped category
+   cards ("Get Nearest Vend…"), only four icon tiles per row with wide gaps,
+   and the Download App button stuck to the search box. */
+@media (min-width:768px) and (max-width:1199px){
+    /* banner full width at its own shape, the four cards in a row under it */
+    .custom-banner-section .mobile-banner-row{ margin:0 !important; padding:0 16px !important; row-gap:16px; }
+    .custom-banner-section .mobile-banner-col{ flex:0 0 100% !important; max-width:100% !important; width:100% !important; margin:0 !important; padding:0 !important; }
+    .custom-banner-section #mainBannerCarousel,
+    .custom-banner-section .main-banner-box{ height:auto !important; max-height:none !important; border-radius:16px; overflow:hidden; }
+    .custom-banner-section .main-banner-box img{ width:100% !important; height:auto !important; aspect-ratio:1200 / 534; object-fit:cover !important; display:block; }
+    .custom-banner-section .mobile-category-col{ flex:0 0 100% !important; max-width:100% !important; width:100% !important; margin:0 !important; padding:0 !important; }
+    .custom-banner-section .mobile-category-row{ margin:0 !important; display:flex !important; flex-wrap:nowrap !important; gap:14px; }
+    .custom-banner-section .mobile-category-item{ flex:1 1 0 !important; max-width:none !important; width:auto !important; padding:0 !important; margin:0 !important; }
+    .custom-banner-section .mobile-category-item{ height:230px !important; min-height:0 !important; background:transparent !important; }
+    .custom-banner-section .mobile-category-col .mini-service-card{ height:100% !important; width:100% !important; }
+    .custom-banner-section .mobile-category-col .mini-service-card img{ height:100% !important; max-height:none !important; object-fit:cover; }
+
+}
+@media (min-width:992px) and (max-width:1199px){
+    /* line the banner and cards up with the title/search above (40px edge),
+       and keep Download App clear of the search box */
+    .custom-banner-section .mobile-banner-row{ padding:0 40px !important; }
+    .banner-download-btn{ right:40px !important; }
+}
+@media (min-width:768px) and (max-width:1199px){
+    /* blog: use the full width instead of Bootstrap's fixed 720/960px box, and
+       give the three cards equal height with the Read buttons on one line */
+    .blog-section > .container{ max-width:100% !important; padding-left:24px !important; padding-right:24px !important; }
+    .blog-section .row.mb__30{ margin-left:-10px; margin-right:-10px; }
+    .blog-section .row.mb__30 > .col-md-4{ display:flex; padding-left:10px; padding-right:10px; }
+    .blog-section .blog-area{ display:flex; flex-direction:column; width:100%; height:100%; }
+    .blog-section .blog-area .thumb{ height:auto !important; min-height:0 !important; max-height:none !important; }
+    .blog-section .blog-area .thumb img{ width:100% !important; height:auto !important; aspect-ratio:400 / 250; object-fit:cover; }
+    .blog-section .blog-area .content-area{ display:flex; flex-direction:column; flex:1 1 auto; }
+    .blog-section .blog-area .content-area .btn{ margin-top:auto; align-self:flex-start; }
+}
+@media (min-width:992px) and (max-width:1199px){
+    .blog-section > .container{ padding-left:40px !important; padding-right:40px !important; }
+}
+@media (min-width:768px) and (max-width:991px){
+    /* icon tiles: five to a row instead of four spread wide */
+    .category-area .category-grid{ grid-template-columns:repeat(5, 1fr) !important; row-gap:22px; padding:0 16px; }
+}

@@ -20,6 +20,41 @@ class SubcategoriesController extends Controller
 
     public function index(Request $request)
     {
+        $query = $this->filteredQuery($request);
+
+        $subcategories = $query->orderBy('name')
+            ->paginate(20)
+            ->withQueryString();
+
+        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $locations  = Location::where('status', 1)->orderBy('name')->get();
+
+        return view('admin.subcategories.index', compact(
+            'subcategories',
+            'categories',
+            'locations'
+        ));
+    }
+
+    /**
+     * Excel download of every subcategory matching the current filters.
+     */
+    public function export(Request $request)
+    {
+        $query = $this->filteredQuery($request)->orderBy('name');
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SubcategoriesExport($query),
+            'subcategories-' . now()->format('Y-m-d-His') . '.xlsx'
+        );
+    }
+
+    /**
+     * Search / Category / Location filters, shared by index() and export()
+     * so the download always matches the list on screen.
+     */
+    protected function filteredQuery(Request $request)
+    {
         $query = Subcategory::with('category');
 
         if ($request->filled('q')) {
@@ -56,18 +91,7 @@ class SubcategoriesController extends Controller
             $query->whereIn('id', $idsInLocation);
         }
 
-        $subcategories = $query->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
-
-        $categories = Category::where('status', 1)->orderBy('name')->get();
-        $locations  = Location::where('status', 1)->orderBy('name')->get();
-
-        return view('admin.subcategories.index', compact(
-            'subcategories',
-            'categories',
-            'locations'
-        ));
+        return $query;
     }
 
     public function createPage()

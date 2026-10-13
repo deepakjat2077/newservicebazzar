@@ -82,6 +82,12 @@
         </a>
     </li>
     <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('admin.whatsapp.sent.report') ? 'active' : '' }}"
+           href="{{ route('admin.whatsapp.sent.report') }}">
+            <i class="fas fa-chart-bar"></i> @lang('Sent Report')
+        </a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link {{ request()->routeIs('admin.whatsapp.chats') || request()->routeIs('admin.whatsapp.chat') ? 'active' : '' }}"
            href="{{ route('admin.whatsapp.chats') }}">
             <i class="fab fa-whatsapp"></i> @lang('Chats')

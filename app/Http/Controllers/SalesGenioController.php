@@ -48,6 +48,7 @@ class SalesGenioController extends Controller
             // was why a rep never saw the login screen again.
             Auth::guard('sales')->login($user);
             $request->session()->regenerate();
+        $request->session()->forget('sales_geo_logged'); // next GPS point = this login's location
             $request->session()->put('sales_last_seen', now()->timestamp);
 
             return redirect()->route('sales_genio.dashboard');
@@ -106,6 +107,7 @@ class SalesGenioController extends Controller
 
         Auth::guard('sales')->login($user);
         $request->session()->regenerate();
+        $request->session()->forget('sales_geo_logged'); // next GPS point = this login's location
         $request->session()->put('sales_last_seen', now()->timestamp);
 
         return redirect()->route('sales_genio.dashboard');

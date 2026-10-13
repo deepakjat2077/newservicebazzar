@@ -221,6 +221,91 @@ class WhatsappController extends Controller
     }
 
     /**
+     * Enquiries sent per business number: how many each WhatsApp number has been
+     * sent, with category / location / listing filters. ?phone= opens one number's
+     * enquiries. Category and location come from the listing the message went to.
+     */
+    public function sentReport(Request $request)
+    {
+        $base = function () use ($request) {
+            $q = \Illuminate\Support\Facades\DB::table('whatsapp_messages as wm')
+                ->leftJoin('listings as l', 'l.id', '=', 'wm.listing_id')
+                ->where('wm.direction', 'outbound')
+                ->whereNotNull('wm.enquiry_id');
+
+            if ($request->filled('category_id')) {
+                $q->where('l.category_id', (int) $request->category_id);
+            }
+            if ($request->filled('location_id')) {
+                $q->where('l.location_id', (int) $request->location_id);
+            }
+            if ($request->filled('listing')) {
+                $q->where('l.name', 'like', '%' . trim($request->listing) . '%');
+            }
+            if ($request->filled('search')) {
+                $term = trim($request->search);
+                $digits = preg_replace('/\D/', '', $term);
+                $q->where(function ($w) use ($term, $digits) {
+                    $w->where('wm.contact_name', 'like', '%' . $term . '%');
+                    if (strlen($digits) >= 4) {
+                        $w->orWhere('wm.phone', 'like', '%' . $digits . '%');
+                    }
+                });
+            }
+
+            return $q;
+        };
+
+        $phone = preg_replace('/\D/', '', (string) $request->phone);
+
+        $summary = $base()
+            ->selectRaw('COUNT(DISTINCT wm.phone) AS numbers, COUNT(DISTINCT wm.enquiry_id) AS enquiries')
+            ->first();
+
+        $rows = null;
+        $sent = null;
+        $listings = collect();
+
+        if ($phone !== '') {
+            // One number: every enquiry it was sent.
+            $sent = $base()
+                ->where('wm.phone', $phone)
+                ->leftJoin('enquiries as e', 'e.id', '=', 'wm.enquiry_id')
+                ->selectRaw('wm.id, wm.enquiry_id, wm.status, wm.created_at, wm.contact_name, wm.listing_id, e.name AS enquirer, e.phone AS enquirer_phone')
+                ->orderByDesc('wm.id')
+                ->paginate(25)
+                ->withQueryString();
+            $listingIds = collect($sent->items())->pluck('listing_id');
+        } else {
+            $rows = $base()
+                ->selectRaw('wm.phone, MAX(wm.contact_name) AS contact_name, MAX(wm.listing_id) AS listing_id, COUNT(DISTINCT wm.enquiry_id) AS total, MAX(wm.created_at) AS last_sent')
+                ->groupBy('wm.phone')
+                ->orderByDesc('total')
+                ->orderByDesc('last_sent')
+                ->paginate(25)
+                ->withQueryString();
+            $listingIds = collect($rows->items())->pluck('listing_id');
+        }
+
+        $listings = Listing::with(['category:id,name', 'location:id,name'])
+            ->whereIn('id', $listingIds->filter()->unique())
+            ->get(['id', 'name', 'category_id', 'location_id'])
+            ->keyBy('id');
+
+        return view('admin.whatsapp.sent_report', [
+            'rows'       => $rows,
+            'sent'       => $sent,
+            'phone'      => $phone,
+            'summary'    => $summary,
+            'listings'   => $listings,
+            'categories' => Category::where('status', 1)->orderBy('name')->get(['id', 'name']),
+            'locations'  => Location::where('status', 1)->orderBy('name')->get(['id', 'name']),
+            'stats'      => $this->stats(),
+            'configured' => $this->sender->isConfigured(),
+        ]);
+    }
+
+    /**
      * One enquiry and everything it can be forwarded to.
      *
      * A listing enquiry has exactly one target. A category enquiry ("someone

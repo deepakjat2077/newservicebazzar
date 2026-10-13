@@ -7165,36 +7165,8 @@
 
 
 
-{{-- Popular Cities --}}
-
-@if(isset($popularCities) && $popularCities->count() > 0)
-
-    <div class="popular-city-section">
-
-        <div class="popular-title">
-            {{ $currentCategory }} in Popular Cities
-        </div>
-
-        <div class="popular-city-list">
-
-            @foreach($popularCities as $city)
-
-                <a class="spn"
-                   href="{{ url(Str::slug($city->name) . '/' . $currentCategorySlug) }}">
-                    {{ $currentCategory }} in {{ $city->name }}
-                </a>
-
-                @if(!$loop->last)
-                    <span>|</span>
-                @endif
-
-            @endforeach
-
-        </div>
-
-    </div>
-
-@endif
+{{-- "{category} in Popular Cities" block removed 2026-10-13 at the owner's request;
+     Nearby Areas above stays. --}}
 
 
 

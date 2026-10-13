@@ -848,8 +848,8 @@ a {
                         <div class="custom-dropdown-menu">
 
                             <a
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => ''])) }}">
-                                Any
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 'any'])) }}">
+                                Any rating
                             </a>
 
                             <a

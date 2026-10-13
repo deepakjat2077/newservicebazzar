@@ -3259,6 +3259,55 @@ private function recoverServiceSlug(string $slug): ?string
     return null;
 }
 
+/**
+ * The filter pills on city / area landers (?rating=, ?filter=, ?sort=). These
+ * pages load their whole result set, so the collection is filtered here and
+ * the paid-position / top_rank order built by the query stays as the default.
+ * Ratings use the same average the cards show (withAvg ratings).
+ * ?rating=any means "has at least one rating".
+ */
+private function applyListingFilters($listings, \Illuminate\Http\Request $request)
+{
+    $avg = fn ($l) => (float) ($l->ratings_avg_ratings ?? 0);
+    $rated = fn ($l) => (int) ($l->ratings_count ?? 0) > 0;
+
+    $rating = (string) $request->query('rating', '');
+    if ($rating === 'any') {
+        $listings = $listings->filter($rated);
+    } elseif (is_numeric($rating) && (float) $rating > 0) {
+        $min = (float) $rating - 0.0001;
+        $listings = $listings->filter(fn ($l) => $rated($l) && $avg($l) >= $min);
+    }
+
+    switch ((string) $request->query('filter', '')) {
+        case 'verified':
+            $listings = $listings->filter(fn ($l) => (int) $l->verified === 1);
+            break;
+        case 'trust':
+            $listings = $listings->filter(fn ($l) => (int) $l->trust === 1);
+            break;
+        case 'top_rated':
+            $listings = $listings->filter(fn ($l) => $rated($l) && $avg($l) >= 4);
+            break;
+    }
+
+    switch ((string) $request->query('sort', '')) {
+        case 'rating':
+        case 'top_rating':
+            // Highest average first, more reviews breaks a tie; unrated last.
+            $listings = $listings->sort(fn ($a, $b) => [$avg($b), (int) $b->ratings_count] <=> [$avg($a), (int) $a->ratings_count]);
+            break;
+        case 'low_rating':
+            $listings = $listings->sort(fn ($a, $b) => [!$rated($a), $avg($a)] <=> [!$rated($b), $avg($b)]);
+            break;
+        case 'popular':
+            $listings = $listings->sortByDesc(fn ($l) => (int) ($l->view ?? 0));
+            break;
+    }
+
+    return $listings->values();
+}
+
 public function cityCategoryArea($city, $categoryArea)
 {
     // This route is an unconstrained two-segment catch-all, so it absorbs the
@@ -3911,7 +3960,9 @@ $categoryLocalities = $localityQuery
         'selected_category' => $selectedItem->name ?? ''
     ]);
 
-    $data['listings'] = $listings;
+    // Ratings / Sort / Verified / Trust pills. Applied to the page's list
+    // only; SEO counts, schema and related links keep using the full set.
+    $data['listings'] = $this->applyListingFilters($listings, request());
 $data['starListings'] = $starListings;
 $data['categories'] = Category::where('status', 1)->get();
 $data['selectedCategory'] = $subcategory ? null : $category;

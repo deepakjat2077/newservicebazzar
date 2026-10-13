@@ -1,0 +1,24 @@
+
+/* Desktop home: the top bar and the search row below it read as ONE header.
+   At the top there is no shadow line between them; once the page scrolls the
+   search row "rises" into the bar — same boxes, same sizes, same city. */
+@media (min-width:992px){
+    body.home-page #stickyScrollHeader.scrolled{ box-shadow:0 2px 10px rgba(15,23,42,.10) !important; }
+    body.home-page #stickyScrollHeader.scrolled #scrollSearchHolder{ animation:sbSearchRise .32s ease-out both; }
+    body.home-page #scrollSearchHolder .header-search-row-custom{ gap:14px; }
+    body.home-page #scrollSearchHolder .header-location-col-custom{ flex:0 1 280px !important; width:auto !important; max-width:280px; }
+    body.home-page #scrollSearchHolder .header-search-col-custom{ flex:0 1 430px !important; width:auto !important; max-width:430px; }
+    body.home-page #stickyScrollHeader.scrolled #scrollSearchHolder{ flex:1 1 724px !important; max-width:724px !important; min-width:0; }
+    body.home-page #scrollSearchHolder .header-search-row-custom{ width:100% !important; }
+    body.home-page #scrollSearchHolder .header-location-col-custom{ min-width:150px; }
+    body.home-page #scrollSearchHolder .header-search-col-custom{ min-width:200px; }
+    body.home-page #scrollSearchHolder .header-input_location_box,
+    body.home-page #scrollSearchHolder .header-location-col-custom input{ width:100% !important; }
+    body.home-page #homeSearchOriginalPlace{ transition:opacity .2s ease; }
+    body.home-page.header-fixed #homeSearchOriginalPlace{ opacity:0; }
+}
+@media (min-width:992px) and (max-width:1199px){
+    body.home-page #stickyScrollHeader.scrolled #scrollSearchHolder{ max-width:430px !important; }
+    body.home-page #stickyScrollHeader.scrolled .navbar a{ white-space:nowrap; }
+}
+@keyframes sbSearchRise{ from{ opacity:0; transform:translateY(22px); } to{ opacity:1; transform:none; } }

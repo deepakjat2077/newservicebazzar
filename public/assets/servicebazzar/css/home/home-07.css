@@ -1,0 +1,18 @@
+
+        .featured-listing-slider:not(.slick-initialized){
+            display:flex; flex-wrap:nowrap; overflow:hidden; gap:16px;
+        }
+        .featured-listing-slider:not(.slick-initialized) > .listing-area{
+            flex:0 0 calc((100% - 32px) / 3); max-width:calc((100% - 32px) / 3);
+        }
+        @media (max-width:992px){
+            .featured-listing-slider:not(.slick-initialized) > .listing-area{
+                flex:0 0 calc((100% - 16px) / 2); max-width:calc((100% - 16px) / 2);
+            }
+        }
+        @media (max-width:576px){
+            .featured-listing-slider:not(.slick-initialized) > .listing-area{
+                flex:0 0 100%; max-width:100%;
+            }
+        }
+    

@@ -595,6 +595,12 @@
                         <span class="sidebar-menu-title">@lang('Sales Dispositions')</span>
                     </a>
                 </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.sales_team.index') }}" class="{{ menuActive('admin.sales_team*')[0] }}">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span class="sidebar-menu-title">@lang('Sales Team Report')</span>
+                    </a>
+                </li>
                 @adminCan('package.manage')
                 <li class="sidebar-menu-item">
                     <a href="{{ route('admin.sales_discounts.index') }}" class="{{ menuActive('admin.sales_discounts*')[0] }}">

@@ -10,6 +10,28 @@ class ListingDisposition extends Model
 
     protected $casts = ['call_back' => 'boolean', 'due_at' => 'datetime'];
 
+    /**
+     * Pin each new disposition to where the rep was: their latest GPS point
+     * from the SB Sales panel within the last 30 minutes (SalesGeoBeacon).
+     */
+    protected static function booted()
+    {
+        static::creating(function (ListingDisposition $d) {
+            if ($d->sales_user_id && empty($d->location_id)) {
+                $d->location_id = SalesUserLocation::where('sales_user_id', $d->sales_user_id)
+                    ->where('status', 'ok')
+                    ->where('created_at', '>=', now()->subMinutes(30))
+                    ->latest('id')
+                    ->value('id');
+            }
+        });
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(SalesUserLocation::class, 'location_id');
+    }
+
     /** Dispositions that carry a date: the rep has to act on them. */
     public const SCHEDULED = ['Follow Up', 'Call Back', 'Appointment Refixed', 'Self Appointment'];
 

@@ -31,7 +31,11 @@
                             @forelse($users as $u)
                             <tr>
                                 <td>{{ $users->firstItem() + $loop->index }}</td>
-                                <td><strong>{{ $u->name }}</strong></td>
+                                <td>
+                                    <a href="{{ route('admin.sales_team.show', $u->id) }}" title="Open details: location, map, dispositions, month figures">
+                                        <strong>{{ $u->name }}</strong>
+                                    </a>
+                                </td>
                                 <td><code>{{ $u->empcode }}</code></td>
                                 <td>{{ $u->designation ?? '–' }}</td>
                                 <td>{{ $u->city }}</td>
@@ -45,6 +49,9 @@
                                     </form>
                                 </td>
                                 <td>
+                                    <a href="{{ route('admin.sales_team.show', $u->id) }}" class="btn btn-sm btn-info" title="Details">
+                                        <i class="fas fa-chart-line"></i>
+                                    </a>
                                     <a href="{{ route('admin.sales_users.edit', $u->id) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-pen"></i>
                                     </a>

@@ -1,0 +1,421 @@
+
+.listing-area {
+        position: relative;
+    }
+
+   .listing-area .thumb{
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.listing-area .thumb img{
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+
+    position: relative !important;
+    inset: unset !important;
+
+    min-width: unset !important;
+    max-width: unset !important;
+    min-height: unset !important;
+    max-height: unset !important;
+}
+
+    .listing-area h2 {
+        font-size: 18px;
+        line-height: 1.4;
+        margin-bottom: 8px;
+        color: #262630;
+    }
+
+    .listing-area h2 a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .listing-star-icon {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+        margin-right: 6px;
+        vertical-align: middle;
+        flex-shrink: 0;
+    }
+
+    .jd-rating-wrap {
+        gap: 8px;
+    }
+
+    .jd-rating-badge {
+        background: #12874f;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .jd-rating-count {
+        font-size: 12px;
+        color: #555;
+    }
+
+    .jd-badge-img {
+        height: 18px;
+        object-fit: contain;
+    }
+
+    .listing-location {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .dot-separator {
+        margin: 0 4px;
+        font-weight: 700;
+        color: #555;
+    }
+
+    .business-years {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        color: #000;
+        font-weight: 400;
+    }
+
+    .listing-contact {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .listing-contact a {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .btn-call {
+        background: #138808;
+        color: #fff;
+        padding: 8px 0;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-call:hover {
+        background: #0f6e06;
+        color: #fff;
+    }
+
+    .btn-whatsapp {
+        background: #f8f9fa;
+        border: 1px solid #cfcfcf;
+        color: #333;
+        padding: 8px 0;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-whatsapp i {
+        color: #25D366;
+    }
+
+    .btn-whatsapp:hover {
+        background: #e9ecef;
+        color: #333;
+    }
+
+    @media (max-width: 767px) {
+        .listing-area .thumb {
+            height: 190px;
+        }
+
+        .listing-area h2 {
+            font-size: 16px;
+        }
+
+        .jd-rating-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+        }
+
+        .jd-rating-count {
+            font-size: 11px;
+        }
+
+        .jd-badge-img {
+            height: 16px;
+        }
+
+        .business-years {
+            font-size: 12px;
+        }
+
+        .listing-contact {
+            gap: 8px;
+        }
+    }
+.latest-scroll-section .tabs-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.latest-scroll-section .tabs-scroll {
+    overflow-x: auto;
+    flex: 1;
+}
+
+.latest-scroll-section .tabs-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.latest-scroll-section .nav-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;      /* Prevent cut */
+}
+
+.latest-scroll-section .nav-item {
+    flex: 0 0 auto;          /* Prevent shrink */
+}
+
+.latest-scroll-section .nav-link {
+    white-space: nowrap;
+}
+
+.latest-scroll-section .arrow-btn {
+    border: 1px solid #dee2e6;
+    background: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin: 0 8px;
+    cursor: pointer;
+}
+.cod{
+                font-size: 18px;
+    font-weight: 700;
+            }
+           .spn {
+                line-height: 1.67;
+                margin-top: 15px;
+                font-size: 12px;
+    
+color: #555;
+            }
+            .bgl{
+                font-size: 16px;
+    font-weight: 600;
+            }
+#homeLocationSuggestions::-webkit-scrollbar{
+    width: 6px;
+}
+
+#homeLocationSuggestions::-webkit-scrollbar-track{
+    background: transparent;
+    margin: 8px 0;
+}
+
+#homeLocationSuggestions::-webkit-scrollbar-thumb{
+    background: #bdbdbd;
+    border-radius: 20px;
+    border: 2px solid #fff;
+}
+.category-content-bottom p {
+    font-size: 13px;
+    font-weight: 600;
+    color: #222;
+    line-height: 1.5;
+}
+
+@media (max-width: 767px) {
+    .category-content-bottom {
+        margin-top: 18px !important;
+    }
+
+    .category-content-bottom p {
+        font-size: 12px;
+        line-height: 1.45;
+    }
+}
+
+    .category-content-heading h4 {
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.4;
+}
+
+.category-content-row {
+    row-gap: 36px;
+}
+
+.category-content-card {
+    display: block;
+    color: #4b4b4b;
+    min-height: 155px;
+}
+
+.category-content-title-wrap {
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.category-content-icon {
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.category-content-icon img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
+}
+
+.category-content-icon i {
+    font-size: 22px;
+    line-height: 1;
+    color: #555;
+}
+
+.category-content-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #111;
+   
+}
+
+.category-content-desc {
+    font-size: 14px;
+    font-weight: 400;
+    color: #4b5563;
+    line-height: 1.55;
+    max-width: 285px;
+}
+
+@media (max-width: 767px) {
+    .category-content-heading {
+        margin-bottom: 18px !important;
+    }
+
+    .category-content-heading h4 {
+        font-size: 16px;
+        line-height: 1.4;
+    }
+
+    .category-content-row {
+        row-gap: 24px;
+    }
+
+    .category-content-title {
+        font-size: 15px;
+    }
+
+    .category-content-desc {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+}
+
+    .blog-area .thumb {
+    width: 100%;
+    height: 220px; /* fix height */
+    overflow: hidden;
+    border-radius: 8px;
+}.blog-area .thumb img {
+    width: 100%;
+    height: 100%;
+        object-fit: inherit;
+}
+
+
+/* Mobile + Tablet me home location/category input hide */
+@media (max-width: 991px){
+
+    .banner-section .search-area,
+    .banner-section #homeSearchForm,
+    .banner-section .search-row-custom,
+    #mobileHomeLocationBox,
+    .search-col-custom{
+        display: none !important;
+    }
+
+    .banner-section{
+        padding-top: 0 !important;
+    }
+}
+
+/* ==========================================================================
+   Heading-hierarchy fix (SEO audit): several section titles were h4 and
+   several card titles were h5, producing skips like h1->h4 and h2->h5.
+   Tags below are promoted to h2/h3 so H1->H2->H3 with no level skipped.
+
+   style.css sets font-size PER TAG NAME (h2:25px, h3:1.75rem), which would
+   make this text visibly bigger once the tag changes. These two classes
+   pin the font-size back to what the old h4/h5 actually rendered as -
+   nothing else about the design changes. */
+.hh-h4-size {
+    font-size: 1.5rem; /* h4's own site rule is empty -> this is the browser/bootstrap default it was already rendering at */
+}
+@media (max-width: 1200px) {
+    .hh-h4-size {
+        font-size: calc(1.275rem + -1.7vw); /* same mobile override style.css already gives h4 */
+    }
+}
+.hh-h5-size {
+    font-size: 1.25rem; /* style.css's own h5 rule; no separate mobile override existed */
+}
+
+/* .section-title h4 carried margin-bottom:0 (style.css) - same for the h2s now inside it. */
+.section-title h2 {
+    margin-bottom: 0;
+}
+
+/* .blog-area h5 / h5 a carried their own margin + link colour (style.css) - same for the h3 now inside it. */
+.blog-area h3 {
+    margin: 5px 0px;
+}
+.blog-area h3 a {
+    color: #464646;
+}
+.blog-area h3 a:hover {
+    color: #286efb;
+}
+
+/* .popup-top h5 carried margin:0 + font-weight:600 (index.css) - same for the h3 now inside it. */
+.popup-top h3 {
+    margin: 0;
+    font-weight: 600;
+}

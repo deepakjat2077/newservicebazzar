@@ -360,6 +360,7 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
 
             Route::name('subcategories.')->prefix('subcategories')->middleware('permission:subcategory.view')->group(function () {
                 Route::get('/', 'SubcategoriesController@index')->name('index');
+                Route::get('export', 'SubcategoriesController@export')->name('export');
                 Route::post('create', 'SubcategoriesController@create')->name('create');
                 Route::get('create', 'SubcategoriesController@createPage')->name('create.page');
                 Route::get('bulk-add', 'SubcategoriesController@bulkAddPage')->name('bulk.page');
@@ -639,6 +640,8 @@ Route::delete('home-content-sections/delete/{id}', 'HomeContentSectionController
         // Sales Genio — disposition monitoring
         Route::get('sales-dispositions', 'SalesDispositionController@index')->name('sales_dispositions.index');
         Route::delete('sales-dispositions/{id}', 'SalesDispositionController@destroy')->name('sales_dispositions.destroy');
+        Route::get('sales-team', 'SalesTeamController@index')->name('sales_team.index');
+        Route::get('sales-team/{id}', 'SalesTeamController@show')->whereNumber('id')->name('sales_team.show');
 
         });
 
@@ -746,6 +749,7 @@ Route::get('/enquiry/listings-by-category', 'EnquiryController@generateListingsB
                     Route::get('listings', 'Admin\WhatsappController@listings')->name('listings');
                     Route::get('enquiries', 'Admin\WhatsappController@enquiries')->name('enquiries');
                     Route::get('enquiry/{id}', 'Admin\WhatsappController@enquiry')->name('enquiry');
+                    Route::get('sent-report', 'Admin\WhatsappController@sentReport')->name('sent.report');
                     Route::get('chats', 'Admin\WhatsappController@chats')->name('chats');
                     Route::get('chat/{phone}', 'Admin\WhatsappController@chat')->name('chat');
                     Route::get('chat/{phone}/messages', 'Admin\WhatsappController@chatMessages')->name('chat.messages');
@@ -1247,8 +1251,10 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
         Route::get('/forgot-password/reset',   [\App\Http\Controllers\SalesGenioController::class, 'showResetPassword'])->name('password.reset');
         Route::post('/forgot-password/reset',  [\App\Http\Controllers\SalesGenioController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.reset.save');
 
-        Route::middleware(['sales.session', 'sales.auth', 'sales.touch'])->group(function () {
+        Route::middleware(['sales.session', 'sales.auth', 'sales.touch', 'sales.geo'])->group(function () {
             Route::get('/dashboard',        [\App\Http\Controllers\SalesGenioController::class, 'dashboard'])->name('dashboard');
+            // GPS beacon from every panel page (SalesGeoBeacon).
+            Route::post('/location',        [\App\Http\Controllers\SalesLocationController::class, 'store'])->middleware('throttle:30,1')->name('location');
             Route::post('/city',            [\App\Http\Controllers\SalesGenioController::class, 'switchCity'])->name('city');
             Route::get('/city/clear',       [\App\Http\Controllers\SalesGenioController::class, 'clearCity'])->name('city.clear');
             Route::get('/search-suggest',   [\App\Http\Controllers\SalesGenioController::class, 'searchSuggest'])->name('search.suggest');

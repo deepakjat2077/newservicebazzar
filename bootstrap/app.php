@@ -84,6 +84,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'sales.auth' => RedirectIfNotSalesUser::class,
             'sales.session' => SalesSessionGuard::class,
             'sales.touch' => \App\Http\Middleware\RecordSalesEdit::class,
+            'sales.geo' => \App\Http\Middleware\SalesGeoBeacon::class,
             'admin.guest' => RedirectIfAdmin::class,
             'permission' => AdminPermission::class,
             'shielded' => DecodeShieldedPayload::class,

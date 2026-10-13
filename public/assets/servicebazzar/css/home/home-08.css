@@ -1,0 +1,18 @@
+
+    /*
+     * The dots were a 12x2px tap target — far under the 24x24 minimum, and
+     * almost impossible to hit with a thumb. The bar still looks the same;
+     * the button is padded out around it and the padding takes the taps.
+     */
+    .category-banner-slider .carousel-indicators [data-bs-target] {
+        width: 26px;
+        height: 24px;
+        padding: 11px 0;
+        margin-left: 5px;
+        margin-right: 5px;
+        background-clip: content-box;
+        border-top: 0;
+        border-bottom: 0;
+        box-sizing: border-box;
+    }
+  

@@ -1,0 +1,127 @@
+
+#buyerPopup.buyer-popup{
+    position: fixed;
+    right: 80px;
+    bottom: 30px;
+    width: 390px;
+    height: 200px;
+    padding: 28px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: url("/assets/servicebazzar.webp") no-repeat center center;
+    background-size: cover;
+    color: #fff;
+    z-index: 999999;
+    display: none;
+    opacity: 0;
+    transform: translateY(35px) scale(.9);
+}
+
+#buyerPopup.buyer-popup.buyer-popup-show{
+    animation: sbBuyerPopupShow .55s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+@keyframes sbBuyerPopupShow{
+    from{
+        opacity: 0;
+        transform: translateY(35px) scale(.9);
+    }
+    to{
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+#buyerPopup .buyer-content{
+    position: relative;
+    z-index: 2;
+}
+
+#buyerPopup .buyer-content h3,
+#buyerPopup .buyer-content p,
+#buyerPopup .buyer-content .buyer-btn{
+    opacity: 0;
+    transform: translateX(-25px);
+}
+
+#buyerPopup.buyer-popup-show .buyer-content h3{
+    animation: sbBuyerTextSlide .5s ease forwards;
+    animation-delay: .2s;
+}
+
+#buyerPopup.buyer-popup-show .buyer-content p{
+    animation: sbBuyerTextSlide .5s ease forwards;
+    animation-delay: .45s;
+}
+
+#buyerPopup.buyer-popup-show .buyer-content .buyer-btn{
+    animation: sbBuyerTextSlide .5s ease forwards;
+    animation-delay: .7s;
+}
+
+@keyframes sbBuyerTextSlide{
+    from{
+        opacity: 0;
+        transform: translateX(-25px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+#buyerPopup h3{
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 15px;
+}
+
+#buyerPopup p{
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+#buyerPopup .buyer-btn{
+    display: inline-block;
+    background: #ffd54a;
+    color: #000;
+    text-decoration: none;
+    padding: 10px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    transition: .3s;
+}
+
+#buyerPopup .buyer-btn:hover{
+    transform: translateY(-2px);
+    color: #000;
+    text-decoration: none;
+}
+
+#buyerPopup .buyer-close{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 5;
+}
+
+@media(max-width: 767px){
+    #buyerPopup.buyer-popup{
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+}
