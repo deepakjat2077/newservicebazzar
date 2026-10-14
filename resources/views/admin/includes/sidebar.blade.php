@@ -30,7 +30,7 @@
                 <li class="sidebar-menu-item">
                     <a href="{{ route('admin.analytics.index') }}" class="{{ menuActive(['admin.analytics.index', 'admin.analytics.export.*'])[0] }}">
                         <i class="fas fa-chart-line"></i>
-                        <span class="sidebar-menu-title">@lang('Analytics')</span>
+                        <span class="sidebar-menu-title">@lang('Tracking')</span>
                     </a>
                 </li>
                 <li class="sidebar-menu-item">
