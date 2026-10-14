@@ -59,6 +59,21 @@
                     </form>
                 </div>
 
+                @adminCan('listing.export')
+                <div class="px-3 pt-2 pb-2 border-bottom d-flex flex-wrap align-items-center">
+                    <form method="get" action="{{ route('admin.listing.small.images.export') }}" class="form-inline">
+                        <span class="text-muted small mr-2">@lang('Listings with small photos'):</span>
+                        <select name="min" class="form-control form-control-sm mr-2">
+                            <option value="300">@lang('smaller than 300 px')</option>
+                            <option value="500" selected>@lang('smaller than 500 px')</option>
+                            <option value="700">@lang('smaller than 700 px')</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="fas fa-file-excel"></i> @lang('Download Excel')
+                        </button>
+                    </form>
+                </div>
+                @endadminCan
                 @if(request()->hasAny(['added_by','q','category_id','location_id','area']) && method_exists($listings, 'total'))
                     <div class="px-3 pb-2 text-muted">@lang('Found'): <strong>{{ number_format($listings->total()) }}</strong> @lang('listings')</div>
                 @endif

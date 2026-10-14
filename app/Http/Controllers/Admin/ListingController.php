@@ -27,6 +27,13 @@ use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
+    /**
+     * Main listing photo: always a 1024x1024 square, centre-cropped (never
+     * stretched), the same shape as the photos that look right on both the
+     * listing card and the business page. Gallery photos are left as uploaded.
+     */
+    private const THUMB_SIZE = ['width' => 1024, 'height' => 1024, 'fit' => 'cover'];
+
     use FileHandler;
 
     /**
@@ -135,6 +142,9 @@ class ListingController extends Controller
     }
 
     $listing->save();
+
+    // Status / Trust / Verified changed: refresh the cached pages showing it.
+    $this->forgetListingPages($listing);
 
     $alert = ['success','Listing action taken successfully'];
     return back()->withAlert($alert);
@@ -450,7 +460,8 @@ if ($isOpen24Hours) {
             $newThumb = WebpImage::store(
                 $file,
                 'assets/images/listing/thumb',
-                time().'_'.uniqid()
+                time().'_'.uniqid(),
+                self::THUMB_SIZE
             );
         } catch (\Throwable $e) {
             report($e);
@@ -460,10 +471,11 @@ if ($isOpen24Hours) {
                 ->withInput();
         }
 
-        if (!empty($listing->thumb) && file_exists(public_path('assets/images/listing/thumb/' . $listing->thumb))) {
-            @unlink(public_path('assets/images/listing/thumb/' . $listing->thumb));
-        }
-
+        // The old file is NOT deleted: pages already in the 30-minute page cache
+        // (homepage, city pages) still point at it, and deleting it showed a
+        // broken "no image" card until the cache expired (Zorko, 2026-10-13).
+        // The listing's own pages are refreshed below; the old ~50 KB file is
+        // simply left behind.
         $listing->thumb = $newThumb;
     }
 
@@ -644,8 +656,16 @@ $listing->business_categories = $businessCategories;
 
     $listing->save();
 
+    $this->forgetListingPages($listing);
+
     $notify[] = ['success', 'Listing updated successfully'];
     return redirect()->route('admin.listing.index')->withNotify($notify);
+}
+
+/** See App\Support\ListingPageCache. */
+private function forgetListingPages(Listing $listing): void
+{
+    \App\Support\ListingPageCache::forget($listing);
 }
     protected function validationRule(){
         return [
@@ -1248,7 +1268,8 @@ if ($isOpen24Hours) {
             $thumb = WebpImage::store(
                 $file,
                 'assets/images/listing/thumb',
-                time().'_'.uniqid()
+                time().'_'.uniqid(),
+                self::THUMB_SIZE
             );
         } catch (\Throwable $e) {
             report($e);

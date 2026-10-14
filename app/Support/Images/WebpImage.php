@@ -56,7 +56,7 @@ class WebpImage
      * @param  string  $publicDir   Path under public/, e.g. 'uploads/services'.
      * @param  string|null  $basename  Filename without extension. Generated
      *                                 when omitted.
-     * @param  array{width:int,height:int}|null  $size  Exact size to resize to,
+     * @param  array{width:int,height:int,fit?:string}|null  $size  Exact size; with 'fit' => 'cover' the image is centre-cropped instead of stretched,
      *                                 for callers that need fixed dimensions.
      * @return string  The stored filename, including its extension.
      */
@@ -84,7 +84,12 @@ class WebpImage
 
         try {
             if ($size && ($size['width'] ?? 0) > 0 && ($size['height'] ?? 0) > 0) {
-                $image->resize((int) $size['width'], (int) $size['height']);
+                if (($size['fit'] ?? null) === 'cover') {
+                    // Fill the box without stretching: scale, then crop the centre.
+                    $image->cover((int) $size['width'], (int) $size['height']);
+                } else {
+                    $image->resize((int) $size['width'], (int) $size['height']);
+                }
             } else {
                 $image->scaleDown(self::MAX_DIMENSION, self::MAX_DIMENSION);
             }

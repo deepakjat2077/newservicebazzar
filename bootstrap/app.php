@@ -68,6 +68,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Google rating + top reviews, max 500 listings a day (cap enforced in the command).
         $schedule->command('google:sync-reviews')->dailyAt('03:30')->withoutOverlapping();
+
+        // Pixel sizes of newly uploaded listing photos, for the small-images Excel.
+        $schedule->command('listings:scan-image-sizes')->dailyAt('04:15')->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([

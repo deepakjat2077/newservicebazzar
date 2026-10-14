@@ -48,7 +48,7 @@
             </div>
 
             <small class="text-primary d-block mt-2">
-                Image will resize into 350x190 px
+                Saved as a 1024 x 1024 px square, cropped from the centre. Keep the main subject in the middle.
             </small>
         </div>
     </div>

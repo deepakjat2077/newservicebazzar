@@ -25,6 +25,12 @@
     max-height: unset !important;
 }
 
+/* Zorko only: its shop board sits at the top of the photo, so show the top
+   instead of the centre. Other cards stay centred. (Owner's request, 2026-10-13) */
+.listing-area .thumb img.listing-thumb[alt="Zorko"]{
+    object-position: center top !important;
+}
+
     .listing-area h2 {
         font-size: 18px;
         line-height: 1.4;

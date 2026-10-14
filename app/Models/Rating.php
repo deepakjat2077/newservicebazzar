@@ -9,6 +9,18 @@ class Rating extends Model
 {
     use HasFactory;
 
+    /**
+     * A new, edited or removed rating changes the stars shown on the homepage
+     * card and the listing's pages: refresh their cached HTML straight away.
+     */
+    protected static function booted()
+    {
+        $refresh = fn (Rating $r) => \App\Support\ListingPageCache::forget(Listing::find($r->listing_id));
+
+        static::saved($refresh);
+        static::deleted($refresh);
+    }
+
     protected $fillable = [
         'listing_id',
         'user_id',

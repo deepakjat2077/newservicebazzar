@@ -435,6 +435,11 @@ Route::get('notification-counts', 'AdminController@notificationCounts')->name('n
     Route::get('count', 'ListingController@countListings')
         ->name('count');
 
+    // Excel of listings whose photos are too small (see ListingImageSizes).
+    Route::get('small-images-export', 'ListingImageReportController@export')
+        ->middleware('permission:listing.export')
+        ->name('small.images.export');
+
     Route::post('ai-generate', 'ListingController@aiGenerate')
         ->name('ai.generate');
 
