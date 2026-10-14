@@ -14,7 +14,8 @@ use Maatwebsite\Excel\Concerns\WithMapping;
  */
 class SubcategoriesExport implements FromQuery, WithHeadings, WithMapping, WithColumnWidths
 {
-    public function __construct(private Builder $query)
+    /** $location: name of the Location filter, or null for all locations. */
+    public function __construct(private Builder $query, private ?string $location = null)
     {
     }
 
@@ -25,7 +26,7 @@ class SubcategoriesExport implements FromQuery, WithHeadings, WithMapping, WithC
 
     public function headings(): array
     {
-        return ['ID', 'Name', 'Slug', 'Category', 'Status', 'SEO Title', 'SEO Keywords', 'SEO Description', 'Page URL', 'Created'];
+        return ['ID', 'Name', 'Slug', 'Category', 'Location', 'Status', 'SEO Title', 'SEO Keywords', 'SEO Description', 'Page URL', 'Created'];
     }
 
     public function map($sub): array
@@ -35,6 +36,9 @@ class SubcategoriesExport implements FromQuery, WithHeadings, WithMapping, WithC
             $sub->name,
             $sub->slug,
             optional($sub->category)->name,
+            // Subcategories have no city of their own; this is the Location filter
+            // the list was exported with (used by listings in that city).
+            $this->location ?? 'All locations',
             (int) $sub->status === 1 ? 'Enable' : 'Disable',
             $sub->seo_title,
             $sub->seo_keywords,
@@ -46,6 +50,6 @@ class SubcategoriesExport implements FromQuery, WithHeadings, WithMapping, WithC
 
     public function columnWidths(): array
     {
-        return ['A' => 8, 'B' => 40, 'C' => 40, 'D' => 25, 'E' => 10, 'F' => 50, 'G' => 50, 'H' => 60, 'I' => 60, 'J' => 12];
+        return ['A' => 8, 'B' => 40, 'C' => 40, 'D' => 25, 'E' => 18, 'F' => 10, 'G' => 50, 'H' => 50, 'I' => 60, 'J' => 60, 'K' => 12];
     }
 }

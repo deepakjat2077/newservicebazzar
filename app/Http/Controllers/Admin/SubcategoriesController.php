@@ -43,9 +43,13 @@ class SubcategoriesController extends Controller
     {
         $query = $this->filteredQuery($request)->orderBy('name');
 
+        $location = $request->filled('location_id')
+            ? Location::where('id', $request->location_id)->value('name')
+            : null;
+
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\SubcategoriesExport($query),
-            'subcategories-' . now()->format('Y-m-d-His') . '.xlsx'
+            new \App\Exports\SubcategoriesExport($query, $location),
+            'subcategories-' . ($location ? Str::slug($location) . '-' : '') . now()->format('Y-m-d-His') . '.xlsx'
         );
     }
 
@@ -188,6 +192,16 @@ class SubcategoriesController extends Controller
 
     public function edit(Request $request, $id)
     {
+        // Renamed to a name another subcategory of the SAME category already has
+        // (e.g. "1. Pet Shops Near Me in Varanasi" -> "Pet Shops Near Me in
+        // Varanasi"): merge this one into that one instead of refusing to save.
+        $sameName = Subcategory::where('id', '!=', $id)
+            ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim((string) $request->name))])
+            ->first();
+        if ($sameName && (int) $sameName->category_id === (int) $request->category_id) {
+            return $this->mergeInto(Subcategory::findOrFail($id), $sameName);
+        }
+
         $request->validate([
             'category_id'       => 'required|exists:categories,id',
             'name'              => ['required', 'string', 'max:255', 'unique:subcategories,name,' . $id, new MeaningfulTaxonomyName()],
@@ -195,6 +209,10 @@ class SubcategoriesController extends Controller
             'seo_title'         => 'nullable|string|max:255',
             'seo_keywords'      => 'nullable|string|max:500',
             'seo_description'   => 'nullable|string',
+        ], [
+            'name.unique' => $sameName
+                ? 'Another category already has a subcategory named "' . $sameName->name . '" (ID ' . $sameName->id . ', ' . optional($sameName->category)->name . '). Choose a different name.'
+                : 'The name has already been taken.',
         ]);
 
         $subcategory = Subcategory::findOrFail($id);
@@ -241,6 +259,52 @@ class SubcategoriesController extends Controller
         $alert = ['success', 'Subcategory updated successfully'];
       return redirect()->route('admin.subcategories.index')->withAlert($alert);
     }
+    /**
+     * Fold $dup into $target: its listings move to $target, its public URL
+     * 301s to $target's, and the duplicate row is removed (logged first).
+     */
+    private function mergeInto(Subcategory $dup, Subcategory $target)
+    {
+        $moved = 0;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($dup, $target, &$moved) {
+            Listing::where(function ($q) use ($dup) {
+                $q->whereJsonContains('subcategory_ids', (string) $dup->id)
+                  ->orWhereJsonContains('subcategory_ids', $dup->id);
+            })->select(['id', 'subcategory_ids'])->chunkById(200, function ($listings) use ($dup, $target, &$moved) {
+                foreach ($listings as $listing) {
+                    $ids = collect($listing->subcategory_ids ?? [])
+                        ->map(fn ($v) => (string) $v)
+                        ->reject(fn ($v) => $v === (string) $dup->id)
+                        ->push((string) $target->id)
+                        ->unique()
+                        ->values()
+                        ->all();
+                    \Illuminate\Support\Facades\DB::table('listings')->where('id', $listing->id)
+                        ->update(['subcategory_ids' => json_encode($ids)]);
+                    $moved++;
+                }
+            });
+
+            if ($dup->slug && $target->slug) {
+                \App\Models\UrlRedirect::remember('listings/subcategory/' . $dup->slug, 'listings/subcategory/' . $target->slug);
+            }
+
+            \Illuminate\Support\Facades\Log::info('Subcategory merged on rename', [
+                'from' => $dup->only(['id', 'name', 'slug', 'category_id', 'seo_title', 'seo_keywords', 'seo_description', 'image']),
+                'into' => $target->id,
+                'listings_moved' => $moved,
+            ]);
+
+            $dup->delete();
+        });
+
+        $alert = ['success', 'Saved. "' . $target->name . '" already existed (ID ' . $target->id . '), so this duplicate was merged into it'
+            . ($moved ? ' and its ' . $moved . ' listing(s) moved there.' : '.')];
+
+        return redirect()->route('admin.subcategories.update.page', $target->id)->withAlert($alert);
+    }
+
     public function delete($id)
 {
     try {
