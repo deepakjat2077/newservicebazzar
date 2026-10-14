@@ -1,11 +1,11 @@
+
 @extends($themeView.'layouts.site')
 @php
-  
     $ogTitle = 'Service Bazzar — Find Trusted Local Businesses Near You';
     $ogDescription = 'Discover and connect with verified local businesses across India — services, healthcare, repairs, restaurants and professionals. Compare ratings and prices, then contact them directly. Free to use.';
 @endphp
-@section('content')
 
+@section('content')
 @section('title')
 Local Businesses & Trusted Services Near You
 @endsection
@@ -23,7 +23,6 @@ Local Businesses & Trusted Services Near You
 
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-01.css'])
 <script>
-
 (function () {
     var SEL = '.trending-same-section .trend-card-title, .location-same-section .trend-card-title, .seasonal-same-section .trend-card-title, .popular-same-section .trend-card-title';
     function overflows(el) {
@@ -41,7 +40,6 @@ Local Businesses & Trusted Services Near You
                 size -= 0.5;
                 el.style.setProperty('font-size', size + 'px', 'important');
             }
-          
             el.style.removeProperty('letter-spacing');
             if (overflows(el)) el.style.setProperty('letter-spacing', '-0.3px', 'important');
         });
@@ -103,7 +101,6 @@ Local Businesses & Trusted Services Near You
 </script>
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-06.css'])
 <script>
-
 document.addEventListener('DOMContentLoaded', function () {
     var header = document.getElementById('stickyScrollHeader');
     if (!header) return;
@@ -139,16 +136,12 @@ document.addEventListener('DOMContentLoaded', function () {
    <div class="title-area ll text-left">
 
    <h1 class="hero-title">
-
     Discover Trusted
-
     <span class="text-slider">
-
         <span>
             <strong>Local Services</strong>
             <small>{{ !empty($cityHomeName) ? 'in ' . $cityHomeName : 'Near Your Location' }}</small>
         </span>
-
         <span>
             <strong>Verified Businesses</strong>
             <small>{{ !empty($cityHomeName) ? 'in ' . $cityHomeName : 'Across India' }}</small>

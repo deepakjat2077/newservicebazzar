@@ -7,7 +7,6 @@
     <form action="{{ route('listings.search') }}" method="GET" id="headerSearchForm">
         <div class="header-search-row-custom">
 
-            {{-- ======================== LOCATION INPUT ======================== --}}
             <div class="header-location-col-custom" id="headerLocationBox">
                 <div class="header-input_location_box">
                     <input type="text"
@@ -86,8 +85,7 @@
 
 
 @php
-    // Values the search-form script needs from the server, encoded exactly the
-    // way the old inline @json / {{ }} did (json_encode flags 15 = Blade's @json).
+   
     $sfJsVars = [
         '__SB_IS_DETAILS__'      => json_encode(request()->routeIs('listings.details'), 15),
         '__SB_HEADER_LOCATION__' => json_encode($headerLocationValue, 15),

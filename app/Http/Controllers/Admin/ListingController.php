@@ -699,7 +699,7 @@ private function forgetListingPages(Listing $listing): void
                 $imageData = [
                     'file'=>$request->image,
                     'path'=>'assets/images/listing/thumb/',
-                    'size'=>'730x484',
+                    
                     'prevFile'=>$thumb,
                 ];
                 $thumb = $this->uploadFile('image',$imageData);
@@ -740,7 +740,7 @@ private function forgetListingPages(Listing $listing): void
                     $imageData = [
                         'file'=>$image,
                         'path'=>'assets/images/listing/extra/',
-                        'size'=>'730x484',
+                     
                         'prevFile'=>null,
                     ];
                     $image = $this->uploadFile('image',$imageData);

@@ -2,11 +2,9 @@
     $defaultTitle = $setting->site_name . (!empty(trim($__env->yieldContent('title'))) ? ' | ' . trim($__env->yieldContent('title')) : '');
 
     $defaultDescription = $setting->seo->meta_description ?? '';
-
     $defaultKeywords = !empty($setting->seo->keywords)
         ? implode(', ', $setting->seo->keywords)
         : '';
-
     $defaultImage = !empty($setting->seo->image)
         ? asset('assets/images/seo/' . $setting->seo->image)
         : asset('assets/images/logo/logo.png');
@@ -18,43 +16,24 @@
     $seoUrl = $seoUrl ?? url()->current();
     $seoType = $seoType ?? 'website';
     $seoRobots = $seoRobots ?? 'index, follow';
-
-    /*
-     * A page may want its share card to read differently from its Google
-     * listing: search results reward a written description, a card pasted into
-     * a chat rewards facts someone can act on. Pages that do not care fall back
-     * to the same text as before.
-     */
     $ogTitle = $ogTitle ?? $seoTitle;
     $ogDescription = $ogDescription ?? $seoDescription;
 @endphp
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
-
 <title>{{ $seoTitle }}</title>
-
-
 <meta name="description" content="{{ $seoDescription }}">
 <meta name="keywords" content="{{ $seoKeywords }}">
 <meta name="robots" content="{{ $seoRobots }}">
 <link rel="canonical" href="{{ $seoUrl }}">
 
-{{-- The whole catalogue is India-facing, English content. Both point at the
-     same URL: hreflang tells Google this page targets English speakers in
-     India, and x-default keeps it the fallback for every other locale.
-
-     Only on indexable pages: a noindex page must not carry hreflang (its
-     self-referencing return link would point at a noindex URL, which breaks
-     the hreflang set — Screaming Frog's "Noindex Return Links" issue). --}}
 @if(!Str::contains(strtolower($seoRobots), 'noindex'))
 <link rel="alternate" hreflang="en-in" href="{{ $seoUrl }}">
 <link rel="alternate" hreflang="x-default" href="{{ $seoUrl }}">
 @endif
 <meta name="google-site-verification" content="B178KugYDqjU7Y2Y6oIbKdwZa2vWRc_aJj5vmyjxmRE" />
-{{-- AdSense: the account tag verifies the site; the ads script itself (~600 ms of
-     main-thread work) waits for the visitor's first scroll/tap/key so it never
-     slows the first paint — auto ads still appear as soon as they interact. --}}
+
 <meta name="google-adsense-account" content="ca-pub-1828623221110116">
 <script>
 (function () {
@@ -134,11 +113,7 @@
 @endforeach
 
 @php
-    // Sitewide Organization + WebSite/SearchAction schema. Unlike the
-    // admin-managed $schemas above (keyed on Request::segment(1), which is
-    // the city slug for most routes and so never reliably matches), this is
-    // always emitted, on every page, code-generated from data that's
-    // already guaranteed to exist ($setting).
+
     $organizationSchema = [
         '@context' => 'https://schema.org',
         '@type'    => 'Organization',
@@ -147,7 +122,7 @@
         'logo'     => $defaultImage,
     ];
 
-    // The company's own details, from Setting > Invoice (config('invoice.company')).
+    
     $orgCompany = (array) config('invoice.company', []);
     if (!empty($orgCompany['address']) || !empty($orgCompany['city'])) {
         $organizationSchema['address'] = array_filter([
@@ -209,6 +184,5 @@
 </script>
 @endunless
 
-{{-- Page-specific JSON-LD (Breadcrumb, Service, FAQPage, ItemList of
-     LocalBusiness). Only emits blocks whose data a controller has shared. --}}
+
 @include('includes.schema')
