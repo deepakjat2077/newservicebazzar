@@ -33,20 +33,17 @@ class Subcategory extends Model
     {
         $name = trim($name);
         $cat  = trim((string) $categoryName);
-        $b    = self::SEO_BRAND;
-        $hasService = (bool) preg_match('/services?$/i', $name);
+        $display = \App\Support\LanderNames::plural($name);
 
-        $raw = [
-            $name,
-            "Best {$name} | {$b}",
-            "Top {$name} | {$b}",
-            "Trusted {$name} | {$b}",
-            $cat !== '' ? "{$name} in {$cat} | {$b}" : null,
-            $hasService ? null : "{$name} Services | {$b}",
-            $cat !== '' ? "Best {$name} in {$cat}" : null,
-            $cat !== '' ? "{$name} - {$cat} | {$b}" : null,
-            $hasService ? null : "Best {$name} Services | {$b}",
-        ];
+        // Same shape as the live page titles (App\Support\LanderSchema): a lead
+        // word + name + " – suffix", 50-60 chars, no brand. Several seeds give
+        // distinct alternatives for the uniqueness check in the saving hook.
+        $raw = [];
+        foreach (['a', 'b', 'c', 'd', 'e', 'f'] as $seed) {
+            $raw[] = \App\Support\LanderSchema::landerTitle($display, $name . ':' . $seed);
+        }
+        $raw[] = $cat !== '' ? \App\Support\LanderSchema::landerTitle($display . ' – ' . $cat, $name) : null;
+        $raw[] = $name;
 
         $ok = [];
         foreach ($raw as $c) {
@@ -64,7 +61,7 @@ class Subcategory extends Model
                 ? rtrim(mb_substr($name, 0, self::SEO_TITLE_MAX))
                 : $name;
             if (mb_strlen($base) < self::SEO_TITLE_MIN) {
-                $base = mb_substr("Best {$name} Services | {$b}", 0, self::SEO_TITLE_MAX);
+                $base = mb_substr("Best {$name} – Verified Professionals", 0, self::SEO_TITLE_MAX);
             }
             $ok[] = $base;
         }
@@ -98,8 +95,11 @@ class Subcategory extends Model
             // can't fit under the 60-char cap is exempt.
             $name = trim((string) ($sub->name ?? ''));
             if ($healthy && $name !== '' && mb_strlen($name) <= self::SEO_TITLE_MAX) {
-                $norm = fn ($v) => mb_strtolower(preg_replace('/\s+/', ' ', trim((string) $v)));
-                $healthy = str_contains($norm($current), $norm($name));
+                // "24 Hours" in the name and "24/7" in the title count as the same.
+                $norm = fn ($v) => preg_replace('/\b24\s*(?:hours?|hrs?|x\s*7|\*\s*7|\/\s*7)(?=\s|$)/', '24/7', mb_strtolower(preg_replace('/\s+/', ' ', trim((string) $v))));
+                // The plural form counts too ("Recruitment Agencies" for "Recruitment Agency").
+                $healthy = str_contains($norm($current), $norm($name))
+                    || str_contains($norm($current), $norm(\App\Support\LanderNames::plural($name)));
             }
 
             $collides = function ($title) use ($sub) {

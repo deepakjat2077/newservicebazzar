@@ -130,6 +130,30 @@
         gap:6px;
     }
 }
+/* Phone/tablet: the section's pt-80 left a big empty band between the
+   header and the blog image. Desktop keeps its 80px. */
+@media (max-width: 767px){
+    section.blog-details.pt-80{ padding-top: 16px !important; }
+}
+@media (min-width: 768px) and (max-width: 991px){
+    section.blog-details.pt-80{ padding-top: 32px !important; }
+}
+/* Desktop: same width as the homepage blocks and the header (40px gutter on
+   each side) instead of Bootstrap's 1140px box, which looked pushed in. */
+@media (min-width: 992px){
+    section.blog-details > .container{
+        max-width: none !important;
+        width: 100% !important;
+        padding-left: 40px !important;
+        padding-right: 40px !important;
+    }
+    /* The hero image fills its column (up to 960px) instead of stopping at its 680px file width. */
+    section.blog-details .blog-details-area .thumb img{
+        width: 100% !important;
+        max-width: 960px !important; /* a 680px file should not be blown up past this */
+        height: auto !important;
+    }
+}
 </style>
 <section class="blog-details pt-80 pb-80">
     <div class="container">

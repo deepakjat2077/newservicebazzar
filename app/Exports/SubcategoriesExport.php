@@ -15,7 +15,8 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class SubcategoriesExport implements FromQuery, WithHeadings, WithMapping, WithColumnWidths
 {
     /** $location: name of the Location filter, or null for all locations. */
-    public function __construct(private Builder $query, private ?string $location = null)
+    /** $dupMap: from SubcategoryDuplicates::map() when the Duplicates filter is on. */
+    public function __construct(private Builder $query, private ?string $location = null, private array $dupMap = [])
     {
     }
 
@@ -26,7 +27,7 @@ class SubcategoriesExport implements FromQuery, WithHeadings, WithMapping, WithC
 
     public function headings(): array
     {
-        return ['ID', 'Name', 'Slug', 'Category', 'Location', 'Status', 'SEO Title', 'SEO Keywords', 'SEO Description', 'Page URL', 'Created'];
+        return ['ID', 'Name', 'Slug', 'Category', 'Location', 'Status', 'SEO Title', 'SEO Keywords', 'SEO Description', 'Page URL', 'Created', 'Duplicate of'];
     }
 
     public function map($sub): array
@@ -45,11 +46,14 @@ class SubcategoriesExport implements FromQuery, WithHeadings, WithMapping, WithC
             $sub->seo_description,
             $sub->slug ? url('listings/subcategory/' . $sub->slug) : '',
             optional($sub->created_at)->format('Y-m-d'),
+            collect($this->dupMap[$sub->id]['others'] ?? [])
+                ->map(fn ($o) => '#' . $o['id'] . ' ' . $o['name'] . ($o['category'] ? ' (' . $o['category'] . ')' : ''))
+                ->implode('; '),
         ];
     }
 
     public function columnWidths(): array
     {
-        return ['A' => 8, 'B' => 40, 'C' => 40, 'D' => 25, 'E' => 18, 'F' => 10, 'G' => 50, 'H' => 50, 'I' => 60, 'J' => 60, 'K' => 12];
+        return ['A' => 8, 'B' => 40, 'C' => 40, 'D' => 25, 'E' => 18, 'F' => 10, 'G' => 50, 'H' => 50, 'I' => 60, 'J' => 60, 'K' => 12, 'L' => 60];
     }
 }

@@ -172,6 +172,60 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
     }
 
     /*
+     * Typed text only becomes a URL when it is a real service. Picking a place
+     * used to send whatever was in the mobile search box straight to
+     * /{city}/{text}, so "jkdd" + Delhi landed on a 404. The suggestions API
+     * answers even for junk with loose matches, so accept only a name that
+     * equals the text or starts with it ("physio" -> Physiotherapists).
+     */
+    var sbPageCategorySlug = @json($sbCategorySlug ?? '');
+    function sbResolveService(text, typedSlug, done) {
+        var q = String(text || "").trim();
+        if (typedSlug && sbPageCategorySlug && typedSlug === sbPageCategorySlug) { done(typedSlug); return; }
+        if (q.length < 2) { done(null); return; }
+        fetch(@json(route('category.suggestions')) + "?q=" + encodeURIComponent(q), {
+            headers: { "Accept": "application/json" }, credentials: "same-origin"
+        }).then(function (r) { return r.ok ? r.json() : []; }).then(function (items) {
+            var want = slugify(q), lower = q.toLowerCase(), pick = null;
+            var slugOf = function (it) { return String((it && it.url) || "").split("?")[0].split("/").filter(Boolean).pop() || ""; };
+            (items || []).forEach(function (it) {
+                if (!pick && (slugOf(it) === want || slugify(it.name) === want)) pick = slugOf(it);
+            });
+            (items || []).forEach(function (it) {
+                if (!pick && String(it.name || "").toLowerCase().indexOf(lower) === 0) pick = slugOf(it);
+            });
+            done(pick || null);
+        }).catch(function () { done(null); });
+    }
+    /*
+     * The mobile location list is position:fixed at top:95px (several CSS rules).
+     * That clears the input only when the site header is hidden (home). On the
+     * business page the header stays and pushes the input down to ~93-128px, so
+     * the list sat on top of it and the search box looked missing. Pin the list
+     * just under the input whenever it opens or the layout changes.
+     */
+    (function () {
+        var list = document.getElementById("jdMobileLocationSuggestions");
+        var input = document.getElementById("jdMobileLocationInput");
+        if (!list || !input || !window.MutationObserver) return;
+        var place = function () {
+            if (getComputedStyle(list).position !== "fixed") return;
+            var r = input.getBoundingClientRect();
+            if (r.height <= 0) return;
+            var top = Math.round(r.bottom + 2) + "px";
+            if (list.style.getPropertyValue("top") !== top) list.style.setProperty("top", top, "important");
+        };
+        new MutationObserver(place).observe(list, { attributes: true, attributeFilter: ["class"] });
+        new MutationObserver(place).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+        window.addEventListener("resize", place);
+    })();
+
+    function sbServiceNotFound(text) {
+        var msg = 'We could not find "' + String(text || "").trim() + '". Please choose a service from the suggestions.';
+        if (window.toastr) { toastr.warning(msg); } else { alert(msg); }
+    }
+
+    /*
      * Only real cities may become a URL. Typed text that was never picked from
      * the list ("Xn, Ksj, B Dskj") used to be slugged straight into
      * /ksj/it-consultants-in-xn and land on "Page Not Found".
@@ -874,8 +928,11 @@ if (isHomePage && isMobile()) {
 
         if (citySlug && catSlug) {
             if (!sbKnownCity(city)) { sbAskForRealCity(); return; }
-            window.location.href = "/" + citySlug + "/" + catSlug;
-            return;
+            var sbTyped1 = mobileCatInput.value.trim();
+            sbResolveService(sbTyped1, catSlug, function (slug) {
+                if (slug) { window.location.href = "/" + citySlug + "/" + slug; }
+                else { sbServiceNotFound(sbTyped1); }
+            });
         }
     }
 } else if (activeInput) {
@@ -998,13 +1055,15 @@ if (isListingDetailsPage) {
 
     if (citySlug && catSlug && !sbKnownCity(locationText)) { sbAskForRealCity(); return; }
     if (citySlug && catSlug) {
-        let finalUrl = "/" + citySlug + "/" + catSlug;
-
-        if (area !== "") {
-            finalUrl += "-in-" + slugify(area);
-        }
-
-        window.location.href = finalUrl;
+        var sbTyped2 = mobileCatInput.value.trim();
+        sbResolveService(sbTyped2, catSlug, function (slug) {
+            if (!slug) { sbServiceNotFound(sbTyped2); return; }
+            let finalUrl = "/" + citySlug + "/" + slug;
+            if (area !== "") {
+                finalUrl += "-in-" + slugify(area);
+            }
+            window.location.href = finalUrl;
+        });
     }
 }
 }

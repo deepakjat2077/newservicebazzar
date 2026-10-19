@@ -114,6 +114,10 @@ class LanderSchema
         // for the city-less hub; reusing it verbatim on 60 city variants is the
         // duplicate-title problem the SEO audit flagged, so a city lander always
         // gets a city-keyed title instead.
+        if (!$cityName) {
+            $data['seoTitle'] = self::hubTitle((string) ($data['seoTitle'] ?? ''), $item);
+        }
+
         if ($cityName) {
             // Use the catalogue name as it is stored (it's already Title Case),
             // with Str::ucfirst only to guarantee the title never starts on a
@@ -129,13 +133,24 @@ class LanderSchema
                 ? $name
                 : $name . ' in ' . $cityName;
 
-            // No listing count in the title: "Packers And Movers in Jaipur | Service
-            // Bazzar". Drop the brand only when the title would pass ~60 chars.
-            $full = $inCity . ' | ' . $siteName;
-            if (mb_strlen($full) > 60) {
-                $full = $inCity;
+            // "Top AC Ice Formation Repair in Jaipur – Verified Professionals":
+            // a lead word, the place, and a suffix that lands the title at 50-60
+            // characters. No brand; Google shows the site name on its own line.
+            $display = LanderNames::plural($name, $item->slug ?? null);
+            $titleMain = Str::contains(mb_strtolower($display), mb_strtolower(trim(Str::afterLast($cityName, ','))))
+                ? $display
+                : $display . ' in ' . $cityName;
+            $data['seoTitle'] = self::landerTitle($titleMain, ($item->id ?? $item->name) . ':' . $cityName);
+
+            // The admin's own SEO Description wins (Category/Subcategory edit page).
+            // Text written for Jaipur gets the page's city, the same way the FAQ copy
+            // above is interpolated, so a Delhi page never says "Jaipur".
+            $ownDesc = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($item->seo_description ?? ''))));
+            if ($ownDesc !== '') {
+                $cityOnly = trim(Str::afterLast($cityName, ','));
+                $data['seoDescription'] = sb_clamp_meta_description(str_ireplace('Jaipur', $cityOnly, $ownDesc), 160);
+                return;
             }
-            $data['seoTitle'] = $full;
 
             $seed = ($item->id ?? $item->name) . ':' . $cityName;
             $data['seoDescription'] = seoTextVariant($seed, [
@@ -145,5 +160,91 @@ class LanderSchema
                 "{$cityName} {$item->name}: browse listings, compare prices and reviews, and get in touch on {$siteName}.",
             ]);
         }
+    }
+
+    private const TITLE_LEADS = ['Top', 'Best', 'Trusted', 'Verified'];
+
+    private const TITLE_SUFFIXES = [
+        'Reviews & Contact Details',
+        'Find Trusted Experts',
+        'Verified Professionals',
+        'Trusted Local Experts',
+        'Compare Ratings & Reviews',
+        'Verified Experts',
+        'Top Rated',
+    ];
+
+    /**
+     * Lead word + $main + " – " + suffix, aiming for 50-60 characters. The lead
+     * and suffix are picked from $seed, so pages vary but each keeps the same
+     * title on every render. A suffix repeating a word already in the title
+     * ("Verified ... – Verified Professionals") is skipped.
+     */
+    /**
+     * City-less hub (/listings/category/..., /listings/subcategory/...): keep the
+     * admin's SEO Title wording, minus the brand, padded to 50-60 characters.
+     */
+    public static function hubTitle(string $adminTitle, $item): string
+    {
+        $hub = trim(preg_replace('/\s*[|\-–]\s*Service\s?Bazzar\s*$/i', '', $adminTitle));
+
+        return self::landerTitle($hub !== '' ? $hub : Str::ucfirst(trim((string) $item->name)), (string) ($item->id ?? $item->name));
+    }
+
+    public static function landerTitle(string $main, string $seed): string
+    {
+        $main = trim(preg_replace('/\s+/', ' ', $main));
+        // "24 Hours Electrician" / "24x7 Chemist" -> "24/7": shorter, and the form people search.
+        $main = preg_replace('/\b24\s*(?:hours?|hrs?|x\s*7|\*\s*7|\/\s*7)\b/i', '24/7', $main);
+        $words = fn (string $t) => array_map('mb_strtolower', preg_split('/\W+/u', $t, -1, PREG_SPLIT_NO_EMPTY));
+        $rotate = function (array $list, string $salt) use ($seed) {
+            $k = crc32($seed . $salt) % count($list);
+            return array_merge(array_slice($list, $k), array_slice($list, 0, $k));
+        };
+
+        // Already in the final shape ("Best X – Top Rated", e.g. a stored admin
+        // title): leave it alone rather than stack a second suffix.
+        foreach (self::TITLE_SUFFIXES as $suffix) {
+            if (str_ends_with($main, ' – ' . $suffix)) {
+                return $main;
+            }
+        }
+
+        $leads = preg_match('/^(top|best|trusted|verified)\b/i', $main) ? [''] : $rotate(self::TITLE_LEADS, ':lead');
+        $suffixes = $rotate(self::TITLE_SUFFIXES, ':suffix');
+        $fallback = null;
+
+        foreach ($leads as $lead) {
+            $base = $lead === '' ? $main : $lead . ' ' . $main;
+            $len = mb_strlen($base);
+            if ($len > 60) {
+                continue;
+            }
+            if ($len >= 50) {
+                return $base;
+            }
+            $have = $words($base);
+            foreach ($suffixes as $suffix) {
+                // Never repeat a word ("Top ... – Top Rated", "Verified ... – Verified Experts").
+                if (array_intersect(array_diff($words($suffix), ['and', 'details']), $have)) {
+                    continue;
+                }
+                $title = $base . ' – ' . $suffix;
+                $tl = mb_strlen($title);
+                if ($tl >= 50 && $tl <= 60) {
+                    return $title;
+                }
+                if ($tl <= 60 && ($fallback === null || $tl > mb_strlen($fallback))) {
+                    $fallback = $title;
+                }
+            }
+            if ($fallback === null || $len > mb_strlen($fallback)) {
+                $fallback = $fallback ?? $base;
+            }
+        }
+
+        // Nothing fits 50-60: the longest version that stays within 60, or the
+        // bare name when even that is too long (it is never cut mid-word).
+        return $fallback ?? $main;
     }
 }

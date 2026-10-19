@@ -1655,6 +1655,8 @@ $data['listing'] = $data['listings']->first();
     $data['seoTitle'] = !empty($subcategory->seo_title)
         ? $subcategory->seo_title
         : $subcategory->name . ' | ' . ($this->setting->site_name ?? config('app.name'));
+    // Same lead word / 50-60 character pattern as the city pages, no brand.
+    $data['seoTitle'] = \App\Support\LanderSchema::hubTitle($data['seoTitle'], $subcategory);
 
     $data['seoDescription'] = !empty($subcategory->seo_description)
         ? $subcategory->seo_description

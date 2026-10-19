@@ -570,16 +570,22 @@ a {
         $breadcrumbItems[] = ['name' => $categoryText, 'item' => url()->current()];
     }
 
+    // Last visible crumb, "40+ Listings". Google shows this trail under the URL
+    // in results. As the current page it carries no URL of its own.
+    if (!empty($listingCount) && (int) $listingCount > 0) {
+        $breadcrumbItems[] = ['name' => (int) $listingCount . '+ Listings', 'item' => null];
+    }
+
     $breadcrumbSchema = [
         '@context'        => 'https://schema.org',
         '@type'           => 'BreadcrumbList',
         'itemListElement' => collect($breadcrumbItems)->values()->map(function ($crumb, $index) {
-            return [
+            return array_filter([
                 '@type'    => 'ListItem',
                 'position' => $index + 1,
                 'name'     => $crumb['name'],
                 'item'     => $crumb['item'],
-            ];
+            ], fn ($v) => $v !== null);
         })->all(),
     ];
 @endphp
@@ -1745,30 +1751,13 @@ a {
     |    plural names like "Packers And Movers" are unchanged by Str::plural.)
     |--------------------------------------------------------------------------
     */
-    $serviceCategorySlugs = [
-        'ac-repair-services', 'electrician', 'plumber', 'pest-control-services',
-        'courier-services', 'laptop-repair-services', 'car-repair',
-        'cleaning-services', 'home-renovation', 'water-tank-cleaning',
-        'refrigerator-repair', 'warehouse-storage-services',
-        'cargo-shipping-services', 'logistics', 'transporters',
-        'house-keeping-services', 'printing-services',
-        'ro-water-purifier-repair-services',
-    ];
-
-    if (
-        in_array($headingCategory?->slug, $serviceCategorySlugs, true)
-        && ! preg_match('/\b(service|services)\s*$/i', $headingName)
-    ) {
-        $headingWithServices = $headingName . ' Services';
-    } elseif (preg_match('/\b(service|services)\s*$/i', $headingName)) {
-        $headingWithServices = $headingName;
-    } elseif (!$headingCategory && strcasecmp($headingName, 'Listings') === 0) {
+    // Same rule as the <title> (App\Support\LanderNames): "Cake Shop" -> "Cake
+    // Shops", "CA" -> "CA's", "Electrician" -> "Electrician Services"; names that
+    // do not end in a kind of business stay as written (no "Delhis", "Back Pains").
+    if (!$headingCategory && strcasecmp($headingName, 'Listings') === 0) {
         $headingWithServices = 'Local Business Listings';
-    } elseif (preg_match('/\bnear me$/i', $headingName) || preg_match('/s$/i', $headingName) || preg_match('/\sin\s/i', $headingName)) {
-        // "... near me" is not a noun to pluralise ("near mes").
-        $headingWithServices = $headingName;
     } else {
-        $headingWithServices = \Illuminate\Support\Str::plural($headingName);
+        $headingWithServices = \App\Support\LanderNames::plural($headingName, $headingCategory?->slug);
     }
 
     /*

@@ -8,7 +8,7 @@
 					<div class="p-3 border-bottom">
 						<form method="get" action="">
 							<div class="form-row align-items-end">
-								<div class="col-md-4 mb-2">
+								<div class="col-md-2 mb-2">
 									<label class="mb-1">@lang('Search')</label>
 									<input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="@lang('Subcategory name or slug')">
 								</div>
@@ -31,6 +31,14 @@
 										@foreach($locations as $location)
 											<option value="{{ $location->id }}" @selected(request('location_id') == $location->id)>{{ __($location->name) }}</option>
 										@endforeach
+									</select>
+								</div>
+								<div class="col-md-2 mb-2">
+									<label class="mb-1">@lang('Duplicates')</label>
+									<select name="duplicates" class="form-control">
+										<option value="">@lang('All subcategories')</option>
+										<option value="same" @selected(request('duplicates') === 'same')>@lang('Duplicates (same category)')</option>
+										<option value="any" @selected(request('duplicates') === 'any')>@lang('Duplicates (any category)')</option>
 									</select>
 								</div>
 								<div class="col-md-2 mb-2 d-flex">
@@ -84,6 +92,14 @@
 												<img src="{{ $category->image ? loadImage('assets/images/subcategory/' . $category->image) : asset('assets/images/default.jpg') }}">
 											</div>
 											{{ __($category->name) }}
+											@if(!empty($dupMap[$category->id]))
+												<small class="d-block text-danger mt-1">
+													@lang('Duplicate of'):
+													@foreach($dupMap[$category->id]['others'] as $o)
+														<a href="{{ route('admin.subcategories.update.page', $o['id']) }}" class="text-danger">#{{ $o['id'] }} {{ $o['name'] }}</a>@if(request('duplicates') === 'any' && $o['category']) ({{ $o['category'] }})@endif{{ !$loop->last ? ',' : '' }}
+													@endforeach
+												</small>
+											@endif
 										</td>
 										<td>{{ $category->category->name ?? '-' }}</td>
 

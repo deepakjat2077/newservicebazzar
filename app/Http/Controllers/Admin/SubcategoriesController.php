@@ -21,6 +21,8 @@ class SubcategoriesController extends Controller
     public function index(Request $request)
     {
         $query = $this->filteredQuery($request);
+        $dupMap = $this->duplicateMap($request);
+        $this->orderForDuplicates($query, $dupMap);
 
         $subcategories = $query->orderBy('name')
             ->paginate(20)
@@ -32,7 +34,8 @@ class SubcategoriesController extends Controller
         return view('admin.subcategories.index', compact(
             'subcategories',
             'categories',
-            'locations'
+            'locations',
+            'dupMap'
         ));
     }
 
@@ -41,14 +44,17 @@ class SubcategoriesController extends Controller
      */
     public function export(Request $request)
     {
-        $query = $this->filteredQuery($request)->orderBy('name');
+        $query = $this->filteredQuery($request);
+        $dupMap = $this->duplicateMap($request);
+        $this->orderForDuplicates($query, $dupMap);
+        $query->orderBy('name');
 
         $location = $request->filled('location_id')
             ? Location::where('id', $request->location_id)->value('name')
             : null;
 
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\SubcategoriesExport($query, $location),
+            new \App\Exports\SubcategoriesExport($query, $location, $dupMap),
             'subcategories-' . ($location ? Str::slug($location) . '-' : '') . now()->format('Y-m-d-His') . '.xlsx'
         );
     }
@@ -95,7 +101,34 @@ class SubcategoriesController extends Controller
             $query->whereIn('id', $idsInLocation);
         }
 
+        // Duplicates filter: only subcategories that have a near-duplicate name
+        // (see App\Support\SubcategoryDuplicates).
+        if ($dupMap = $this->duplicateMap($request)) {
+            $query->whereIn('id', array_keys($dupMap));
+        } elseif (in_array($request->duplicates, ['same', 'any'], true)) {
+            $query->whereRaw('1 = 0');
+        }
+
         return $query;
+    }
+
+    /** Near-duplicate map for the ?duplicates= filter (same | any), else []. */
+    protected function duplicateMap(Request $request): array
+    {
+        if (!in_array($request->duplicates, ['same', 'any'], true)) {
+            return [];
+        }
+
+        return once(fn () => \App\Support\SubcategoryDuplicates::map($request->duplicates === 'same'));
+    }
+
+    /** Keep each duplicate group together in the list and the export. */
+    protected function orderForDuplicates($query, array $dupMap): void
+    {
+        if ($dupMap) {
+            $ids = \App\Support\SubcategoryDuplicates::orderedIds($dupMap);
+            $query->orderByRaw('FIELD(id, ' . implode(',', array_map('intval', $ids)) . ')');
+        }
     }
 
     public function createPage()
