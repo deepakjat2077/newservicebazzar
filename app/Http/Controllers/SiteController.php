@@ -2011,21 +2011,7 @@ public function listingsDetails(Request $request, $category, $slug)
 
     $data['seoType'] = 'article';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Share card (WhatsApp, Facebook, X)
-    |--------------------------------------------------------------------------
-    |
-    | Separate from the meta above on purpose. `meta_title`/`meta_description`
-    | are written for Google and read as prose — pasted into a chat they arrive
-    | cut off mid-sentence ("...specializing in Kundli reading, love problem")
-    | and give the reader nothing to act on.
-    |
-    | A share card is competing with JustDial's in the same conversation, so it
-    | carries what theirs does: which locality the business is in, what people
-    | rated it, how many photos there are, and that the address and number are
-    | one tap away. All of it from data already loaded with the listing.
-    */
+   
     $areaName = trim((string) $listing->area);
     $placeName = $cityName ?: $locationName;
 
@@ -3282,9 +3268,7 @@ public function userProfile($username)
         abort(404);
     }
 
-    // The user's own reviews — each carries the business it was left on, so the
-    // profile can render a JustDial-style social feed (business card + review +
-    // like/comment counts). Eager-loads keep it to a handful of queries.
+   
     $reviews = \App\Models\Rating::where('user_id', $user->id)
         ->with(['listing' => function ($q) {
             $q->with('category', 'location');

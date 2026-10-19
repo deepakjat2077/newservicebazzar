@@ -1,4 +1,4 @@
-{{-- Google reviews block for the listing details page. Expects $listing. --}}
+
 @php
     $gReviews = $listing->gmb_reviews_json;
     if (is_string($gReviews)) {
@@ -11,25 +11,14 @@
 
 @if($gRating > 0 && $gCount > 0)
 <section class="listing-widget gmb-reviews" id="googleReviewsSection" aria-labelledby="gmb-reviews-title">
-    <div class="gmb-reviews__head">
-        <h4 class="media-title mb-0" id="gmb-reviews-title">More Reviews</h4>
-        <div class="gmb-reviews__summary">
-            <span class="gmb-reviews__score">{{ number_format($gRating, 1) }}</span>
-            <span class="gmb-reviews__stars" aria-label="{{ number_format($gRating, 1) }} out of 5 stars">
-                @for($i = 1; $i <= 5; $i++)
-                    <span class="{{ $i <= round($gRating) ? 'is-on' : '' }}">★</span>
-                @endfor
-            </span>
-            <span class="gmb-reviews__count">{{ number_format($gCount) }} reviews</span>
-        </div>
-    </div>
+  
 
     @foreach($gReviews as $review)
         <article class="gmb-reviews__item">
             <header>
                 <strong>
                     @if(!empty($review['author_url']) && str_starts_with($review['author_url'], 'https://'))
-                        <a href="{{ $review['author_url'] }}" target="_blank" rel="nofollow noopener">{{ $review['author'] }}</a>
+                        <a href="#"  rel="nofollow noopener">{{ $review['author'] }}</a>
                     @else
                         {{ $review['author'] }}
                     @endif
@@ -47,9 +36,7 @@
         </article>
     @endforeach
 
-    <div class="gmb-reviews__footer">
-        <span class="gmb-reviews__powered">Source: Google Maps</span>
-    </div>
+   
 </section>
 
 <style>

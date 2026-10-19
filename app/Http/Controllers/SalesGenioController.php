@@ -2125,11 +2125,7 @@ class SalesGenioController extends Controller
         ];
     }
 
-    /**
-     * Proceed step — check if a listing with this mobile already exists.
-     * Shows suggested matches (like JustDial) so the sales user can decide
-     * to edit an existing one or create a fresh business.
-     */
+    
     public function checkBusiness(Request $request)
     {
         $request->validate($this->businessRules(), $this->businessMessages());

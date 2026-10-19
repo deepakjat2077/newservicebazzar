@@ -721,20 +721,8 @@ class BusinessController extends Controller
         ]);
     }
 
-    /* ---------------------------------------------------------------------
-     | Business Tools
-     | -------------------------------------------------------------------*/
-
-    /**
-     * The real tools a business owner has: their public profile / review link
-     * (also the data to render a Ratings QR client-side), a ready-made share
-     * message, and the Universal Business Listing item.
-     *
-     * Universal Listing (sync to Justdial / Google) is reported honestly as
-     * not-yet-available rather than faked — a real sync needs those platforms'
-     * own APIs. The owner can register interest (requestUniversalListing) and
-     * the team follows up.
-     */
+   
+   
     public function tools(Request $request, $id)
     {
         $listing = $this->ownedListing($request, $id);

@@ -643,159 +643,181 @@ window.SB = {
             </div>
         </div>
 
-        <div class="featured-listing-slider">
-            @foreach($featureds as $featured)
+   
+<div class="featured-listing-slider">
+    @foreach($featureds as $featured)
 
-                @php
+        @php
+            $mobileNumbers = is_array($featured->mobile_numbers)
+                ? $featured->mobile_numbers
+                : (json_decode($featured->mobile_numbers, true) ?: []);
 
-                    $mobileNumbers = is_array($featured->mobile_numbers)
-                        ? $featured->mobile_numbers
-                        : json_decode($featured->mobile_numbers, true);
+            $whatsappNumbers = is_array($featured->whatsapp_numbers)
+                ? $featured->whatsapp_numbers
+                : (json_decode($featured->whatsapp_numbers, true) ?: []);
 
-                    $whatsappNumbers = is_array($featured->whatsapp_numbers)
-                        ? $featured->whatsapp_numbers
-                        : json_decode($featured->whatsapp_numbers, true);
+            $mobilePhone = $mobileNumbers[0] ?? '';
+            $whatsappPhone = $whatsappNumbers[0] ?? '';
 
-                    $mobilePhone = $mobileNumbers[0] ?? '';
-                    $whatsappPhone = $whatsappNumbers[0] ?? '';
+            $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
+            $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
 
-                    $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
-                    $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
+            // Service Bazzar rating
+            $rating = 0;
+            $ratingCount = 0;
 
-                    $rating = (float) ($featured->verified_ratings_avg ?? 0);
-                    $ratingCount = (int) ($featured->verified_ratings_count ?? 0);
+            if (isset($featured->review) && is_numeric($featured->review)) {
+                $rating = (float) $featured->review;
+            } elseif (isset($featured->avg_rating) && is_numeric($featured->avg_rating)) {
+                $rating = (float) $featured->avg_rating;
+            } elseif (isset($featured->rating) && is_numeric($featured->rating)) {
+                $rating = (float) $featured->rating;
+            } elseif (isset($featured->verified_ratings_avg) && is_numeric($featured->verified_ratings_avg)) {
+                $rating = (float) $featured->verified_ratings_avg;
+            }
 
-                    
+            if (isset($featured->total_review) && is_numeric($featured->total_review)) {
+                $ratingCount = (int) $featured->total_review;
+            } elseif (isset($featured->review_count) && is_numeric($featured->review_count)) {
+                $ratingCount = (int) $featured->review_count;
+            } elseif (isset($featured->ratings_count) && is_numeric($featured->ratings_count)) {
+                $ratingCount = (int) $featured->ratings_count;
+            } elseif (isset($featured->verified_ratings_count) && is_numeric($featured->verified_ratings_count)) {
+                $ratingCount = (int) $featured->verified_ratings_count;
+            }
 
-                    $yearsInBusiness = null;
+            // Google rating and review count
+            $gRating = (float) ($featured->gmb_rating ?? 0);
+            $gCount = (int) ($featured->gmb_review_count ?? 0);
 
-                    if (!empty($featured->established_year) && is_numeric($featured->established_year)) {
-                        $yearsInBusiness = date('Y') - (int) $featured->established_year;
-                    }
+            // Combine Service Bazzar and Google ratings
+            $existingRatingSum = $rating * $ratingCount;
+            $googleRatingSum = $gRating * $gCount;
+            $combinedCount = $ratingCount + $gCount;
 
-                @endphp
+            if ($combinedCount > 0) {
+                $rating = round(
+                    ($existingRatingSum + $googleRatingSum) / $combinedCount,
+                    1
+                );
+            } else {
+                $rating = 0;
+            }
 
+            $ratingCount = $combinedCount;
 
-                <div class="listing-area"
-                     data-url="{{ route('listings.details', [
+            // Years in business
+            $yearsInBusiness = null;
+
+            if (!empty($featured->established_year) && is_numeric($featured->established_year)) {
+                $yearsInBusiness = date('Y') - (int) $featured->established_year;
+            }
+        @endphp
+
+        <div class="listing-area"
+             data-url="{{ route('listings.details', [
+                'category' => optional($featured->category)->slug,
+                'slug' => $featured->slug
+             ]) }}"
+             style="cursor:pointer;">
+
+            <div class="thumb">
+                <img width="300" height="225"
+                     src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
+                     loading="lazy"
+                     alt="{{ $featured->name }}"
+                     class="listing-thumb">
+            </div>
+
+            <div class="listing-content">
+
+                <h2 class="title align-items-center flex-wrap">
+                    @if(($featured->is_star ?? 0) == 1)
+                        <i class="fas fa-star ico"></i>
+                    @endif
+
+                    <a href="{{ route('listings.details', [
                         'category' => optional($featured->category)->slug,
                         'slug' => $featured->slug
-                     ]) }}"
-                     style="cursor:pointer;">
+                    ]) }}">
+                        {{ __($featured->name) }}
+                    </a>
+                </h2>
 
-                    <div class="thumb">
-                        <img width="300" height="225" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
-                         loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
-                    </div>
+                <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
 
-                    <div class="listing-content">
+                    @if($rating > 0)
+                        <span class="jd-rating-badge">
+                            {{ number_format($rating, 1) }} ★
+                        </span>
+                    @endif
 
-                        <h2 class="title align-items-center flex-wrap">
+                    @if($ratingCount > 0)
+                        <span class="jd-rating-count">
+                            {{ $ratingCount }} Ratings
+                        </span>
+                    @endif
 
-                            @if(($featured->is_star ?? 0) == 1)
-                                <i class="fas fa-star ico"></i>
-                            @endif
+                    @if(($featured->trust ?? 0) == 1)
+                        <img src="{{ asset('assets/images/trust_2x.gif') }}"
+                             class="jd-badge-img"
+                             loading="lazy"
+                             decoding="async"
+                             alt="Trust">
+                    @endif
 
-                            <a href="{{ route('listings.details', [
-                                'category' => optional($featured->category)->slug,
-                                'slug' => $featured->slug
-                            ]) }}">
-                                {{ __($featured->name) }}
-                            </a>
-
-                        </h2>
-
-
-                        <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
-
-                            @if($rating > 0 && $ratingCount > 0)
-
-                                <span class="jd-rating-badge">
-                                    {{ number_format($rating, 1) }} ★
-                                </span>
-
-                                <span class="jd-rating-count">
-                                    {{ $ratingCount }} Ratings
-                                </span>
-
-                            @endif
-
-                            @if(($featured->trust ?? 0) == 1)
-                                <img  src="{{ asset('assets/images/trust_2x.gif') }}"
-                                     class="jd-badge-img"
-                                     loading="lazy"
-                                     decoding="async"
-                                     alt="Trust">
-                            @endif
-
-                            @if(($featured->verified ?? 0) == 1)
-                                <img  src="{{ asset('assets/images/verified_2x.gif') }}"
-                                     class="jd-badge-img"
-                                     loading="lazy"
-                                     decoding="async"
-                                     alt="Verified">
-                            @endif
-
-                        </div>
-
-
-                        <div class="listing-location">
-
-                            <i class="las la-map-marker"></i>
-
-                            <span>{{ $featured->location->name ?? '' }}</span>
-
-                            @if(!empty($yearsInBusiness) && $yearsInBusiness > 0)
-
-                                <span class="dot-separator">•</span>
-
-                                <span class="business-years">
-                                    <i class="las la-briefcase"></i>
-                                    {{ $yearsInBusiness }} Years in Business
-                                </span>
-
-                            @endif
-
-                        </div>
-
-
-                        @if(!empty($cleanMobilePhone) || !empty($cleanWhatsappPhone))
-
-                            <div class="listing-contact mt-3">
-
-                                @if(!empty($cleanMobilePhone))
-
-                                    <a href="tel:{{ $cleanMobilePhone }}" class="btn-call">
-                                        <i class="las la-phone"></i>
-                                        Call Now
-                                    </a>
-
-                                @endif
-
-
-                                @if(!empty($cleanWhatsappPhone))
-
-                                    <a href="https://wa.me/{{ $cleanWhatsappPhone }}"
-                                       target="_blank" rel="noopener noreferrer"
-                                       class="btn-whatsapp">
-
-                                        <i class="lab la-whatsapp"></i>
-                                        WhatsApp
-
-                                    </a>
-
-                                @endif
-
-                            </div>
-
-                        @endif
-
-                    </div>
+                    @if(($featured->verified ?? 0) == 1)
+                        <img src="{{ asset('assets/images/verified_2x.gif') }}"
+                             class="jd-badge-img"
+                             loading="lazy"
+                             decoding="async"
+                             alt="Verified">
+                    @endif
 
                 </div>
 
-            @endforeach
+                <div class="listing-location">
+                    <i class="las la-map-marker"></i>
+                    <span>{{ $featured->location->name ?? '' }}</span>
+
+                    @if(!empty($yearsInBusiness) && $yearsInBusiness > 0)
+                        <span class="dot-separator">•</span>
+                        <span class="business-years">
+                            <i class="las la-briefcase"></i>
+                            {{ $yearsInBusiness }} Years in Business
+                        </span>
+                    @endif
+                </div>
+
+                @if(!empty($cleanMobilePhone) || !empty($cleanWhatsappPhone))
+                    <div class="listing-contact mt-3">
+
+                        @if(!empty($cleanMobilePhone))
+                            <a href="tel:{{ $cleanMobilePhone }}" class="btn-call">
+                                <i class="las la-phone"></i>
+                                Call Now
+                            </a>
+                        @endif
+
+                        @if(!empty($cleanWhatsappPhone))
+                            <a href="https://wa.me/{{ $cleanWhatsappPhone }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn-whatsapp">
+                                <i class="lab la-whatsapp"></i>
+                                WhatsApp
+                            </a>
+                        @endif
+
+                    </div>
+                @endif
+
+            </div>
         </div>
+
+    @endforeach
+</div>
+
     </div>
 </section>
 

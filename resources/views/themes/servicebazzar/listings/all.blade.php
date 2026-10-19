@@ -736,271 +736,211 @@ a {
 }
     </style>
 
-    @php
-        $filterBaseParams = request()->query();
+   
+@php
+    $filterBaseParams = request()->query();
 
-        if (empty($filterBaseParams['category']) && !empty($selectedCategory?->id)) {
-            $filterBaseParams['category'] = [$selectedCategory->id];
+    if (empty($filterBaseParams['category']) && !empty($selectedCategory?->id)) {
+        $filterBaseParams['category'] = [$selectedCategory->id];
+    }
+
+    if (
+        empty($filterBaseParams['category']) &&
+        empty($filterBaseParams['categorysearch']) &&
+        !empty($selectedCategory?->name)
+    ) {
+        $filterBaseParams['categorysearch'] = $selectedCategory->name;
+    }
+
+    if (empty($filterBaseParams['location_name']) && request('location_name')) {
+        $filterBaseParams['location_name'] = request('location_name');
+    }
+
+    $segmentLocation = request()->segment(1);
+    $currentLocationSlug = null;
+
+    if (!empty($segmentLocation)) {
+        $locationExists = \App\Models\Location::where('slug', $segmentLocation)->exists();
+
+        if ($locationExists) {
+            $currentLocationSlug = $segmentLocation;
         }
+    }
 
-        if (empty($filterBaseParams['category']) && empty($filterBaseParams['categorysearch']) && !empty($selectedCategory?->name)) {
-            $filterBaseParams['categorysearch'] = $selectedCategory->name;
-        }
+    if (empty($currentLocationSlug) && request('location_name')) {
+        $currentLocationSlug = \Illuminate\Support\Str::slug(request('location_name'));
+    }
 
-        if (empty($filterBaseParams['location_name']) && request('location_name')) {
-            $filterBaseParams['location_name'] = request('location_name');
-        }
-    @endphp
+    if (empty($currentLocationSlug) && session('user_location')) {
+        $currentLocationSlug = \Illuminate\Support\Str::slug(session('user_location'));
+    }
 
-    @php
-        $segmentLocation = request()->segment(1);
+    if ($selectedCategory && $currentLocationSlug) {
+        $filterBaseUrl = url($currentLocationSlug . '/' . $selectedCategory->slug);
+    } elseif ($selectedCategory) {
+        $filterBaseUrl = cityCategoryUrl($selectedCategory->slug);
+    } elseif ($selectedSubcategory && $currentLocationSlug) {
+        $filterBaseUrl = url($currentLocationSlug . '/' . $selectedSubcategory->slug);
+    } elseif ($selectedSubcategory) {
+        $filterBaseUrl = route('listings.subcategory', ['slug' => $selectedSubcategory->slug]);
+    } else {
+        $filterBaseUrl = route('listings.search');
+    }
 
-        $currentLocationSlug = null;
+    $filterQuery = request()->query();
 
-        if (!empty($segmentLocation)) {
-            $locationExists = \App\Models\Location::where('slug', $segmentLocation)->exists();
+    unset(
+        $filterQuery['category'],
+        $filterQuery['categorysearch'],
+        $filterQuery['location_name'],
+        $filterQuery['latitude'],
+        $filterQuery['longitude']
+    );
+@endphp
 
-            if ($locationExists) {
-                $currentLocationSlug = $segmentLocation;
-            }
-        }
+<div class="main-card">
+    <div class="filters-wrapper">
+        <button class="scroll-btn left-btn d-md-none" type="button" onclick="scrollFilters(-1)">
+            <i class="las la-angle-left"></i>
+        </button>
 
-        if (empty($currentLocationSlug) && request('location_name')) {
-            $currentLocationSlug = \Illuminate\Support\Str::slug(request('location_name'));
-        }
+        <div class="filters-viewport custom-right">
+            <div class="filters-scroll" id="filtersScroll">
 
-        if (empty($currentLocationSlug) && session('user_location')) {
-            $currentLocationSlug = \Illuminate\Support\Str::slug(session('user_location'));
-        }
-
-        if ($selectedCategory && $currentLocationSlug) {
-            $filterBaseUrl = url($currentLocationSlug . '/' . $selectedCategory->slug);
-        } elseif ($selectedCategory) {
-            $filterBaseUrl = cityCategoryUrl($selectedCategory->slug);
-        } elseif ($selectedSubcategory && $currentLocationSlug) {
-            $filterBaseUrl = url($currentLocationSlug . '/' . $selectedSubcategory->slug);
-        } elseif ($selectedSubcategory) {
-            $filterBaseUrl = route('listings.subcategory', ['slug' => $selectedSubcategory->slug]);
-        } else {
-            $filterBaseUrl = route('listings.search');
-        }
-
-        $filterQuery = request()->query();
-
-        unset($filterQuery['category']);
-        unset($filterQuery['categorysearch']);
-        unset($filterQuery['location_name']);
-        unset($filterQuery['latitude']);
-        unset($filterQuery['longitude']);
-    @endphp
-
-    <div class="main-card">
-        <div class="filters-wrapper">
-
-            <button class="scroll-btn left-btn d-md-none" type="button" onclick="scrollFilters(-1)">
-                <i class="las la-angle-left"></i>
-            </button>
-
-            <div class="filters-viewport custom-right">
-                <div class="filters-scroll" id="filtersScroll">
-
-                    <div class="custom-dropdown {{ request('sort') ? 'active-filter' : '' }}">
-                        <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
-                            Sort By <i class="las la-angle-down ml-1"></i>
-                        </button>
-
-                        <div class="custom-dropdown-menu">
-                            {{--
-                                rel="nofollow" on every sort/filter link on this page: robots.txt
-                                already disallows crawling ?sort= URLs, but that only stops the
-                                fetch — Google still discovers and indexes the URL just from
-                                finding this <a href> on a crawlable page, which is exactly the
-                                "Indexed, though blocked by robots.txt" state seen in Search
-                                Console. nofollow tells it not to follow/index the link at all,
-                                so it stops rediscovering new ?sort= URLs across every
-                                city/category page from here on.
-                            --}}
+                <div class="custom-dropdown {{ request('sort') ? 'active-filter' : '' }}">
+                    <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
+                        Sort By <i class="las la-angle-down ml-1"></i>
+                    </button>
+                    <div class="custom-dropdown-menu">
+                        @foreach(['rating' => 'Rating', 'popular' => 'Popular', 'distance' => 'Distance'] as $sortKey => $sortLabel)
                             <a rel="nofollow"
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}">Rating</a>
-                            <a rel="nofollow"
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'popular'])) }}">Popular</a>
-                            <a rel="nofollow"
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'distance'])) }}">Distance</a>
-                        </div>
+                               href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => $sortKey])) }}">
+                                {{ $sortLabel }}
+                            </a>
+                        @endforeach
                     </div>
+                </div>
 
-                    <div class="custom-dropdown {{ request('rating') ? 'active-filter' : '' }}">
-                        <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
-                            Ratings <i class="las la-angle-down ml-1"></i>
-                        </button>
-
-                        <div class="custom-dropdown-menu">
-
-                            <a
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 'any'])) }}">
-                                Any rating
+                <div class="custom-dropdown {{ request('rating') ? 'active-filter' : '' }}">
+                    <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
+                        Ratings <i class="las la-angle-down ml-1"></i>
+                    </button>
+                    <div class="custom-dropdown-menu">
+                        @foreach(['any' => 'Any rating', '3.5' => '3.5+', '4.0' => '4.0+', '4.5' => '4.5+', '5.0' => '5.0'] as $ratingValue => $ratingLabel)
+                            <a rel="nofollow"
+                               href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $ratingValue])) }}">
+                                {{ $ratingLabel }}
                             </a>
-
-                            <a
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 3.5])) }}">
-                                3.5+
-                            </a>
-
-                            <a
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 4.0])) }}">
-                                4.0+
-                            </a>
-
-                            <a
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 4.5])) }}">
-                                4.5+
-                            </a>
-
-                            <a
-                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 5.0])) }}">
-                                5.0
-                            </a>
-
-                        </div>
+                        @endforeach
                     </div>
+                </div>
 
                 @php
-    $topRatedQuery = $filterQuery;
+                    $topRatedQuery = $filterQuery;
+                    if (request('filter') == 'top_rated') {
+                        unset($topRatedQuery['filter']);
+                    } else {
+                        $topRatedQuery['filter'] = 'top_rated';
+                    }
 
-    if (request('filter') == 'top_rated') {
-        unset($topRatedQuery['filter']);
-    } else {
-        $topRatedQuery['filter'] = 'top_rated';
-    }
-@endphp
+                    $verifiedQuery = $filterQuery;
+                    if (request('filter') == 'verified') {
+                        unset($verifiedQuery['filter']);
+                    } else {
+                        $verifiedQuery['filter'] = 'verified';
+                    }
 
-{{-- <button type="button"
-    class="filter-pill {{ request('filter') == 'top_rated' ? 'active-filter' : '' }}"
-    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($topRatedQuery) }}'">
-    Top Rated
-</button> --}}
+                    $trustQuery = $filterQuery;
+                    if (request('filter') == 'trust') {
+                        unset($trustQuery['filter']);
+                    } else {
+                        $trustQuery['filter'] = 'trust';
+                    }
+                @endphp
 
-                   @php
-    $verifiedQuery = $filterQuery;
+                <button type="button"
+                    class="filter-pill {{ request('filter') == 'top_rated' ? 'active-filter' : '' }}"
+                    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($topRatedQuery) }}'">
+                    Top Rated
+                </button>
 
-    if (request('filter') == 'verified') {
-        unset($verifiedQuery['filter']);
-    } else {
-        $verifiedQuery['filter'] = 'verified';
-    }
-@endphp
+                <button type="button"
+                    class="filter-pill {{ request('filter') == 'verified' ? 'active-filter' : '' }}"
+                    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($verifiedQuery) }}'">
+                    Verified
+                </button>
 
-<button type="button"
-    class="filter-pill {{ request('filter') == 'verified' ? 'active-filter' : '' }}"
-    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($verifiedQuery) }}'">
-    Verified
-</button>
+                <button type="button"
+                    class="filter-pill {{ request('filter') == 'trust' ? 'active-filter' : '' }}"
+                    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($trustQuery) }}'">
+                    Trust
+                </button>
 
-@php
-    $trustQuery = $filterQuery;
-
-    if (request('filter') == 'trust') {
-        unset($trustQuery['filter']);
-    } else {
-        $trustQuery['filter'] = 'trust';
-    }
-@endphp
-
-<button type="button"
-    class="filter-pill {{ request('filter') == 'trust' ? 'active-filter' : '' }}"
-    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($trustQuery) }}'">
-    Trust
-</button>
-  <button class="all-filters-desktop ml-2" type="button" onclick="openSidebar()">
-                <i class="las la-sliders-h mr-1"></i> All
-            </button>
-
-                </div>
+                <button class="all-filters-desktop ml-2" type="button" onclick="openSidebar()">
+                    <i class="las la-sliders-h mr-1"></i> All
+                </button>
             </div>
-            <button class="scroll-btn right-btn d-md-none" type="button" onclick="scrollFilters(1)">
-                <i class="las la-angle-right"></i>
-            </button>
-
-          <button class="all-filters-mobile" type="button" onclick="openSidebar()">
-    <i class="las la-sliders-h mr-1"></i> All
-</button>
         </div>
+
+        <button class="scroll-btn right-btn d-md-none" type="button" onclick="scrollFilters(1)">
+            <i class="las la-angle-right"></i>
+        </button>
+
+        <button class="all-filters-mobile" type="button" onclick="openSidebar()">
+            <i class="las la-sliders-h mr-1"></i> All
+        </button>
     </div>
-    <div class="filter-overlay" id="overlay" onclick="closeSidebar()"></div>
+</div>
 
-    <div class="filter-sidebar" id="sidebar">
-        <div class="sidebar-header d-flex justify-content-between align-items-center">
-            <div class="filter-sidebar-title">MORE FILTERS</div>
-            <button type="button" class="close-sidebar-btn" onclick="closeSidebar()">
-                <i class="las la-times"></i>
-            </button>
-        </div>
+<div class="filter-overlay" id="overlay" onclick="closeSidebar()"></div>
 
-        {{--
-            rel="nofollow" throughout this sidebar: robots.txt disallows
-            crawling ?sort=/?rating=/?filter= URLs, but that only blocks the
-            fetch — Google still discovers and indexes the URL just from
-            finding the <a href> here, which is exactly the "Indexed, though
-            blocked by robots.txt" state Search Console flags. nofollow stops
-            it from following/indexing these links at the source, across
-            every city/category page that renders this sidebar.
-        --}}
-        <div class="filter-label">Sort By</div>
-        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}"
-            class="filter-chip d-inline-block mb-2 {{ request('sort') == 'rating' ? 'active' : '' }}">
-            Rating
-        </a>
-
-        {{-- SORT --}}
-        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'popular'])) }}"
-            class="filter-chip d-inline-block mb-2 {{ request('sort') == 'popular' ? 'active' : '' }}">
-            Popular
-        </a>
-
-        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'distance'])) }}"
-            class="filter-chip d-inline-block mb-2 {{ request('sort') == 'distance' ? 'active' : '' }}">
-            Distance
-        </a>
-
-        <div class="filter-label">Ratings</div>
-
-        @for($i = 1; $i <= 5; $i++)
-            <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $i])) }}"
-                class="filter-chip d-inline-block mb-2 {{ request('rating') == $i ? 'active' : '' }}">
-                {{ $i }} Star
-            </a>
-        @endfor
-
-        <div class="filter-label">More Filters</div>
-
-        {{-- <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'top_rated'])) }}"
-            class="filter-chip d-inline-block mb-2 {{ request('filter') == 'top_rated' ? 'active' : '' }}">
-            Top Rated
-        </a> --}}
-
-        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'verified'])) }}"
-            class="filter-chip d-inline-block mb-2 {{ request('filter') == 'verified' ? 'active' : '' }}">
-            Verified
-        </a>
-
-        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'trust'])) }}"
-            class="filter-chip d-inline-block mb-2 {{ request('filter') == 'trust' ? 'active' : '' }}">
-            Trust
-        </a>
-
-        {{-- BUTTONS --}}
-        <div class="bottom-buttons mt-4">
-
-            <a href="{{ $filterBaseUrl }}" class="btn btn-reset">
-                Reset Filters
-            </a>
-
-            <button class="btn btn-apply" type="button" onclick="closeSidebar()">
-                Apply Filters
-            </button>
-
-        </div>
+<div class="filter-sidebar" id="sidebar">
+    <div class="sidebar-header d-flex justify-content-between align-items-center">
+        <div class="filter-sidebar-title">MORE FILTERS</div>
+        <button type="button" class="close-sidebar-btn" onclick="closeSidebar()">
+            <i class="las la-times"></i>
+        </button>
     </div>
+
+    <div class="filter-label">Sort By</div>
+
+    @foreach(['rating' => 'Rating', 'popular' => 'Popular', 'distance' => 'Distance'] as $sortKey => $sortLabel)
+        <a rel="nofollow"
+           href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => $sortKey])) }}"
+           class="filter-chip d-inline-block mb-2 {{ request('sort') == $sortKey ? 'active' : '' }}">
+            {{ $sortLabel }}
+        </a>
+    @endforeach
+
+    <div class="filter-label">Ratings</div>
+
+    @foreach([3.5, 4.0, 4.5, 5.0] as $ratingValue)
+        <a rel="nofollow"
+           href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $ratingValue])) }}"
+           class="filter-chip d-inline-block mb-2 {{ request('rating') == $ratingValue ? 'active' : '' }}">
+            {{ number_format($ratingValue, 1) }}+
+        </a>
+    @endforeach
+
+    <div class="filter-label">More Filters</div>
+
+    <a rel="nofollow"
+       href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'verified'])) }}"
+       class="filter-chip d-inline-block mb-2 {{ request('filter') == 'verified' ? 'active' : '' }}">
+        Verified
+    </a>
+
+    <a rel="nofollow"
+       href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'trust'])) }}"
+       class="filter-chip d-inline-block mb-2 {{ request('filter') == 'trust' ? 'active' : '' }}">
+        Trust
+    </a>
+
+    <div class="bottom-buttons mt-4">
+        <a href="{{ $filterBaseUrl }}" class="btn btn-reset">Reset Filters</a>
+        <button class="btn btn-apply" type="button" onclick="closeSidebar()">Apply Filters</button>
+    </div>
+</div>
 
     <section class="listing pt-70 pb-80  custom-right" id="listingSection">
         <div class="container-fluid">
@@ -1012,11 +952,7 @@ a {
                             @include($themeView . 'partials.ajax-listings')
                         </div>
 
-                        {{-- Justdial-style infinite scroll — page-number
-                        links were explicitly ruled out; the next batch
-                        loads itself in as the sentinel below scrolls into
-                        view. See #infiniteScrollLoader's script further
-                        down this file. --}}
+                       
                         @if($listings instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
                             <div id="infiniteScrollLoader" class="infinite-scroll-loader d-none">
                                 <div class="infinite-scroll-spinner"></div>

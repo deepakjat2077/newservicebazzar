@@ -143,9 +143,7 @@ class SitemapApiController extends Controller
         ]);
     }
 
-    /**
-     * Get listings for a city and category (simple list format like JustDial)
-     */
+   
     public function cityListings($citySlug, $categorySlug)
     {
         $city = Location::where('slug', $citySlug)->where('status', 1)->first();

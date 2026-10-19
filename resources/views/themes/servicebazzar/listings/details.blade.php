@@ -107,28 +107,7 @@
     </style>
 
         <style>
-            /*
-             * Fix: on this page (and only this page), the browser computes
-             * #scrollSearchHolder's auto height as 56px instead of the 40px
-             * its own content (.header-search-area) actually is — no CSS
-             * rule sets that height anywhere (verified: zero stylesheet
-             * rules with a `height` declaration match this element or any
-             * of its ancestors/descendants on this page), so it isn't a
-             * conflicting margin/padding/position/transform to remove. The
-             * extra 16px pushes the search bar 8px above the header's
-             * vertical center, since the visible content sits flush at the
-             * top of that oversized box instead of being centered in it.
-             * 40px is not an arbitrary number — it's the same height the
-             * shared header CSS already assigns to the search boxes
-             * themselves (#scrollSearchHolder .header-input_location_box,
-             * .header-input_search_box { height: 40px }), and it's what
-             * this holder naturally renders as on every other page. Pinning
-             * it here makes this page match that reference exactly.
-             * (Previous attempt at this fix, now removed: targeted
-             * ".search-row-custom", a class the header never uses — it
-             * uses "header-search-row-custom" — so it never matched
-             * anything and had no effect.)
-             */
+            
             #scrollSearchHolder {
                 height: 40px;
             }
@@ -206,8 +185,7 @@
     }
 
 
-    /* --- relocated from inline <style> block (originally after line 272) to prevent FOUC --- */
-    
+ 
 
     .listing-breadcrumb
 
@@ -247,7 +225,7 @@
     }
 
 
-    /* --- relocated from inline <style> block (originally after line 505) to prevent FOUC --- */
+   
                                     .btn-call-main{
         display: flex;
         align-items: center;
@@ -286,8 +264,6 @@
         object-fit:contain;
     }
 
-
-    /* --- relocated from inline <style> block (originally after line 643) to prevent FOUC --- */
     .listing-location-tooltip{
         position:relative;
         display:inline-flex;
@@ -458,12 +434,7 @@
         border-bottom:8px solid #fff;
     }
 
-    /* Edit Button Styles
-       Scoped to .listing-action-buttons and flagged !important to override
-       the .listing-action-buttons .listing-btn base rule (min-width:140px,
-       border:none) — same technique the share button uses — so the edit
-       button stays a compact 42px icon-square that sits inline next to the
-       share button instead of stretching to 140px and wrapping to a new row. */
+  
     .listing-action-buttons .edit-listing-btn{
         width:42px !important;
         height:42px !important;
@@ -509,7 +480,6 @@
         height:100vh !important;
     }
 
-    /* --- relocated from inline <style> block (originally after line 1106) to prevent FOUC --- */
 
         @media (max-width: 991px){
 
@@ -665,8 +635,7 @@
         color:#fff;
         border-color:#ff5a00;
     }
-    /* Hovering a star fills it and every star before it (hover the 4th → 1-4),
-       not just the one under the pointer. Saved stars come back when the pointer leaves. */
+
     @media (hover:hover){
         #quickRatingStars:hover .jd-star{ background:#fff; color:#bbb; border-color:#ddd; }
         #quickRatingStars:hover .jd-star:hover,
@@ -821,14 +790,7 @@
         }
     }
 
-    /* Popup */
-    /*
-     * Two fields and a button — so the box is sized to that and nothing else.
-     * It used to open a 1000px, half-screen-tall panel with a promo image
-     * taking up almost half of it, which reads as an advertisement rather than
-     * a quick question and is what people were leaving over. Small enough now
-     * to take in at a glance, with the page still visible around it.
-     */
+ 
     .best-price-modal {
         display: none;
         position: fixed;
@@ -1326,7 +1288,6 @@
         }
     }
 
-    /* --- relocated from inline <style> block (originally after line 2079) to prevent FOUC --- */
 
                         
                         .orrrr{font-size: 14px;
@@ -1334,13 +1295,11 @@
         color: #111;
     }
 
-    /* --- relocated from inline <style> block (originally after line 2132) to prevent FOUC --- */
                 .utlink{
                 font-size: 14px;
         font-weight: 400;   
                 }
 
-    /* --- relocated from inline <style> block (originally after line 2444) to prevent FOUC --- */
         .user-reviews-header{
         margin:25px 0 20px;
     }
@@ -1496,7 +1455,6 @@
         margin-right:5px;
     }
 
-    /* Desktop only: at 11px the actions were hard to see and hit. Phones keep their own size. */
     @media (min-width: 992px){
         .review-actions{ gap:12px; margin-top:14px; }
         .review-action-btn{
@@ -1624,7 +1582,7 @@
     .add-review-star.active{
         color:#ff5a00;
     }
-    /* Hover fills that star and every one before it, like the "Click to Rate" stars. */
+ 
     @media (hover:hover){
         #addReviewStars:hover .add-review-star{ color:#d6d6d6; }
         #addReviewStars:hover .add-review-star:hover,
@@ -1644,7 +1602,6 @@
     }
 
 
-    /* --- relocated from inline <style> block (originally after line 3489) to prevent FOUC --- */
     .follow-links-box{
         display:none;
         background:#fff;
@@ -3433,32 +3390,59 @@
 
                                     {{ __($listing->name) }}</h1>
 
-                            @php
+                        
+@php
+    // Existing listing rating and count
+    $rating = 0;
+    $ratingCount = 0;
+
+    if (!empty($listing->review) && is_numeric($listing->review)) {
+        $rating = (float) $listing->review;
+    } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
+        $rating = (float) $listing->avg_rating;
+    } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
+        $rating = (float) $listing->rating;
+    }
+
+    if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
+        $ratingCount = (int) $listing->total_review;
+    } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
+        $ratingCount = (int) $listing->review_count;
+    } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
+        $ratingCount = (int) $listing->ratings_count;
+    }
+
+    // Google reviews data
+    $gReviews = $listing->gmb_reviews_json;
+
+    if (is_string($gReviews)) {
+        $gReviews = json_decode($gReviews, true);
+    }
+
+    $gReviews = is_array($gReviews) ? $gReviews : [];
+    $gRating = (float) ($listing->gmb_rating ?? 0);
+    $gCount = (int) ($listing->gmb_review_count ?? 0);
+
+    // Combine existing and Google ratings
+    $existingRatingSum = $rating * $ratingCount;
+    $googleRatingSum = $gRating * $gCount;
+
+    $combinedCount = $ratingCount + $gCount;
+
+    if ($combinedCount > 0) {
+        $rating = round(
+            ($existingRatingSum + $googleRatingSum) / $combinedCount,
+            1
+        );
+    } else {
         $rating = 0;
-        $ratingCount = 0;
+    }
 
-        if (!empty($listing->review) && is_numeric($listing->review)) {
-            $rating = (float) $listing->review;
-        } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
-            $rating = (float) $listing->avg_rating;
-        } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
-            $rating = (float) $listing->rating;
-        }
+  
+    $ratingCount = $combinedCount;
+@endphp
 
-        if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
-            $ratingCount = (int) $listing->total_review;
-        } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
-            $ratingCount = (int) $listing->review_count;
-        } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
-            $ratingCount = (int) $listing->ratings_count;
-        }
-    @endphp
-
-    {{-- jd-rating-line1/2 are display:contents by default (see CSS), so on
-         tablet/desktop these wrappers are invisible to layout and all four
-         items render in .jd-rating-wrap's single flex row exactly as
-         before. Only the mobile media query turns them into two real
-         stacked rows: rating+count, then trust+verified. --}}
+    
     <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
         <div class="jd-rating-line1">
             @if($rating > 0)
@@ -3735,8 +3719,7 @@
             }
         }
 
-        // Fixed Mon-Sun order for the expandable weekly list, independent
-        // of the order days happen to be stored in $businessDays.
+       
         $jdWeekOrder = [
             'Mon' => 'Monday',
             'Tue' => 'Tuesday',
@@ -3744,7 +3727,7 @@
             'Thu' => 'Thursday',
             'Fri' => 'Friday',
             'Sat' => 'Saturday',
-            'Sun' => 'Sunday',
+            'Sun' => 'Sunday',  
         ];
     @endphp
 
@@ -3763,11 +3746,6 @@
     </span>
     </span>
 
-    {{-- Mobile-only Justdial-style expandable status row — replaces the
-         plain "Open 9:00 AM - 6:00 PM" text (.jd-hours-old, above) on
-         mobile only; .jd-hours-old stays visible as before on tablet/
-         desktop. Uses the same $businessDays / $openTimes / $closeTimes
-         data as the rest of this card — no hardcoded timings. --}}
     <div class="jd-status-row">
         <button type="button" class="jd-status-toggle" id="jdStatusToggle" aria-expanded="false" aria-controls="jdHoursPanel">
             <span class="jd-status-dot {{ $isOpenNow ? 'is-open' : 'is-closed' }}"></span>
@@ -3776,8 +3754,7 @@
             </span>
             <span class="jd-status-detail">
                 @php
-                    // Open round the clock today (saved as 12:00 AM – 11:59 PM): say so,
-                    // rather than "Until 11:59 PM".
+                   
                     $jdOpen24Today = collect($jdShiftsByDay[$today] ?? [])->contains(function ($sh) use ($jdFormatTime) {
                         return strtoupper((string) $jdFormatTime($sh['open'])) === '12:00 AM'
                             && strtoupper((string) $jdFormatTime($sh['close'])) === '11:59 PM';
@@ -3818,9 +3795,7 @@
                             <div class="listing-action-buttons">
 
         @php
-            // Pilot: bridge (masked) call only for the configured category +
-            // location (currently Jaipur / IT Consultants). Everyone else
-            // keeps the plain tel: link below, unchanged.
+         
             $bridgeCategoryIds = config('exotel.restricted_category_ids', []);
             $bridgeLocationIds = config('exotel.restricted_location_ids', []);
             $bridgeCallEligible = config('exotel.enabled')
@@ -3876,8 +3851,7 @@
 
     @if(!empty($listing->whatsapp_numbers[0]))
     @php
-        // Pre-fill message for WhatsApp so user doesn't have to type
-        // and business owner knows lead came from Service Bazzar
+       
         $categoryName = $listing->category?->name ?? 'services';
         $businessName = $listing->name ?? 'your business';
         $message = "Hi, I found you on Service Bazzar. I'm interested in your {$categoryName}. Please tell me more.";
@@ -4227,32 +4201,12 @@
         ============================================================ */
         @media (max-width: 991px) {
 
-            /*
-             * Fix: on this page (and only this page — verified against the
-             * category listing page, where the same shared mobile search
-             * bar renders correctly), the mobile search overlay's
-             * `<form class="yt-search-form">` (see .youtube-mobile-search /
-             * .yt-search-form, layouts/site.blade.php) picks up a stray
-             * default margin-bottom of 16px — the shared layout never
-             * resets margins on the bare `form` element. That extra 16px
-             * inflates the flex row's cross-axis size from 48px to 64px
-             * (verified in devtools) and, since the row never centers its
-             * children, dumps all of it as blank space below the search
-             * bar — which is what pushed it up and away from center.
-             * Zeroing that margin (scoped to this page and to
-             * max-width: 991px only) removes the stray space at its
-             * source: the row goes back to its natural 48px — identical
-             * to every other mobile page — with the search bar already
-             * flush and centered, no height/position overrides needed.
-             * Tablet/desktop don't use this overlay at all, so they're
-             * untouched.
-             */
+            
             body.mobile-yt-search-open .yt-search-form {
                 margin: 0;
             }
 
-            /* Header: full-width business photo on top, business info
-               (name, badges, location) stacked full-width below it. */
+          
             #listingTopCard .listing-card .row {
                 display: block;
             }
@@ -4307,16 +4261,12 @@
                 font-size: 12px;
             }
 
-            /* The original desktop action-buttons row is hidden (not
-               removed) on mobile — replaced visually by the dedicated
-               .mobile-quick-actions block below, which is shown only
-               inside this same media query. */
+          
             #listingTopCard .listing-action-buttons {
                 display: none !important;
             }
 
-            /* ---- Reference-match action row: 4 evenly-spaced circular
-               icon buttons + a full-width blue "Enquire Now" CTA ---- */
+          
             #listingTopCard .mobile-quick-actions {
                 display: flex;
                 justify-content: space-between;
@@ -4324,9 +4274,7 @@
                 width: 100%;
                 margin-top: 16px;
                 border-radius: 10px;
-                /* Positioning context for .share-hover-popup — see note
-                   below on why it's centered against this row rather than
-                   the narrow Share button itself. */
+                
                 position: relative;
             }
 
@@ -4391,8 +4339,7 @@
                 box-sizing: border-box;
             }
 
-            /* Edit sits next to Share and looks like it — a plain outlined circle
-               with the dark pencil — instead of a blue disc the black pencil vanished on. */
+          
             #listingTopCard .mqa-edit .mqa-icon {
                 background: #fff !important;
                 color: #555;
@@ -4404,11 +4351,6 @@
                 height: 18px;
             }
 
-            /* .mqa-share-trigger is a real <button>, which browsers give a
-               default background/border/padding — unlike the Call/WhatsApp/
-               Direction <a> tags, it never picked up .mqa-btn's reset since
-               it's nested one level inside the .mqa-btn wrapper. Reset it
-               explicitly so no box/background shows behind the icon. */
             #listingTopCard .mqa-share-trigger {
                 width: 100%;
                 display: flex;
@@ -4424,24 +4366,7 @@
                 -webkit-appearance: none;
             }
 
-            /* The popup is anchored to the whole action row's positioning
-               context (not the 81px-wide Share button itself — see the
-               .mqa-share position:static note below), then right-aligned
-               within it. Share is the rightmost item in the row, flush
-               with the row's right edge, so right:0 here lines the
-               popup's right edge up with Share's right edge and lets it
-               expand leftward from there — landing on WhatsApp/Direction,
-               never reaching Call Now (row is 341px, popup is 235px, so
-               94px of clearance remains before Call Now's right edge).
-               Centering it against the row (left:50%) previously put the
-               popup's LEFT edge past Call Now's position instead, which is
-               the overlap this replaces.
-               .mqa-share also carries the sitewide .share-hover-wrap class,
-               which sets position:relative at every viewport width — that
-               was silently keeping it as the popup's positioned ancestor
-               even after .mobile-quick-actions became position:relative
-               above, so it has to be reset back to static here for the
-               row's positioning context to actually take effect. */
+            
             #listingTopCard .mqa-share {
                 position: static;
             }
@@ -4452,11 +4377,7 @@
                 transform: none;
             }
 
-            /* Base .share-hover-popup:before pointer defaults to left:18px,
-               which pointed at the old left-anchored popup's corner — with
-               the popup now right-anchored, move the pointer to sit under
-               the Share icon's center instead so it still visually points
-               at the button that opened it. */
+          
             #listingTopCard .mqa-share .share-hover-popup:before {
                 left: auto;
                 right: 40px;
@@ -4467,18 +4388,13 @@
                 display: block;
                 width: 100%;
                 margin-top: 12px;
-                /* Gap before the "Click to Rate" section (.text-md-right /
-                   .rate-box) that immediately follows this button in the
-                   DOM — it had no spacing of its own, so the two were
-                   touching. */
+               
                 margin-bottom: 16px;
                 background: #0d6efd;
                 color: #fff;
                 border: 0;
                 border-radius: 10px;
-                /* Slightly shorter button: less top/bottom padding than
-                   before (was 12px/10px). Font sizes below (15px main,
-                   11px .small) are unchanged. */
+              
                 padding: 9px 10px 7px;
                 text-align: center;
                 font-size: 15px;
@@ -4498,9 +4414,7 @@
                 background: #0b5ed7;
             }
 
-            /* Category badge / quick-rate widget: keep it (not part of the
-               reference crop) but let it flow full width below the buttons
-               instead of the desktop right-column treatment. */
+        
             #listingTopCard .text-md-right {
                 width: 100%;
                 align-items: flex-start !important;
@@ -4510,19 +4424,7 @@
                 min-width: 100%;
             }
 
-            /* Reference match: rating split into two rows, address alone
-               on its own row (original hover tooltip untouched), a
-               combined category + business-age row, and a Justdial-style
-               expandable "Open Now : Until ..." status — see
-               .jd-rating-line1/2, .jd-meta-row, .jd-status-row markup in
-               the card above, and the default-hidden rules for the
-               mobile-only pieces (and for .jd-hours-old) further below. */
-
-            /* 1) Rating: two stacked rows — (rating + count), then
-               (trust + verified). .jd-rating-line1/2 are display:contents
-               by default (see the non-mobile rule further below), so this
-               is the only place they become real flex rows; .jd-rating-wrap
-               itself switches to a column so the two rows stack. */
+         
             #listingTopCard .jd-rating-wrap {
                 flex-direction: column;
                 align-items: flex-start !important;
@@ -4538,23 +4440,13 @@
                 gap: 6px;
             }
 
-            /* 2) Address: .listing-location now shows only the address
-               tooltip trigger on mobile — the "years in business" piece
-               that used to share this row moves to .jd-meta-row below
-               instead, so it's hidden here (not removed) to avoid showing
-               it twice. Deliberately no overflow/white-space/ellipsis
-               overrides on .listing-location-tooltip — those broke the
-               hover/tap address popover, so this restores its original,
-               unmodified CSS behavior on mobile too. */
+           
             #listingTopCard .listing-location .dot-separator,
             #listingTopCard .listing-location .business-years {
                 display: none;
             }
 
-            /* 3) Category + business age: one row, its own line below the
-               address. Hide the original desktop badge and the
-               .listing-location copy of the business-age text so neither
-               is shown twice. */
+       
             #listingTopCard .jd-meta-row {
                 display: flex;
                 align-items: center;
@@ -4592,8 +4484,7 @@
                 display: none;
             }
 
-            /* 4) Business status: hide the old plain-text line, show the
-               Justdial-style expandable status row instead. */
+        
             #listingTopCard .jd-hours-old {
                 display: none;
             }
@@ -4699,10 +4590,7 @@
             }
         }
 
-        /* .mobile-quick-actions / .mqa-enquire-btn / .mqa-hours-icon /
-           .jd-meta-row / .jd-category-chip / .jd-status-row only ever
-           render inside the mobile media query above — hidden by default
-           so desktop/tablet is never affected. */
+   
         .mobile-quick-actions,
         .mqa-enquire-btn,
         .mqa-hours-icon,
@@ -4712,12 +4600,7 @@
             display: none;
         }
 
-        /* .jd-rating-line1/2 (inside .jd-rating-wrap) only exist to let
-           the mobile query above split rating+count from trust+verified
-           into two rows. display:contents makes them invisible to layout
-           by default, so on tablet/desktop all four items still render as
-           direct flex items of .jd-rating-wrap in one row, exactly as
-           before these wrappers were introduced. */
+       
         .jd-rating-line1,
         .jd-rating-line2 {
             display: contents;
@@ -4736,71 +4619,16 @@
         }
 
         @media (max-width: 991px) {
-            /*
-             * ROOT CAUSE (why position:sticky never worked here):
-             *
-             * position:sticky is computed relative to the element's
-             * nearest ANCESTOR that has a non-'visible' `overflow`. Walking
-             * #listingTabs' ancestor chain on this page (verified via
-             * getComputedStyle on each ancestor, live, at 375px):
-             *
-             *   #listingTabs (.media-tabs) — overflow-x:auto (deliberate,
-             *     for horizontal tab scrolling) — per spec this also
-             *     forces its OWN overflow-y to compute as 'auto', not
-             *     'visible'. Irrelevant to its own sticky behavior (that's
-             *     about ancestors, not itself), but the same mechanism is
-             *     what causes the next two entries.
-             *   .media-main-box — overflow:hidden (to clip its rounded
-             *     corners). This alone would already break sticky.
-             *   .col-lg-9, .row, .container-fluid, #listingMediaRow — all
-             *     overflow:visible, position:static, no transform/filter.
-             *   the body element — overflow-x:hidden is set elsewhere on this page
-             *     (unrelated FOUC fix), which per the same CSS spec rule
-             *     forces its overflow-y to compute as 'auto' too.
-             *   the html element — independently also computes overflow:hidden auto.
-             *
-             * So there isn't one single blocker — .media-main-box AND
-             * body AND html elements all have non-'visible' overflow. Even after
-             * neutralizing .media-main-box, body/html still remain:
-             * both size themselves exactly to their content (height:auto,
-             * so neither ever actually shows its own internal scrollbar —
-             * the real page scrolling happens through the visual
-             * viewport), yet because their computed `overflow` isn't
-             * 'visible', CSS still treats one of them as #listingTabs'
-             * sticky containing block instead of the viewport. That
-             * mismatch — sticky's reference frame not being the thing that
-             * actually scrolls — is exactly why it never visibly stuck,
-             * and neither is something safely fixable from this
-             * page-scoped file: body's overflow-x:hidden is needed for its
-             * original purpose, and html's overflow is shared, layout-level
-             * behavior outside this file's scope. No transform, filter,
-             * perspective, or stacking-context property was found on any
-             * ancestor — that's not a factor here.
-             *
-             * FIX: skip position:sticky entirely and reproduce the same
-             * effect with position:fixed, toggled by the script below,
-             * plus a placeholder element that reserves #listingTabs'
-             * normal space so nothing jumps when it switches. fixed is
-             * anchored to the viewport unconditionally (no ancestor here
-             * has transform/filter/perspective/will-change:transform, so
-             * nothing overrides that) — the actual, provably reliable way
-             * to reproduce Justdial's sticky-tabs effect on this page.
-             */
+            
             #listingTabs.is-fixed {
                 position: fixed;
-                /* top/left/width are set inline by the script below —
-                   they depend on the live layout (card padding, viewport
-                   width), which isn't knowable in static CSS. */
+                
                 z-index: 900;
                 background: #fff;
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             }
 
-            /* Reserves #listingTabs' normal spot in the document while it's
-               position:fixed, so the content below doesn't jump upward.
-               Height is set inline by the script, matching the tab bar's
-               own height exactly; 0 (no layout impact) the rest of the
-               time. */
+         
             #listingTabsPlaceholder {
                 height: 0;
             }
@@ -4809,28 +4637,9 @@
     @endpush
 
     <script>
-    /*
-     * REAL BUG FOUND: this <script> tag sits ~428 lines BEFORE
-     * #listingTabs / #listingTabsPlaceholder appear in the HTML (they're
-     * defined further down this same file). Since this ran as a plain
-     * inline script (not deferred), the browser executed it the instant
-     * the parser reached this point — before those elements existed in
-     * the DOM at all. document.getElementById('listingTabs') was
-     * therefore always null, the `if (!tabs || ...) return;` guard below
-     * always fired, and NOTHING in this script ever actually ran on a
-     * real page load — it silently did nothing, with no error, every
-     * single time. (Manual re-testing in devtools after the page had
-     * already finished loading masked this, since by then the elements
-     * existed.) Wrapping everything in DOMContentLoaded fixes it: the
-     * whole HTML document (including #listingTabs) is guaranteed to be
-     * parsed before this code runs.
-     */
+  
     document.addEventListener('DOMContentLoaded', function () {
-        // Mobile-only fixed-nav (see the CSS comment above for why
-        // position:sticky doesn't work on this page). Everything here is
-        // gated behind mobileQuery.matches, and unfixes itself immediately
-        // if the viewport is ever resized past 767px, so tablet/desktop
-        // are unaffected either way.
+      
         var tabs = document.getElementById('listingTabs');
         var placeholder = document.getElementById('listingTabsPlaceholder');
         var mediaBox = document.querySelector('#listingMediaRow .media-main-box');
@@ -4840,8 +4649,7 @@
         }
 
         var mobileQuery = window.matchMedia('(max-width: 991px)');
-        // Where the site header ends — measured, since the phone header is
-        // taller now (two rows: logo + actions, then search).
+     
         var topOffset = 50;
         function measureHeader() {
             var h = document.getElementById('stickyScrollHeader');
@@ -4887,8 +4695,6 @@
             if (isFixed) tabs.style.top = topOffset + 'px';
             var tabsHeight = tabs.getBoundingClientRect().height;
 
-            // Stop before the tab-content card ends so the bar never
-            // overlaps whatever follows it (sidebar/footer etc).
             var boxBottom = mediaBox.getBoundingClientRect().bottom;
             var reachedEnd = boxBottom <= topOffset + tabsHeight;
 
@@ -4904,11 +4710,10 @@
                 var placeholderRect = placeholder.getBoundingClientRect();
 
                 if (placeholderRect.top > topOffset) {
-                    // Scrolled back above the original position.
+                 
                     releaseFixed();
                 } else {
-                    // Keep left/width in sync with the live layout (e.g.
-                    // after an orientation change) while still fixed.
+                 
                     tabs.style.left = placeholderRect.left + 'px';
                     tabs.style.width = placeholderRect.width + 'px';
                 }
@@ -4926,16 +4731,7 @@
         window.addEventListener('resize', onScrollOrResize);
         update();
 
-        /*
-         * Automatic active-tab highlighting while scrolling (mobile only).
-         * IntersectionObserver watches each tab's target section; whichever
-         * one is currently sitting in the "active band" just below the
-         * fixed header + tabs gets its tab marked .active as the user
-         * scrolls — no click required. This only ever adds/removes the
-         * .active class (exactly what the existing click handlers further
-         * down this file already do), so it doesn't touch or duplicate
-         * their scroll-to logic at all.
-         */
+       
         var tabButtons = Array.prototype.slice.call(document.querySelectorAll('.tab-scroll-btn'));
         var sections = tabButtons
             .map(function (btn) {
@@ -4960,9 +4756,7 @@
                     return;
                 }
 
-                // The active section is the last one (in document/tab
-                // order) currently intersecting the band — i.e. the one
-                // whose heading most recently scrolled under the tabs.
+            
                 var current = null;
 
                 for (var i = 0; i < sections.length; i++) {
@@ -4982,9 +4776,7 @@
                 });
                 syncActiveFromScroll();
             }, {
-                // Active band: a thin strip starting just below the fixed
-                // header + tabs, ending 60% down the viewport — a section
-                // counts as "current" once its heading crosses into it.
+              
                 rootMargin: '-' + (topOffset + tabsHeight) + 'px 0px -60% 0px',
                 threshold: 0
             });
@@ -4993,14 +4785,7 @@
                 sectionObserver.observe(s.el);
             });
 
-            // Briefly suppress automatic updates right after a tab is
-            // clicked, so the tab the user just chose doesn't flicker to a
-            // different one while its smooth scroll is still in flight —
-            // the existing click handlers already set the correct .active
-            // state synchronously on click, this just avoids overriding it
-            // mid-scroll. Requirement 6 (auto-updating again afterwards)
-            // still holds: syncActiveFromScroll keeps running once the
-            // short window ends.
+         
             tabButtons.forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     suppressUntil = Date.now() + 700;
@@ -5273,13 +5058,7 @@
         <div class="col-lg-9">
         <div class="media-main-box">
 
-            {{-- TOP BUTTONS --}}
-            {{-- Placeholder for the mobile fixed-nav script below: reserves
-                 #listingTabs' normal space in the document once it switches
-                 to position:fixed, so nothing else on the page jumps. Height
-                 stays 0 (no visual/layout presence) except while the tabs
-                 are fixed, and only on mobile — see the script for why
-                 position:sticky isn't used here. --}}
+            
             <div id="listingTabsPlaceholder"></div>
             <ul class="nav media-tabs mb-3" id="listingTabs">
         <li class="nav-item">
@@ -5897,416 +5676,431 @@
 
     @endif
 
-                {{-- REVIEWS --}}
+              
         <div class="listing-widget" id="reviewsSection">
             <h4 class="media-title  ddd mb-0">@lang('Review & Ratings')</h4>
     
-    @php
-    $avgRating = round($listing->ratings->avg('ratings') ?? 0, 1);
-    $totalRatings = $listing->ratings->count();
-    @endphp
+@php
+    
+    $avgRating = 0;
+    $totalRatings = 0;
 
-    {{-- Only this listing's own ratings on Service Bazzar feed these numbers —
-         nothing from other sites, so the text must not say "across the web". --}}
-    <div class="rating-summary-box">
-        <div class="rating-summary-score">
-            {{ number_format($avgRating, 1) }}
-        </div>
+    if (!empty($listing->review) && is_numeric($listing->review)) {
+        $avgRating = (float) $listing->review;
+    } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
+        $avgRating = (float) $listing->avg_rating;
+    } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
+        $avgRating = (float) $listing->rating;
+    }
 
-        <div class="rating-summary-content">
-            <h3>{{ $totalRatings }} {{ $totalRatings === 1 ? 'Rating' : 'Ratings' }}</h3>
+    if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
+        $totalRatings = (int) $listing->total_review;
+    } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
+        $totalRatings = (int) $listing->review_count;
+    } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
+        $totalRatings = (int) $listing->ratings_count;
+    } else {
+        $totalRatings = $listing->ratings->count();
+    }
+    $gRating = (float) ($listing->gmb_rating ?? 0);
+    $gCount = (int) ($listing->gmb_review_count ?? 0);
 
-            <p>
-                @if($totalRatings === 0)
-                    No ratings yet. Be the first to rate this business.
-                @elseif($totalRatings === 1)
-                    Based on 1 rating from a customer on Service Bazzar
-                @else
-                    Average of {{ $totalRatings }} ratings from customers on Service Bazzar
-                @endif
-            </p>
-        </div>
+    // Combine Service Bazzar and Google ratings
+    $existingRatingSum = $avgRating * $totalRatings;
+    $googleRatingSum = $gRating * $gCount;
+
+    $combinedCount = $totalRatings + $gCount;
+
+    if ($combinedCount > 0) {
+        $avgRating = round(
+            ($existingRatingSum + $googleRatingSum) / $combinedCount,
+            1
+        );
+    } else {
+        $avgRating = 0;
+    }
+
+    $totalRatings = $combinedCount;
+@endphp
+
+<div class="rating-summary-box">
+    <div class="rating-summary-score">
+        {{ number_format($avgRating, 1) }}
     </div>
 
+    <div class="rating-summary-content">
+        <h3>{{ $totalRatings }} {{ $totalRatings === 1 ? 'Rating' : 'Ratings' }}</h3>
 
-        <div class="widget-body">
-        
-
-    <div class="review mt-3">
-
-
-        @php
-        $alreadyRated = auth()->check()
-            ? $listing->ratings->firstWhere('user_id', auth()->id())
-            : null;
-
-        $userRating = $alreadyRated ? (int) $alreadyRated->ratings : 0;
-    @endphp
-        <form id="reviewForm">
-            @csrf
-
-            <input type="hidden" name="listing_id" value="{{ $listing->id }}">
-            <input type="hidden"
-                name="ratings"
-                id="guest_review_ratings"
-                    value="{{ $userRating }}">
-
-            <div class="form-group mb-2">
-
-                <div id="reviewStatusText" class="review-status-text">
-                    {{ $userRating  > 0 ? 'You rated' : 'Start your Review' }}
-                </div>
-
-                <div class="add-review-stars" id="addReviewStars">
-                    @for($i = 1; $i <= 5; $i++)
-                        <i class="las la-star add-review-star {{ $i <= $userRating  ? 'active' : '' }}"
-                        data-value="{{ $i }}"></i>
-                    @endfor
-                </div>
-
-            </div>
-
-        <div id="reviewFormBox" class="d-none">
-                <div class="form-group mb-2">
-                    <label>@lang('Write your review')</label>
-                    <textarea class="form-control"
-                            name="review"
-                            id="guest_review_text"
-                            rows="3"
-                                required>{{ $alreadyRated->review ?? '' }}</textarea>
-                </div>
-
-                @guest
-                    <div class="form-group">
-                        <button type="button" class="btn btn__base btn-block" id="openReviewPopupBtn" data-track="review_click" data-listing-id="{{ $listing->id }}">
-                            Submit Review
-                        </button>
-                    </div>
-                @else
-                    <div class="form-group">
-                        <button type="submit" class="btn btn__base btn-block">
-                            {{ $userRating  > 0 ? 'Update Review' : 'Submit Review' }}
-                        </button>
-                    </div>
-                @endguest
-                <button type="button" class="review-cancel-btn" id="reviewCancelBtn">Cancel</button>
-            </div>
-        </form>
+        <p>
+            @if($totalRatings === 0)
+                No ratings yet. Be the first to rate this business.
+            @elseif($totalRatings === 1)
+                Based on 1 rating from customers on Service Bazzar 
+            @else
+                Average of {{ $totalRatings }} ratings from Service Bazzar 
+            @endif
+        </p>
     </div>
-        <div class="reviewer-area" id="reviewsContainer">
-            
+</div>
 
-                <div class="user-reviews-header">
 
-        <div class="user-reviews-title">User Reviews</div>
+      
+@php
+    $alreadyRated = auth()->check()
+        ? $listing->ratings->firstWhere('user_id', auth()->id())
+        : null;
+
+    $userRating = $alreadyRated ? (int) $alreadyRated->ratings : 0;
+
+    // Decode Google reviews safely.
+    $gReviews = $listing->gmb_reviews_json ?? [];
+
+    if (is_string($gReviews)) {
+        $gReviews = json_decode($gReviews, true) ?: [];
+    }
+
+    if (is_array($gReviews) && isset($gReviews['reviews']) && is_array($gReviews['reviews'])) {
+        $gReviews = $gReviews['reviews'];
+    }
+
+    $gReviews = is_array($gReviews) ? $gReviews : [];
+
+    $gRating = (float) ($listing->gmb_rating ?? 0);
+    $gCount = (int) ($listing->gmb_review_count ?? 0);
+
+    // Combine both review sources.
+    $combinedReviews = [];
+
+    foreach ($listing->ratings as $rating) {
+        $combinedReviews[] = [
+            'type' => 'user',
+            'data' => $rating,
+            'date' => $rating->created_at ? $rating->created_at->timestamp : 0,
+        ];
+    }
+
+    foreach ($gReviews as $googleReview) {
+        if (!is_array($googleReview)) {
+            continue;
+        }
+
+        $combinedReviews[] = [
+            'type' => 'google',
+            'data' => $googleReview,
+            'date' => 0,
+        ];
+    }
+
+    usort($combinedReviews, function ($a, $b) {
+        return $b['date'] <=> $a['date'];
+    });
+
+    $totalReviewCount = count($combinedReviews);
+@endphp
+
+<div class="reviewer-area" id="reviewsContainer">
+
+    <div class="user-reviews-header">
+      
 
         <div class="review-filters">
-
-            <button type="button"
-                    class="review-filter-btn active"
-                    data-sort="relevant">
-                Relevant
-            </button>
-
-            <button type="button"
-                    class="review-filter-btn"
-                    data-sort="latest">
-                Latest
-            </button>
-
-            <button type="button"
-                    class="review-filter-btn"
-                    data-sort="high">
-                High to Low
-            </button>
-
-            <button type="button"
-                    class="review-filter-btn"
-                    data-sort="low">
-                Low to High
-            </button>
-
-        </div>
-
-    </div>
-        @foreach($listing->ratings->sortByDesc('id')->values() as $index => $rating)
-
-    <div class="reviewer mb-3 review-item-load"
-        style="{{ $index >= 5 ? 'display:none;' : '' }}">
-                    
-
-                        <div class="content w-100">
-
-
-
-
-                            
-                        <div class="review-item"
-        id="review-{{ $rating->id }}"
-        data-rating="{{ $rating->ratings }}"
-        data-date="{{ $rating->created_at->timestamp }}">
-
-        <div class="review-header">
-
-            <div class="review-left">
-
-                <img
-                    src="{{ userAvatarUrl($rating->user->image ?? null) }}"
-                    class="review-avatar"
-                    alt="{{ $rating->user ? $rating->user->fullname : ($rating->name ?? 'Guest') }}"
-                    loading="lazy">
-
-                <span class="review-name">
-                    {{ $rating->user ? $rating->user->fullname : ($rating->name ?? 'Guest') }}
-                </span>
-
-            </div>
-
-            <div class="review-right">
-
-                <span class="review-date">
-                    {{ $rating->created_at->format('d M') }}
-                </span>
-
-            @auth
-        @if(auth()->id() == $rating->user_id)
-            <div class="review-menu-wrap">
-                <button type="button"
-                        class="review-menu-btn"
-                        onclick="toggleReviewMenu({{ $rating->id }})">
-                    <i class="las la-ellipsis-v"></i>
-                </button>
-
-                <div class="review-menu-dropdown" id="reviewMenu{{ $rating->id }}">
-                    <button type="button"
-                            onclick="toggleReviewEdit({{ $rating->id }})">
-                        <i class="las la-edit"></i> Edit Review
-                    </button>
-
-                    <button type="button"
-                            class="delete-review-btn"
-                            data-id="{{ $rating->id }}">
-                        <i class="las la-trash"></i> Delete Review
-                    </button>
-                </div>
-            </div>
-        @endif
-    @endauth
-
-            </div>
-
-        </div>
-
-        <div class="review-stars">
-            @for($i=1;$i<=5;$i++)
-                @if($i <= $rating->ratings)
-                    <i class="fas fa-star"></i>
-                @else
-                    <i class="far fa-star"></i>
-                @endif
-            @endfor
-        </div>
-
-        <div class="review-text">
-            "{{ $rating->review }}"
-        </div>
-
-        
-
-    @auth
-        @if(auth()->id() == $rating->user_id)
-            <div id="review_edit_{{ $rating->id }}" class="review-edit-box" style="display:none;">
-                <form action="{{ route('review.update', $rating->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-    <div class="form-group mb-2">
-        <label>Ratings</label>
-
-        <input type="hidden"
-            name="ratings"
-            id="edit_rating_value_{{ $rating->id }}"
-            value="{{ $rating->ratings }}">
-
-        <div class="edit-star-box" data-rating-id="{{ $rating->id }}">
-            @for($i = 1; $i <= 5; $i++)
-                <i class="las la-star edit-star {{ $i <= $rating->ratings ? 'active' : '' }}"
-                data-value="{{ $i }}"></i>
-            @endfor
+            <button type="button" class="review-filter-btn active" data-sort="relevant">Relevant</button>
+            <button type="button" class="review-filter-btn" data-sort="latest">Latest</button>
+            <button type="button" class="review-filter-btn" data-sort="high">High to Low</button>
+            <button type="button" class="review-filter-btn" data-sort="low">Low to High</button>
         </div>
     </div>
 
-                    <div class="form-group mb-2">
-                        <label>Edit your review</label>
-                        <textarea class="form-control" name="review" rows="3" required>{{ $rating->review }}</textarea>
-                    </div>
+    @foreach($combinedReviews as $index => $item)
+ 
+@php
+    $isGoogleReview = $item['type'] === 'google';
+    $review = $item['data'];
 
-                    <button type="submit" class="btn btn__base btn-sm">Update</button>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="toggleReviewEdit({{ $rating->id }})">
-                        Cancel
-                    </button>
-                </form>
-            </div>
-        @endif
-    @endauth
+    if ($isGoogleReview) {
+        $reviewRating = (int) ($review['rating'] ?? $review['stars'] ?? 0);
+
+        $reviewAuthor = $review['author']
+            ?? $review['author_name']
+            ?? 'Google User';
+
+        $reviewText = $review['text']
+            ?? $review['text_original']
+            ?? $review['review']
+            ?? '';
+
+        // Exact date ya timestamp available ho tabhi date dikhayein
+        $reviewDate = $review['time']
+            ?? $review['published_at']
+            ?? $review['publish_date']
+            ?? $review['date']
+            ?? $review['created_at']
+            ?? null;
+
+        $reviewWhen = '';
+
+        if ($reviewDate !== null && $reviewDate !== '') {
+            try {
+                if (is_numeric($reviewDate)) {
+                    $timestamp = (int) $reviewDate;
+
+                    // Milliseconds ko seconds mein convert karein
+                    if ($timestamp > 9999999999) {
+                        $timestamp = (int) ($timestamp / 1000);
+                    }
+
+                    $reviewWhen = \Carbon\Carbon::createFromTimestamp(
+                        $timestamp,
+                        config('app.timezone')
+                    )->format('d M Y');
+                } else {
+                    $reviewWhen = \Carbon\Carbon::parse($reviewDate)
+                        ->format('d M Y');
+                }
+            } catch (\Throwable $e) {
+                $reviewWhen = '';
+            }
+        }
+    } else {
+        $reviewRating = (int) ($review->ratings ?? 0);
+
+        $reviewAuthor = $review->user->fullname
+            ?? $review->name
+            ?? 'Guest';
+
+        $reviewText = $review->review ?? '';
+
+        $reviewWhen = $review->created_at
+            ? $review->created_at->format('d M Y')
+            : '';
+    }
+@endphp
 
 
+        <div class="reviewer mb-3 review-item-load"
+             style="{{ $index >= 5 ? 'display:none;' : '' }}">
 
-        <div class="review-actions" data-rating="{{ $rating->id }}">
+            <div class="content w-100">
 
-    <button
-        class="review-action-btn like-btn {{ $rating->likes()->where('user_id', auth()->id())->exists() ? 'liked' : '' }}"
-        data-rating-id="{{ $rating->id }}">
-            <i class="las la-thumbs-up"></i>
-            Helpful (<span class="like-count">{{ $rating->likes()->count() }}</span>)
-        </button>
+                <div class="review-item {{ $isGoogleReview ? 'google-review-item' : '' }}"
+                     @if(!$isGoogleReview)
+                         id="review-{{ $review->id }}"
+                     @endif
+                     data-rating="{{ $reviewRating }}"
+                     data-date="{{ $item['date'] }}"
+                     data-source="{{ $item['type'] }}">
 
-        <button type="button"
-                class="review-action-btn comment-toggle-btn"
-                data-rating-id="{{ $rating->id }}">
-            <i class="las la-comment"></i>
-            Comment (<span class="comment-count">{{ $rating->comments()->count() }}</span>)
-        </button>
+                    <div class="review-header">
+                        <div class="review-left">
 
-    <button type="button"
-            class="review-action-btn share-review-btn"
-            data-url="{{ url()->current() }}#review-{{ $rating->id }}"
-            data-text="{{ $rating->review }}">
-        <i class="las la-share"></i>
-        Share
-    </button>
-
-    </div>
-
-    <div class="comment-box-wrap" id="commentBox{{ $rating->id }}" style="display:none;">
-
-        <div class="comment-input-row">
-
-            <img src="{{ userAvatarUrl(auth()->check() ? auth()->user()->image : null) }}"
-                alt="{{ auth()->check() ? (auth()->user()->fullname ?? auth()->user()->name ?? 'User') : 'Guest' }}"
-                loading="lazy"
-                class="comment-user-img">
-
-            <div class="comment-input-flex">
-                <input type="text"
-                    class="form-control comment-input"
-                    id="commentInput{{ $rating->id }}"
-                    placeholder="Add a comment">
-
-                <button type="button"
-                        class="comment-post-btn"
-                        data-rating-id="{{ $rating->id }}">
-                    Post
-                </button>
-            </div>
-
-        </div>
-
-    <div class="comments-list" id="commentsList{{ $rating->id }}">
-
-        @foreach($rating->comments->sortByDesc('id') as $comment)
-            <div class="single-comment" id="comment_{{ $comment->id }}">
-
-                <img src="{{ userAvatarUrl($comment->user->image ?? null) }}"
-                    alt="{{ $comment->user->fullname ?? $comment->user->name ?? 'User' }}"
-                    loading="lazy"
-                    class="comment-user-img">
-
-                <div class="comment-body">
-
-                    <div class="comment-head">
-                        <b>{{ $comment->user->fullname ?? $comment->user->name ?? 'User' }}</b>
-
-                        <span>{{ $comment->created_at->diffForHumans() }}</span>
-
-                        @auth
-                            @if(auth()->id() == $comment->user_id)
-                                <button type="button"
-                                        class="delete-comment-btn"
-                                        data-id="{{ $comment->id }}">
-                                    <i class="las la-trash"></i> Delete Comment
-                                </button>
+                            @if($isGoogleReview)
+                               <img
+                                    src="{{ userAvatarUrl($review->user->image ?? null) }}"
+                                    class="review-avatar"
+                                    alt="{{ $reviewAuthor }}"
+                                    loading="lazy">
+                            @else
+                                <img
+                                    src="{{ userAvatarUrl($review->user->image ?? null) }}"
+                                    class="review-avatar"
+                                    alt="{{ $reviewAuthor }}"
+                                    loading="lazy">
                             @endif
-                        @endauth
-                    </div>
 
-                    <p>{{ $comment->comment }}</p>
+                            <span class="review-name">{{ $reviewAuthor }}</span>
 
-                </div>
-            </div>
-        @endforeach
+                          
+                        </div>
 
-    </div>
+                        <div class="review-right">
+                            <span class="review-date">{{ $reviewWhen }}</span>
 
-    </div>
-    </div>
+                            @if(!$isGoogleReview)
+                                @auth
+                                    @if(auth()->id() == $review->user_id)
+                                        <div class="review-menu-wrap">
+                                            <button type="button"
+                                                    class="review-menu-btn"
+                                                    onclick="toggleReviewMenu({{ $review->id }})">
+                                                <i class="las la-ellipsis-v"></i>
+                                            </button>
 
+                                            <div class="review-menu-dropdown" id="reviewMenu{{ $review->id }}">
+                                                <button type="button" onclick="toggleReviewEdit({{ $review->id }})">
+                                                    <i class="las la-edit"></i> Edit Review
+                                                </button>
 
-    <div id="shareOverlay" class="share-overlay">
-        <div class="share-popup">
-
-            <button type="button" class="share-close" id="shareCloseBtn">
-                <i class="las la-times"></i>
-            </button>
-
-            <h4>Share With Friends</h4>
-            <p>Select from the options below</p>
-
-            <div class="share-options">
-
-                <a href="#" target="_blank" id="shareFacebook" class="share-option">
-                    <span class="share-icon fb">
-                        <i class="lab la-facebook-f"></i>
-                    </span>
-                    <small>Facebook</small>
-                </a>
-
-                <a href="#" target="_blank" id="shareWhatsapp" class="share-option">
-                    <span class="share-icon wa">
-                        <i class="lab la-whatsapp"></i>
-                    </span>
-                    <small>Whatsapp</small>
-                </a>
-
-                <button type="button" id="copyShareLink" class="share-option">
-                    <span class="share-icon cp">
-                        <i class="las la-link"></i>
-                    </span>
-                    <small>Copy Link</small>
-                </button>
-
-            </div>
-
-        </div>
-    </div>
-
-
-                    
-
-                            {{-- Edit Mode --}}
-                    
+                                                <button type="button"
+                                                        class="delete-review-btn"
+                                                        data-id="{{ $review->id }}">
+                                                    <i class="las la-trash"></i> Delete Review
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endauth
+                            @endif
                         </div>
                     </div>
-                @endforeach
 
-                @if($listing->ratings->count() > 5)
+                    <div class="review-stars">
+                        @for($i = 1; $i <= 5; $i++)
+                            <i class="{{ $i <= $reviewRating ? 'fas' : 'far' }} fa-star"></i>
+                        @endfor
+                    </div>
 
-    <div class="text-center mt-4">
-        <button type="button"
-                id="loadMoreReviewsBtn"
-                class="btn btn-outline-primary">
-            View More
-        </button>
-    </div>
+                    @if(trim((string) $reviewText) !== '')
+                        <div class="review-text">"{{ $reviewText }}"</div>
+                    @endif
 
-    @endif
+                    @if(!$isGoogleReview)
+
+                        @auth
+                            @if(auth()->id() == $review->user_id)
+                                <div id="review_edit_{{ $review->id }}"
+                                     class="review-edit-box"
+                                     style="display:none;">
+
+                                    <form action="{{ route('review.update', $review->id) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+
+                                        <div class="form-group mb-2">
+                                            <label>Ratings</label>
+
+                                            <input type="hidden"
+                                                   name="ratings"
+                                                   id="edit_rating_value_{{ $review->id }}"
+                                                   value="{{ $review->ratings }}">
+
+                                            <div class="edit-star-box" data-rating-id="{{ $review->id }}">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="las la-star edit-star {{ $i <= $review->ratings ? 'active' : '' }}"
+                                                       data-value="{{ $i }}"></i>
+                                                @endfor
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-2">
+                                            <label>Edit your review</label>
+                                            <textarea class="form-control" name="review" rows="3" required>{{ $review->review }}</textarea>
+                                        </div>
+
+                                        <button type="submit" class="btn btn__base btn-sm">Update</button>
+
+                                        <button type="button"
+                                                class="btn btn-secondary btn-sm"
+                                                onclick="toggleReviewEdit({{ $review->id }})">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+                        @endauth
+
+                        <div class="review-actions" data-rating="{{ $review->id }}">
+                            <button
+                                class="review-action-btn like-btn {{ $review->likes()->where('user_id', auth()->id())->exists() ? 'liked' : '' }}"
+                                data-rating-id="{{ $review->id }}">
+                                <i class="las la-thumbs-up"></i>
+                                Helpful (<span class="like-count">{{ $review->likes()->count() }}</span>)
+                            </button>
+
+                            <button type="button"
+                                    class="review-action-btn comment-toggle-btn"
+                                    data-rating-id="{{ $review->id }}">
+                                <i class="las la-comment"></i>
+                                Comment (<span class="comment-count">{{ $review->comments()->count() }}</span>)
+                            </button>
+
+                            <button type="button"
+                                    class="review-action-btn share-review-btn"
+                                    data-url="{{ url()->current() }}#review-{{ $review->id }}"
+                                    data-text="{{ $review->review }}">
+                                <i class="las la-share"></i>
+                                Share
+                            </button>
+                        </div>
+
+                        <div class="comment-box-wrap"
+                             id="commentBox{{ $review->id }}"
+                             style="display:none;">
+
+                            <div class="comment-input-row">
+                                <img
+                                    src="{{ userAvatarUrl(auth()->check() ? auth()->user()->image : null) }}"
+                                    alt="User"
+                                    loading="lazy"
+                                    class="comment-user-img">
+
+                                <div class="comment-input-flex">
+                                    <input type="text"
+                                           class="form-control comment-input"
+                                           id="commentInput{{ $review->id }}"
+                                           placeholder="Add a comment">
+
+                                    <button type="button"
+                                            class="comment-post-btn"
+                                            data-rating-id="{{ $review->id }}">
+                                        Post
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="comments-list" id="commentsList{{ $review->id }}">
+                                @foreach($review->comments->sortByDesc('id') as $comment)
+                                    <div class="single-comment" id="comment_{{ $comment->id }}">
+                                        <img
+                                            src="{{ userAvatarUrl($comment->user->image ?? null) }}"
+                                            alt="{{ $comment->user->fullname ?? $comment->user->name ?? 'User' }}"
+                                            loading="lazy"
+                                            class="comment-user-img">
+
+                                        <div class="comment-body">
+                                            <div class="comment-head">
+                                                <b>{{ $comment->user->fullname ?? $comment->user->name ?? 'User' }}</b>
+                                                <span>{{ $comment->created_at->diffForHumans() }}</span>
+
+                                                @auth
+                                                    @if(auth()->id() == $comment->user_id)
+                                                        <button type="button"
+                                                                class="delete-comment-btn"
+                                                                data-id="{{ $comment->id }}">
+                                                            <i class="las la-trash"></i> Delete Comment
+                                                        </button>
+                                                    @endif
+                                                @endauth
+                                            </div>
+
+                                            <p>{{ $comment->comment }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                    @endif
+
+                </div>
             </div>
-
-        
         </div>
+    @endforeach
+
+    @if($totalReviewCount > 5)
+        <div class="text-center mt-4">
+            <button type="button"
+                    id="loadMoreReviewsBtn"
+                    class="btn btn-outline-primary">
+                View More
+            </button>
+        </div>
+    @endif
+
+</div>
+
     </div>
 
-    @include('themes.servicebazzar.partials.google_reviews', ['listing' => $listing])
-
+  
    {{-- RELATED SEARCHES START --}}
 @php
     $currentCity = strtolower(
@@ -6389,18 +6183,10 @@
 
    @if($relatedSearches->count() > 0)
     <div class="related-searches-box">
-        {{-- Desktop/tablet heading — unchanged; hidden on mobile only. --}}
+      
         <h4 class="related-searches-title">Related Searches</h4>
 
-        {{-- Mobile-only dropdown toggle, same pattern as the footer's
-             "Popular Categories" / "Popular Cities" accordion
-             (partials/popular_categories_ajax.blade.php +
-             css/components/popular-sections.css + js/components/
-             popular-accordion.js) — kept self-contained here instead of
-             reusing those shared files since this page's own toggle
-             script below is scoped to this section only. Hidden on
-             desktop/tablet; .related-searches-title above is hidden on
-             mobile instead, so nothing is ever shown twice. --}}
+       
         <button type="button"
                 class="related-searches-mobile-toggle"
                 id="relatedSearchesToggle"
@@ -6436,12 +6222,7 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Mobile-only "Related Searches" dropdown — same interaction as
-        // the footer's "Popular Categories"/"Popular Cities" accordion
-        // (js/components/popular-accordion.js), scoped to just this
-        // section. On desktop/tablet .related-searches-mobile-toggle is
-        // display:none (see CSS), so this listener existing there has no
-        // visible effect either way.
+       
         var toggle = document.getElementById('relatedSearchesToggle');
         var list = document.getElementById('relatedSearchesList');
 
@@ -6462,7 +6243,6 @@
     });
     </script>
 
-    <!-- OTP Modal -->
     <div class="modal fade" id="reviewOtpModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
@@ -6507,13 +6287,11 @@
         </div>
     </div>
 
-    {{-- RIGHT SECTION --}}
     <div class="col-lg-3" id="sidebarColumn">
         <div class="sidebar-sticky-wrapper">
 
             <div class="contact-info-box">
 
-                {{-- CONTACT --}}
                 <div class="contact-block">
                     <h5>Contact</h5>
 
@@ -6561,7 +6339,6 @@
 
                 <hr>
 
-                {{-- ADDRESS + TIMING --}}
                 <div class="contact-block">
                     <h5>Address</h5>
 
@@ -6627,14 +6404,7 @@
             }
         };
 
-        /*
-         * $businessDays / $openTimes / $closeTimes are parallel arrays and,
-         * since a listing's timing form allows a second shift for the same
-         * day (lunch-break hours), a day can repeat — each repeat is one
-         * more shift for that day, at the same array index in the other two
-         * arrays. Group them here so the day is shown once with every shift
-         * it has, instead of once per array entry.
-         */
+        
         $shiftsByDay = [];
         foreach ($listing->shiftsByDay() as $bDay => $bShifts) {
             foreach ($bShifts as [$bOpen, $bClose]) {
@@ -6856,7 +6626,7 @@
 
                 </div>
 
-                {{-- ORIGINAL ENQUIRY FORM --}}
+
                 <div class="enquiry-card mt-3" id="mainEnquiryForm">
                     <div class="enquiry-title">
                         Get the List of <span>{{ $listing->category->name ?? 'No Category' }}</span>
@@ -7071,9 +6841,7 @@
                 return;
             }
 
-            // Fill the sidebar's white box edge to edge — the widest it can be
-            // without covering the main column (anything wider sat on top of
-            // "Related Searches").
+           
             const box = sidebarColumn.querySelector(".contact-info-box") || sidebarColumn;
             const rect = box.getBoundingClientRect();
 
@@ -7088,11 +6856,7 @@
             const stickyTop = 95;
             const stickyHeight = stickyForm.offsetHeight || 320;
 
-            // Matches all.blade.php's own copy of this exactly: wait until the
-            // trigger card is fully scrolled past (100px clear of the top),
-            // not just past the header-clearance line.
-            // switch over the moment the sidebar box goes under the header —
-                            // waiting until it was 100px past the top left the column empty
+       
                             const startSticky = triggerRect.bottom < stickyTop;
             const stopSticky = listingRect.bottom <= (stickyTop + stickyHeight + 30);
 
@@ -7162,20 +6926,6 @@
     </div>
 
 @endif
-
-
-
-{{-- "{category} in Popular Cities" block removed 2026-10-13 at the owner's request;
-     Nearby Areas above stays. --}}
-
-
-
-
-    
-    {{-- Popular Categories / Popular Cities now live once in the shared
-         footer (resources/views/themes/servicebazzar/includes/footer.blade.php)
-         — the "Nearby Areas" and "{category} in Popular Cities" SEO blocks
-         above are a different feature and are kept as-is. --}}
 
 
     <div id="shareOverlay" class="share-overlay">
@@ -7317,14 +7067,7 @@
     </div>
 
 
-    {{-- Desktop "Popular Categories" tab-click behavior now lives once in
-         popular-accordion.js (loaded from the shared footer). The old
-         .popular-city-link click handler that was here matched zero elements
-         on this page (no such class existed here) and has been removed
-         rather than left to misfire against the shared footer's city links,
-         which use different data attributes (data-city, not data-location-name). --}}
-
-
+   
     <script>
         function copyAddress() {
             let text = document.getElementById("listingAddress").innerText;
@@ -7347,10 +7090,7 @@
             }
         }
 
-        // Mobile-only Justdial-style "Open Now" status row (top card).
-        // Independent of toggleHours()/#hoursList above (a different,
-        // pre-existing expandable hours block elsewhere on this page) —
-        // separate ids/classes throughout so neither affects the other.
+      
         (function () {
             var jdToggle = document.getElementById('jdStatusToggle');
             var jdPanel = document.getElementById('jdHoursPanel');
@@ -7369,7 +7109,6 @@
 
 
 
-    <!-- FIXED REVIEW OTP JAVASCRIPT -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -7535,26 +7274,7 @@
     });
     </script>
 
-    {{--
-        NOTE: @endsection used to be right here, closing the 'content'
-        section ~1,370 lines before the actual end of this file. Everything
-        after this point (through the rest of the file) was therefore
-        rendering as raw top-level output OUTSIDE the 'content' section —
-        which, with @extends, still gets echoed to the response, but BEFORE
-        the deferred parent-layout render (the part that outputs
-        <!DOCTYPE html>, <html>, <head>, etc.). The practical effect: the
-        page's actual first response bytes were a stray <script> tag from
-        deep in this file, with <!DOCTYPE html> arriving ~36KB into the
-        response instead of as the very first thing — which is exactly
-        what puts a browser into Quirks Mode (document.compatMode ===
-        "BackCompat", document.scrollingElement === null). That, not
-        anything CSS-related, was the real root cause behind sticky/fixed
-        positioning and window scroll-event handling being unreliable
-        throughout this page. Moved @endsection to the true end of the
-        file (nothing here was deleted) so the whole page is captured in
-        the 'content' section and the parent layout — and its <!DOCTYPE
-        html> — renders first, as it should.
-    --}}
+   
     @push('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.css"/>
     <style>
@@ -7774,22 +7494,7 @@
 
                 let target = document.querySelector(this.getAttribute('data-target'));
                 if (target) {
-                    /*
-                     * BUG FIX: this used to be `target.offsetTop - 100`.
-                     * offsetTop is measured from the target's nearest
-                     * positioned ancestor, not the page — and Bootstrap's
-                     * grid columns (.col-lg-9, the ancestor every tab
-                     * section sits inside) have `position: relative` by
-                     * default. So offsetTop was measuring each section's
-                     * distance from the TOP of that column box, not from
-                     * the top of the document — landing on a scroll
-                     * position hundreds of pixels short of the real
-                     * target (e.g. clicking Services landed on Overview,
-                     * clicking Overview landed near the top card). Using
-                     * getBoundingClientRect().top + window.pageYOffset
-                     * (document-relative, same formula the other
-                     * tab-scroll-btn click handler already uses) fixes it.
-                     */
+                    
                     const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - 100;
 
                     window.scrollTo({
@@ -7934,7 +7639,7 @@
     }, true);
     </script>
     <script>
-    // Photos slider arrows (replace the scrollbar).
+   
     document.addEventListener('DOMContentLoaded', function () {
         var view = document.getElementById('photos_view');
         var track = view && view.querySelector('.photo-category-slider');
@@ -7959,7 +7664,7 @@
     });
     </script>
     <script>
-    // Photos section chips: All / Photos / Videos.
+    
     document.addEventListener('click', function (e) {
         var chip = e.target.closest('#photosSection .sb-photo-chips button');
         if (!chip) return;
@@ -7972,8 +7677,7 @@
     });
     </script>
     <script>
-    // Phone hero: cover + gallery photos fade one into the next every 3s;
-    // swipe to move by hand; a tap opens that photo in the big viewer.
+   
     document.addEventListener("DOMContentLoaded", function () {
         var box = document.querySelector('#listingTopCard .listing-logo');
         if (!box || !window.matchMedia('(max-width: 991px)').matches) return;
@@ -7992,7 +7696,7 @@
         }
         function start() { clearInterval(timer); timer = setInterval(function () { if (!document.hidden) show(i + 1); }, 3000); }
 
-        // a tap on a gallery slide opens the same photo in the viewer
+        
         slides.forEach(function (el, k) {
             if (k === 0) return;
             el.addEventListener('click', function () {
@@ -8022,7 +7726,6 @@
 
         let currentIndex = 0;
 
-        // OPEN IMAGE
         images.forEach((img, index) => {
             img.addEventListener("click", () => {
                 currentIndex = index;
@@ -8034,35 +7737,28 @@
         function showImage() {
             preview.src = images[currentIndex].dataset.src;
 
-            // Counter update
             counter.innerText = (currentIndex + 1) + " / " + images.length;
         }
 
-        // NEXT
         document.getElementById("nextImage").onclick = function () {
             currentIndex = (currentIndex + 1) % images.length;
             showImage();
         };
 
-        // PREV
         document.getElementById("prevImage").onclick = function () {
             currentIndex = (currentIndex - 1 + images.length) % images.length;
             showImage();
         };
 
-        // CLOSE
         document.getElementById("closeImagePreview").onclick = function () {
             modal.classList.remove("show");
         };
 
-        // CLICK OUTSIDE CLOSE
         modal.addEventListener("click", function (e) {
             if (e.target === modal) {
                 modal.classList.remove("show");
             }
         });
-
-        // TOUCH SWIPE NAVIGATION
         var touchStartX = 0;
         modal.addEventListener("touchstart", function (e) {
             touchStartX = e.changedTouches[0].clientX;
@@ -8078,7 +7774,6 @@
             showImage();
         }, { passive: true });
 
-        // KEYBOARD NAVIGATION
         document.addEventListener("keydown", function (e) {
             if (!modal.classList.contains("show")) return;
             if (e.key === "ArrowRight") {
@@ -8106,8 +7801,6 @@
     <script>
     document.addEventListener("DOMContentLoaded", function () {
 
-        // WhatsApp send-detection: fires GA4 conversion only when user
-        // spends 8+ seconds on WhatsApp (strong signal they sent the message).
         var _waClickTime = null;
         var _waListingId = null;
         var _waNumber    = null;
@@ -8152,7 +7845,6 @@
                     console.log('Click track error:', error);
                 });
 
-                // Start WhatsApp send-detection timer
                 if (this.dataset.track === 'whatsapp_click') {
                     _waClickTime = Date.now();
                     _waListingId = this.dataset.listingId || '';
@@ -8253,9 +7945,6 @@
             }, true);
         });
 
-        // Stars only stay filled once a rating is really submitted. Picking one
-        // and then closing the popup (or the login box) puts them back as they
-        // were — the user's saved rating, or empty.
         const savedRating = {{ (int) ($userRating ?? 0) }};
         const savedText = quickRatingText ? quickRatingText.innerText : '';
         let ratingSubmitted = false;
@@ -8269,8 +7958,6 @@
             if (quickRatingText) quickRatingText.innerText = savedText;
         }
         if (ratingModalEl) {
-            // closed by ×, the backdrop or Esc — watched on the element itself so it
-            // works whichever Bootstrap version fires (or doesn't fire) the events
             let wasOpen = false;
             new MutationObserver(() => {
                 const open = ratingModalEl.classList.contains('show');
@@ -8279,7 +7966,7 @@
             }).observe(ratingModalEl, { attributes: true, attributeFilter: ['class'] });
         }
         if (!isLoggedIn) {
-            // the login popup closing without a sign-in (a sign-in reloads the page)
+           
             const authPop = document.getElementById('sbAuthPopup');
             if (authPop) new MutationObserver(() => { if (!authPop.classList.contains('show')) restoreStars(); })
                 .observe(authPop, { attributes: true, attributeFilter: ['class'] });
@@ -8364,14 +8051,12 @@
             if (box) box.classList.remove('d-none');
         }
 
-        // Top wale custom stars
         document.querySelectorAll('.star-btn').forEach(function (star) {
             star.addEventListener('click', function () {
                 openReviewBox(this.dataset.value);
             });
         });
 
-        // Niche wale starrr plugin stars
         if (typeof $ !== 'undefined' && $('#star2').length) {
             $('#star2').on('starrr:change', function (e, value) {
                 openReviewBox(value);
@@ -8393,13 +8078,7 @@
             }
         }
 
-        // Masked outbound call (Option B) — pilot listings only. On tap we
-        // register the caller->vendor mapping with the server, then open the
-        // dialler pre-filled with the virtual number. The customer dials it
-        // from their own SIM; Exotel bridges them to the vendor, and both
-        // sides only ever see the virtual number. All copies of the call
-        // button on this page (main + sticky bar + mobile + sidebar) share
-        // this class.
+    
         document.querySelectorAll(".bridge-call-btn").forEach(function(btn){
             btn.addEventListener("click", function(){
                 if (btn.dataset.calling === "1") return; // guard double-click
@@ -8432,7 +8111,7 @@
                 .then(function(data){
                     if (!data) return;
                     if (data.success && data.virtual_number) {
-                        // Open the phone dialler with the virtual number filled in.
+                    
                         window.location.href = "tel:" + data.virtual_number;
                     } else {
                         alert(data.message || "Could not start the call. Please try again.");

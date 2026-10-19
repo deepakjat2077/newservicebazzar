@@ -1055,54 +1055,80 @@
     'category' => optional($listing->category)->slug,
     'slug' => $listing->slug
 ]) }}">
-    {{ __($listing->name) }}
+    {{ __($listing->name) }}    
 </a>
                     </h3>
 
-                    @php
-                        $rating = 0;
-                        $ratingCount = 0;
+                  
+@php
+    $rating = 0;
+    $ratingCount = 0;
 
-                        if (!empty($listing->review) && is_numeric($listing->review)) {
-                            $rating = (float) $listing->review;
-                        } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
-                            $rating = (float) $listing->avg_rating;
-                        } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
-                            $rating = (float) $listing->rating;
-                        }
+    // Service Bazzar ki existing rating
+    if (!empty($listing->review) && is_numeric($listing->review)) {
+        $rating = (float) $listing->review;
+    } elseif (!empty($listing->avg_rating) && is_numeric($listing->avg_rating)) {
+        $rating = (float) $listing->avg_rating;
+    } elseif (!empty($listing->rating) && is_numeric($listing->rating)) {
+        $rating = (float) $listing->rating;
+    }
 
-                        if (!empty($listing->total_review) && is_numeric($listing->total_review)) {
-                            $ratingCount = (int) $listing->total_review;
-                        } elseif (!empty($listing->review_count) && is_numeric($listing->review_count)) {
-                            $ratingCount = (int) $listing->review_count;
-                        } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
-                            $ratingCount = (int) $listing->ratings_count;
-                        }
-                    @endphp
+    // Service Bazzar ke apne reviews ka count
+    if (isset($listing->total_review) && is_numeric($listing->total_review)) {
+        $ratingCount = (int) $listing->total_review;
+    } elseif (isset($listing->review_count) && is_numeric($listing->review_count)) {
+        $ratingCount = (int) $listing->review_count;
+    } elseif (isset($listing->ratings_count) && is_numeric($listing->ratings_count)) {
+        $ratingCount = (int) $listing->ratings_count;
+    } else {
+        $ratingCount = $listing->ratings->count();
+    }
 
-                    @php
-                        $hasRatingBlock = $rating > 0
-                            || $ratingCount > 0
-                            || ($listing->trust ?? 0) == 1
-                            || ($listing->verified ?? 0) == 1;
-                    @endphp
+    // Google rating aur review count
+    $gRating = (float) ($listing->gmb_rating ?? 0);
+    $gCount = (int) ($listing->gmb_review_count ?? 0);
 
-                    <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap"
-                         style="{{ !$hasRatingBlock ? 'visibility:hidden;' : '' }}">
+    // Dono platforms ki ratings combine karein
+    $existingRatingSum = $rating * $ratingCount;
+    $googleRatingSum = $gRating * $gCount;
 
-                        @if($rating > 0)
-                            <span class="jd-rating-badge">
-                                {{ number_format($rating, 1) }} ★
-                            </span>
-                        @endif
+    $combinedCount = $ratingCount + $gCount;
 
-                        @if($ratingCount > 0)
-                            <span class="jd-rating-count">
-                                {{ $ratingCount }} Ratings
-                            </span>
-                        @endif
+    if ($combinedCount > 0) {
+        $rating = round(
+            ($existingRatingSum + $googleRatingSum) / $combinedCount,
+            1
+        );
+    } else {
+        $rating = 0;
+    }
 
-                        @if(($listing->trust ?? 0) == 1)
+    // Combined review count
+    $ratingCount = $combinedCount;
+@endphp
+
+@php
+    $hasRatingBlock = $rating > 0
+        || $ratingCount > 0
+        || ($listing->trust ?? 0) == 1
+        || ($listing->verified ?? 0) == 1;
+@endphp
+
+<div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap"
+     style="{{ !$hasRatingBlock ? 'visibility:hidden;' : '' }}">
+
+    @if($rating > 0)
+        <span class="jd-rating-badge">
+            {{ number_format($rating, 1) }} ★
+        </span>
+    @endif
+
+    @if($ratingCount > 0)
+        <span class="jd-rating-count">
+            {{ $ratingCount }} Ratings
+        </span>
+    @endif
+                     @if(($listing->trust ?? 0) == 1)
                             <a href="{{ route('badges.guide') }}" class="badge-link" title="Trusted Business: Verified identity plus additional certifications or high customer ratings">
                                 <img src="{{ asset('assets/images/trust_2x.gif') }}" class="jd-badge-img" alt="Trusted Business badge" loading="lazy">
                             </a>

@@ -923,13 +923,7 @@ public function updatesection(Request $request, $id)
         return view($this->theme.'user.listing.edit',compact('listing','categories','locations'));
     }
 
-    /**
-     * The business owner's "M S Infotech" panel — real counts pulled from
-     * the enquiries table, nothing invented. There's no call-tracking,
-     * competitor data or profile-scoring pipeline behind this site, so
-     * unlike a JustDial-style dashboard this only ever shows numbers this
-     * listing's own enquiry rows can actually answer for.
-     */
+    
     public function businessDashboard($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -970,20 +964,7 @@ public function updatesection(Request $request, $id)
         ));
     }
 
-    /**
-     * Full-page JustDial-style "Manage Business" screen — the one the Edit
-     * pencil on the public listing opens. Everything on it is a real,
-     * already-saved field of this listing; each row's "Edit" button links to
-     * the existing per-section form (business-name, business-contact, ...).
-     * No invented data — value/"Info Missing" states are derived from the
-     * listing's own columns, same as the dashboard's Business Profile panel.
-     */
-    /**
-     * The owner's edit page, laid out like the SB Sales business profile:
-     * every part of the listing with an Edit next to it. Reached from the
-     * edit icon on the public listing, and its back arrow returns there.
-     */
-    public function ownerProfile($id)
+       public function ownerProfile($id)
     {
         $business = Listing::with('category')->where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
@@ -1038,18 +1019,7 @@ public function updatesection(Request $request, $id)
         ));
     }
 
-    /**
-     * Public "Advertise / Boost your business" plans page for one listing.
-     *
-     * Shows every active admin package as a JustDial-style plan card. Buying a
-     * plan runs through the existing deposit/payment flow (enabled payment
-     * methods only), carrying this listing's id so the package activates on the
-     * business rather than the buyer's account.
-     */
-    /**
-     * The owner's KYC / documents screen — the same page and upload/number
-     * logic the Sales Genio team uses, reached from the business dashboard.
-     */
+    
     public function businessKyc($id)
     {
         $business = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -1256,12 +1226,7 @@ public function updatesection(Request $request, $id)
         return view($this->theme.'user.listing.advertise-sales-checkout', compact('listing', 'package', 'choice', 'methods', 'template'));
     }
 
-    /**
-     * JustDial-style checkout page for one plan on one listing: payment methods
-     * on the left, a price-details summary (budget / discount / GST / total) on
-     * the right. Paying runs through the same deposit flow (enabled methods
-     * only) with this listing's id attached.
-     */
+   
     public function advertiseCheckout($id, $package)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -1289,15 +1254,7 @@ public function updatesection(Request $request, $id)
         return view($this->theme.'user.listing.advertise-checkout', compact('listing', 'package', 'methods'));
     }
 
-    /**
-     * Analytics — every number here comes from either the enquiries table
-     * or listing_daily_stats (both already tracked for other reasons: leads
-     * and the admin analytics dashboard). There is no call telephony, no
-     * competitor data and no profile-scoring pipeline behind this site, so
-     * unlike JustDial's version this page simply does not have a Response
-     * Time / Competitors / Profile Score section — showing one would mean
-     * inventing numbers this site has no way to know.
-     */
+    
     public function analytics($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -1359,15 +1316,7 @@ public function updatesection(Request $request, $id)
         ));
     }
 
-    /**
-     * Average Response Time — real, but only from the point responded_at
-     * started being recorded (see the migration that added it): the moment
-     * an enquiry first has its details opened. Enquiries from before that
-     * column existed have no responded_at and are excluded rather than
-     * guessed at. There is no competitor response time anywhere in this
-     * site's data, so unlike JustDial's version this page has nothing next
-     * to "Your Response Time" — not a placeholder, just absent.
-     */
+    
     public function responseTime($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -1404,15 +1353,7 @@ public function updatesection(Request $request, $id)
         ));
     }
 
-    /**
-     * Competitors — ranks this listing against the real other listings in
-     * the same category and city, using numbers this site actually has:
-     * enquiry counts, ratings, review counts, gallery photo counts and
-     * response rate. No search-volume trend, no "Call Answered Rate", no
-     * profile-scoring algorithm and no "Most Liked Features" carousel —
-     * this site tracks none of that, so unlike JustDial's version this
-     * page simply doesn't have those sections instead of inventing them.
-     */
+    
     public function competitors($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -2019,14 +1960,7 @@ public function updatesection(Request $request, $id)
         }
     }
 
-    /**
-     * "Serviceable Area / Pincodes" — the one real, working choice out of
-     * that JustDial screen: whether this listing can ever be reached by a
-     * quote request from outside its own city. There's no pincode/suburb
-     * boundary system on this site, so unlike JustDial's version there's no
-     * pincode picker here — just the choice that actually does something,
-     * in SiteController::requestQuoteStore()'s cross-city fallback.
-     */
+    
     public function businessServiceableAreaForm($id)
     {
         $listing = Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
@@ -2174,13 +2108,7 @@ public function updatesection(Request $request, $id)
 
     public function searchSubcategories(Request $request, $id)
     {
-        // Just ownership — not scoped to the listing's own category. The
-        // saved subcategory_ids this same page already lists prove that:
-        // "IT Consultants near me" sits alongside "Digital Marketing" and
-        // "SEO Services", categories a business can genuinely want to be
-        // found under even when they're not the listing's primary one
-        // (matches how the real JustDial search behaves too — results
-        // aren't confined to one category).
+        
         Listing::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
         // input() so it works whether the term arrives as a POST body field
