@@ -1833,7 +1833,7 @@ if (bazzarSlides.length > 1) {
             @endforeach
         </div>
 
-        <div class="carousel-inner">
+        {{-- <div class="carousel-inner">
             @foreach($hbbs as $key => $hbb)
                 <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
                     <a href="{{ $hbb->link ?? '#' }}" target="_blank" rel="noopener noreferrer">
@@ -1850,7 +1850,7 @@ if (bazzarSlides.length > 1) {
                     </a>
                 </div>
             @endforeach
-        </div>
+        </div> --}}
 
        
 
