@@ -3890,7 +3890,7 @@ tbody.collapse.show {
     -webkit-box-pack: justify;
     -ms-flex-pack: justify;
     justify-content: space-between;
-    padding: 1px;
+    padding: 12px;
 }
 
 .navbar>.container,.navbar>.container-fluid {
@@ -6091,7 +6091,8 @@ a.bg-dark:focus,a.bg-dark:hover,button.bg-dark:focus,button.bg-dark:hover {
 }
 
 .bg-white {
-    background-color: #fff!important
+    background-color: #fff!important;
+	border-radius: 12px;
 }
 
 .bg-transparent {
@@ -7702,7 +7703,7 @@ a.bg-dark:focus,a.bg-dark:hover,button.bg-dark:focus,button.bg-dark:hover {
 }
 
 .pt-4,.py-4 {
-    padding-top: 1.5rem!important
+    padding-top: 0.7rem!important
 }
 
 .pr-4,.px-4 {
