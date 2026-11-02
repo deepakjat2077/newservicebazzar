@@ -570,22 +570,16 @@ a {
         $breadcrumbItems[] = ['name' => $categoryText, 'item' => url()->current()];
     }
 
-    // Last visible crumb, "40+ Listings". Google shows this trail under the URL
-    // in results. As the current page it carries no URL of its own.
-    if (!empty($listingCount) && (int) $listingCount > 0) {
-        $breadcrumbItems[] = ['name' => (int) $listingCount . '+ Listings', 'item' => null];
-    }
-
     $breadcrumbSchema = [
         '@context'        => 'https://schema.org',
         '@type'           => 'BreadcrumbList',
         'itemListElement' => collect($breadcrumbItems)->values()->map(function ($crumb, $index) {
-            return array_filter([
+            return [
                 '@type'    => 'ListItem',
                 'position' => $index + 1,
                 'name'     => $crumb['name'],
                 'item'     => $crumb['item'],
-            ], fn ($v) => $v !== null);
+            ];
         })->all(),
     ];
 @endphp
@@ -869,213 +863,273 @@ a {
 }
     </style>
 
-   
-@php
-    $filterBaseParams = request()->query();
+    @php
+        $filterBaseParams = request()->query();
 
-    if (empty($filterBaseParams['category']) && !empty($selectedCategory?->id)) {
-        $filterBaseParams['category'] = [$selectedCategory->id];
-    }
-
-    if (
-        empty($filterBaseParams['category']) &&
-        empty($filterBaseParams['categorysearch']) &&
-        !empty($selectedCategory?->name)
-    ) {
-        $filterBaseParams['categorysearch'] = $selectedCategory->name;
-    }
-
-    if (empty($filterBaseParams['location_name']) && request('location_name')) {
-        $filterBaseParams['location_name'] = request('location_name');
-    }
-
-    $segmentLocation = request()->segment(1);
-    $currentLocationSlug = null;
-
-    if (!empty($segmentLocation)) {
-        $locationExists = \App\Models\Location::where('slug', $segmentLocation)->exists();
-
-        if ($locationExists) {
-            $currentLocationSlug = $segmentLocation;
+        if (empty($filterBaseParams['category']) && !empty($selectedCategory?->id)) {
+            $filterBaseParams['category'] = [$selectedCategory->id];
         }
-    }
 
-    if (empty($currentLocationSlug) && request('location_name')) {
-        $currentLocationSlug = \Illuminate\Support\Str::slug(request('location_name'));
-    }
+        if (empty($filterBaseParams['category']) && empty($filterBaseParams['categorysearch']) && !empty($selectedCategory?->name)) {
+            $filterBaseParams['categorysearch'] = $selectedCategory->name;
+        }
 
-    if (empty($currentLocationSlug) && session('user_location')) {
-        $currentLocationSlug = \Illuminate\Support\Str::slug(session('user_location'));
-    }
+        if (empty($filterBaseParams['location_name']) && request('location_name')) {
+            $filterBaseParams['location_name'] = request('location_name');
+        }
+    @endphp
 
-    if ($selectedCategory && $currentLocationSlug) {
-        $filterBaseUrl = url($currentLocationSlug . '/' . $selectedCategory->slug);
-    } elseif ($selectedCategory) {
-        $filterBaseUrl = cityCategoryUrl($selectedCategory->slug);
-    } elseif ($selectedSubcategory && $currentLocationSlug) {
-        $filterBaseUrl = url($currentLocationSlug . '/' . $selectedSubcategory->slug);
-    } elseif ($selectedSubcategory) {
-        $filterBaseUrl = route('listings.subcategory', ['slug' => $selectedSubcategory->slug]);
-    } else {
-        $filterBaseUrl = route('listings.search');
-    }
+    @php
+        $segmentLocation = request()->segment(1);
 
-    $filterQuery = request()->query();
+        $currentLocationSlug = null;
 
-    unset(
-        $filterQuery['category'],
-        $filterQuery['categorysearch'],
-        $filterQuery['location_name'],
-        $filterQuery['latitude'],
-        $filterQuery['longitude']
-    );
-@endphp
+        if (!empty($segmentLocation)) {
+            $locationExists = \App\Models\Location::where('slug', $segmentLocation)->exists();
 
-<div class="main-card">
-    <div class="filters-wrapper">
-        <button class="scroll-btn left-btn d-md-none" type="button" onclick="scrollFilters(-1)">
-            <i class="las la-angle-left"></i>
-        </button>
+            if ($locationExists) {
+                $currentLocationSlug = $segmentLocation;
+            }
+        }
 
-        <div class="filters-viewport custom-right">
-            <div class="filters-scroll" id="filtersScroll">
+        if (empty($currentLocationSlug) && request('location_name')) {
+            $currentLocationSlug = \Illuminate\Support\Str::slug(request('location_name'));
+        }
 
-                <div class="custom-dropdown {{ request('sort') ? 'active-filter' : '' }}">
-                    <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
-                        Sort By <i class="las la-angle-down ml-1"></i>
-                    </button>
-                    <div class="custom-dropdown-menu">
-                        @foreach(['rating' => 'Rating', 'popular' => 'Popular', 'distance' => 'Distance'] as $sortKey => $sortLabel)
+        if (empty($currentLocationSlug) && session('user_location')) {
+            $currentLocationSlug = \Illuminate\Support\Str::slug(session('user_location'));
+        }
+
+        if ($selectedCategory && $currentLocationSlug) {
+            $filterBaseUrl = url($currentLocationSlug . '/' . $selectedCategory->slug);
+        } elseif ($selectedCategory) {
+            $filterBaseUrl = cityCategoryUrl($selectedCategory->slug);
+        } elseif ($selectedSubcategory && $currentLocationSlug) {
+            $filterBaseUrl = url($currentLocationSlug . '/' . $selectedSubcategory->slug);
+        } elseif ($selectedSubcategory) {
+            $filterBaseUrl = route('listings.subcategory', ['slug' => $selectedSubcategory->slug]);
+        } else {
+            $filterBaseUrl = route('listings.search');
+        }
+
+        $filterQuery = request()->query();
+
+        unset($filterQuery['category']);
+        unset($filterQuery['categorysearch']);
+        unset($filterQuery['location_name']);
+        unset($filterQuery['latitude']);
+        unset($filterQuery['longitude']);
+    @endphp
+
+    <div class="main-card">
+        <div class="filters-wrapper">
+
+            <button class="scroll-btn left-btn d-md-none" type="button" onclick="scrollFilters(-1)">
+                <i class="las la-angle-left"></i>
+            </button>
+
+            <div class="filters-viewport custom-right">
+                <div class="filters-scroll" id="filtersScroll">
+
+                    <div class="custom-dropdown {{ request('sort') ? 'active-filter' : '' }}">
+                        <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
+                            Sort By <i class="las la-angle-down ml-1"></i>
+                        </button>
+
+                        <div class="custom-dropdown-menu">
+                            {{--
+                                rel="nofollow" on every sort/filter link on this page: robots.txt
+                                already disallows crawling ?sort= URLs, but that only stops the
+                                fetch — Google still discovers and indexes the URL just from
+                                finding this <a href> on a crawlable page, which is exactly the
+                                "Indexed, though blocked by robots.txt" state seen in Search
+                                Console. nofollow tells it not to follow/index the link at all,
+                                so it stops rediscovering new ?sort= URLs across every
+                                city/category page from here on.
+                            --}}
                             <a rel="nofollow"
-                               href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => $sortKey])) }}">
-                                {{ $sortLabel }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="custom-dropdown {{ request('rating') ? 'active-filter' : '' }}">
-                    <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
-                        Ratings <i class="las la-angle-down ml-1"></i>
-                    </button>
-                    <div class="custom-dropdown-menu">
-                        @foreach(['any' => 'Any rating', '3.5' => '3.5+', '4.0' => '4.0+', '4.5' => '4.5+', '5.0' => '5.0'] as $ratingValue => $ratingLabel)
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}">Rating</a>
                             <a rel="nofollow"
-                               href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $ratingValue])) }}">
-                                {{ $ratingLabel }}
-                            </a>
-                        @endforeach
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'popular'])) }}">Popular</a>
+                            <a rel="nofollow"
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'distance'])) }}">Distance</a>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="custom-dropdown {{ request('rating') ? 'active-filter' : '' }}">
+                        <button type="button" class="filter-pill dropdown-btn" onclick="toggleDropdown(this)">
+                            Ratings <i class="las la-angle-down ml-1"></i>
+                        </button>
+
+                        <div class="custom-dropdown-menu">
+
+                            <a
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 'any'])) }}">
+                                Any rating
+                            </a>
+
+                            <a
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 3.5])) }}">
+                                3.5+
+                            </a>
+
+                            <a
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 4.0])) }}">
+                                4.0+
+                            </a>
+
+                            <a
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 4.5])) }}">
+                                4.5+
+                            </a>
+
+                            <a
+                                href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => 5.0])) }}">
+                                5.0
+                            </a>
+
+                        </div>
+                    </div>
 
                 @php
-                    $topRatedQuery = $filterQuery;
-                    if (request('filter') == 'top_rated') {
-                        unset($topRatedQuery['filter']);
-                    } else {
-                        $topRatedQuery['filter'] = 'top_rated';
-                    }
+    $topRatedQuery = $filterQuery;
 
-                    $verifiedQuery = $filterQuery;
-                    if (request('filter') == 'verified') {
-                        unset($verifiedQuery['filter']);
-                    } else {
-                        $verifiedQuery['filter'] = 'verified';
-                    }
+    if (request('filter') == 'top_rated') {
+        unset($topRatedQuery['filter']);
+    } else {
+        $topRatedQuery['filter'] = 'top_rated';
+    }
+@endphp
 
-                    $trustQuery = $filterQuery;
-                    if (request('filter') == 'trust') {
-                        unset($trustQuery['filter']);
-                    } else {
-                        $trustQuery['filter'] = 'trust';
-                    }
-                @endphp
+{{-- <button type="button"
+    class="filter-pill {{ request('filter') == 'top_rated' ? 'active-filter' : '' }}"
+    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($topRatedQuery) }}'">
+    Top Rated
+</button> --}}
 
-                <button type="button"
-                    class="filter-pill {{ request('filter') == 'top_rated' ? 'active-filter' : '' }}"
-                    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($topRatedQuery) }}'">
-                    Top Rated
-                </button>
+                   @php
+    $verifiedQuery = $filterQuery;
 
-                <button type="button"
-                    class="filter-pill {{ request('filter') == 'verified' ? 'active-filter' : '' }}"
-                    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($verifiedQuery) }}'">
-                    Verified
-                </button>
+    if (request('filter') == 'verified') {
+        unset($verifiedQuery['filter']);
+    } else {
+        $verifiedQuery['filter'] = 'verified';
+    }
+@endphp
 
-                <button type="button"
-                    class="filter-pill {{ request('filter') == 'trust' ? 'active-filter' : '' }}"
-                    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($trustQuery) }}'">
-                    Trust
-                </button>
+<button type="button"
+    class="filter-pill {{ request('filter') == 'verified' ? 'active-filter' : '' }}"
+    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($verifiedQuery) }}'">
+    Verified
+</button>
 
-                <button class="all-filters-desktop ml-2" type="button" onclick="openSidebar()">
-                    <i class="las la-sliders-h mr-1"></i> All
-                </button>
+@php
+    $trustQuery = $filterQuery;
+
+    if (request('filter') == 'trust') {
+        unset($trustQuery['filter']);
+    } else {
+        $trustQuery['filter'] = 'trust';
+    }
+@endphp
+
+<button type="button"
+    class="filter-pill {{ request('filter') == 'trust' ? 'active-filter' : '' }}"
+    onclick="window.location='{{ $filterBaseUrl . '?' . http_build_query($trustQuery) }}'">
+    Trust
+</button>
+  <button class="all-filters-desktop ml-2" type="button" onclick="openSidebar()">
+                <i class="las la-sliders-h mr-1"></i> All
+            </button>
+
+                </div>
             </div>
+            <button class="scroll-btn right-btn d-md-none" type="button" onclick="scrollFilters(1)">
+                <i class="las la-angle-right"></i>
+            </button>
+
+          <button class="all-filters-mobile" type="button" onclick="openSidebar()">
+    <i class="las la-sliders-h mr-1"></i> All
+</button>
+        </div>
+    </div>
+    <div class="filter-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <div class="filter-sidebar" id="sidebar">
+        <div class="sidebar-header d-flex justify-content-between align-items-center">
+            <div class="filter-sidebar-title">MORE FILTERS</div>
+            <button type="button" class="close-sidebar-btn" onclick="closeSidebar()">
+                <i class="las la-times"></i>
+            </button>
         </div>
 
-        <button class="scroll-btn right-btn d-md-none" type="button" onclick="scrollFilters(1)">
-            <i class="las la-angle-right"></i>
-        </button>
-
-        <button class="all-filters-mobile" type="button" onclick="openSidebar()">
-            <i class="las la-sliders-h mr-1"></i> All
-        </button>
-    </div>
-</div>
-
-<div class="filter-overlay" id="overlay" onclick="closeSidebar()"></div>
-
-<div class="filter-sidebar" id="sidebar">
-    <div class="sidebar-header d-flex justify-content-between align-items-center">
-        <div class="filter-sidebar-title">MORE FILTERS</div>
-        <button type="button" class="close-sidebar-btn" onclick="closeSidebar()">
-            <i class="las la-times"></i>
-        </button>
-    </div>
-
-    <div class="filter-label">Sort By</div>
-
-    @foreach(['rating' => 'Rating', 'popular' => 'Popular', 'distance' => 'Distance'] as $sortKey => $sortLabel)
-        <a rel="nofollow"
-           href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => $sortKey])) }}"
-           class="filter-chip d-inline-block mb-2 {{ request('sort') == $sortKey ? 'active' : '' }}">
-            {{ $sortLabel }}
+        {{--
+            rel="nofollow" throughout this sidebar: robots.txt disallows
+            crawling ?sort=/?rating=/?filter= URLs, but that only blocks the
+            fetch — Google still discovers and indexes the URL just from
+            finding the <a href> here, which is exactly the "Indexed, though
+            blocked by robots.txt" state Search Console flags. nofollow stops
+            it from following/indexing these links at the source, across
+            every city/category page that renders this sidebar.
+        --}}
+        <div class="filter-label">Sort By</div>
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'rating'])) }}"
+            class="filter-chip d-inline-block mb-2 {{ request('sort') == 'rating' ? 'active' : '' }}">
+            Rating
         </a>
-    @endforeach
 
-    <div class="filter-label">Ratings</div>
-
-    @foreach([3.5, 4.0, 4.5, 5.0] as $ratingValue)
-        <a rel="nofollow"
-           href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $ratingValue])) }}"
-           class="filter-chip d-inline-block mb-2 {{ request('rating') == $ratingValue ? 'active' : '' }}">
-            {{ number_format($ratingValue, 1) }}+
+        {{-- SORT --}}
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'popular'])) }}"
+            class="filter-chip d-inline-block mb-2 {{ request('sort') == 'popular' ? 'active' : '' }}">
+            Popular
         </a>
-    @endforeach
 
-    <div class="filter-label">More Filters</div>
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['sort' => 'distance'])) }}"
+            class="filter-chip d-inline-block mb-2 {{ request('sort') == 'distance' ? 'active' : '' }}">
+            Distance
+        </a>
 
-    <a rel="nofollow"
-       href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'verified'])) }}"
-       class="filter-chip d-inline-block mb-2 {{ request('filter') == 'verified' ? 'active' : '' }}">
-        Verified
-    </a>
+        <div class="filter-label">Ratings</div>
 
-    <a rel="nofollow"
-       href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'trust'])) }}"
-       class="filter-chip d-inline-block mb-2 {{ request('filter') == 'trust' ? 'active' : '' }}">
-        Trust
-    </a>
+        @for($i = 1; $i <= 5; $i++)
+            <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['rating' => $i])) }}"
+                class="filter-chip d-inline-block mb-2 {{ request('rating') == $i ? 'active' : '' }}">
+                {{ $i }} Star
+            </a>
+        @endfor
 
-    <div class="bottom-buttons mt-4">
-        <a href="{{ $filterBaseUrl }}" class="btn btn-reset">Reset Filters</a>
-        <button class="btn btn-apply" type="button" onclick="closeSidebar()">Apply Filters</button>
+        <div class="filter-label">More Filters</div>
+
+        {{-- <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'top_rated'])) }}"
+            class="filter-chip d-inline-block mb-2 {{ request('filter') == 'top_rated' ? 'active' : '' }}">
+            Top Rated
+        </a> --}}
+
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'verified'])) }}"
+            class="filter-chip d-inline-block mb-2 {{ request('filter') == 'verified' ? 'active' : '' }}">
+            Verified
+        </a>
+
+        <a rel="nofollow" href="{{ $filterBaseUrl . '?' . http_build_query(array_merge($filterQuery, ['filter' => 'trust'])) }}"
+            class="filter-chip d-inline-block mb-2 {{ request('filter') == 'trust' ? 'active' : '' }}">
+            Trust
+        </a>
+
+        {{-- BUTTONS --}}
+        <div class="bottom-buttons mt-4">
+
+            <a href="{{ $filterBaseUrl }}" class="btn btn-reset">
+                Reset Filters
+            </a>
+
+            <button class="btn btn-apply" type="button" onclick="closeSidebar()">
+                Apply Filters
+            </button>
+
+        </div>
     </div>
-</div>
 
-    <section class="listing pt-70 pb-80  custom-right" id="listingSection">
+    <section class="listing pt-70 pb-80  " id="listingSection">
         <div class="container-fluid">
             <div class="row mb__30">
 
@@ -1085,7 +1139,11 @@ a {
                             @include($themeView . 'partials.ajax-listings')
                         </div>
 
-                       
+                        {{-- Justdial-style infinite scroll — page-number
+                        links were explicitly ruled out; the next batch
+                        loads itself in as the sentinel below scrolls into
+                        view. See #infiniteScrollLoader's script further
+                        down this file. --}}
                         @if($listings instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
                             <div id="infiniteScrollLoader" class="infinite-scroll-loader d-none">
                                 <div class="infinite-scroll-spinner"></div>
@@ -1235,7 +1293,12 @@ a {
                                 @csrf
                                 @include('themes.servicebazzar.partials.form-guard')
 
-                                @include('themes.servicebazzar.partials.enquiry-context')
+                                <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
+                                <input type="hidden" name="category_name"
+                                    value="{{ $selectedCategory->name ?? request('categorysearch') }}">
+                                <input type="hidden" name="location_name" value="{{ request('location_name') }}">
+                                <input type="hidden" name="location_id"
+       value="{{ request('location_id') ?? ($location->id ?? '') }}">
 
                                 <div class="mb-2 input-icon-group">
                                     <span class="input-icon"><i class="las la-user"></i></span>
@@ -1353,7 +1416,12 @@ a {
                             @csrf
                             @include('themes.servicebazzar.partials.form-guard')
 
-                            @include('themes.servicebazzar.partials.enquiry-context')
+                            <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
+                            <input type="hidden" name="category_name"
+                                value="{{ $selectedCategory->name ?? request('categorysearch') }}">
+                            <input type="hidden" name="location_name" value="{{ request('location_name') }}">
+  <input type="hidden" name="location_id"
+       value="{{ request('location_id') ?? ($location->id ?? '') }}">
                             <div class="mb-2 input-icon-group">
                                 <span class="input-icon"><i class="las la-user"></i></span>
                                 <input type="text" name="name" class="form-control enquiry-input" placeholder="Name"
@@ -1810,13 +1878,30 @@ a {
     |    plural names like "Packers And Movers" are unchanged by Str::plural.)
     |--------------------------------------------------------------------------
     */
-    // Same rule as the <title> (App\Support\LanderNames): "Cake Shop" -> "Cake
-    // Shops", "CA" -> "CA's", "Electrician" -> "Electrician Services"; names that
-    // do not end in a kind of business stay as written (no "Delhis", "Back Pains").
-    if (!$headingCategory && strcasecmp($headingName, 'Listings') === 0) {
+    $serviceCategorySlugs = [
+        'ac-repair-services', 'electrician', 'plumber', 'pest-control-services',
+        'courier-services', 'laptop-repair-services', 'car-repair',
+        'cleaning-services', 'home-renovation', 'water-tank-cleaning',
+        'refrigerator-repair', 'warehouse-storage-services',
+        'cargo-shipping-services', 'logistics', 'transporters',
+        'house-keeping-services', 'printing-services',
+        'ro-water-purifier-repair-services',
+    ];
+
+    if (
+        in_array($headingCategory?->slug, $serviceCategorySlugs, true)
+        && ! preg_match('/\b(service|services)\s*$/i', $headingName)
+    ) {
+        $headingWithServices = $headingName . ' Services';
+    } elseif (preg_match('/\b(service|services)\s*$/i', $headingName)) {
+        $headingWithServices = $headingName;
+    } elseif (!$headingCategory && strcasecmp($headingName, 'Listings') === 0) {
         $headingWithServices = 'Local Business Listings';
+    } elseif (preg_match('/\bnear me$/i', $headingName) || preg_match('/s$/i', $headingName) || preg_match('/\sin\s/i', $headingName)) {
+        // "... near me" is not a noun to pluralise ("near mes").
+        $headingWithServices = $headingName;
     } else {
-        $headingWithServices = \App\Support\LanderNames::plural($headingName, $headingCategory?->slug);
+        $headingWithServices = \Illuminate\Support\Str::plural($headingName);
     }
 
     /*
@@ -1964,8 +2049,6 @@ a {
                 </div>
             </section>
         @endif
-
-        @include('themes.servicebazzar.partials.pasf-faq')
 
         @if(!empty(trim(strip_tags($cleanDescription))))
             <div class="category-content-body rich-content">
@@ -2452,6 +2535,8 @@ section.py-4.enquiry-box {
 }
 .listing-top-info {
     margin: 22px 20px 0 ! important;
+    
+  }
 }
 </style>
 
@@ -2567,4 +2652,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
+
+
+
+
 @endsection
