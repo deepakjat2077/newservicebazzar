@@ -51,7 +51,7 @@
                data-location-id="{{ $location->id }}">
                 {{ $location->name }}
             </a>
-            <span>|</span>
+            <span>·</span>
         @endforeach
     </div>
 

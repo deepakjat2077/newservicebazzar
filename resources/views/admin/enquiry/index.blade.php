@@ -16,30 +16,28 @@
 
                     <div class="d-flex flex-wrap gap-2">
 
+                        {{-- Every pill carries the filters below, so switching
+                             All/Read/Unread never silently widens the list. --}}
+                        @php
+                            $enquiryFilters = array_filter(request()->only(['month', 'date_from', 'date_to', 'location_id', 'category_id']));
+                        @endphp
+
                         {{-- All --}}
-                        <a href="{{ route('admin.enquiry.index', array_filter([
-                                'month' => request('month')
-                            ])) }}"
+                        <a href="{{ route('admin.enquiry.index', $enquiryFilters) }}"
                            class="btn btn-sm btn-outline-dark
                            {{ empty(request('status')) ? 'active' : '' }}">
                             All
                         </a>
 
                         {{-- Read --}}
-                        <a href="{{ route('admin.enquiry.index', array_filter([
-                                'status' => 'read',
-                                'month' => request('month')
-                            ])) }}"
+                        <a href="{{ route('admin.enquiry.index', array_merge($enquiryFilters, ['status' => 'read'])) }}"
                            class="btn btn-sm btn-outline-success
                            {{ request('status') == 'read' ? 'active' : '' }}">
                             Read ({{ $readCount }})
                         </a>
 
                         {{-- Unread --}}
-                        <a href="{{ route('admin.enquiry.index', array_filter([
-                                'status' => 'unread',
-                                'month' => request('month')
-                            ])) }}"
+                        <a href="{{ route('admin.enquiry.index', array_merge($enquiryFilters, ['status' => 'unread'])) }}"
                            class="btn btn-sm btn-outline-danger
                            {{ request('status') == 'unread' ? 'active' : '' }}">
                             Unread ({{ $unreadCount }})
@@ -53,7 +51,7 @@
                 {{-- Month Filter and Excel Export --}}
                 <form action="{{ route('admin.enquiry.index') }}"
                       method="GET"
-                      class="row align-items-end">
+                      class="row align-items-end enquiry-filters">
 
                     {{-- Current read/unread filter preserve hoga --}}
                     @if(request('status'))
@@ -62,7 +60,7 @@
                                value="{{ request('status') }}">
                     @endif
 
-                    <div class="col-md-4 col-lg-3 mb-2">
+                    <div class="col-md-4 col-lg-2 mb-2">
                         <label for="month" class="form-label">
                             Select Month
                         </label>
@@ -74,7 +72,51 @@
                                value="{{ request('month') }}">
                     </div>
 
-                    <div class="col-md-8 col-lg-9 mb-2">
+                    <div class="col-md-4 col-lg-2 mb-2">
+                        <label for="date_from" class="form-label">From date</label>
+                        <input type="date"
+                               name="date_from"
+                               id="date_from"
+                               class="form-control"
+                               value="{{ request('date_from') }}">
+                    </div>
+
+                    <div class="col-md-4 col-lg-2 mb-2">
+                        <label for="date_to" class="form-label">To date</label>
+                        <input type="date"
+                               name="date_to"
+                               id="date_to"
+                               class="form-control"
+                               value="{{ request('date_to') }}">
+                    </div>
+
+                    <div class="col-md-6 col-lg-3 mb-2">
+                        <label for="location_id" class="form-label">Location</label>
+                        <select name="location_id" id="location_id" class="form-control" data-placeholder="All locations">
+                            <option value="">All locations</option>
+                            @foreach($locations as $location)
+                                <option value="{{ $location->id }}"
+                                    {{ (string) request('location_id') === (string) $location->id ? 'selected' : '' }}>
+                                    {{ $location->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3 mb-2">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select name="category_id" id="category_id" class="form-control" data-placeholder="All categories">
+                            <option value="">All categories</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}"
+                                    {{ (string) request('category_id') === (string) $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-12 mb-2 filter-actions">
 
                         <button type="submit"
                                 class="btn btn-primary">
@@ -96,9 +138,7 @@
 
                             Excel mein read/unread totals sheet nahi banegi.
                         --}}
-                        <a href="{{ route('admin.enquiry.export', array_filter([
-        'month' => request('month')
-    ])) }}"
+                        <a href="{{ route('admin.enquiry.export', $enquiryFilters) }}"
    class="btn btn-success">
 
     <i class="fas fa-file-excel"></i>
@@ -169,14 +209,31 @@
 
                                     <td>
                                         {{ $enquiry->name ?? '-' }}
+                                        @if($enquiry->type === 'whatsapp')
+                                            <br><span class="badge badge-success" title="Sent from the listing's WhatsApp button to our WhatsApp number">via WhatsApp</span>
+                                        @elseif($enquiry->type === 'call')
+                                            <br><span class="badge badge-primary" title="Tapped Contact on a listing card and verified their mobile with an OTP before the call was put through">via Call</span>
+                                        @endif
                                     </td>
 
                                     <td>
                                         {{ $enquiry->phone ?? '-' }}
                                     </td>
 
+                                    {{-- A lead from the "Send Enquiry" box on a category, city or
+                                         search page is about no single business, which is not the
+                                         same thing as a missing value. Where the visitor typed
+                                         something we couldn't match to a category, those words are
+                                         all there is to call them about, so they show here. --}}
                                     <td>
-                                        {{ optional($enquiry->listing)->name ?? 'N/A' }}
+                                        @if($enquiry->listing)
+                                            {{ $enquiry->listing->name }}
+                                        @else
+                                            <span class="text-muted">General enquiry</span>
+                                            @if(str_starts_with((string) $enquiry->message, 'Searched: '))
+                                                <br><small>{{ $enquiry->message }}</small>
+                                            @endif
+                                        @endif
                                     </td>
 
                                     {{-- Who to call about this lead: the business's own number(s), and the
@@ -317,10 +374,58 @@
 </div>
 @endsection
 
+@push('css-link')
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/select2.min.css') }}">
+@endpush
+@push('css')
+<style>
+    /* Select2 ships its own box; line it up with the date inputs beside it. */
+    .enquiry-filters .select2-container--default .select2-selection--single {
+        height: calc(1.5em + .75rem + 2px);
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+    }
+    .enquiry-filters .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: calc(1.5em + .75rem);
+        padding-left: .75rem;
+        color: #495057;
+    }
+    .enquiry-filters .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: calc(1.5em + .75rem);
+    }
+    .enquiry-filters .form-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+    .enquiry-filters .filter-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    /* The dropdown is taller than the row, so it must not be clipped. */
+    .enquiry-filters { overflow: visible; }
+</style>
+@endpush
+@push('js-link')
+    <script src="{{ asset('assets/admin/js/select2.min.js') }}"></script>
+@endpush
 @push('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// Type-to-search on Location and Category: 60-odd cities and 100-odd
+// categories are too many to scroll.
+$(function () {
+    $('#location_id, #category_id').select2({
+        placeholder: function () { return $(this).data('placeholder'); },
+        allowClear: true,
+        width: '100%',
+        dropdownAutoWidth: false,
+    });
+});
+
 $(document).on('click', '.deleteBtn', function (event) {
     event.preventDefault();
 

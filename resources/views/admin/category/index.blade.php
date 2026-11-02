@@ -101,7 +101,7 @@
 											<label class="pick-image" for="upload1">@lang('Upload')</label>
 										</div>
 									</div>
-									<small class="text-primary">@lang('Image will resize into 350x190 px')</small>
+									<small class="text-primary">@lang('JPG, PNG, WebP or SVG. A JPG/PNG/WebP is resized to 350x190 px; an SVG is kept as it is.')</small>
 								</div>
 							</div>
 							<div class="col-md-12">

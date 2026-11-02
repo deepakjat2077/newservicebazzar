@@ -1,4 +1,3 @@
-
 @extends($themeView.'layouts.site')
 @php
     $ogTitle = 'Service Bazzar — Find Trusted Local Businesses Near You';
@@ -29,7 +28,7 @@ Local Businesses & Trusted Services Near You
         return el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
     }
     function fit() {
-        if (window.innerWidth <= 767) return; 
+        if (window.innerWidth <= 767) return;
         document.querySelectorAll(SEL).forEach(function (el) {
             el.style.removeProperty('font-size');
             el.style.removeProperty('white-space');
@@ -128,14 +127,122 @@ document.addEventListener('DOMContentLoaded', function () {
     }).observe(header, { attributes: true, attributeFilter: ['class'] });
 });
 </script>
+<style id="servicebazzar-listing-cta-before-search">
+    .banner-section{
+        padding:10px 0 1px;
+        border-bottom:1px solid #edf1eb;
+        background:linear-gradient(180deg,#fafcf9 0%,#f4f7f2 100%);
+    }
+    .home-search-kicker-area{width:100%;margin:0 auto 12px !important;padding-left:15px}
+    .home-search-kicker{
+        margin:0 0 8px;
+        color:#344054;
+        font-size:clamp(17px, 1.8vw, 23px);
+        font-weight:600;
+        line-height:1.25;
+    }
+    .home-search-controls-row{
+        box-sizing:border-box;
+        align-items:center;
+        /* The missing semicolon here made the browser throw away BOTH this
+           width and the margin below it as one malformed declaration, which
+           is why the search row sat flush against the section under it. */
+        width:100%;
+        margin:10px auto 15px !important;
+        padding:8px 12px;
+        gap:10px;
+        border:1px solid #e1e9df;
+        border-radius:12px;
+        background:rgba(255,255,255,.88);
+        box-shadow:0 3px 12px rgba(19,136,8,.045);
+    }
+    .home-search-controls-row .input_location_box,
+    .home-search-controls-row .input_search_box{
+        box-sizing:border-box;
+        border:1px solid #dce6da !important;
+        border-radius:8px;
+        background-color:#fff;
+        box-shadow:none !important;
+        transition:border-color .18s ease, box-shadow .18s ease;
+    }
+    .home-search-controls-row .input_location_box:after{
+        background:linear-gradient(to right,rgba(255,255,255,0),#fff 67%);
+    }
+    .home-search-controls-row .input_location_box:focus-within,
+    .home-search-controls-row .input_search_box:focus-within{
+        border-color:#16820d !important;
+        box-shadow:0 0 0 3px rgba(22,130,13,.1) !important;
+    }
+    .home-search-controls-row .search_buttonh i,
+    .home-search-controls-row .voice-search-btn{
+        color:#16820d;
+    }
+    .home-search-controls-row .download-btn{
+        min-height:48px;
+        border:1px solid #dce6da;
+        border-radius:8px;
+        color:#16820d;
+        font-weight:600;
+        transition:background-color .18s ease,border-color .18s ease;
+    }
+    .home-search-controls-row .download-btn:hover,
+    .home-search-controls-row .download-btn:focus-visible{
+        border-color:#b8d4b4;
+        background:#f4faf3;
+        color:#116b0a;
+        text-decoration:none;
+    }
+    .home-search-listing-cta{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:100%;
+        min-height:44px;
+        padding:10px 12px;
+        border:1px solid #16820d;
+        border-radius:8px;
+        background:#16820d;
+        color:#fff;
+        font-size:13px;
+        font-weight:700;
+        line-height:1.3;
+        text-align:center;
+        text-decoration:none;
+        white-space:nowrap;
+        transition:background-color .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .home-search-listing-cta:hover,
+    .home-search-listing-cta:focus-visible{
+        border-color:#116b0a;
+        background:#116b0a;
+        color:#fff;
+        text-decoration:none;
+        transform:translateY(-1px);
+    }
+    .home-search-controls-row .home-search-main{min-width:0;margin-left:0 !important;margin-right:0 !important;}
+    .home-search-controls-row #homeSearchOriginalPlace{width:100% !important;min-width:0;}
+    .home-search-controls-row #homeSearchOriginalPlace form{width:100%;}
+    @media (min-width:768px){
+        .home-search-controls-row{flex-wrap:nowrap !important;}
+        .home-search-controls-row > .col-md-2,
+        .home-search-controls-row > .home-search-main{min-width:0 !important;}
+        .home-search-controls-row .home-search-main{display:flex !important;align-items:center !important;padding-right:0 !important;}
+        .home-search-controls-row #homeSearchOriginalPlace{margin-top:0 !important;padding:0 !important;}
+        .home-search-controls-row #homeSearchOriginalPlace form{display:block !important;width:100% !important;}
+        .home-search-controls-row .search-row-custom{display:flex !important;width:100% !important;align-items:center;gap:10px;}
+        .home-search-controls-row .location-col-custom{width:auto !important;flex:0 0 36% !important;min-width:0 !important;margin:0 !important;}
+        .home-search-controls-row .search-col-custom{width:auto !important;flex:1 1 0 !important;min-width:0 !important;margin:0 !important;}
+        .home-search-controls-row .banner-download-btn{position:static !important;display:flex !important;align-items:center;align-self:center;padding-left:0 !important;right:auto;bottom:auto;}
+    }
+    @media (max-width:1023px){
+        .home-search-controls-row{display:none !important;}
+    }
+</style>
 <section class="banner-section">
     <div class="container-fulde">
-             <div class="row g-0">
-<div class="col-md-8 custom-right">
-    
-   <div class="title-area ll text-left">
+   <div class="col-md-12 home-search-kicker-area title-area  text-left">
 
-   <h1 class="hero-title">
+   <p class="hero-title home-search-kicker">
     Discover Trusted
     <span class="text-slider">
         <span>
@@ -149,17 +256,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     </span>
 
-</h1>
+</p>
 
 </div>
-
+	<div class="row g-0 home-search-controls-row">
+<div class="col-md-2">
+	    <a class="home-search-listing-cta" href="{{ route('free.listing') }}">
+	        @lang('+ Add Business – FREE')
+    </a>
+</div>
+<div class="col-md-8 custom-right home-search-main">
     <div class="search-area" id="homeSearchOriginalPlace">
      <form action="{{ route('listings.search') }}" method="GET" id="homeSearchForm">
          <div class="search-row-custom">
 
 <div class="location-col-custom mobile-home-location-box" id="mobileHomeLocationBox">
     <div class="input_location_box">
-      
+
 
 <input type="text"
     name="location_name"
@@ -174,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
     aria-expanded="false"
     aria-controls="homeLocationSuggestions">
 
-         
+
         <input type="hidden" name="latitude" id="homeSearchLatitude" value="{{ request()->latitude }}">
         <input type="hidden" name="longitude" id="homeSearchLongitude" value="{{ request()->longitude }}">
         <input type="hidden" name="location_id" id="homeSearchLocationId" value="">
@@ -241,12 +354,12 @@ window.SB = {
 
 </div>
 
-       
+
         <noscript>
-        
+
             <div style="margin-top: 8px;">
                 <div style="display: flex; gap: 4px; align-items: center;">
-                   
+
                     <select name="categorysearch" id="noScriptCategoryFallback"
                             style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                         <option value="">Select a popular category</option>
@@ -268,7 +381,7 @@ window.SB = {
 
 
 
-           
+
             </div>
 
             <div id="searchError" style="color:#dc3545; font-size:14px; margin-top:8px; display:none;">
@@ -278,272 +391,285 @@ window.SB = {
     </div>
 
 </div>
-        </div>
-    </div>
-
-    <div class="banner-download-btn desktop-only">
+   <div class="col-md-2 banner-download-btn desktop-only">
     <a href="https://play.google.com/store/apps/details?id=com.servicebazaar" class="download-btn"
        target="_blank" rel="noopener" aria-label="Download the Service Bazzar app on Google Play">
         Download App
         <i class="fas fa-download"></i>
     </a>
 </div>
+</div>
+    </div>
+
 
 
 </section>
 <!-- Banner Section End -->
 
 
-<section class="custom-banner-section ">
-    <div class="container-fulde">
-        <div class="row g-3 align-items-stretch mobile-banner-row">
+<style>
+    .sb-home-hero-section { padding: 10px 17px; }
+    .sb-home-hero {
+        position: relative;
+        display: grid;
+        min-height: 320px;
+        grid-template-columns: .92fr 1.08fr;
+        align-items: center;
+        gap: 28px;
+        overflow: hidden;
+        padding: 28px clamp(24px, 4vw, 60px);
+        border: 1px solid rgba(19,136,8,.28);
+        border-radius: 18px;
+        background:
+            radial-gradient(ellipse at 82% 48%, rgba(19,136,8,.075), transparent 38%),
+            radial-gradient(ellipse at 5% 100%, rgba(23,105,210,.035), transparent 38%),
+            linear-gradient(118deg, #f8faf8 0%, #f0f5ef 54%, #f8faf8 100%);
+        box-shadow: 0 8px 24px rgba(19,136,8,.085);
+    }
+    .sb-home-hero::before {
+        position: absolute;
+        top: -170px;
+        right: 14%;
+        width: 350px;
+        height: 350px;
+        border: 1px solid rgba(19,136,8,.07);
+        border-radius: 50%;
+        content: "";
+        pointer-events: none;
+    }
+    .sb-home-hero-copy, .sb-home-hero-art { position: relative; z-index: 1; min-width: 0; }
+    .sb-home-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        color: #107306;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: .55px;
+        text-transform: uppercase;
+    }
+    .sb-home-hero-eyebrow::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #138808;
+        content: "";
+    }
+    .sb-home-hero-title {
+        max-width: 520px;
+        margin: 0;
+        color: #18243a;
+        font-size: clamp(30px, 3.2vw, 41px);
+        font-weight: 750;
+        line-height: 1.1;
+        letter-spacing: -1.8px;
+    }
+    .sb-home-hero-title span { color: #1769d2; }
+    .sb-home-hero-description {
+        max-width: 465px;
+        margin: 12px 0 17px;
+        color: #667085;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+    .sb-home-hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px 12px; }
+    .sb-home-hero-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #0e77cd;
+        box-shadow: 0 5px 12px rgba(22,116,209,.16);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .sb-home-hero-cta:hover, .sb-home-hero-cta:focus { background: #0965b4; color: #fff; text-decoration: none; }
+    .sb-home-hero-note { color: #667085; font-size: 11px; }
+    .sb-home-hero-art { display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+    .sb-home-hero-art-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #344054; font-size: 12px; font-weight: 750; }
+    .sb-home-hero-art-heading span { color: #107306; font-size: 10px; font-weight: 650; }
+    .sb-home-business-orbit { position: relative; height: 350px; overflow: hidden; }
+    .sb-home-orbit-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 78%;
+        height: 72%;
+        border: 1px dashed rgba(19,136,8,.22);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+    .sb-home-orbit-center {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        display: grid;
+        width: 90px;
+        height: 90px;
+        place-items: center;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        background: #138808;
+        box-shadow: 0 3px 12px rgba(19,136,8,.24);
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .5px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
+    .sb-home-business {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: flex;
+        width: var(--business-size, 88px);
+        height: var(--business-size, 88px);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 8px;
+        border: 1px solid #dfe9f5;
+        border-radius: 50%;
+        background: rgba(255,255,255,.98);
+        box-shadow: 0 5px 15px rgba(32,68,112,.1);
+        color: inherit;
+        text-align: center;
+        text-decoration: none;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.2);
+        animation: sb-business-orbit-in .62s cubic-bezier(.2,.8,.25,1.2) forwards;
+        animation-delay: var(--business-delay, 0s);
+        transition: translate .18s ease, scale .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .sb-home-business:hover, .sb-home-business:focus-visible {
+        z-index: 3;
+        translate: 0 -4px;
+        scale: 1.07;
+        border-color: #8bbaf0;
+        box-shadow: 0 10px 24px rgba(23,105,210,.22);
+        color: inherit;
+        text-decoration: none;
+    }
+    .sb-home-business:focus-visible { outline: 2px solid #1769d2; outline-offset: 2px; }
+    .sb-home-business-image, .sb-home-business-initial {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 50%;
+        background: #edf5ff;
+        color: #1769d2;
+        font-size: 13px;
+        font-weight: 700;
+        object-fit: cover;
+    }
+    .sb-home-business-name {
+        display: -webkit-box;
+        overflow: hidden;
+        max-width: 100%;
+        color: #26364b;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.15;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+    .sb-home-business-city { overflow: hidden; max-width: 100%; color: #26364b; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .sb-home-business-position-1 { --business-x: 50%; --business-y: 18%; --business-size: 110px; --business-mobile-size: 72px; --business-delay: 0s; }
+    .sb-home-business-position-2 { --business-x: 74%; --business-y: 25%; --business-size: 110px; --business-mobile-size: 68px; --business-delay: .08s; }
+    .sb-home-business-position-3 { --business-x: 88%; --business-y: 50%; --business-size: 110px; --business-mobile-size: 70px; --business-delay: .16s; }
+    .sb-home-business-position-4 { --business-x: 74%; --business-y: 75%; --business-size: 110px; --business-mobile-size: 72px; --business-delay: .24s; }
+    .sb-home-business-position-5 { --business-x: 50%; --business-y: 82%; --business-size: 110px; --business-mobile-size: 68px; --business-delay: .32s; }
+    .sb-home-business-position-6 { --business-x: 26%; --business-y: 75%; --business-size: 110px; --business-mobile-size: 70px; --business-delay: .4s; }
+    .sb-home-business-position-7 { --business-x: 12%; --business-y: 50%; --business-size: 110px; --business-mobile-size: 68px; --business-delay: .48s; }
+    .sb-home-business-position-8 { --business-x: 26%; --business-y: 25%; --business-size: 110px; --business-mobile-size: 72px; --business-delay: .56s; }
+    @keyframes sb-business-orbit-in {
+        0% { top: 50%; left: 50%; opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+        65% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+        100% { top: var(--business-y); left: var(--business-x); opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    @media (max-width: 767px) {
+        .sb-home-hero-section { padding: 0 10px; }
+        .sb-home-hero { min-height: 0; grid-template-columns: 1fr; gap: 18px; padding: 25px 20px 16px; border-radius: 14px; }
+        .sb-home-hero-eyebrow { margin-bottom: 10px; font-size: 10px; }
+        .sb-home-hero-title { max-width: 450px; font-size: clamp(29px, 8vw, 37px); letter-spacing: -1.3px; }
+        .sb-home-hero-description { margin: 11px 0 15px; font-size: 13px; }
+        .sb-home-hero-cta { padding: 11px 14px; font-size: 12px; }
+        .sb-home-hero-note { align-self: center; }
+        .sb-home-hero-art { gap: 5px; }
+        .sb-home-business-orbit { height: 250px; }
+        .sb-home-business { width: var(--business-mobile-size, 70px); height: var(--business-mobile-size, 70px); padding: 5px; }
+        .sb-home-orbit-ring { width: 84%; height: 70%; }
+        .sb-home-orbit-center { width: 42px; height: 42px; font-size: 8px; }
+        .sb-home-business-image, .sb-home-business-initial { width: 23px; height: 23px; font-size: 12px; }
+        .sb-home-business-name { font-size: 12px; }
+        .sb-home-business-city { font-size: 6.5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .sb-home-business { opacity: 1; animation: none; top: var(--business-y); left: var(--business-x); transform: translate(-50%, -50%); transition: none; }
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .sb-home-business:hover { z-index: 3; }
+    }
+</style>
 
-            {{-- Left Big Slider --}}
-            <div class="col-lg-5 col-12 add-right mobile-banner-col">
-                <div id="mainBannerCarousel" class="carousel slide" data-ride="carousel" data-interval="3000">
-                    <div class="main-banner-box carousel-inner">
 
-                        @php
-                            $rawImage = $banner->content->image ?? null;
-                            $rawMobileImage = $banner->content->mobile_banner ?? null;
 
-                            $bannerImages = [];
-                            $mobileBannerImages = [];
 
-                            if (!empty($rawImage)) {
-                                $decoded = json_decode($rawImage, true);
-
-                                if (is_array($decoded)) {
-                                    foreach ($decoded as $row) {
-                                        if (is_array($row)) {
-                                            $bannerImages[] = [
-                                                'image' => $row['image'] ?? '',
-                                                'link'  => $row['link'] ?? ''
-                                            ];
-                                        } else {
-                                            $bannerImages[] = [
-                                                'image' => $row,
-                                                'link'  => ''
-                                            ];
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (!empty($rawMobileImage)) {
-                                $decodedMobile = json_decode($rawMobileImage, true);
-
-                                if (is_array($decodedMobile)) {
-                                    foreach ($decodedMobile as $row) {
-                                        if (is_array($row)) {
-                                            $mobileBannerImages[] = [
-                                                'image' => $row['image'] ?? '',
-                                                'link'  => $row['link'] ?? ''
-                                            ];
-                                        } else {
-                                            $mobileBannerImages[] = [
-                                                'image' => $row,
-                                                'link'  => ''
-                                            ];
-                                        }
-                                    }
-                                }
-                            }
-                        @endphp
-
-                            {{-- Preload the first (LCP) banner image in <head> --}}
-                            @php
-                            $firstBannerSrc    = !empty($bannerImages[0]['image'])
-                                ? 'assets/servicebazzar/images/banner/'.$bannerImages[0]['image']
-                                : null;
-                            $firstMobileSrc    = !empty($mobileBannerImages[0]['image'])
-                                ? 'assets/servicebazzar/images/banner/'.$mobileBannerImages[0]['image']
-                                : $firstBannerSrc;
-                            @endphp
-
-                        {{-- Inject LCP preload links into <head> via stack --}}
-                        @if($firstBannerSrc)
-                            @push('lcp')
-                                {{-- Mobile LCP preload (WebP preferred) --}}
-                                <link rel="preload" as="image"
-                                    href="{{ narrowWebp($firstMobileSrc) }}"
-                                    imagesrcset="{{ narrowWebp($firstMobileSrc) }}"
-                                    media="(max-width: 767px)"
-                                    fetchpriority="high">
-                                {{-- Desktop LCP preload (WebP preferred) --}}
-                                <link rel="preload" as="image"
-                                    href="{{ loadImageWebp($firstBannerSrc) }}"
-                                    imagesrcset="{{ loadImageWebp($firstBannerSrc) }}"
-                                    media="(min-width: 768px)"
-                                    fetchpriority="high">
-                            @endpush
+<section class="sb-home-hero-section" aria-labelledby="sb-home-hero-title">
+    <div class="sb-home-hero">
+        <div class="sb-home-hero-copy">
+            <div class="sb-home-hero-eyebrow">India bhar ke local businesses</div>
+            <h1 class="sb-home-hero-title" id="sb-home-hero-title">Zaroorat Aapki, Bazzar Hamara.<span>All Services One Bazzar</span></h1>
+            <p class="sb-home-hero-description">Apne sheher ke bharosemand businesses aur services dhoondhein. India bhar ke local options, ek hi jagah.</p>
+            <div class="sb-home-hero-actions">
+                <a class="sb-home-hero-cta" href="#featured-business-listings">Businesses Dekhein <span aria-hidden="true">&rarr;</span></a>
+                <span class="sb-home-hero-note">Bharosemand local options, poore India se</span>
+            </div>
+        </div>
+        <div class="sb-home-hero-art" aria-label="Featured businesses in cities across India">
+            <div class="sb-home-hero-art-heading">
+                <div>Top Verified Businesses Across India</div>
+                <span>Multiple Cities &middot; One Place</span>
+            </div>
+            <div class="sb-home-business-orbit">
+                <div class="sb-home-orbit-ring" aria-hidden="true"></div>
+                <div class="sb-home-orbit-center" aria-hidden="true">INDIA</div>
+                @foreach($featureds->take(8) as $index => $featured)
+                    @php
+                        $heroBusinessCategory = optional($featured->category)->slug;
+                        $heroBusinessCity = optional($featured->location)->name ?: 'Across India';
+                    @endphp
+                    <a class="sb-home-business sb-home-business-position-{{ $index + 1 }}"
+                       href="{{ route('listings.details', ['category' => $heroBusinessCategory, 'slug' => $featured->slug]) }}"
+                       aria-label="{{ $featured->name }} in {{ $heroBusinessCity }}">
+                        @if(!empty($featured->thumb))
+                            <img class="sb-home-business-image" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}" alt="" loading="lazy" decoding="async">
+                        @else
+                            <span class="sb-home-business-initial" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($featured->name, 0, 1)) }}</span>
                         @endif
-
-                        @foreach($bannerImages as $imgData)
-                            @php
-                                $mobileImgData = $mobileBannerImages[$loop->index] ?? null;
-                                $isFirst        = $loop->first;
-                                $loadPriority   = $isFirst ? 'eager' : 'lazy';
-                                $fetchPriority  = $isFirst ? 'high'  : 'low';
-                                $desktopSrc     = 'assets/servicebazzar/images/banner/'.$imgData['image'];
-                                $mobileSrc      = !empty($mobileImgData['image'])
-                                                    ? 'assets/servicebazzar/images/banner/'.$mobileImgData['image']
-                                                    : $desktopSrc;
-                            @endphp
-
-                            @php
-                             
-                                $bannerLink    = $imgData['link'] ?? '';
-                                $bannerCatSlug = '';
-                                if (!empty($bannerLink)) {
-                                    $bHost = parse_url($bannerLink, PHP_URL_HOST);
-                                    $bPath = trim((string) parse_url($bannerLink, PHP_URL_PATH), '/');
-                                    $bSegs = $bPath === '' ? [] : explode('/', $bPath);
-                                    $reservedFirst = ['listings','blogs','blog','user','admin','dashboard','category','search','contact','location','free-listing','pricing','popular-services'];
-                                    if ((!$bHost || $bHost === request()->getHost())
-                                        && count($bSegs) === 2
-                                        && !in_array(strtolower($bSegs[0]), $reservedFirst, true)) {
-                                        $bannerCatSlug = $bSegs[1];
-                                    }
-                                }
-                            @endphp
-
-                            <div class="carousel-item {{ $isFirst ? 'active' : '' }}">
-                                <div class="main-banner-box">
-
-                                    @if(!empty($bannerLink))
-                                        <a href="{{ $bannerLink }}"
-                                           @if($bannerCatSlug) class="dynamic-category-link" data-slug="{{ $bannerCatSlug }}" @endif>
-                                    @endif
-
-                                        {{-- Desktop banner — WebP with fallback --}}
-                                        <picture class="desktop-banner-img">
-                                            <source srcset="{{ loadImageWebp($desktopSrc) }}" type="image/webp">
-                                            <img width="1200" height="534"
-                                                src="{{ loadImage($desktopSrc) }}"
-                                                loading="{{ $loadPriority }}"
-                                                fetchpriority="{{ $fetchPriority }}"
-                                                decoding="async"
-                                                alt="{{ $banner->content->title }}"
-                                                class="desktop-banner-img">
-                                        </picture>
-
-                                        {{-- Mobile banner — WebP with fallback --}}
-                                        <picture class="mobile-banner-img">
-                                            {{-- phones get an 800px copy (the banner is ~400px wide there) --}}
-                                            <source srcset="{{ narrowWebp($mobileSrc) }}" type="image/webp">
-                                            <img width="1200" height="534"
-                                                src="{{ loadImage($mobileSrc) }}"
-                                                loading="{{ $loadPriority }}"
-                                                fetchpriority="{{ $fetchPriority }}"
-                                                decoding="async"
-                                                alt="{{ $isFirst ? 'Best' : 'Find' }} {{ $banner->content->title }}"
-                                                class="mobile-banner-img">
-                                        </picture>
-
-                                    @if(!empty($bannerLink))
-                                        </a>
-                                    @endif
-
-                                </div>
-                            </div>
-                        @endforeach
-
-                    </div>
-
-                    @if(count($bannerImages) > 1)
-                        <a class="carousel-control-prev" href="#mainBannerCarousel" role="button" data-slide="prev" aria-label="Previous banner">
-                            <span class="carousel-control-prev-icon"></span>
-                        </a>
-                        <a class="carousel-control-next" href="#mainBannerCarousel" role="button" data-slide="next" aria-label="Next banner">
-                            <span class="carousel-control-next-icon"></span>
-                        </a>
-                    @endif
-                </div>
+                        <span class="sb-home-business-name">{{ $featured->name }}</span>
+						<span class="sb-home-business-city">{{ $heroBusinessCategory }}</span>
+                        <span class="sb-home-business-city">{{ $heroBusinessCity }}</span>
+                    </a>
+                @endforeach
             </div>
-
-     @php
-   
-    $fixedCategories = [
-        'packers-and-movers',
-        'real-estate',
-        'chartered-accountant-ca',
-        'hotel'
-    ];
-
-    $topCategories = $categories->whereIn('slug', $fixedCategories);
-
-    $bgColors = [
-        'packers-and-movers' => '#2654A1',
-        'real-estate' => '#6769D0',
-        'chartered-accountant-ca' => '#008561',
-        'hotel' => '#0E77CD',
-    ];
-@endphp
-
-
-{{-- Right 4 Cards --}}
-<div class="col-lg-6 col-12 mobile-category-col">
-    <div class="row g-3 mobile-category-row">
-
-        @foreach($fixedCategories as $slug)
-
-            @php
-               $categoryItem = $topCategories->firstWhere('slug', $slug);
-
-                if(!$categoryItem){
-                    continue;
-                }
-
-                $usedCategoryIds[] = $categoryItem->id;
-
-                $bgColor = $bgColors[$slug] ?? '#0E77CD';
-            @endphp
-
-            <div class="col-6 col-md-3 mobile-category-item">
-
-                <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
-                   class="mini-service-card dynamic-category-link"
-                   data-slug="{{ $categoryItem->slug }}"
-                   style="background-color: {{ $bgColor }}; --c: {{ $bgColor }}; display:block; height:100%;">
-
-                    {{-- The category name is right below in .mini-card-title, so
-                         repeating it in alt makes a screen reader say it twice. --}}
-                    <img width="300" height="200" src="{{ loadImage('assets/images/category/'.$categoryItem->image) }}"
-                         loading="lazy"
-                         alt="">
-
-                    <div class="mini-card-title">
-                        {{ $categoryItem->name }}
-                    </div>
-
-                    <div class="home_banner_subtext" style="color:#FFF">
-                        Get Nearest Vendor
-                    </div>
-
-                    <div class="home_banner_explore font11" style="background-color: {{ $bgColor }};">
-                        <div class="home_banner_exploretxt" style="color:white;">
-                            Explore
-                        </div>
-
-                        <div class="home_banner_explorearw font11" style="color:#fff;"><i class="las la-arrow-right"></i></div>
-                    </div>
-
-                </a>
-
-            </div>
-
-        @endforeach
-
-    </div>
-</div>
-
         </div>
     </div>
 </section>
 
 
-    
+
+
 @php
     // Pehle woh categories jo pehle use nahi hui hain
     $unusedCategories = $categories
@@ -591,7 +717,7 @@ window.SB = {
                                 )
                             )
                                 <img width="60" height="60"
-                                    src="{{ asset('assets/images/category/icons/' . $categoryItem->icon) }}"
+                                    src="{{ asset('assets/images/category/' . $categoryItem->image) }}"
                                     loading="lazy"
                                     alt="Top {{ $categoryItem->name }}"
                                     class="category-icon-img"
@@ -611,7 +737,7 @@ window.SB = {
             @endforeach
 
             <div class="category-item text-center more-category-item">
-             
+
                 <label
                     for="categoryPopupToggle"
                     class="more-btn"
@@ -631,195 +757,229 @@ window.SB = {
     </div>
 </section>
 
-<section class="featured pt-4 pb-4">
-   
+@if($featureds->isNotEmpty())
+<section class="featured featured-business-listings pt-4 pb-4" id="featured-business-listings">
+
     @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-07.css'])
-    <div class="container">
-        <div class="row justify-content-center">
+    <div class="container-fluid">
+        <div class="row">
             <div class="col-md-8">
                 <div class="section-title">
-                    <h2 class="hh-h4-size">{{ __($featured_listing->content->title) }}</h2>
+                    <h2 class="hh-h4-size premium-listings-title">{{ __($featured_listing?->content?->title ?? 'Featured Listings') }}</h2>
                 </div>
             </div>
         </div>
 
-   
-<div class="featured-listing-slider">
-    @foreach($featureds as $featured)
+        <div class="featured-listing-slider">
+            @foreach($featureds as $featured)
 
-        @php
-            $mobileNumbers = is_array($featured->mobile_numbers)
-                ? $featured->mobile_numbers
-                : (json_decode($featured->mobile_numbers, true) ?: []);
+                @php
 
-            $whatsappNumbers = is_array($featured->whatsapp_numbers)
-                ? $featured->whatsapp_numbers
-                : (json_decode($featured->whatsapp_numbers, true) ?: []);
+                    $mobileNumbers = is_array($featured->mobile_numbers)
+                        ? $featured->mobile_numbers
+                        : (json_decode($featured->mobile_numbers, true) ?: []);
 
-            $mobilePhone = $mobileNumbers[0] ?? '';
-            $whatsappPhone = $whatsappNumbers[0] ?? '';
+                    $whatsappNumbers = is_array($featured->whatsapp_numbers)
+                        ? $featured->whatsapp_numbers
+                        : (json_decode($featured->whatsapp_numbers, true) ?: []);
 
-            $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
-            $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
+                    $mobilePhone = $mobileNumbers[0] ?? '';
+                    $whatsappPhone = $whatsappNumbers[0] ?? '';
 
-            // Service Bazzar rating
-            $rating = 0;
-            $ratingCount = 0;
+                    $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
+                    $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
 
-            if (isset($featured->review) && is_numeric($featured->review)) {
-                $rating = (float) $featured->review;
-            } elseif (isset($featured->avg_rating) && is_numeric($featured->avg_rating)) {
-                $rating = (float) $featured->avg_rating;
-            } elseif (isset($featured->rating) && is_numeric($featured->rating)) {
-                $rating = (float) $featured->rating;
-            } elseif (isset($featured->verified_ratings_avg) && is_numeric($featured->verified_ratings_avg)) {
-                $rating = (float) $featured->verified_ratings_avg;
-            }
+                    // Service Bazzar rating
+                    $rating = 0;
+                    $ratingCount = 0;
 
-            if (isset($featured->total_review) && is_numeric($featured->total_review)) {
-                $ratingCount = (int) $featured->total_review;
-            } elseif (isset($featured->review_count) && is_numeric($featured->review_count)) {
-                $ratingCount = (int) $featured->review_count;
-            } elseif (isset($featured->ratings_count) && is_numeric($featured->ratings_count)) {
-                $ratingCount = (int) $featured->ratings_count;
-            } elseif (isset($featured->verified_ratings_count) && is_numeric($featured->verified_ratings_count)) {
-                $ratingCount = (int) $featured->verified_ratings_count;
-            }
+                    if (isset($featured->review) && is_numeric($featured->review)) {
+                        $rating = (float) $featured->review;
+                    } elseif (isset($featured->avg_rating) && is_numeric($featured->avg_rating)) {
+                        $rating = (float) $featured->avg_rating;
+                    } elseif (isset($featured->rating) && is_numeric($featured->rating)) {
+                        $rating = (float) $featured->rating;
+                    } elseif (isset($featured->verified_ratings_avg) && is_numeric($featured->verified_ratings_avg)) {
+                        $rating = (float) $featured->verified_ratings_avg;
+                    }
 
-            // Google rating and review count
-            $gRating = (float) ($featured->gmb_rating ?? 0);
-            $gCount = (int) ($featured->gmb_review_count ?? 0);
+                    if (isset($featured->total_review) && is_numeric($featured->total_review)) {
+                        $ratingCount = (int) $featured->total_review;
+                    } elseif (isset($featured->review_count) && is_numeric($featured->review_count)) {
+                        $ratingCount = (int) $featured->review_count;
+                    } elseif (isset($featured->ratings_count) && is_numeric($featured->ratings_count)) {
+                        $ratingCount = (int) $featured->ratings_count;
+                    } elseif (isset($featured->verified_ratings_count) && is_numeric($featured->verified_ratings_count)) {
+                        $ratingCount = (int) $featured->verified_ratings_count;
+                    }
 
-            // Combine Service Bazzar and Google ratings
-            $existingRatingSum = $rating * $ratingCount;
-            $googleRatingSum = $gRating * $gCount;
-            $combinedCount = $ratingCount + $gCount;
+                    // Google rating and review count
+                    $gRating = (float) ($featured->gmb_rating ?? 0);
+                    $gCount = (int) ($featured->gmb_review_count ?? 0);
 
-            if ($combinedCount > 0) {
-                $rating = round(
-                    ($existingRatingSum + $googleRatingSum) / $combinedCount,
-                    1
-                );
-            } else {
-                $rating = 0;
-            }
+                    // Combine Service Bazzar and Google ratings
+                    $existingRatingSum = $rating * $ratingCount;
+                    $googleRatingSum = $gRating * $gCount;
+                    $combinedCount = $ratingCount + $gCount;
 
-            $ratingCount = $combinedCount;
+                    if ($combinedCount > 0) {
+                        $rating = round(($existingRatingSum + $googleRatingSum) / $combinedCount, 1);
+                    } else {
+                        $rating = 0;
+                    }
 
-            // Years in business
-            $yearsInBusiness = null;
+                    $ratingCount = $combinedCount;
 
-            if (!empty($featured->established_year) && is_numeric($featured->established_year)) {
-                $yearsInBusiness = date('Y') - (int) $featured->established_year;
-            }
-        @endphp
 
-        <div class="listing-area"
-             data-url="{{ route('listings.details', [
-                'category' => optional($featured->category)->slug,
-                'slug' => $featured->slug
-             ]) }}"
-             style="cursor:pointer;">
 
-            <div class="thumb">
-                <img width="300" height="225"
-                     src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
-                     loading="lazy"
-                     alt="{{ $featured->name }}"
-                     class="listing-thumb">
-            </div>
+                    $yearsInBusiness = null;
 
-            <div class="listing-content">
+                    if (!empty($featured->established_year) && is_numeric($featured->established_year)) {
+                        $yearsInBusiness = date('Y') - (int) $featured->established_year;
+                    }
 
-                <h2 class="title align-items-center flex-wrap">
-                    @if(($featured->is_star ?? 0) == 1)
-                        <i class="fas fa-star ico"></i>
-                    @endif
+                @endphp
 
-                    <a href="{{ route('listings.details', [
+
+                <div class="listing-area"
+                     data-url="{{ route('listings.details', [
                         'category' => optional($featured->category)->slug,
                         'slug' => $featured->slug
-                    ]) }}">
-                        {{ __($featured->name) }}
-                    </a>
-                </h2>
+                     ]) }}"
+                     style="cursor:pointer;">
 
-                <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
+                    <div class="thumb">
+                        <img width="250" height="180" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}"
+                         loading="lazy" alt="{{ $featured->name }}" class="listing-thumb">
+                    </div>
 
-                    @if($rating > 0)
-                        <span class="jd-rating-badge">
-                            {{ number_format($rating, 1) }} ★
-                        </span>
-                    @endif
+                    <div class="listing-content">
 
-                    @if($ratingCount > 0)
-                        <span class="jd-rating-count">
-                            {{ $ratingCount }} Ratings
-                        </span>
-                    @endif
+                        <h2 class="title align-items-center flex-wrap">
 
-                    @if(($featured->trust ?? 0) == 1)
-                        <img src="{{ asset('assets/images/trust_2x.gif') }}"
-                             class="jd-badge-img"
-                             loading="lazy"
-                             decoding="async"
-                             alt="Trust">
-                    @endif
+                            @if(($featured->is_star ?? 0) == 1)
+                                <i class="fas fa-star ico"></i>
+                            @endif
 
-                    @if(($featured->verified ?? 0) == 1)
-                        <img src="{{ asset('assets/images/verified_2x.gif') }}"
-                             class="jd-badge-img"
-                             loading="lazy"
-                             decoding="async"
-                             alt="Verified">
-                    @endif
-
-                </div>
-
-                <div class="listing-location">
-                    <i class="las la-map-marker"></i>
-                    <span>{{ $featured->location->name ?? '' }}</span>
-
-                    @if(!empty($yearsInBusiness) && $yearsInBusiness > 0)
-                        <span class="dot-separator">•</span>
-                        <span class="business-years">
-                            <i class="las la-briefcase"></i>
-                            {{ $yearsInBusiness }} Years in Business
-                        </span>
-                    @endif
-                </div>
-
-                @if(!empty($cleanMobilePhone) || !empty($cleanWhatsappPhone))
-                    <div class="listing-contact mt-3">
-
-                        @if(!empty($cleanMobilePhone))
-                            <a href="tel:{{ $cleanMobilePhone }}" class="btn-call">
-                                <i class="las la-phone"></i>
-                                Call Now
+                            <a href="{{ route('listings.details', [
+                                'category' => optional($featured->category)->slug,
+                                'slug' => $featured->slug
+                            ]) }}">
+                                {{ __($featured->name) }}
                             </a>
-                        @endif
 
-                        @if(!empty($cleanWhatsappPhone))
-                            <a href="https://wa.me/{{ $cleanWhatsappPhone }}"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="btn-whatsapp">
-                                <i class="lab la-whatsapp"></i>
-                                WhatsApp
-                            </a>
+                        </h2>
+
+
+<div class="listing-contact mt-3">
+
+                                @if(!empty($cleanMobilePhone))
+
+                                    <a href="tel:{{ $cleanMobilePhone }}" class="btn-call">
+                                        <i class="las la-phone"></i>
+                                        Contact for Service
+                                    </a>
+
+                                @endif
+
+
+
+ </div>
+
+
+                        <div class="jd-rating-wrap mb-2 d-flex align-items-center flex-wrap">
+
+                            @if($rating > 0 && $ratingCount > 0)
+
+                                <span class="jd-rating-badge">
+                                    {{ number_format($rating, 1) }} ★
+                                </span>
+
+                                <span class="jd-rating-count">
+                                    {{ $ratingCount }} Ratings
+                                </span>
+
+                            @endif
+
+                            @if(($featured->trust ?? 0) == 1)
+                                <img  src="{{ asset('assets/images/trust_2x.gif') }}"
+                                     class="jd-badge-img"
+                                     loading="lazy"
+                                     decoding="async"
+                                     alt="Trust">
+                            @endif
+
+                            @if(($featured->verified ?? 0) == 1)
+                                <img  src="{{ asset('assets/images/verified_2x.gif') }}"
+                                     class="jd-badge-img"
+                                     loading="lazy"
+                                     decoding="async"
+                                     alt="Verified">
+                            @endif
+
+                        </div>
+
+
+                        <div class="listing-location">
+
+                            <i class="las la-map-marker"></i>
+
+                            <span>{{ $featured->location->name ?? '' }}</span>
+
+                            @if(!empty($yearsInBusiness) && $yearsInBusiness > 0)
+
+                                <span class="dot-separator">•</span>
+
+                                <span class="business-years">
+                                    <i class="las la-briefcase"></i>
+                                    {{ $yearsInBusiness }} Years in Business
+                                </span>
+
+                            @endif
+
+                        </div>
+
+
+                        @if(!empty($cleanMobilePhone) || !empty($cleanWhatsappPhone))
+
+                            <div class="listing-contact mt-3">
+
+                                @if(!empty($cleanMobilePhone))
+
+                                    <a href="tel:{{ $cleanMobilePhone }}" class="btn-whatsapp">
+                                        <i class="las la-phone"></i>
+                                        Call Now
+                                    </a>
+
+                                @endif
+
+
+                                @if(!empty($cleanWhatsappPhone))
+
+                                    <a href="{{ \App\Support\WhatsappRelay::url($featured, 'https://wa.me/' . $cleanWhatsappPhone) }}"
+                                       target="_blank" rel="noopener noreferrer"
+                                       class="btn-whatsapp">
+
+                                        <i class="lab la-whatsapp"></i>
+                                        WhatsApp
+
+                                    </a>
+
+                                @endif
+
+                            </div>
+
                         @endif
 
                     </div>
-                @endif
 
-            </div>
+                </div>
+
+            @endforeach
         </div>
-
-    @endforeach
-</div>
-
     </div>
 </section>
+@endif
 
 
 
@@ -828,13 +988,13 @@ window.SB = {
 <!-- Panel -->
 <div class="category-popup" id="categoryPopup">
     <div class="popup-top">
-     
+
         <div class="d-flex align-items-center">
             <label for="categoryPopupToggle" class="close-btn mr-3" tabindex="0">✕</label>
             <h3 class="mb-0 hh-h5-size">Popular Categories</h3>
         </div>
 
-        
+
         <div class="search-wrapper">
             <input type="text" id="categorySearch"
                    placeholder="Search"
@@ -843,7 +1003,7 @@ window.SB = {
         </div>
     </div>
 
-  
+
     <div class="popup-location-notice" id="popupLocationNotice" hidden>
         <button type="button" class="popup-location-notice__close" id="popupLocationNoticeClose" aria-label="Close location popup">
             &times;
@@ -859,7 +1019,7 @@ window.SB = {
             </button>
         </div>
 
-       
+
         <ol class="popup-location-notice__steps" id="popupLocationSteps" hidden>
             <li>Click the lock or info icon next to the website address.</li>
             <li>Open <strong>Site settings</strong> (or <strong>Permissions</strong>).</li>
@@ -868,9 +1028,9 @@ window.SB = {
         </ol>
     </div>
 
-    
+
    @php
-    
+
     $rotationCities = function_exists('activeLocations')
         ? activeLocations()->where('is_popular', 1)->pluck('name')->values()
         : collect();
@@ -891,7 +1051,7 @@ window.SB = {
 <div class="popup-grid" id="popupCategoryList">
     @foreach($categories as $categoryItem)
 
-     
+
         <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
    class="popup-item dynamic-category-link"
    data-slug="{{ $categoryItem->slug }}">
@@ -927,11 +1087,11 @@ window.SB = {
 
 
 
-<section class="custom-right rr-section">
+<section class="rr-section">
     <div class="container-fluid">
         <div class="row g-3">
             @foreach($categoryHeadings as $headingItem)
-                <div class=" p-30 pt-15 pb-15 cardhotkey__wrap">
+                <div class="cardhotkey__wrap {{ in_array(strtolower(trim($headingItem->heading)), ['transportation services', 'beauty services', 'repair and services', 'home services'], true) ? 'homepage-category-group' : '' }}">
                     <div class="">
                         <h2 class="fw500 font18 color111">{{ $headingItem->heading }}</h2>
 
@@ -947,14 +1107,14 @@ window.SB = {
    class="mini-service-card dynamic-category-link"
    data-slug="{{ $category->slug }}">
 
-   
+
                                             <img width="300" height="200" src="{{ asset('assets/images/category/' . $category->image) }}"
                                               loading="lazy"   alt="{{ $category->name }} Services">
 
-                                         
-                                              
 
-                                          
+
+
+
                                         </a>
                                         <div class="color111 font14 pt-10">
     {{ $category->name }}
@@ -971,14 +1131,14 @@ window.SB = {
     </div>
 </section>
 
-    <section class="py-4 custom-right trending-same-section">
+    <section class="py-4  trending-same-section">
     <div class="container-fluid">
         <div class="border rounded-4 p-2 bg-white">
 
-            <div class="d-flex align-items-center mb-2">
+            <div class="trending-section-heading d-flex align-items-center mb-2">
                 {{-- aria-level, not a different tag: the CSS styles h4 and the visual has to stay put. --}}
-                <h2 class="fw-bold mb-0 hh-h4-size">Trending Searches Near You</h2>
-                <span class="badge bg-danger text-white ms-2">NEW</span>
+                <h2 class="trending-section-title fw-bold mb-0 hh-h4-size">Trending Searches Near You</h2>
+                <span class="trending-new-badge badge ms-2">NEW</span>
             </div>
 
             <p class="text-muted">Stay updated with the latest local trends.</p>
@@ -989,7 +1149,7 @@ window.SB = {
                     <i class="las la-angle-left"></i>
                 </button>
 
-                <div class="trending-scroll" id="trendingScroll">
+                <div class="trending-scroll" id="trendingScroll" onscroll="updateTrendingProgress(this)">
 
   @foreach($categories->whereNotIn('id', $usedCategoryIds)->take(12) as $category)
 
@@ -1029,6 +1189,7 @@ window.SB = {
                 </button>
 
             </div>
+            <div class="trending-progress" aria-hidden="true"><span></span></div>
         </div>
     </div>
 </section>
@@ -1036,13 +1197,14 @@ window.SB = {
 
 
 
-<section class="location-section  custom-right location-same-section">
+@if($locations->isNotEmpty())
+<section class="location-section top-location-section location-same-section">
     <div class="container-fluid">
         <div class="border rounded-4 p-2 bg-white">
 
-            <div class="d-flex align-items-center mb-0">
-                <h2 class="fw-bold mb-0 hh-h4-size">{{ __($location_section->content->title) }}</h2>
-                <span class="badge bg-danger text-white ms-2">NEW</span>
+            <div class="location-section-heading d-flex align-items-center mb-2">
+                <h2 class="location-section-title fw-bold mb-0 hh-h4-size">{{ __($location_section?->content?->title ?? 'Our Top Locations') }}</h2>
+                <span class="location-new-badge badge ms-2">NEW</span>
             </div>
 
             <p class="text-muted ">Discover popular locations around you.</p>
@@ -1051,17 +1213,17 @@ window.SB = {
   <button class="trend-nav prev-btn" type="button" aria-label="Scroll left">
                         <i class="las la-angle-left"></i>
                     </button>
-              
 
-                <div class="trending-scroll" >
+
+                <div class="trending-scroll" onscroll="updateTrendingProgress(this)">
                     @foreach($locations as $location)
                         <div class="trend-card-item">
-                     
+
                       <a href="{{ url($location->slug) }}"
    class="trend-card-link select-home-location"
    data-location-name="{{ $location->name }}"
    data-location-slug="{{ $location->slug }}">
-                                
+
      <img width="300" height="200" src="{{ loadImage('assets/images/location/'.$location->image) }}"
                                   loading="lazy"   alt="{{ $location->name }}">
 
@@ -1072,7 +1234,7 @@ window.SB = {
                                         <div class="trend-card-subtitle">Explore Now</div>
                                     </div>
 
-                                   
+
                                 </div>
                             </a>
                         </div>
@@ -1084,69 +1246,71 @@ window.SB = {
                     </button>
 
             </div>
+            <div class="location-progress" aria-hidden="true"><span></span></div>
         </div>
     </div>
 </section>
+@endif
 
     <!-- =========================
      LATEST LISTINGS SECTION
 ========================= -->
 
-<section class="custom-right mt-2 mb-2 ps-section popular-same-section">
+<section class=" mt-2 mb-2 ps-section popular-search-section popular-same-section">
     <div class="container-fluid">
+        <div class="border rounded-4 p-2 bg-white">
 
-        <div class="d-flex align-items-center mb-2">
-            <h2 class="fw-bold mb-0 hh-h4-size">Popular Searches</h2>
-        </div>
-
-        <div class="trending-wrapper position-relative">
-
-            <button class="trend-nav prev-btn"
-                    type="button"
-                    onclick="scrollPopular(-1)" aria-label="Scroll left">
-                <i class="las la-angle-left"></i>
-            </button>
-
-            <div id="popularScroll" class="trending-scroll">
-
-           @foreach($popularCategories as $category)
-                  
-
-                    <div class="trend-card-item">
-
-                        <a href="{{ cityCategoryUrl($category->slug) }}"
-                           class="trend-card-link dynamic-category-link"
-                           data-slug="{{ $category->slug }}">
-
-                            <img width="300" height="200" src="{{ asset('assets/images/category/'.$category->image) }}"
-                                 loading="lazy"
-                                 onerror="this.hidden=true;"
-                                 alt="Best {{ $category->name }}">
-
-                            <div class="trend-card-overlay">
-                                <div>
-                                    <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
-                                        {{ $category->name }}
-                                    </h3>
-                                </div>
-                            </div>
-
-                        </a>
-
-                    </div>
-
-                @endforeach
-
+            <div class="popular-section-heading d-flex align-items-center mb-2">
+                <h2 class="popular-section-title fw-bold mb-0 hh-h4-size">Popular Searches</h2>
             </div>
 
-            <button class="trend-nav next-btn"
-                    type="button"
-                    onclick="scrollPopular(1)" aria-label="Scroll right">
-                <i class="las la-angle-right"></i>
-            </button>
+            <div class="trending-wrapper position-relative">
+
+                <button class="trend-nav prev-btn"
+                        type="button"
+                        onclick="scrollPopular(-1)" aria-label="Scroll left">
+                    <i class="las la-angle-left"></i>
+                </button>
+
+                <div id="popularScroll" class="trending-scroll" onscroll="updateTrendingProgress(this)">
+
+                    @foreach($popularCategories as $category)
+                        <div class="trend-card-item">
+
+                            <a href="{{ cityCategoryUrl($category->slug) }}"
+                               class="trend-card-link dynamic-category-link"
+                               data-slug="{{ $category->slug }}">
+
+                                <img width="300" height="200" src="{{ asset('assets/images/category/'.$category->image) }}"
+                                     loading="lazy"
+                                     onerror="this.hidden=true;"
+                                     alt="Best {{ $category->name }}">
+
+                                <div class="trend-card-overlay">
+                                    <div>
+                                        <h3 class="trend-card-title {{ preg_match('/\s+/', trim($category->name)) ? 'trend-card-title--words' : 'trend-card-title--single' }}">
+                                            {{ $category->name }}
+                                        </h3>
+                                    </div>
+                                </div>
+
+                            </a>
+
+                        </div>
+                    @endforeach
+
+                </div>
+
+                <button class="trend-nav next-btn"
+                        type="button"
+                        onclick="scrollPopular(1)" aria-label="Scroll right">
+                    <i class="las la-angle-right"></i>
+                </button>
+
+            </div>
+            <div class="popular-progress" aria-hidden="true"><span></span></div>
 
         </div>
-
     </div>
 </section>
 
@@ -1154,7 +1318,7 @@ window.SB = {
 
 @foreach($seasonalSections as $section)
 
-<section class="location-section custom-right location-same-section seasonal-same-section">
+<section class="location-section  location-same-section seasonal-same-section">
     <div class="container-fluid">
 
         <div class="border rounded-4 p-2 bg-white">
@@ -1181,7 +1345,7 @@ window.SB = {
 
             <div class="trending-wrapper position-relative">
 
-              
+
                 <div class="trending-scroll">
 
                     @foreach($section->selected_categories as $category)
@@ -1202,7 +1366,7 @@ window.SB = {
                                             {{ $category->name }}
                                         </h3>
 
-                                       
+
                                     </div>
                                 </div>
 
@@ -1356,7 +1520,7 @@ $cleanPhone=preg_replace('/[^0-9]/','',$phone);
 Call Now
 </a>
 
-<a href="https://wa.me/{{ $cleanPhone }}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+<a href="{{ \App\Support\WhatsappRelay::url($catListing, 'https://wa.me/' . $cleanPhone) }}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
 <i class="lab la-whatsapp"></i>
 WhatsApp
 </a>
@@ -1382,6 +1546,277 @@ WhatsApp
 </section> --}}
 
   @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-08.css'])
+<!-- COMPLETE FAIL-SAFE SLIDER  -->
+@php
+    $rawImage = $banner->content->image ?? null;
+    $rawMobileImage = $banner->content->mobile_banner ?? null;
+
+    $bannerImages = [];
+    $mobileBannerImages = [];
+
+    if (!empty($rawImage)) {
+        $decoded = json_decode($rawImage, true);
+
+        if (is_array($decoded)) {
+            foreach ($decoded as $row) {
+                if (is_array($row)) {
+                    $bannerImages[] = [
+                        'image' => $row['image'] ?? '',
+                        'link'  => $row['link'] ?? ''
+                    ];
+                } else {
+                    $bannerImages[] = [
+                        'image' => $row,
+                        'link'  => ''
+                    ];
+                }
+            }
+        }
+    }
+
+    if (!empty($rawMobileImage)) {
+        $decodedMobile = json_decode($rawMobileImage, true);
+
+        if (is_array($decodedMobile)) {
+            foreach ($decodedMobile as $row) {
+                if (is_array($row)) {
+                    $mobileBannerImages[] = [
+                        'image' => $row['image'] ?? '',
+                        'link'  => $row['link'] ?? ''
+                    ];
+                } else {
+                    $mobileBannerImages[] = [
+                        'image' => $row,
+                        'link'  => ''
+                    ];
+                }
+            }
+        }
+    }
+@endphp
+
+@if(!empty($bannerImages))
+
+    {{-- Preload the first (LCP) banner image in <head> --}}
+    @php
+        $firstBannerSrc = !empty($bannerImages[0]['image'])
+            ? 'assets/servicebazzar/images/banner/'.$bannerImages[0]['image']
+            : null;
+        $firstMobileSrc = !empty($mobileBannerImages[0]['image'])
+            ? 'assets/servicebazzar/images/banner/'.$mobileBannerImages[0]['image']
+            : $firstBannerSrc;
+    @endphp
+
+    @if($firstBannerSrc)
+        @push('lcp')
+            {{-- Mobile LCP preload (WebP preferred) --}}
+            <link rel="preload" as="image"
+                href="{{ narrowWebp($firstMobileSrc) }}"
+                imagesrcset="{{ narrowWebp($firstMobileSrc) }}"
+                media="(max-width: 767px)"
+                fetchpriority="high">
+            {{-- Desktop LCP preload (WebP preferred) --}}
+            <link rel="preload" as="image"
+                href="{{ loadImageWebp($firstBannerSrc) }}"
+                imagesrcset="{{ loadImageWebp($firstBannerSrc) }}"
+                media="(min-width: 768px)"
+                fetchpriority="high">
+        @endpush
+    @endif
+
+<div class="bazzar-slider-wrapper">
+  <div class="bazzar-slides-container" id="bazzarSlider">
+
+    @foreach($bannerImages as $imgData)
+        @php
+            $mobileImgData = $mobileBannerImages[$loop->index] ?? null;
+            $isFirst        = $loop->first;
+            $loadPriority   = $isFirst ? 'eager' : 'lazy';
+            $fetchPriority  = $isFirst ? 'high'  : 'low';
+            $desktopSrc     = 'assets/servicebazzar/images/banner/'.$imgData['image'];
+            $mobileSrc      = !empty($mobileImgData['image'])
+                                ? 'assets/servicebazzar/images/banner/'.$mobileImgData['image']
+                                : $desktopSrc;
+
+            // An SVG banner is served as-is. Offering it through a
+            // type="image/webp" <source> would hand the browser a file that
+            // is not the type it was promised.
+            $bannerIsSvg = (bool) preg_match('/\.svg$/i', $desktopSrc.$mobileSrc);
+
+            $bannerLink    = $imgData['link'] ?? '';
+            $bannerCatSlug = '';
+            if (!empty($bannerLink)) {
+                $bHost = parse_url($bannerLink, PHP_URL_HOST);
+                $bPath = trim((string) parse_url($bannerLink, PHP_URL_PATH), '/');
+                $bSegs = $bPath === '' ? [] : explode('/', $bPath);
+                $reservedFirst = ['listings','blogs','blog','user','admin','dashboard','category','search','contact','location','free-listing','pricing','popular-services'];
+                if ((!$bHost || $bHost === request()->getHost())
+                    && count($bSegs) === 2
+                    && !in_array(strtolower($bSegs[0]), $reservedFirst, true)) {
+                    $bannerCatSlug = $bSegs[1];
+                }
+            }
+        @endphp
+
+        {{-- active-slide, not active: active-slide is the class the CSS and the
+             script below both use, so the first banner is visible immediately
+             instead of the slider sitting blank until the first 4s tick. --}}
+        <div class="bazzar-slide {{ $isFirst ? 'active-slide' : '' }}">
+            <div class="bazzar-overlay"></div>
+
+            @if(!empty($bannerLink))
+                <a href="{{ $bannerLink }}"
+                   @if($bannerCatSlug) class="dynamic-category-link" data-slug="{{ $bannerCatSlug }}" @endif>
+            @endif
+
+                {{-- One <picture>, phone copy first: this is what the preload
+                     above asks for, so the phone doesn't download the desktop
+                     banner as well. --}}
+                <picture>
+                    @unless($bannerIsSvg)
+                        <source media="(max-width: 767px)" srcset="{{ narrowWebp($mobileSrc) }}" type="image/webp">
+                        <source media="(max-width: 767px)" srcset="{{ loadImage($mobileSrc) }}">
+                        <source srcset="{{ loadImageWebp($desktopSrc) }}" type="image/webp">
+                    @else
+                        <source media="(max-width: 767px)" srcset="{{ loadImage($mobileSrc) }}">
+                    @endunless
+                    <img src="{{ loadImage($desktopSrc) }}" width="1200" height="534"
+                         alt="{{ $banner->content->title }}"
+                         loading="{{ $loadPriority }}"
+                         fetchpriority="{{ $fetchPriority }}"
+                         decoding="async">
+                </picture>
+
+            @if(!empty($bannerLink))
+                </a>
+            @endif
+
+        </div>
+    @endforeach
+
+  </div>
+
+  <!-- Manual Buttons (Left/Right) -->
+  <button class="bazzar-arrow arrow-left" type="button" onclick="changeBazzarSlide(-1)" aria-label="Previous banner">&#10094;</button>
+  <button class="bazzar-arrow arrow-right" type="button" onclick="changeBazzarSlide(1)" aria-label="Next banner">&#10095;</button>
+</div>
+
+<!-- INLINE STYLES (No CSS file needed) -->
+<style>
+.bazzar-slider-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1230px;
+  height: 350px;
+  margin: 10px auto;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  font-family: Arial, sans-serif;
+}
+.bazzar-slides-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.bazzar-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  z-index: 1;
+}
+.bazzar-slide.active-slide {
+  opacity: 1;
+  z-index: 2;
+}
+.bazzar-slide a,
+.bazzar-slide picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.bazzar-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.bazzar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.15);
+  z-index: 2;
+  /* The overlay sits on top of the banner's own link, so without this the
+     whole banner stops being clickable. */
+  pointer-events: none;
+}
+.bazzar-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: none;
+  padding: 15px 20px;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 20px;
+  border-radius: 100%;
+  transition: 0.3s;
+}
+.bazzar-arrow:hover {
+  background: #138808;
+  color: black;
+}
+.arrow-left { left: 20px; }
+.arrow-right { right: 20px; }
+@media (max-width: 767px) {
+  .bazzar-slider-wrapper { height: 190px; margin: 10px; width: auto; }
+  .bazzar-arrow { padding: 10px 14px; font-size: 16px; }
+  .arrow-left { left: 10px; }
+  .arrow-right { right: 10px; }
+}
+</style>
+
+<!-- SELF CONTAINED INDEPENDENT JAVASCRIPT -->
+<script>
+let currentBazzarIndex = 0;
+const bazzarSlides = document.querySelectorAll('.bazzar-slide');
+
+function showBazzarSlide(index) {
+  if (index >= bazzarSlides.length) currentBazzarIndex = 0;
+  else if (index < 0) currentBazzarIndex = bazzarSlides.length - 1;
+  else currentBazzarIndex = index;
+
+  bazzarSlides.forEach((slide, i) => {
+    if (i === currentBazzarIndex) {
+      slide.classList.add('active-slide');
+    } else {
+      slide.classList.remove('active-slide');
+    }
+  });
+}
+
+function changeBazzarSlide(direction) {
+  showBazzarSlide(currentBazzarIndex + direction);
+}
+
+// Automatic slide rotation every 4 seconds
+if (bazzarSlides.length > 1) {
+  setInterval(() => {
+    changeBazzarSlide(1);
+  }, 4000);
+}
+</script>
+
+@endif
+<!-- End COMPLETE FAIL-SAFE SLIDER  -->
 
   <section class="category-banner-slider m-1">
     <div id="categoryBannerCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000">
@@ -1423,12 +1858,12 @@ WhatsApp
 </section>
 
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
-  
 
-   
-
-    
+{{-- Hidden on the owner's request, 2026-11-02: "Our Latest News". The
+     markup is kept so it can be switched back on; change false to true. --}}
+@if (false)
     <!-- Blog section start -->
     <section class="blog-section pb-4 pt-4">
         <div class="container">
@@ -1470,8 +1905,16 @@ WhatsApp
         </div>
     </section>
     <!-- Blog section end -->
+@endif
+
+
+
+
+
+
+
     {{-- ================= CATEGORY CONTENT SECTION ================= --}}
-<section class="custom-right category-content-section py-4">
+<section class=" category-content-section py-4">
     <div class="container-fluid px-4">
 
 
@@ -1498,8 +1941,8 @@ WhatsApp
 @endif
 
         <div class="category-content-heading mb-4">
-            <h2 class=" cod mb-0 hh-h4-size">
-                Explore Popular Services That Can Help You In Your Daily Needs :
+            <h2 class="popular-services-title mb-0">
+                Explore Popular Services for Your Daily Needs
             </h2>
         </div>
 
@@ -1558,8 +2001,8 @@ WhatsApp
             <span class=" spn mb-0">
                Along with these popular categories, you can also find many other daily-use services such as Pest Control, Skin Care Clinics, Painters, Laundry Services, Interior Designers, Mobile Phone Repair, AC Repair Services, Internet Service Providers, Travel & Vacation Centres, Wedding Bands, Event Organisers, Packers and Movers and more. Our platform helps you quickly connect with reliable local businesses and service providers as per your needs.
             </span>
-        </div>  
-        
+        </div>
+
 
     </div>
 
@@ -1607,6 +2050,591 @@ WhatsApp
 </div>
 
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-09.css'])
+
+<style id="servicebazzar-home-section-theme">
+    .trending-same-section .trending-scroll,
+    .location-same-section .trending-scroll,
+    .popular-same-section .trending-scroll{
+        box-sizing:border-box;
+        grid-auto-columns:calc((100% - 72px) / 7) !important;
+        gap:20px !important;
+        padding:0 50px 8px !important;
+    }
+    .trending-same-section .trend-card-item,
+    .location-same-section .trend-card-item,
+    .popular-same-section .trend-card-item{
+        width:100% !important;
+        max-width:100% !important;
+    }
+    .trending-same-section .trend-card-link,
+    .location-same-section .trend-card-link,
+    .popular-same-section .trend-card-link{
+        box-sizing:border-box;
+        width:100% !important;
+    }
+    @media (min-width:992px) and (max-width:1199px){
+        .trending-same-section .trending-scroll,
+        .location-same-section .trending-scroll,
+        .popular-same-section .trending-scroll{
+            grid-auto-columns:calc((100% - 48px) / 5) !important;
+        }
+    }
+    @media (min-width:768px) and (max-width:991px){
+        .trending-same-section .trending-scroll,
+        .location-same-section .trending-scroll,
+        .popular-same-section .trending-scroll{
+            grid-auto-columns:calc((100% - 36px) / 4) !important;
+            padding-right:44px !important;
+            padding-left:44px !important;
+        }
+    }
+    @media (max-width:767px){
+        .trending-same-section .trending-scroll,
+        .location-same-section .trending-scroll,
+        .popular-same-section .trending-scroll{
+            grid-auto-columns:calc((100% - 12px) / 2) !important;
+            padding:0 0 8px !important;
+        }
+        .trending-same-section .trend-nav,
+        .location-same-section .trend-nav,
+        .popular-same-section .trend-nav{
+            display:none !important;
+        }
+    }
+    .category-area{
+        width:calc(100% - 40px);
+        max-width:1270px;
+        margin:5px auto !important;
+        padding:0 !important;
+    }
+    .category-area > .container-fildu{
+        box-sizing:border-box;
+        width:100%;
+        padding:22px;
+        border:1px solid #dce8d9;
+        border-radius:18px;
+        background:linear-gradient(145deg,#fff 0%,#f7faf6 100%);
+        box-shadow:0 8px 24px rgba(19,136,8,.09);
+    }
+    .category-area .category-grid{
+        grid-template-columns:repeat(10,minmax(0,1fr));
+        gap:14px 12px;
+        width:100%;
+        margin:0 !important;
+    }
+    .category-area .category-item{
+        width:auto;
+        height:auto;
+        min-height:150px;
+        padding:8px 5px;
+        border:0;
+        border-radius:0;
+        background:transparent;
+        box-shadow:none;
+    }
+    .category-area .category-item:hover{
+        transform:none;
+        border-color:transparent;
+        box-shadow:none;
+    }
+    .category-area .category-item a,
+    .category-area .category-item .more-btn{
+        height:100%;
+        align-items:center;
+        justify-content:flex-start;
+        gap:8px;
+    }
+    .category-area .category-item a:focus-visible,
+    .category-area .category-item .more-btn:focus-visible{
+        border-radius:8px;
+        outline:2px solid #16820d;
+        outline-offset:2px;
+    }
+    .category-area .category-box{
+        flex:0 0 90px;
+        width:90px !important;
+        height:90px !important;
+        margin:0;
+        border:0;
+        border-radius:0;
+        background:transparent;
+        box-shadow:none;
+        transition:transform .18s ease;
+    }
+    .category-area .category-item:hover .category-box{
+        transform:translateY(-2px);
+    }
+    .category-area .category-box .category-icon-img,
+    .category-area .category-box .category-icon-img:hover{
+        width:84px;
+        height:84px;
+        object-fit:contain;
+        padding:5px;
+        border:1px solid #e5ede2;
+        border-radius:12px;
+        background:#fff;
+        box-shadow:0 3px 9px rgba(31,77,27,.12);
+        transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+    }
+    .category-area .category-item:hover .category-icon-img{
+        transform:translateY(-2px) scale(1.06);
+        border-color:#c5ddc1;
+        box-shadow:0 7px 15px rgba(31,77,27,.2);
+    }
+    .category-area .category-box i,
+    .category-area .category-box .more{
+        color:#16820d;
+        font-size:34px;
+    }
+    .category-area .category-item .font14{
+        display:-webkit-box;
+        width:100%;
+        max-width:none;
+        height:auto;
+        min-height:34px;
+        margin:0;
+        overflow:hidden;
+        color:#344b35;
+        font-size:12px;
+        font-weight:600;
+        line-height:1.35;
+        text-align:center;
+        word-break:normal;
+        overflow-wrap:normal;
+        -webkit-box-orient:vertical;
+        -webkit-line-clamp:2;
+    }
+    .category-area .more-category-item .category-box{
+        border:0;
+    }
+    @media (min-width:992px) and (max-width:1199px){
+        .category-area .category-grid{
+            grid-template-columns:repeat(8,minmax(0,1fr));
+        }
+    }
+    @media (min-width:768px) and (max-width:991px){
+        .category-area .category-grid{
+            grid-template-columns:repeat(6,minmax(0,1fr));
+        }
+    }
+    @media (max-width:767px){
+        .category-area{
+            width:calc(100% - 24px);
+            margin:14px auto !important;
+            overflow:visible !important;
+        }
+        .category-area > .container-fildu{
+            padding:12px;
+            border-radius:15px;
+        }
+        .category-area .category-grid{
+            grid-template-columns:repeat(4,minmax(0,1fr));
+            gap:10px 8px;
+        }
+        .category-area .category-item{
+            min-height:116px;
+            padding:7px 3px;
+            border-radius:0;
+        }
+        .category-area .category-item a,
+        .category-area .category-item .more-btn{
+            gap:6px;
+        }
+        .category-area .category-box{
+            flex-basis:72px;
+            width:72px !important;
+            height:72px !important;
+            border-radius:0;
+        }
+        .category-area .category-box .category-icon-img,
+        .category-area .category-box .category-icon-img:hover{
+            width:66px;
+            height:66px;
+            padding:4px;
+            border-radius:10px;
+        }
+        .category-area .category-box i,
+        .category-area .category-box .more{
+            font-size:28px !important;
+        }
+        .category-area .category-item .font14{
+            min-height:29px;
+            font-size:10px !important;
+            line-height:1.3;
+        }
+    }
+    .rr-section{
+        padding:5px 0;
+        background:linear-gradient(180deg,#f7faf6 0%,#fff 100%);
+    }
+    .rr-section > .container-fluid{
+        padding:22px;
+        border:1px solid #dce8d9;
+        border-radius:18px;
+        background:linear-gradient(145deg,#fff 0%,#f7faf6 100%);
+        box-shadow:0 8px 24px rgba(19,136,8,.09);
+    }
+    .rr-section .cardhotkey__wrap{
+        padding:14px 12px;
+        border:1px solid #e5ede2;
+        border-radius:13px;
+        background:rgba(255,255,255,.75);
+        box-shadow:0 2px 8px rgba(19,136,8,.035);
+    }
+    .rr-section .cardhotkey__wrap h2{
+        position:relative;
+        margin:0 0 8px;
+        padding-left:12px;
+        color:#263b27;
+        font-size:18px;
+        font-weight:700;
+        line-height:1.35;
+    }
+    .rr-section .cardhotkey__wrap h2::before{
+        position:absolute;
+        top:2px;
+        bottom:2px;
+        left:0;
+        width:4px;
+        border-radius:4px;
+        background:#16820d;
+        content:"";
+    }
+    .rr-section .subcategory-col{
+        border-color:#e2ebdf;
+        border-radius:12px;
+        background:#fff;
+        box-shadow:0 2px 8px rgba(19,136,8,.035);
+        transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+    }
+    .rr-section .subcategory-col:hover{
+        border-color:#b8d4b4;
+        box-shadow:0 6px 14px rgba(19,136,8,.1);
+        transform:translateY(-2px);
+    }
+    .rr-section .subcategory-col .color111{
+        color:#344b35;
+        font-weight:600;
+    }
+    .trending-same-section > .container-fluid > .border,
+    .location-same-section > .container-fluid > .border,
+    .popular-same-section > .container-fluid > .border{
+        border:1px solid #e2ebdf !important;
+        border-radius:16px !important;
+        background:linear-gradient(145deg,#fff 0%,#f9fbf8 100%) !important;
+        box-shadow:0 6px 18px rgba(19,136,8,.06);
+    }
+    .trending-same-section .trending-section-title,
+    .location-same-section .location-section-title,
+    .popular-same-section .popular-section-title,
+    .seasonal-same-section h2{
+        color:#263b27 !important;
+    }
+    .location-same-section .location-section-heading,
+    .popular-same-section .popular-section-heading,
+    .seasonal-same-section .d-flex.align-items-center{
+        gap:10px;
+    }
+    .location-same-section > .container-fluid > .border > p,
+    .seasonal-same-section > .container-fluid > .border > p{
+        color:#667085;
+    }
+    .location-same-section .trend-card-link,
+    .popular-same-section .trend-card-link,
+    .seasonal-same-section .trend-card-link{
+        border:1px solid #e2ebdf;
+        border-radius:14px;
+        box-shadow:0 5px 14px rgba(19,136,8,.09);
+    }
+    .location-same-section .trend-nav,
+    .popular-same-section .trend-nav,
+    .seasonal-same-section .trend-nav{
+        border:1px solid #dce8d9;
+        background:#fff;
+        color:#16820d;
+        box-shadow:0 4px 12px rgba(19,136,8,.12);
+    }
+    .location-same-section .trend-nav:hover,
+    .popular-same-section .trend-nav:hover,
+    .seasonal-same-section .trend-nav:hover{
+        border-color:#16820d;
+        background:#16820d;
+        color:#fff;
+    }
+    .category-banner-slider{
+        overflow:hidden;
+        border:1px solid #e2ebdf;
+        border-radius:16px;
+        box-shadow:0 6px 18px rgba(19,136,8,.07);
+    }
+    .category-banner-slider .category-banner-img{
+        border-radius:15px;
+    }
+    .category-content-section{
+        padding-top:5px !important;
+        padding-bottom:0px !important;
+        background:linear-gradient(180deg,#f7faf6 0%,#fff 100%);
+    }
+    .category-content-section > .container-fluid{
+        padding-top:24px;
+        padding-bottom:24px;
+        border:1px solid #e2ebdf;
+        border-radius:16px;
+        background:rgba(255,255,255,.92);
+        box-shadow:0 6px 18px rgba(19,136,8,.06);
+    }
+    .category-content-row{
+        row-gap:14px !important;
+		gap:10px
+    }
+    .category-content-row > [class*="col-"]{
+        display:flex;
+        min-height:155px;
+        flex-direction:column;
+        padding:16px;
+        border:1px solid #e6eee3;
+        border-radius:12px;
+        background:linear-gradient(145deg,#fff 0%,#fafcf9 100%);
+        box-shadow:0 3px 10px rgba(19,136,8,.04);
+        transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+		max-width: 300px ! important;
+    }
+    .category-content-row > [class*="col-"]:hover{
+        border-color:#c7dfc3;
+        box-shadow:0 7px 16px rgba(19,136,8,.09);
+        transform:translateY(-2px);
+    }
+    .category-content-row .category-content-title a,
+    .category-content-row .category-content-icon i{
+        color:#216a1b !important;
+    }
+    .category-content-row .spn{
+        max-width:none;
+    }
+    .featured-business-listings{
+        padding:10px 0 !important;
+        background:linear-gradient(180deg,#f7faf6 0%,#fff 100%);
+    }
+    .featured-business-listings > .container-fluid{
+        box-sizing:border-box;
+        width:calc(100% - 40px);
+        max-width:1270px;
+        padding:24px;
+        border:1px solid #dce8d9;
+        border-radius:18px;
+        background:linear-gradient(145deg,#fff 0%,#f8fbf7 100%);
+        box-shadow:0 8px 24px rgba(19,136,8,.085);
+    }
+    .featured-business-listings .section-title{
+        margin-bottom:20px;
+    }
+    .featured-business-listings .premium-listings-title{
+        margin:0;
+        color:#263b27 !important;
+        font-size:clamp(20px,2vw,25px) !important;
+        line-height:1.3 !important;
+    }
+    .featured-business-listings .premium-listings-title::before{
+        background:#16820d;
+    }
+    .featured-business-listings .listing-area{
+        display:flex;
+        height:520px;
+        flex-direction:column;
+        overflow:hidden;
+        border:1px solid #e1e9df;
+        border-radius:14px;
+        background:#fff;
+        box-shadow:0 4px 14px rgba(31,77,27,.08);
+        transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+    }
+    .featured-business-listings .listing-area:hover{
+        transform:translateY(-3px);
+        border-color:#c4d9c0;
+        box-shadow:0 10px 22px rgba(31,77,27,.14);
+    }
+    .featured-business-listings .listing-area .thumb{
+        flex:0 0 220px;
+        overflow:hidden;
+        border-radius:0;
+    }
+    .featured-business-listings .listing-area .thumb img{
+        transition:transform .35s ease;
+    }
+    .featured-business-listings .listing-area:hover .thumb img{
+        transform:scale(1.035);
+    }
+    .featured-business-listings .listing-area .listing-content{
+        display:flex;
+        min-height:0;
+        flex:1 1 auto;
+        flex-direction:column;
+        border:0;
+        padding:16px;
+    }
+    .featured-business-listings .listing-area .title{
+        display:flex;
+        align-items:flex-start !important;
+        gap:6px;
+        min-height:52px;
+        max-height:52px;
+        margin:0 0 8px;
+        overflow:hidden;
+    }
+    .featured-business-listings .listing-area .title a{
+        display:-webkit-box;
+        flex:1 1 0;
+        min-width:0;
+        overflow:hidden;
+        -webkit-box-orient:vertical;
+        -webkit-line-clamp:2;
+    }
+    .featured-business-listings .listing-area .title .ico{
+        flex:0 0 auto;
+        margin:3px 0 0;
+        line-height:1;
+    }
+    .featured-business-listings .listing-content > .listing-contact:first-of-type{
+        min-height:40px;
+        margin:0 0 8px !important;
+    }
+    .featured-business-listings .jd-rating-wrap{
+        display:flex;
+        flex-wrap:nowrap !important;
+        align-items:center;
+        gap:6px;
+        min-height:45px;
+        max-height:45px;
+        margin-bottom:8px !important;
+        overflow:hidden;
+    }
+    .featured-business-listings .jd-rating-count{
+        min-width:0;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+    }
+    .featured-business-listings .jd-badge-img{
+        width:auto;
+        height:24px;
+        flex:0 0 auto;
+        object-fit:contain;
+    }
+    .featured-business-listings .listing-location{
+        display:flex;
+        flex-wrap:nowrap;
+        align-items:center;
+        gap:5px;
+        min-height:44px;
+        max-height:44px;
+        margin:0 0 8px;
+        overflow:hidden;
+    }
+    .featured-business-listings .listing-location > i,
+    .featured-business-listings .listing-location .dot-separator,
+    .featured-business-listings .listing-location .business-years{
+        flex:0 0 auto;
+    }
+    .featured-business-listings .listing-location > span:first-of-type{
+        min-width:0;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+    }
+    .featured-business-listings .listing-location .business-years{
+        white-space:nowrap;
+    }
+    .featured-business-listings .listing-content > .listing-contact:last-child{
+        min-height:40px;
+        margin-top:auto !important;
+    }
+    .featured-business-listings .listing-area .title a{
+        color:#263b27;
+        font-weight:700;
+        text-decoration:none;
+    }
+    .featured-business-listings .listing-area .title a:hover{
+        color:#16820d;
+    }
+    .featured-business-listings .listing-location{
+        color:#667085;
+    }
+    .featured-business-listings .listing-location > i{
+        color:#16820d;
+    }
+    .featured-business-listings .btn-call,
+    .featured-business-listings .btn-whatsapp{
+        min-height:40px;
+        border:1px solid #dce8d9;
+        border-radius:8px;
+        font-size:13px;
+        font-weight:600;
+        transition:background-color .18s ease,border-color .18s ease,color .18s ease;
+    }
+    .featured-business-listings .btn-call{
+        border-color:#16820d;
+        background:#16820d;
+        color:#fff;
+    }
+    .featured-business-listings .btn-call:hover{
+        border-color:#116b0a;
+        background:#116b0a;
+        color:#fff;
+    }
+    .featured-business-listings .btn-whatsapp{
+        background:#f7faf6;
+        color:#344b35;
+    }
+    .featured-business-listings .btn-whatsapp:hover{
+        border-color:#b8d4b4;
+        background:#edf7eb;
+        color:#216a1b;
+    }
+    @media (max-width:767px){
+        .featured-business-listings{
+            padding:18px 0 !important;
+        }
+        .featured-business-listings > .container-fluid{
+            width:calc(100% - 24px);
+            padding:16px 12px;
+            border-radius:15px;
+        }
+        .featured-business-listings .section-title{
+            margin-bottom:14px;
+        }
+        .featured-business-listings .listing-area .listing-content{
+            padding:14px;
+        }
+        .featured-business-listings .listing-area{
+            height:500px;
+        }
+        .featured-business-listings .listing-area .thumb{
+            flex-basis:190px;
+        }
+        .rr-section{
+            padding:14px 0;
+        }
+        .rr-section > .container-fluid{
+            padding:14px 12px;
+            border-radius:15px;
+        }
+        .rr-section .cardhotkey__wrap{
+            padding:10px 0px 10px 10px
+            border-radius:12px;
+        }
+        .category-content-section > .container-fluid{
+            padding:16px 12px;
+            border-radius:14px;
+        }
+        .category-content-row > [class*="col-"]{
+            min-height:0;
+            padding:14px;
+        }
+    }
+	 .jd-rating-count {
+            font-size: 14px ! important;
+        }
+</style>
 
 
 @endsection

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-IN">
 <head>
-	
+
 	@stack('lcp')
 
 	@include('includes.seo')
@@ -25,7 +25,7 @@
 	<link rel="preload" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}"></noscript>
 
-	
+
 	<link rel="preload" href="{{ asset($themeAsset.'css/slick.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}"></noscript>
 
@@ -51,10 +51,10 @@
 @php
     $sbIsHomeLike = request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug');
 
-  
+
     $sbBodyClass = trim(($sbIsHomeLike ? 'home-page' : '')
         . (request()->routeIs('home') ? '' : ' mobile-yt-search-open')
-       
+
         . (request()->routeIs('home') ? '' : ' jd-head'));
 @endphp
 <body class="{{ $sbBodyClass }}"
@@ -69,9 +69,9 @@
 >
 @auth
     @php
-      
+
         $sbHeaderBusiness = auth()->user()->listings()->where('status', 1)->latest()->first();
-       
+
         $sbHasBusinessListing = $sbHeaderBusiness || auth()->user()->listings()->exists();
     @endphp
 @endauth
@@ -87,15 +87,130 @@
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'layout/site-04.css'])
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'layout/site-05.css'])
 
+<style id="sb-main-menu-colors">
+    #stickyScrollHeader {
+        background: linear-gradient(180deg, #fbfcfa 0%, #f5f8f3 100%) !important;
+        border-top: 2px solid rgba(22, 130, 13, 0.72);
+        border-bottom: 1px solid #edf0f3;
+        box-shadow: 0 2px 8px rgba(32, 42, 59, 0.06) !important;
+        color: #202a3b;
+    }
+    #stickyScrollHeader .bottom-header,
+    #stickyScrollHeader .navbar-collapse {
+        background: linear-gradient(180deg, #fbfcfa 0%, #f5f8f3 100%) !important;
+    }
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .nav-link:not(.nav-btn),
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-toggle {
+        color: #303b4d !important;
+        padding: 8px 10px !important;
+    }
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item {
+        border-radius: 5px;
+        transition: background-color 0.18s ease, color 0.18s ease;
+    }
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item:hover,
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item:focus-within {
+        background-color: #f5f8f4;
+    }
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item:hover > .nav-link:not(.nav-btn),
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item:focus-within > .nav-link:not(.nav-btn),
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item:hover > .dropdown-toggle,
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item:focus-within > .dropdown-toggle {
+        color: #116b0a !important;
+    }
+    #stickyScrollHeader .add-business,
+    #stickyScrollHeader .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link) {
+        border-radius: 5px;
+        transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease !important;
+    }
+    #stickyScrollHeader .add-business,
+    #stickyScrollHeader .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link) {
+        border-color: #16820d !important;
+        background: #16820d !important;
+        color: #fff !important;
+    }
+    .header-area .bottom-header .navbar .add-business:hover,
+    .header-area .bottom-header .navbar .add-business:focus-visible {
+        color: #fff !important;
+        background-color: #116b0a !important;
+        border-color: #116b0a !important;
+        box-shadow: 0 3px 9px rgba(22, 130, 13, 0.16);
+        transform: translateY(-1px);
+    }
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link):hover,
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link):focus-visible {
+        color: #fff !important;
+        background-color: #116b0a !important;
+        border-color: #116b0a !important;
+        box-shadow: 0 3px 9px rgba(22, 130, 13, 0.16);
+        transform: translateY(-1px);
+    }
+    #stickyScrollHeader .navbar-toggler {
+        color: #303b4d !important;
+        border-color: #e5e9ee !important;
+    }
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-menu .dropdown-item,
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-menu .dropdown-item:hover,
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-menu .dropdown-item:focus {
+        color: #303b4d !important;
+    }
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-menu .dropdown-item:hover,
+    .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-menu .dropdown-item:focus {
+        background-color: #f1f7ef !important;
+        color: #116b0a !important;
+    }
+    .header-area .bottom-header .navbar .navbar-nav a:focus-visible,
+    #stickyScrollHeader .add-business:focus-visible {
+        outline: 2px solid rgba(22, 130, 13, 0.45);
+        outline-offset: 3px;
+    }
+    @media (min-width: 992px) {
+        #stickyScrollHeader .navbar {
+            min-height: 70px;
+            align-items: center;
+        }
+        #stickyScrollHeader .navbar-brand {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            margin: 0 10px 0 0;
+            padding: 0;
+        }
+        /* Same 40px height the logo has always had (site-01.css) — forcing a
+           200px width here made it taller than the rest of the header. */
+        #stickyScrollHeader .navbar-brand .logo-hight {
+            display: block;
+            width: auto;
+            height: 40px;
+            object-fit: contain;
+        }
+        #stickyScrollHeader .navbar-collapse {
+            flex: 0 1 auto;
+            margin-left: auto;
+        }
+    }
+    @media (max-width: 991px) {
+        /* The inner pages carry their own logo in the .jdh-top row, so the
+           navbar brand is hidden there — but the home page has no jdh-top,
+           and hiding it everywhere left that page with no logo at all. */
+        body:not(.jd-head) #stickyScrollHeader .navbar-brand {
+            display: inline-flex !important;
+            flex: 0 0 auto;
+        }
+        body.jd-head #stickyScrollHeader .navbar-brand {
+            display: none !important;
+        }
+    }
+</style>
 
 @include('themes.servicebazzar.partials.inline-js', ['file' => 'layout/site-01.js'])
 
 	<header class="header-area" id="stickyScrollHeader">
 		<div class="bottom-header">
-			<div class="container-fuldie custom-right .head-right ">
+			<div class="container-fuldie  .head-right ">
 				<nav class="navbar navbar-expand-lg navbar-light">
                 @if(!request()->routeIs('home'))
-              
+
                 <div class="jdh-top">
                     <button type="button" class="jdh-ico" aria-label="Go back" onclick="goBackPage()"><i class="las la-angle-left"></i></button>
                     <a href="{{ route('home') }}" class="jdh-logo"><img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar"></a>
@@ -112,9 +227,9 @@
     <i class="las la-angle-left"></i>
 </button>
 @endif
-					<a class="navbar-brand" href="{{ route('home') }}">
-						<img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar">
-					</a>
+                    <a class="navbar-brand" href="{{ route('home') }}" aria-label="Service Bazzar home">
+                        <img class="logo-hight" src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar">
+                    </a>
                   <div id="scrollSearchHolder">
     @include($themeView.'includes.search-form')
 </div>
@@ -155,7 +270,7 @@
 
 </div>
 
-        
+
     </form>
 </div>
 
@@ -172,7 +287,7 @@
 </a>
 @endguest
 
-				
+
 
 					<div class="collapse navbar-collapse" id="navbarSupportedContent">
 						@php
@@ -267,7 +382,7 @@
 					</div>
 				</nav>
 
-			
+
 				<div class="jd-mobile-location-strip" id="jdMobileLocationStrip">
 				<button type="button" class="jd-mobile-city-btn detecting" id="jdMobileCityBtn">
 						<i class="las la-map-marker"></i>
@@ -275,7 +390,7 @@
 						<i class="las la-angle-down"></i>
 					</button>
 
-                    
+
 				<div class="jd-mobile-location-box" id="jdMobileLocationBox">
 
     <div class="jd-location-modal-head">
@@ -304,7 +419,7 @@
 		</div>
 	</header>
 
-    
+
     <main id="main-content">
     @yield('content')
     </main>
@@ -384,7 +499,7 @@
 	<script src="{{ asset($themeAsset.'js/slick.min.js') }}" defer></script>
 	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}" defer></script>
 
-	<script src="{{ asset('assets/js/tracking.js') }}" defer></script>
+	<script src="{{ asset('assets/js/tracking.js') }}?v={{ @filemtime(public_path('assets/js/tracking.js')) }}" defer></script>
 
 	@stack('js')
 
@@ -506,6 +621,10 @@
 
 @include('themes.servicebazzar.partials.enquiry-otp')
 
+@if(config('contact_call.enabled'))
+    @include('themes.servicebazzar.partials.contact-call')
+@endif
+
 @auth
 
 <div id="sbProfilePanelOverlay" class="sb-profile-overlay"></div>
@@ -522,7 +641,7 @@
     </div>
 
     @php
-       
+
         $sbMyBusiness = $sbHeaderBusiness;
     @endphp
 
@@ -551,7 +670,7 @@
             <span>Dashboard</span>
         </a>
 
-    
+
         <a href="{{ $sbMyBusiness ? route('user.listing.leads', $sbMyBusiness->id) : route('user.listing.index') }}" class="sb-profile-item">
             <i class="fa-solid fa-inbox"></i>
             <span>Leads &amp; Enquiries</span>
@@ -601,6 +720,7 @@
 @include('themes.servicebazzar.layouts.site.site-11')
 
 @include('themes.servicebazzar.partials.notification_bell')
+@include('themes.servicebazzar.partials.ai-assistant')
 @include('themes.servicebazzar.partials.inline-js', ['file' => 'layout/site-08.js'])
 </body>
 </html>

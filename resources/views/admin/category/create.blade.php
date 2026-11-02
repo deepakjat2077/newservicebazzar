@@ -52,7 +52,7 @@
                                     </div>
 
                                     <small class="text-primary d-block mt-2">
-                                        Image will resize into 350x190 px
+                                        JPG, PNG, WebP or SVG. A JPG/PNG/WebP is resized to 350x190 px; an SVG is kept as it is.
                                     </small>
 
                                 </div>

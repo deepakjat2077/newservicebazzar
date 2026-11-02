@@ -18,6 +18,11 @@
         body.jd-head .yt-search-back,
         body.jd-head .sb-bell-mobile,
         body.jd-head .mobile-back-btn{display:none !important;}
+        /* the top row already has logo, share and bell/login: never show the old
+           logo/search/profile row too (it came back when the location box closed) */
+        body.jd-head #stickyScrollHeader .navbar-brand,
+        body.jd-head #stickyScrollHeader .navbar-toggler,
+        body.jd-head #mobileHeaderSearchBtn{display:none !important;}
     }
 
     @media (max-width: 991px){

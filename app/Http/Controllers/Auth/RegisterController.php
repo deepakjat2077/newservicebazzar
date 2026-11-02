@@ -433,6 +433,10 @@ public function quickAuthVerify(Request $request)
     // which tries to mail a placeholder address no SMTP server will accept.
     $user->markMobileVerified();
 
+    // The same proof says they are the business whose listings print this
+    // number, so hand those over before the dashboard is loaded.
+    \App\Support\ListingClaim::forUser($user, $data['mobile']);
+
     $booster = new Booster();
     $booster->createLoginLog($user);
 

@@ -12,9 +12,13 @@ class EnquiriesExport implements WithMultipleSheets
 {
     protected ?string $month;
 
-    public function __construct(?string $month = null)
+    /** date_from, date_to, location_id, category_id — the same filters the page shows. */
+    protected array $filters;
+
+    public function __construct(?string $month = null, array $filters = [])
     {
         $this->month = $month;
+        $this->filters = $filters;
     }
 
     public function sheets(): array
@@ -359,6 +363,22 @@ class EnquiriesExport implements WithMultipleSheets
                 $startDate,
                 $endDate,
             ]);
+        }
+
+        if (!empty($this->filters['date_from'])) {
+            $query->where('enquiries.created_at', '>=', Carbon::parse($this->filters['date_from'], 'Asia/Kolkata')->startOfDay()->utc());
+        }
+
+        if (!empty($this->filters['date_to'])) {
+            $query->where('enquiries.created_at', '<=', Carbon::parse($this->filters['date_to'], 'Asia/Kolkata')->endOfDay()->utc());
+        }
+
+        if (!empty($this->filters['location_id'])) {
+            $query->where('enquiries.location_id', $this->filters['location_id']);
+        }
+
+        if (!empty($this->filters['category_id'])) {
+            $query->where('enquiries.category_id', $this->filters['category_id']);
         }
 
         return $query;

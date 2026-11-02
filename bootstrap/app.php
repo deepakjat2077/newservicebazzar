@@ -66,8 +66,33 @@ return Application::configure(basePath: dirname(__DIR__))
         // New live listings go to IndexNow (Bing and partners) within the hour.
         $schedule->command('seo:indexnow')->hourly()->withoutOverlapping();
 
-        // Google rating + top reviews, max 500 listings a day (cap enforced in the command).
-        $schedule->command('google:sync-reviews')->dailyAt('03:30')->withoutOverlapping();
+        // New/changed listings and blog posts to the Google Indexing API: 9 an
+        // hour keeps inside Google's 200-a-day quota and sends new pages within the hour.
+        $schedule->command('seo:google-index --limit=9')->hourly()->withoutOverlapping();
+
+        // Whether those sent URLs are now indexed (Search Console URL Inspection,
+        // 2,000 a day allowed; 50 an hour = 1,200), for the admin Google Indexing page.
+        $schedule->command('seo:google-index-check --limit=50')->hourlyAt(30)->withoutOverlapping();
+
+        // Step 1: find the Google place id for listings that have none — a
+        // listing without one is never looked up for reviews at all, which is
+        // why only 380 of 14,000 had a rating. Each is a billed Places "Text
+        // Search Pro" call and already-attempted listings are skipped, so
+        // nothing is paid twice.
+        //
+        // Spread over the working day rather than one nightly burst: 42 an
+        // hour from 09:00 to 20:00 is ~500 a day, new reviews keep appearing
+        // through the day, and a failed hour costs 42 listings, not 500.
+        $schedule->command('google:fetch-place-ids --limit=150')
+            ->hourlyAt(5)->between('9:00', '20:00')->withoutOverlapping();
+
+        // Step 2: Google rating + top reviews for listings that now have a
+        // place id, each refreshed every 60 days. Run through the day too, so
+        // a place id found at 10:00 has its reviews by 10:35. The command's
+        // own 500-a-day counter is shared across runs, so this cannot spend
+        // more than one nightly run would.
+        $schedule->command('google:sync-reviews')
+            ->hourlyAt(35)->between('9:00', '22:00')->withoutOverlapping();
 
         // Pixel sizes of newly uploaded listing photos, for the small-images Excel.
         $schedule->command('listings:scan-image-sizes')->dailyAt('04:15')->withoutOverlapping();

@@ -39,6 +39,14 @@ class Tracker
         } catch (\Throwable $e) {
             Log::warning('Conversion tracking failed', ['event' => $eventType, 'error' => $e->getMessage()]);
         }
+
+        // Same conversion to GA4 (enquiry, sign up, new listing); no-op until
+        // GA4_API_SECRET is set.
+        try {
+            GoogleAnalytics::conversion($request, $eventType, $extra);
+        } catch (\Throwable $e) {
+            Log::warning('GA4 conversion failed', ['event' => $eventType, 'error' => $e->getMessage()]);
+        }
     }
 
     /**

@@ -219,6 +219,9 @@ Route::get('/jaipur/maintenance', function () {
                 Route::get('campaigns', 'CampaignLinkController@index')->name('campaigns');
                 Route::post('campaigns', 'CampaignLinkController@store')->name('campaigns.store');
                 Route::delete('campaigns/{id}', 'CampaignLinkController@destroy')->name('campaigns.destroy');
+                Route::get('excluded-ips', 'ExcludedIpController@index')->name('excluded-ips.index');
+                Route::post('excluded-ips', 'ExcludedIpController@store')->name('excluded-ips.store');
+                Route::delete('excluded-ips/{id}', 'ExcludedIpController@destroy')->whereNumber('id')->name('excluded-ips.destroy');
                 Route::get('export/excel', 'AnalyticsController@exportExcel')->name('export.excel');
                 Route::get('export/csv', 'AnalyticsController@exportCsv')->name('export.csv');
                 Route::get('export/pdf', 'AnalyticsController@exportPdf')->name('export.pdf');
@@ -229,6 +232,10 @@ Route::get('/jaipur/maintenance', function () {
                 Route::get('/auth',      'GscController@auth')->name('auth');
                 Route::get('/callback',  'GscController@callback')->name('callback');
                 Route::delete('/disconnect', 'GscController@disconnect')->name('disconnect');
+                Route::middleware('permission:analytics.view')->group(function () {
+                    Route::get('/indexing', 'GoogleIndexingController@index')->name('indexing');
+                    Route::post('/indexing/{id}/inspect', 'GoogleIndexingController@inspect')->whereNumber('id')->name('indexing.inspect');
+                });
             });
 
             // Pinged by long admin forms so a slow one doesn't lose its
@@ -571,6 +578,15 @@ Route::delete('seasonal-sections/delete/{id}', 'SeasonalSectionController@delete
 Route::name('seo.')->prefix('seo-audit')->middleware('permission:seo.audit')->group(function () {
     Route::get('/', 'SeoAuditController@index')->name('audit');
     Route::post('rescan', 'SeoAuditController@rescan')->name('audit.rescan');
+});
+
+// "People also search for" Q&As on city x category pages (seo:pasf-faq).
+Route::name('seo.pasf.')->prefix('people-also-search')->middleware('permission:seo.audit')->group(function () {
+    Route::get('/', 'PasfFaqController@index')->name('index');
+    Route::post('generate', 'PasfFaqController@generate')->name('generate');
+    Route::get('{id}', 'PasfFaqController@edit')->whereNumber('id')->name('edit');
+    Route::post('{id}', 'PasfFaqController@update')->whereNumber('id')->name('update');
+    Route::post('{id}/unpublish', 'PasfFaqController@unpublish')->whereNumber('id')->name('unpublish');
 });
 
 Route::name('roles.')->prefix('roles')->middleware('permission:role.manage')->group(function () {
@@ -1020,6 +1036,11 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
     |--------------------------------------------------------------------------
     */
 
+    // The floating assistant in the corner of every page. Throttled because
+    // every message is a paid model call.
+    Route::post('assistant/chat', 'AiAssistantController@chat')
+        ->middleware('throttle:15,1')->name('assistant.chat');
+
     Route::prefix('guest-chat')->name('guest-chat.')->group(function () {
         Route::get('session', 'GuestChatController@sessionStatus')->middleware('throttle:30,1')->name('session');
         Route::get('notifications', 'GuestChatController@notifications')->middleware('throttle:30,1')->name('notifications');
@@ -1168,6 +1189,13 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
         ->middleware('throttle:120,1')->name('enquiry.otp.send');
     Route::post('enquiry-otp/verify', 'EnquiryOtpController@verify')
         ->middleware('throttle:15,1')->name('enquiry.otp.verify');
+    /*
+     * "Contact" on a listing card: the lead is stored and the call placed,
+     * but only for a number that already answered an OTP above.
+     */
+    Route::post('contact-call/connect', 'ContactCallController@connect')
+        ->middleware('throttle:20,1')->name('contact.call.connect');
+
     Route::post('listing-click-track', 'SiteController@listingClickTrack')->middleware('throttle:60,1')->name('listing.click.track');
 
     Route::prefix('track')->middleware('throttle:120,1')->group(function () {

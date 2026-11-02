@@ -42,7 +42,7 @@
 
                                     <td>
                                         <button type="button"
-                                                class="btn btn--primary btn-sm"
+                                                class="btn btn-primary btn-sm"
                                                 data-toggle="modal"
                                                 data-target="#detailsModal{{ $listing->id }}">
                                             <i class="las la-eye"></i> @lang('View Details')

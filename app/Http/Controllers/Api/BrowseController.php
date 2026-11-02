@@ -233,7 +233,7 @@ class BrowseController extends Controller
 
         // "Ratings" — minimum star value.
         if ($request->filled('rating')) {
-            $listings->where('review', '>=', (float) $request->rating);
+            $listings->whereRaw(\App\Support\ListingRating::sql() . ' >= ?', [(float) $request->rating]);
         }
 
         if ($lat !== null && $lng !== null) {

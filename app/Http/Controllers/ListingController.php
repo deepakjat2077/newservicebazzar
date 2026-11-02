@@ -3196,8 +3196,27 @@ private function recoverServiceSlug(string $slug): ?string
  */
 private function applyListingFilters($listings, \Illuminate\Http\Request $request)
 {
-    $avg = fn ($l) => (float) ($l->ratings_avg_ratings ?? 0);
-    $rated = fn ($l) => (int) ($l->ratings_count ?? 0) > 0;
+    // Same blend the cards print: Service Bazzar's own ratings and Google's,
+    // weighted by how many of each. Counting only our own left the filter
+    // empty on categories full of 4-star businesses, because most listings
+    // carry a Google rating and none of ours.
+    $count = fn ($l) => (int) ($l->ratings_count ?? 0) + (int) ($l->gmb_review_count ?? 0);
+
+    $avg = function ($l) use ($count) {
+        $total = $count($l);
+
+        if ($total < 1) {
+            return 0.0;
+        }
+
+        $own = (int) ($l->ratings_count ?? 0);
+        $google = (int) ($l->gmb_review_count ?? 0);
+
+        return (((float) ($l->ratings_avg_ratings ?? 0) * $own)
+            + ((float) ($l->gmb_rating ?? 0) * $google)) / $total;
+    };
+
+    $rated = fn ($l) => $count($l) > 0;
 
     $rating = (string) $request->query('rating', '');
     if ($rating === 'any') {
@@ -3223,7 +3242,7 @@ private function applyListingFilters($listings, \Illuminate\Http\Request $reques
         case 'rating':
         case 'top_rating':
             // Highest average first, more reviews breaks a tie; unrated last.
-            $listings = $listings->sort(fn ($a, $b) => [$avg($b), (int) $b->ratings_count] <=> [$avg($a), (int) $a->ratings_count]);
+            $listings = $listings->sort(fn ($a, $b) => [$avg($b), $count($b)] <=> [$avg($a), $count($a)]);
             break;
         case 'low_rating':
             $listings = $listings->sort(fn ($a, $b) => [!$rated($a), $avg($a)] <=> [!$rated($b), $avg($b)]);
@@ -3984,6 +4003,12 @@ $data['listing'] = $listings->first() ?? (object) [
         $listings->count(),
         $this->setting->site_name ?? config('app.name')
     );
+
+    // $selectedCategory above is deliberately null on a subcategory page (the
+    // heading and filters want the subcategory), and $locationData was never
+    // handed to the view at all — between them, every enquiry from a city or
+    // area page arrived with no category and no city. The page knows both.
+    \App\Support\EnquiryContext::attach($data, $category ?? null, $subcategory ?? null, $locationData);
 
     return view($this->theme . 'listings.all', $data);
 }

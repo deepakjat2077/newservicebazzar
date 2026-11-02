@@ -46,9 +46,21 @@
                     </a>
                 </li>
                 <li class="sidebar-menu-item">
-                    <a href="{{ route('admin.gsc.index') }}" class="{{ menuActive('admin.gsc.*')[0] }}">
+                    <a href="{{ route('admin.analytics.excluded-ips.index') }}" class="{{ menuActive('admin.analytics.excluded-ips*')[0] }}">
+                        <i class="fas fa-user-slash"></i>
+                        <span class="sidebar-menu-title">@lang('Excluded IPs')</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.gsc.index') }}" class="{{ menuActive(['admin.gsc.index', 'admin.gsc.auth', 'admin.gsc.callback'])[0] }}">
                         <i class="fab fa-google"></i>
                         <span class="sidebar-menu-title">Search Console</span>
+                    </a>
+                </li>
+                <li class="sidebar-menu-item">
+                    <a href="{{ route('admin.gsc.indexing') }}" class="{{ menuActive('admin.gsc.indexing*')[0] }}">
+                        <i class="fas fa-paper-plane"></i>
+                        <span class="sidebar-menu-title">Google Indexing</span>
                     </a>
                 </li>
                 @endadminCan
@@ -435,6 +447,13 @@
         <span class="sidebar-menu-title">
             @lang('SEO Audit')
         </span>
+    </a>
+</li>
+<li class="sidebar-menu-item">
+    <a href="{{ route('admin.seo.pasf.index') }}"
+       class="{{ menuActive('admin.seo.pasf*')[0] }}">
+        <i class="las la-question-circle"></i>
+        <span class="sidebar-menu-title">People Also Search</span>
     </a>
 </li>
 @endadminCan

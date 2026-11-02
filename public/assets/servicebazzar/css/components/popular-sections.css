@@ -5,8 +5,8 @@
  *
  * Consolidated from two previously separate, overlapping <style> blocks
  * (one inline in index.blade.php, one inline in popular_categories_ajax's
- * own partial) into this one file so there is a single source of truth —
- * every desktop value below is unchanged from what was already rendering.
+ * own partial) into this one file so there is a single source of truth for
+ * desktop styling and the mobile accordion behavior below.
  */
 
 /* ===================================================
@@ -17,24 +17,33 @@
     width: auto;
     background: #fff;
     padding: 0px 15px 18px;
-    margin-left: 40px;
-    margin-right: 40px;
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 .popular-city-list {
-    font-size: 13px;
+    font-size: 14px;
     line-height: 2;
     color: #666;
 }
 
 .popular-city-list a {
-    color: #666;
+    color: #333 !important;
     text-decoration: none;
     margin: 0 4px;
+    font-size: 16px !important;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.popular-city-list > span {
+    color: #b8b8b8;
 }
 
 .popular-city-list a:hover {
-    color: #0d6efd;
+    color: #222 !important;
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 .popular-category-section {
@@ -43,17 +52,24 @@
     overflow: hidden;
     box-sizing: border-box;
     background: #fff;
-    padding: 18px 15px;
+    padding: 18px 16px;
     border-top: 1px solid #eee;
-    margin-left: 40px;
-    margin-right: 40px;
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
-.popular-title {
-    font-size: 16px;
-    font-weight: 600;
+.popular-category-section .popular-title,
+.popular-city-section .popular-title {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+    padding-left: 10px;
+    border-left: 3px solid #138808;
+    border-radius: 2px;
+    font-size: 17px;
+    font-weight: 700;
     margin-bottom: 12px;
-    color: #333;
+    color: #222;
     /* It is an <h2> now; keep the old line-height rather than the browser's. */
     line-height: 1.2;
 }
@@ -81,7 +97,7 @@
     background: #f8f8f8;
     padding: 12px 22px;
     border-radius: 4px;
-    font-size: 15px;
+    font-size: 13.3px;
     font-weight: 600;
     color: #222;
     cursor: pointer;
@@ -90,9 +106,15 @@
 }
 
 .popular-cat-tab.active {
-    background: #fff;
-    border-color: #ddd;
-    color: #000;
+    background: #138808;
+    border-color: #138808;
+    color: #fff;
+}
+
+.popular-cat-tab:hover:not(.active) {
+    background: #138808;
+    border-color: #138808;
+    color: #fff;
 }
 
 .popular-subcategory-area {
@@ -106,12 +128,38 @@
     display: none;
     width: 100%;
     max-width: 100%;
-    font-size: 13px;
-    line-height: 2;
+    font-size: 14px;
+    line-height: 1.9;
     color: #666;
     white-space: normal;
     overflow-wrap: break-word;
     word-break: break-word;
+}
+
+.popular-subcat-box a.popular-subcategory-link,
+.popular-subcat-box span.popular-subcategory-link {
+    color: #333;
+    font-size: 14px !important;
+    font-weight: 500;
+    line-height: 1.9;
+}
+
+.popular-subcat-box a.popular-subcategory-link {
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.popular-subcat-box a.popular-subcategory-link:hover,
+.popular-subcat-box a.popular-subcategory-link:focus-visible {
+    color: #222;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.popular-subcat-box .desktop-separator {
+    margin: 0 5px;
+    color: #b8b8b8;
+    font-size: 13px;
 }
 
 .popular-subcat-box.active {
@@ -156,7 +204,7 @@
 
     /* Main heading buttons: "Popular Categories" / "Popular Cities".
        padding-left is 20px (not 10px like the other sides) to line up
-       with the rest of the footer's content (Site Link / Follow us on /
+       with the rest of the footer's content (Quick Links / Follow us on /
        etc.), which all sit at a 20px left inset — this section was 10px
        further left than everything else around it. */
     .popular-category-section .popular-mobile-main-toggle,
@@ -172,12 +220,30 @@
         outline: none;
         background: #ffffff;
         color: #222222;
-        font-size: 14px;
-        font-weight: 600;
+        font-size: 15px;
+        font-weight: 700;
         line-height: 1.4;
         text-align: left;
         cursor: pointer;
         box-shadow: none;
+    }
+
+    .popular-category-section .popular-mobile-main-toggle,
+    .popular-city-section .popular-mobile-main-toggle {
+        position: relative;
+        background: #fff !important;
+        color: #222 !important;
+    }
+
+    .popular-category-section .popular-mobile-main-toggle::before,
+    .popular-city-section .popular-mobile-main-toggle::before {
+        position: absolute;
+        left: 0;
+        width: 3px;
+        height: 20px;
+        border-radius: 2px;
+        background: #138808;
+        content: "";
     }
 
     /* Plus/minus icon shared by every toggle button */
@@ -266,16 +332,16 @@
     #popularSubcategoryArea .popular-subcategory-link {
         display: inline-flex !important;
         width: auto !important;
-        min-height: 29px;
+        min-height: 32px;
         align-items: center;
         margin: 0 !important;
         padding: 6px 10px;
         border: 1px solid #e4e4e4;
         border-radius: 4px;
         background: #f8f8f8;
-        color: #555555;
-        font-size: 11px;
-        font-weight: 400;
+        color: #333;
+        font-size: 13px !important;
+        font-weight: 500;
         line-height: 1.25;
         text-decoration: none;
         white-space: normal;
@@ -284,8 +350,10 @@
     }
 
     #popularSubcategoryArea a.popular-subcategory-link:hover,
-    #popularSubcategoryArea a.popular-subcategory-link:focus {
-        color: #222222;
+    #popularSubcategoryArea a.popular-subcategory-link:focus-visible {
+        border-color: #d5d5d5;
+        background: #f1f1f1;
+        color: #222;
         text-decoration: none;
     }
 
@@ -317,5 +385,8 @@
     .popular-city-section .popular-city-list a.popular-city-link {
         display: inline-block;
         margin: 4px 6px 4px 0;
+        color: #333 !important;
+        font-size: 13px !important;
+        font-weight: 500;
     }
 }

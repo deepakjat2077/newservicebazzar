@@ -552,14 +552,31 @@ class WhatsappController extends Controller
             });
         }
 
+        // Unread inbound count per number, for the badge on each row.
+        $unread = WhatsappMessage::inbound()
+            ->unread()
+            ->selectRaw('phone, count(*) as total')
+            ->groupBy('phone')
+            ->pluck('total', 'phone');
+
+        if ($request->query('filter') === 'unread') {
+            // Keep the conversation being read in the list, though opening
+            // it has just made it read.
+            $phones = $unread->keys();
+            if ($active = preg_replace('/\D+/', '', (string) $request->query('active'))) {
+                $phones->push($active);
+            }
+            $query->whereIn('phone', $phones);
+        }
+
+        // The list scrolls instead of paging: the page asks for the next 25
+        // as it nears the bottom, and its 10-second refresh asks for as many
+        // rows as are already loaded (`per`) so the list doesn't shrink back.
+        $perPage = min(max((int) $request->query('per', 25), 25), 500);
+
         return [
-            'conversations' => $query->paginate(25)->appends($request->query()),
-            // Unread inbound count per number, for the badge on each row.
-            'unread'        => WhatsappMessage::inbound()
-                ->unread()
-                ->selectRaw('phone, count(*) as total')
-                ->groupBy('phone')
-                ->pluck('total', 'phone'),
+            'conversations' => $query->paginate($perPage)->appends($request->query()),
+            'unread'        => $unread,
         ];
     }
 
@@ -577,10 +594,12 @@ class WhatsappController extends Controller
             $stats = $this->stats();
 
             return response()->json([
-                'html'   => view('admin.whatsapp.partials.chat-list', array_merge($list, [
+                'html'     => view('admin.whatsapp.partials.chat-list', array_merge($list, [
                     'activePhone' => $request->query('active'),
                 ]))->render(),
-                'unread' => $stats['unread'],
+                'unread'       => $stats['unread'],
+                'unread_chats' => $list['unread']->count(),
+                'has_more'     => $list['conversations']->hasMorePages(),
             ]);
         }
 

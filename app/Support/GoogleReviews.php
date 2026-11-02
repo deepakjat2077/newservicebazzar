@@ -74,11 +74,45 @@ class GoogleReviews
             return null;
         }
 
-        if (self::locationAgrees($listing, $place)) {
-            return $place['id'];
+        $accepted = self::locationAgrees($listing, $place)
+            || ($nameScore >= 90 && !self::hasLocationData($listing));
+
+        if (!$accepted) {
+            return null;
         }
 
-        return $nameScore >= 90 && !self::hasLocationData($listing) ? $place['id'] : null;
+        // The text search already asked for places.location, so the
+        // coordinates are in hand and cost nothing extra. A quarter of the
+        // listings have none, and without them nothing can be sorted by
+        // distance — which is what "near me" needs.
+        self::storeCoordinates($listing, $place['location'] ?? null);
+
+        return $place['id'];
+    }
+
+    /** Save lat/lng on a listing that has none. Never overwrites what the owner set. */
+    public static function storeCoordinates(Listing $listing, $location): bool
+    {
+        $lat = $location['latitude'] ?? null;
+        $lng = $location['longitude'] ?? null;
+
+        if (!is_numeric($lat) || !is_numeric($lng)) {
+            return false;
+        }
+
+        if (!empty($listing->latitude) && (float) $listing->latitude !== 0.0) {
+            return false;
+        }
+
+        // India's bounding box, so a wrong match can't drop a business in the
+        // sea and make every distance nonsense.
+        if ($lat < 6 || $lat > 38 || $lng < 68 || $lng > 98) {
+            return false;
+        }
+
+        $listing->forceFill(['latitude' => $lat, 'longitude' => $lng])->saveQuietly();
+
+        return true;
     }
 
     private static function hasLocationData(Listing $listing): bool
@@ -135,7 +169,9 @@ class GoogleReviews
         $response = Http::timeout(self::TIMEOUT)
             ->withHeaders([
                 'X-Goog-Api-Key'   => $key,
-                'X-Goog-FieldMask' => 'id,rating,userRatingCount,reviews',
+                // `location` rides along free: billing follows the most
+                // expensive field asked for, and `reviews` already sets that.
+                'X-Goog-FieldMask' => 'id,rating,userRatingCount,reviews,location',
             ])
             ->get(self::DETAILS_URL . rawurlencode($placeId), ['languageCode' => 'en']);
 
@@ -160,9 +196,10 @@ class GoogleReviews
             ->all();
 
         return [
-            'rating'  => isset($data['rating']) ? round((float) $data['rating'], 2) : null,
-            'count'   => (int) ($data['userRatingCount'] ?? 0),
-            'reviews' => $reviews,
+            'rating'   => isset($data['rating']) ? round((float) $data['rating'], 2) : null,
+            'count'    => (int) ($data['userRatingCount'] ?? 0),
+            'reviews'  => $reviews,
+            'location' => $data['location'] ?? null,
         ];
     }
 
@@ -195,6 +232,10 @@ class GoogleReviews
             'gmb_reviews_json'      => json_encode($summary['reviews'], JSON_UNESCAPED_UNICODE),
             'gmb_reviews_synced_at' => now(),
         ])->saveQuietly();
+
+        // Catches the listings that already had a place id before coordinates
+        // were being kept, so they are not left out of "near me" forever.
+        self::storeCoordinates($listing, $summary['location'] ?? null);
 
         return true;
     }

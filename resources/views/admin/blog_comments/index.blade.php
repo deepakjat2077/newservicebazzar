@@ -10,7 +10,7 @@
             <label class="mb-1 small">Search</label>
             <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Name, email or comment text">
           </div>
-          <button class="btn btn--primary" type="submit">Search</button>
+          <button class="btn btn-primary" type="submit">Search</button>
           @if(request('search'))<a href="{{ route('admin.blog.comments.index') }}" class="btn btn-outline-secondary">Clear</a>@endif
         </form>
         <p class="small text-muted mb-0 mt-2">Comments appear on the blog straight away. Comments with 2 or more links are saved but kept hidden (marked <b>Hidden</b>).</p>

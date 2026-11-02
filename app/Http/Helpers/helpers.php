@@ -261,6 +261,12 @@ function blogThumb($image)
  */
 function narrowWebp($path, $width = 800)
 {
+    // An SVG has no pixel width to narrow, and GD cannot read one — without
+    // this it re-read the file and failed on every single render.
+    if (preg_match('/\.svg$/i', (string) $path)) {
+        return loadImage($path);
+    }
+
     $rel = dirname($path) . '/w' . $width . '/' . pathinfo($path, PATHINFO_FILENAME) . '.webp';
 
     if (is_file(public_path($rel))) {

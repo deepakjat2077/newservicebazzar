@@ -255,18 +255,105 @@
             }
         }
 
+        var listingId = toIntOrNull(el.getAttribute('data-track-listing') || el.getAttribute('data-listing-id'));
+
         send('/event', {
             event_category: el.getAttribute('data-track-category') || 'click',
             event_type: eventType,
             session_uuid: SESSION_UUID,
-            listing_id: toIntOrNull(el.getAttribute('data-track-listing') || el.getAttribute('data-listing-id')),
+            listing_id: listingId,
             category_id: toIntOrNull(el.getAttribute('data-track-category-id') || el.getAttribute('data-category-id')),
             subcategory_id: toIntOrNull(el.getAttribute('data-track-subcategory-id')),
             location_id: toIntOrNull(el.getAttribute('data-track-location-id') || el.getAttribute('data-location-id')),
             url: window.location.href,
             meta: meta
         });
+
     }
+
+    // ---------------------------------------------------------------
+    // Call / WhatsApp: did the tap actually open the dialer or WhatsApp?
+    // Any tel: or WhatsApp link anywhere on the site (business page, listing
+    // cards, landline buttons) counts, whatever its classes. If the browser
+    // is left (page hidden) within LEAD_OPEN_WINDOW_MS of the tap, the app
+    // opened: lead_opened is recorded. No page hide = it did not open (a
+    // desktop with no dialer, the iPhone "Call?" prompt cancelled, ...).
+    // What the visitor did inside the app is not tracked.
+    // ---------------------------------------------------------------
+
+    var LEAD_OPEN_WINDOW_MS = 5000;
+    var pendingLead = null;
+
+    function leadTypeFor(a) {
+        var href = (a.getAttribute('href') || '').toLowerCase();
+        if (href.indexOf('tel:') === 0) {
+            return 'call';
+        }
+        // Only chats with a number: "wa.me/?text=..." / api.whatsapp.com/send?text=
+        // without a phone are the Share buttons, not a lead.
+        if (/wa\.me\/\d/.test(href) || /api\.whatsapp\.com\/send\?[^#]*phone=\d/.test(href) || /^whatsapp:\/\/send\?[^#]*phone=\d/.test(href)) {
+            return 'whatsapp';
+        }
+        return null;
+    }
+
+    function gaEvent(name, params) {
+        try {
+            if (typeof window.gtag === 'function') {
+                window.gtag('event', name, params);
+            }
+        } catch (e) {}
+    }
+
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest ? e.target.closest('a[href]') : null;
+        var type = a ? leadTypeFor(a) : null;
+        if (!type) {
+            return;
+        }
+        var listingId = toIntOrNull(a.getAttribute('data-track-listing') || a.getAttribute('data-listing-id')
+            || document.body.getAttribute('data-listing-id'));
+
+        // Every tap, so taps and lead_opened are counted the same way.
+        send('/event', {
+            event_category: 'click',
+            event_type: 'lead_tap',
+            session_uuid: SESSION_UUID,
+            listing_id: listingId,
+            url: window.location.href,
+            meta: { lead: type }
+        });
+        // GA4 key events call_click / whatsapp_click.
+        gaEvent(type + '_click', { listing_id: listingId, page_type: pageName() });
+        pendingLead = { type: type, listingId: listingId, at: Date.now() };
+    });
+
+    function leadOpened() {
+        if (!pendingLead) {
+            return;
+        }
+        var lead = pendingLead;
+        pendingLead = null;
+        if (Date.now() - lead.at > LEAD_OPEN_WINDOW_MS) {
+            return;
+        }
+        send('/event', {
+            event_category: 'click',
+            event_type: 'lead_opened',
+            session_uuid: SESSION_UUID,
+            listing_id: lead.listingId,
+            url: window.location.href,
+            meta: { lead: lead.type }
+        });
+        gaEvent(lead.type + '_opened', { listing_id: lead.listingId });
+    }
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') {
+            leadOpened();
+        }
+    });
+    window.addEventListener('pagehide', leadOpened);
 
     // Delegated so it works for content added after load (AJAX-rendered
     // listing cards, dynamically injected pagination, etc.) without

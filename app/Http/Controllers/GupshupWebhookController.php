@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WhatsappMessage;
+use App\Support\WhatsappRelay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +31,7 @@ class GupshupWebhookController extends Controller
      * quick way to tell from a browser whether the server is actually running
      * the version you think it is.
      */
-    public const HANDLER_VERSION = '2026-08-01.6';
+    public const HANDLER_VERSION = '2026-10-26.1';
 
     /**
      * Where the last POST is recorded.
@@ -251,6 +252,11 @@ class GupshupWebhookController extends Controller
 
                     $body = $this->metaBody($message);
 
+                    // A listing's WhatsApp button message: an enquiry, not a chat.
+                    if (WhatsappRelay::handleInbound($phone, $names[$phone] ?? null, $body)) {
+                        continue;
+                    }
+
                     if ($this->isDuplicateInbound($phone, $body, $messageId)) {
                         continue;
                     }
@@ -444,6 +450,11 @@ class GupshupWebhookController extends Controller
         // Gupshup v2 hands us a direct media URL for images/documents/audio.
         $mediaUrl = data_get($inner, 'payload.url');
         $mediaType = data_get($inner, 'payload.contentType');
+
+        // A listing's WhatsApp button message: an enquiry, not a chat.
+        if (WhatsappRelay::handleInbound($phone, data_get($inner, 'sender.name'), $body)) {
+            return $this->ack();
+        }
 
         $existing = $this->duplicateInbound($phone, $body, $messageId);
 

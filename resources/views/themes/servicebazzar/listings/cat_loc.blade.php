@@ -604,9 +604,7 @@
     @csrf
     @include('themes.servicebazzar.partials.form-guard')
 
-    <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
-    <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">
-    <input type="hidden" name="location_name" value="{{ request('location_name') }}">
+    @include('themes.servicebazzar.partials.enquiry-context')
 
     <div class="mb-2 input-icon-group">
         <span class="input-icon"><i class="las la-user"></i></span>

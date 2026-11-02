@@ -58,4 +58,64 @@ return [
 
     'indexnow_key' => env('INDEXNOW_KEY', 'e236d936ea6569bdc12b209d3088cb3d'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | "People also search for" Q&As (seo:pasf-faq)
+    |--------------------------------------------------------------------------
+    |
+    | Category ids whose city pages get the related-searches block with short
+    | answers written from that city's listings. A trial on Pet Shop (53)
+    | first; the command refuses any other category, and nothing shows until
+    | an admin approves it. Comma-separated in SEO_PASF_FAQ_CATEGORIES.
+    |
+    */
+
+    'pasf_faq_categories' => array_filter(array_map('intval', explode(',', (string) env('SEO_PASF_FAQ_CATEGORIES', '53')))),
+
+    // A related search is kept only if it has one of its category's words
+    // (Google's related searches for "pet shop in kolkata" include "kolkata
+    // map" and "capital of kolkata"), and never if it has an excluded phrase
+    // ("pet scan" is a hospital test). Without an entry here, the words of
+    // the category name are used.
+    'pasf_faq_terms' => [
+        53 => [
+            'pet', 'pets', 'dog', 'dogs', 'puppy', 'puppies', 'pup', 'cat', 'cats', 'kitten', 'kittens',
+            'bird', 'birds', 'parrot', 'parrots', 'fish', 'aquarium', 'rabbit', 'rabbits', 'hamster', 'hamsters',
+            'labrador', 'pug', 'pomeranian', 'persian', 'beagle', 'husky', 'shihtzu', 'boxer',
+            'squirrel', 'turtle', 'tortoise', 'iguana', 'guinea', 'exotic', 'animal', 'animals',
+            'kutte', 'kutta', 'billi', 'कुत्ते', 'कुत्ता', 'डॉग', 'पेट', 'बिल्ली',
+        ],
+    ],
+    // Searches that want the same answer share one Q&A; a search goes to the
+    // first group whose pattern it matches (a category's own groups first,
+    // then the general ones in CategoryFaqWriter::GROUPS), and one matching
+    // none gets a Q&A of its own.
+    'pasf_faq_groups' => [
+        53 => [
+            'cats'    => '/\b(cats?|kittens?|persian|billi|बिल्ली)\b/u',
+            'birds'   => '/\b(birds?|parrots?|budgies?|lovebirds?)\b/u',
+            'fish'    => '/\b(fish|aquariums?)\b/u',
+            'small'   => '/\b(rabbits?|hamsters?|guinea)\b/u',
+            'food'    => '/\b(food|nutrition|treats)\b/u',
+            'accessories' => '/\b(accessor\w*|toys?|cages?|collars?|leash\w*|beds?)\b/u',
+            'grooming'    => '/\b(groom\w*|spa|bath\w*|haircut)\b/u',
+            'dogs'    => '/\b(dogs?|pupp(y|ies)|pup|labrador|pug|pomeranian|beagle|husky|shih ?tzu|boxer|kutte|kutta|कुत्ते|कुत्ता|डॉग)\b/u',
+        ],
+    ],
+    // Places abroad that share a name with one of our cities (Kota Kinabalu,
+    // Hyderabad Sindh, Surat Thani): a search with any of these is dropped.
+    'pasf_faq_foreign_words' => [
+        'thani', 'sindh', 'pakistan', 'karachi', 'lahore', 'qasimabad', 'latifabad', 'kotri',
+        'kinabalu', 'bharu', 'damansara', 'kemuning', 'warisan', 'tinggi', 'jaya', 'masai', 'puteri', 'sentosa',
+        'wisata', 'cibubur', 'yogyakarta', 'bekasi', 'jakarta', 'bandung', 'indonesia', 'malaysia', 'thailand',
+        'bangladesh', 'nepal', 'dhaka', 'fotos', 'tu', 'kuala', 'selangor', 'johor', 'sabah', 'kasablanka', 'joe', 'bogor', 'padang', 'cirebon', 'garut', 'sidoarjo', 'taman', 'jawa',
+        'graha', 'pendamar', 'laksamana', 'marudu', 'permai', 'samarahan', 'belud', 'danau', 'seriemas',
+        'parahyangan', 'padawan', 'syahbandar', 'sarang', 'semut', 'baru', 'bharu',
+    ],
+    'pasf_faq_exclude' => [
+        'pet scan', 'pet test', 'pet ct', 'pet-ct', 'pet bottle', 'pet exam', 'pet full form', 'plastic',
+        'license', 'licence', 'open a pet shop', 'start a pet shop', 'fire', 'catcher', 'allowed', 'reviews', 'review', 'photos',
+        'jobs', 'job', 'vacancy', 'salary', 'franchise', 'wholesale rate', 'business', 'km',
+    ],
+
 ];

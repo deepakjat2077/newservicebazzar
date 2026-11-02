@@ -630,6 +630,16 @@ public static function forgetSubcategoryLookup(): void
             })->afterResponse();
         });
 
+        // A deleted listing's claim rows have nothing left to point at, and
+        // listing_claims carries no foreign key to clear them. Every delete
+        // path goes through the model, so doing it here covers the admin
+        // screen and the owner's own delete alike.
+        static::deleted(function ($listing) {
+            \Illuminate\Support\Facades\DB::table('listing_claims')
+                ->where('listing_id', $listing->id)
+                ->delete();
+        });
+
         // Guarantee every listing carries a healthy meta title, so the SEO
         // audit's "Title short" / "Title duplicate" rows can't keep appearing
         // for new or re-saved listings. A title that is already 30-60 chars is

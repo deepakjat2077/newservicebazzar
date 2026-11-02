@@ -34,13 +34,13 @@ public function create(Request $request)
 {
     $request->validate([
         'name'                  => ['required', 'string', 'max:255', 'unique:categories,name', new MeaningfulTaxonomyName()],
-        'image'                 => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+        'image'                 => 'required|image:allow_svg|mimes:jpg,jpeg,png,webp,svg|max:4096',
 
         'desktop_banner'        => 'nullable|array',
-        'desktop_banner.*'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        'desktop_banner.*'      => 'nullable|image:allow_svg|mimes:jpg,jpeg,png,webp,svg|max:4096',
 
         'mobile_banner'         => 'nullable|array',
-        'mobile_banner.*'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        'mobile_banner.*'       => 'nullable|image:allow_svg|mimes:jpg,jpeg,png,webp,svg|max:4096',
 
         'desktop_banner_link'   => 'nullable|array',
         'desktop_banner_link.*' => 'nullable|string|max:500',
@@ -166,7 +166,7 @@ public function edit(Request $request, $id)
     $request->validate([
         'name' => ['required', 'string', 'max:255', new MeaningfulTaxonomyName()],
         'icon' => 'nullable|string|max:255',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        'image' => 'nullable|image:allow_svg|mimes:jpg,jpeg,png,webp,svg|max:4096',
         'filters.*' => 'nullable|string|max:255',
         'seo_title' => 'nullable|string|max:255',
         'seo_keywords' => 'nullable|string|max:255',

@@ -27,6 +27,10 @@ class EnquiryController extends Controller
                 'nullable',
                 'date_format:Y-m',
             ],
+            'date_from'   => ['nullable', 'date'],
+            'date_to'     => ['nullable', 'date', 'after_or_equal:date_from'],
+            'location_id' => ['nullable', 'integer', 'exists:locations,id'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
         ]);
 
         $query = Enquiry::with([
@@ -36,7 +40,7 @@ class EnquiryController extends Controller
             'category',
         ])->latest();
 
-        $this->applyEnquiryMonthFilter($query, $request->month);
+        $this->applyEnquiryFilters($query, $request);
 
         if ($request->status === 'read') {
             $query->where('is_read', 1);
@@ -44,7 +48,9 @@ class EnquiryController extends Controller
             $query->where('is_read', 0);
         }
 
-        $enquiries = $query->paginate(15);
+        // Page 2 has to keep the filters, or the totals above stop describing
+        // the rows below them.
+        $enquiries = $query->paginate(15)->appends($request->query());
 
         /*
          * Page cards mein month ke hisaab se count.
@@ -52,25 +58,24 @@ class EnquiryController extends Controller
         $readCountQuery = Enquiry::where('is_read', 1);
         $unreadCountQuery = Enquiry::where('is_read', 0);
 
-        $this->applyEnquiryMonthFilter(
-            $readCountQuery,
-            $request->month
-        );
-
-        $this->applyEnquiryMonthFilter(
-            $unreadCountQuery,
-            $request->month
-        );
+        $this->applyEnquiryFilters($readCountQuery, $request);
+        $this->applyEnquiryFilters($unreadCountQuery, $request);
 
         $readCount = $readCountQuery->count();
         $unreadCount = $unreadCountQuery->count();
+
+        // For the Location and Category dropdowns.
+        $locations = Location::where('status', 1)->orderBy('name')->get(['id', 'name']);
+        $categories = Category::where('status', 1)->orderBy('name')->get(['id', 'name']);
 
         return view(
             'admin.enquiry.index',
             compact(
                 'enquiries',
                 'readCount',
-                'unreadCount'
+                'unreadCount',
+                'locations',
+                'categories'
             )
         );
     }
@@ -82,10 +87,14 @@ public function exportEnquiries(Request $request)
             'nullable',
             'date_format:Y-m',
         ],
+        'date_from'   => ['nullable', 'date'],
+        'date_to'     => ['nullable', 'date', 'after_or_equal:date_from'],
+        'location_id' => ['nullable', 'integer', 'exists:locations,id'],
+        'category_id' => ['nullable', 'integer', 'exists:categories,id'],
     ]);
 
     $month = $validated['month'] ?? null;
-    $fileMonth = $month ?: 'all-months';
+    $fileMonth = $month ?: ($validated['date_from'] ?? $validated['date_to'] ?? null ? 'date-range' : 'all-months');
 
     $fileName = 'enquiries-report-' .
         $fileMonth .
@@ -94,7 +103,7 @@ public function exportEnquiries(Request $request)
         '.xlsx';
 
     return Excel::download(
-        new EnquiriesExport($month),
+        new EnquiriesExport($month, $validated),
         $fileName
     );
 }
@@ -339,6 +348,34 @@ private function applyClickDateRange($query, ?Carbon $start, ?Carbon $end): void
         $query->whereBetween('created_at', [$start, $end]);
     }
 }
+    /**
+     * Month, an exact day range, location and category — the same set the
+     * list, both count cards and the Excel export all filter on, so the
+     * numbers on the page always describe the rows under them.
+     */
+    private function applyEnquiryFilters($query, Request $request): void
+    {
+        $this->applyEnquiryMonthFilter($query, $request->month);
+
+        // Whole days in IST, the timezone the dates are picked in; the column
+        // is UTC.
+        if ($request->filled('date_from')) {
+            $query->where('enquiries.created_at', '>=', Carbon::parse($request->date_from, 'Asia/Kolkata')->startOfDay()->utc());
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('enquiries.created_at', '<=', Carbon::parse($request->date_to, 'Asia/Kolkata')->endOfDay()->utc());
+        }
+
+        if ($request->filled('location_id')) {
+            $query->where('enquiries.location_id', $request->location_id);
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('enquiries.category_id', $request->category_id);
+        }
+    }
+
     private function applyEnquiryMonthFilter(
         $query,
         ?string $month

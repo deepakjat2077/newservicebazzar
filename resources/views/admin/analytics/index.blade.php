@@ -469,6 +469,46 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="card m-b-30">
+            <div class="card-header"><h6>Call / WhatsApp: did the app open?</h6></div>
+            <div class="card-body p-0">
+                <div class="table-responsive widget-table">
+                    <table class="table table-borderless mb-0">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th class="text-center">Taps</th>
+                                <th class="text-center">App opened</th>
+                                <th class="text-center">Did not open</th>
+                                <th class="text-center">Opened %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(['call' => 'Call (dial pad)', 'whatsapp' => 'WhatsApp'] as $key => $label)
+                                @php $lq = $leadQuality[$key] ?? ['taps' => 0, 'opened' => 0]; @endphp
+                                <tr>
+                                    <td>{{ $label }}</td>
+                                    <td class="text-center">{{ number_format($lq['taps']) }}</td>
+                                    <td class="text-center"><strong class="text-success">{{ number_format($lq['opened']) }}</strong></td>
+                                    <td class="text-center">{{ number_format(max(0, $lq['taps'] - $lq['opened'])) }}</td>
+                                    <td class="text-center">{{ $lq['taps'] ? min(100, round($lq['opened'] * 100 / $lq['taps'])) . '%' : '-' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted font-12 px-3 py-2 mb-0">
+                    "App opened" = within 5 seconds of the tap the visitor's phone left the website for the dial pad or WhatsApp.
+                    "Did not open" = it stayed on the website (no dialer on a computer, the iPhone "Call?" prompt cancelled, WhatsApp not installed).
+                    What happens inside the dial pad or WhatsApp is not tracked. Counted from 26 Oct 2026, every Call and WhatsApp button on the site.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card m-b-30">
             <div class="card-header"><h6>@lang('Conversion Funnel')</h6></div>
             <div class="card-body">
                 <div class="row text-center">

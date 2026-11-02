@@ -13,7 +13,10 @@
 <div class="wa-split {{ $activePhone ? 'wa-has-thread' : '' }}" id="waSplit">
 
     <div class="wa-pane-list">
-        <form method="get" class="wa-search">
+        <form method="get" action="{{ route('admin.whatsapp.chats') }}" class="wa-search">
+            @if(request('filter') === 'unread')
+                <input type="hidden" name="filter" value="unread">
+            @endif
             <div class="input-group input-group-sm">
                 <input type="text" name="search" class="form-control"
                        value="{{ request('search') }}" placeholder="@lang('Number or name')">
@@ -21,15 +24,22 @@
                     <button class="btn btn-primary"><i class="fas fa-search"></i></button>
                 </div>
             </div>
+
+            @php $unreadOnly = request('filter') === 'unread'; @endphp
+            <div class="wa-filter">
+                <a href="{{ route('admin.whatsapp.chats', array_filter(['search' => request('search')])) }}"
+                   class="wa-filter-btn {{ $unreadOnly ? '' : 'active' }}">All</a>
+                <a href="{{ route('admin.whatsapp.chats', array_filter(['search' => request('search'), 'filter' => 'unread'])) }}"
+                   class="wa-filter-btn {{ $unreadOnly ? 'active' : '' }}">
+                    Unread <span class="wa-filter-count" @unless($unread->count()) style="display:none" @endunless>{{ $unread->count() }}</span>
+                </a>
+            </div>
         </form>
 
-        <div class="wa-list" id="waList">
+        {{-- No page numbers: the next 25 load as the list nears its bottom. --}}
+        <div class="wa-list" id="waList" data-has-more="{{ $conversations->hasMorePages() ? 1 : 0 }}">
             @include('admin.whatsapp.partials.chat-list')
         </div>
-
-        @if($conversations->hasPages())
-            <div class="wa-list-pager">{{ $conversations->links() }}</div>
-        @endif
     </div>
 
     <div class="wa-pane-thread" id="waPane">
@@ -68,8 +78,12 @@
     }
     .wa-search{ padding:10px; border-bottom:1px solid #eee; margin:0; }
     .wa-list{ flex:1 1 auto; overflow-y:auto; }
-    .wa-list-pager{ padding:6px 10px; border-top:1px solid #eee; }
-    .wa-list-pager .pagination{ margin:0; font-size:12px; }
+    .wa-filter{ display:flex; gap:6px; margin-top:8px; }
+    .wa-filter-btn{ padding:3px 12px; border-radius:14px; background:#f0f2f5; color:#54656f; font-size:13px; text-decoration:none; }
+    .wa-filter-btn:hover{ background:#e4e7eb; color:#111; text-decoration:none; }
+    .wa-filter-btn.active{ background:#d9fdd3; color:#008069; font-weight:600; }
+    .wa-filter-count{ display:inline-block; min-width:18px; padding:0 5px; margin-left:3px; border-radius:9px; background:#25d366; color:#fff; font-size:11px; text-align:center; }
+    .wa-list-loading{ padding:10px; text-align:center; color:#8696a0; font-size:13px; }
 
     .wa-item{
         display:flex;
@@ -465,15 +479,31 @@
         listParams[decodeURIComponent(bits[0])] = decodeURIComponent(bits[1] || '');
     });
 
+    // Old ?page= links are meaningless now that the list scrolls.
+    delete listParams.page;
+    delete listParams.per;
+
+    var PAGE_SIZE = 25;
+    var pagesLoaded = 1;
+    var hasMore = $list.data('has-more') == 1;
+    var loadingMore = false;
+
     function refreshList() {
-        var params = $.extend({}, listParams);
+        // Not while the next page is being appended: the two would race.
+        if (loadingMore) {
+            return;
+        }
+
+        // As many rows as have been scrolled into view, so the list doesn't
+        // shrink back to the first 25 every ten seconds.
+        var params = $.extend({}, listParams, { per: pagesLoaded * PAGE_SIZE });
 
         if (currentPhone) {
             params.active = currentPhone;
         }
 
         $.get("{{ route('admin.whatsapp.chats') }}", params).done(function (res) {
-            if (!res || typeof res.html !== 'string') {
+            if (!res || typeof res.html !== 'string' || loadingMore) {
                 return;
             }
 
@@ -481,12 +511,117 @@
 
             $list.html(res.html);
             $list.scrollTop(top);
+            hasMore = !!res.has_more;
 
-            var $badge = $('.wa-nav-unread');
-
-            $badge.text(res.unread || 0).toggle(!!res.unread);
+            updateCounts(res);
         });
     }
+
+    // Every unread counter on the page: Chats tab badge, "Unread replies"
+    // card and the Unread filter pill. They used to keep their page-load
+    // numbers after the conversations had been read.
+    function updateCounts(res) {
+        $('.wa-nav-unread').text(res.unread || 0).toggle(!!res.unread);
+        $('.wa-stat-unread').text(res.unread || 0);
+        $('.wa-filter-count').text(res.unread_chats || 0).toggle(!!res.unread_chats);
+    }
+
+    function loadMore() {
+        if (!hasMore || loadingMore) {
+            return;
+        }
+
+        loadingMore = true;
+        $list.append('<div class="wa-list-loading"><i class="fas fa-spinner fa-spin"></i> Loading…</div>');
+
+        var params = $.extend({}, listParams, { page: pagesLoaded + 1, per: PAGE_SIZE });
+
+        if (currentPhone) {
+            params.active = currentPhone;
+        }
+
+        $.get("{{ route('admin.whatsapp.chats') }}", params).done(function (res) {
+            $list.find('.wa-list-loading').remove();
+
+            if (res && typeof res.html === 'string') {
+                // A conversation that moved up since the last load would come
+                // back on this page too; keep only rows not already shown.
+                var $rows = $('<div>').html(res.html).children('.wa-item').filter(function () {
+                    return !$list.find('.wa-item[data-phone="' + $(this).data('phone') + '"]').length;
+                });
+
+                $list.append($rows);
+                pagesLoaded++;
+                hasMore = !!res.has_more;
+            }
+        }).fail(function () {
+            $list.find('.wa-list-loading').remove();
+        }).always(function () {
+            loadingMore = false;
+        });
+    }
+
+    /*
+     * Search as you type: re-ask for the first page with the new term
+     * instead of waiting for Enter / the button and reloading the page.
+     */
+    var $searchForm = $('.wa-search');
+    var $searchBox = $searchForm.find('input[name="search"]');
+    var searchTimer = null;
+    var searchSeq = 0;
+
+    function runSearch() {
+        var term = $.trim($searchBox.val());
+
+        if (term) {
+            listParams.search = term;
+        } else {
+            delete listParams.search;
+        }
+
+        // The All / Unread pills keep the term.
+        $searchForm.find('.wa-filter-btn').each(function () {
+            var url = new URL(this.href, window.location.origin);
+            term ? url.searchParams.set('search', term) : url.searchParams.delete('search');
+            this.href = url.toString();
+        });
+
+        var seq = ++searchSeq;
+        var params = $.extend({}, listParams, { per: PAGE_SIZE });
+
+        if (currentPhone) {
+            params.active = currentPhone;
+        }
+
+        $.get("{{ route('admin.whatsapp.chats') }}", params).done(function (res) {
+            // Only the answer to the latest keystroke counts.
+            if (seq !== searchSeq || !res || typeof res.html !== 'string') {
+                return;
+            }
+
+            $list.html(res.html).scrollTop(0);
+            pagesLoaded = 1;
+            hasMore = !!res.has_more;
+            updateCounts(res);
+        });
+    }
+
+    $searchBox.on('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(runSearch, 350);
+    });
+
+    $searchForm.on('submit', function (e) {
+        e.preventDefault();
+        clearTimeout(searchTimer);
+        runSearch();
+    });
+
+    $list.on('scroll', function () {
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 120) {
+            loadMore();
+        }
+    });
 
     function openThread(phone, url, push) {
         $pane.html('<div class="wa-placeholder"><i class="fas fa-spinner fa-spin"></i></div>');
@@ -504,6 +639,8 @@
 
             toBottom();
             startPolling();
+            // Opening it marked it read on the server: refresh the counters now.
+            refreshList();
 
             if (push && window.history && window.history.pushState) {
                 window.history.pushState({ waPhone: phone }, '', url);

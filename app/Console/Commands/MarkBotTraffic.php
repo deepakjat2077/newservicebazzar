@@ -39,6 +39,9 @@ class MarkBotTraffic extends Command
 
     protected $description = 'Flag automated sessions (and their page views, events and visitors) as bot traffic';
 
+    /** A direct desktop one-page visit this short counts as a bot (see sweep()). */
+    private const QUICK_BOUNCE_SECONDS = 10;
+
     public function handle(): int
     {
         $grace = (int) ($this->option('grace') ?? config('analytics.sweep.grace_minutes', 45));
@@ -106,7 +109,24 @@ class MarkBotTraffic extends Command
         $botSessions = DB::table('visitor_sessions as s')
             ->whereBetween('s.started_at', [$since, $until])
             ->where('s.is_bot', false)
-            ->whereNull('s.ended_at')
+            // No close beacon — or, since Oct 2026, the swarm that does send
+            // one: a desktop hit with no referrer and no UTM that left its one
+            // page within QUICK_BOUNCE_SECONDS, with no interaction and no
+            // earlier visit (checks below). Raised 3 -> 10 s on 26 Oct 2026
+            // when the swarm started staying 4-10 s.
+            ->where(function ($q) {
+                $q->whereNull('s.ended_at')
+                    ->orWhere(function ($w) {
+                        $w->where('s.device_type', 'desktop')
+                            ->where(fn ($r) => $r->whereNull('s.referrer_url')->orWhere('s.referrer_url', ''))
+                            ->whereNull('s.utm_source')
+                            ->whereExists(function ($p) {
+                                $p->select(DB::raw(1))->from('page_views as p')
+                                    ->whereColumn('p.session_uuid', 's.session_uuid')
+                                    ->where('p.time_spent_seconds', '<=', self::QUICK_BOUNCE_SECONDS);
+                            });
+                    });
+            })
             ->where('s.page_view_count', '<=', 1)
             ->whereNull('s.user_id')
             ->whereNotExists(function ($q) use ($passive) {

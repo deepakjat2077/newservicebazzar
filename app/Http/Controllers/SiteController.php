@@ -908,6 +908,11 @@ public function authorContact(Request $request)
         'category_id'   => 'nullable|integer|exists:categories,id',
         'category_name' => 'nullable|string|max:255',
         'location_name' => 'nullable|string|max:255',
+        // Deliberately not `exists:locations,id`. One live listing still
+        // points at a city row that is gone, and failing validation there
+        // would turn a real lead into an error message.
+        'location_id'   => 'nullable|integer',
+        'searched'      => 'nullable|string|max:255',
     ]);
 
     if ($response = $this->requireVerifiedPhone($request)) {
@@ -917,6 +922,15 @@ public function authorContact(Request $request)
     $listingId  = $request->listing_id ?: null;
     $categoryId = $request->category_id ?: null;
     $locationId = $request->location_id ?: null;
+
+    /*
+     * A search that matched no category of ours leaves the typed words as the
+     * only clue to what the visitor wanted. They used to be dropped at the
+     * form, so the lead reached the admin with a name, a number and nothing
+     * to ring about. See App\Support\EnquiryContext.
+     */
+    $searched = trim((string) $request->input('searched'));
+    $message  = ($searched !== '' && !$categoryId) ? 'Searched: ' . $searched : null;
 
     $dedupeKey = Enquiry::dedupeKeyFor(
         $request->phone,
@@ -946,6 +960,7 @@ public function authorContact(Request $request)
                     'name'        => $request->name,
                     'phone'       => $request->phone,
                     'email'       => $request->email,
+                    'message'     => $message,
                     'location_id' => $locationId,
                     'is_read'     => 0,
                 ]
@@ -983,6 +998,7 @@ public function authorContact(Request $request)
             'name'        => $request->name,
             'phone'       => $request->phone,
             'email'       => $request->email,
+            'message'     => $message,
             'location_id' => $locationId,
             'is_read'     => 0,
         ]);
@@ -1178,6 +1194,10 @@ public function requestQuoteStore(Request $request)
         $data['seoTitle'] = 'Local Business Listings in India | ' . $siteName;
         $data['seoDescription'] = 'Browse local businesses across India on ' . $siteName
             . ' — services, healthcare, repairs, restaurants and professionals. Compare ratings, prices and contact them directly, free.';
+
+        // The unfiltered listing page genuinely has no category and no city,
+        // so it says so rather than leaving the enquiry form to guess.
+        \App\Support\EnquiryContext::attach($data);
 
         return view($this->theme.'listings.all', $data);
     }
@@ -1417,7 +1437,8 @@ public function listingsCategory(Request $request, $slug)
     }
 
     if ($request->filled('rating')) {
-        $listings->where('review', '>=', $request->rating);
+        // Google's rating counts too — see App\Support\ListingRating.
+        $listings->whereRaw(\App\Support\ListingRating::sql() . ' >= ?', [(float) $request->rating]);
     }
 
     if ($request->filled('filter')) {
@@ -1439,11 +1460,11 @@ public function listingsCategory(Request $request, $slug)
     switch ($request->sort) {
         case 'rating':
         case 'top_rating':
-            $listings->orderBy('review', 'desc');
+            $listings->orderByRaw(\App\Support\ListingRating::sql() . ' DESC');
             break;
 
         case 'low_rating':
-            $listings->orderBy('review', 'asc');
+            $listings->orderByRaw(\App\Support\ListingRating::sql() . ' ASC');
             break;
 
         case 'popular':
@@ -1508,6 +1529,8 @@ public function listingsCategory(Request $request, $slug)
         $data['listings']->total(),
         $this->setting->site_name ?? config('app.name')
     );
+
+    \App\Support\EnquiryContext::attach($data, $category, null, $locationId ?: $locationName);
 
     return view($this->theme . 'listings.all', $data);
 }
@@ -1677,6 +1700,10 @@ $data['listing'] = $data['listings']->first();
     // Shared thin-page rule — see config/seo.php.
     $data['seoRobots'] = \App\Support\PageIndexability::robots($data['listings']->total());
 
+    // A subcategory page is a page about its parent category; `enquiries`
+    // stores only a category, so that is what goes with the lead.
+    \App\Support\EnquiryContext::attach($data, $data['selectedCategory'], $subcategory, $locationName);
+
     return view($this->theme . 'listings.all', $data);
 }
         public function listingsLocation(Request $request, $slug)
@@ -1732,6 +1759,10 @@ $data['listing'] = $data['listings']->first();
          * were already fixed for. Threshold shared via config/seo.php.
          */
         $data['seoRobots'] = \App\Support\PageIndexability::robots($data['listings']->total());
+
+        // This form had no city field at all, so every enquiry from a city
+        // page reached the admin without the one thing the page is about.
+        \App\Support\EnquiryContext::attach($data, null, null, $location);
 
         return view($this->theme . 'listings.cat_loc', $data);
     }
@@ -2310,7 +2341,8 @@ if ($request->filled('location_id') && $request->filled('categorysearch')) {
     }
 
     if ($request->filled('rating')) {
-        $listings->where('review', '>=', $request->rating);
+        // Google's rating counts too — see App\Support\ListingRating.
+        $listings->whereRaw(\App\Support\ListingRating::sql() . ' >= ?', [(float) $request->rating]);
     }
 
     if ($request->filled('filter')) {
@@ -2332,11 +2364,11 @@ if ($request->filled('location_id') && $request->filled('categorysearch')) {
     switch ($request->sort) {
         case 'rating':
         case 'top_rating':
-            $listings->orderBy('review', 'desc');
+            $listings->orderByRaw(\App\Support\ListingRating::sql() . ' DESC');
             break;
 
         case 'low_rating':
-            $listings->orderBy('review', 'asc');
+            $listings->orderByRaw(\App\Support\ListingRating::sql() . ' ASC');
             break;
 
         case 'popular':
@@ -2393,6 +2425,17 @@ if ($request->filled('location_id') && $request->filled('categorysearch')) {
     $data['searchKeyword'] = $categorySearch ?: null;
     $data['searchCategoryId'] = $selectedCategory->id ?? null;
     $data['searchLocationId'] = $request->location_id ?? null;
+
+    // When the typed words matched no category of ours, the words themselves
+    // are all there is to go on — they travel with the lead instead of being
+    // dropped at the form.
+    \App\Support\EnquiryContext::attach(
+        $data,
+        $selectedCategory,
+        $selectedSubcategory,
+        $request->location_id ?: $locationName,
+        $categorySearch
+    );
 
     if ($request->ajax()) {
         return view($this->theme . 'partials.ajax-listings', $data)->render();
@@ -2594,6 +2637,29 @@ public function linkDetails($slug)
             ->with('success', 'Free listing submitted. Waiting for admin approval.');
     }
     
+/**
+ * Which of a listing's numbers a click of this kind was headed for.
+ *
+ * @see listingClickTrack() — the cards stopped printing numbers, so this
+ *      replaces the `data-number` the beacon used to read off the page.
+ */
+private function clickedNumberFor(?Listing $listing, string $clickType): ?string
+{
+    if (!$listing) {
+        return null;
+    }
+
+    if ($clickType === 'whatsapp') {
+        return $listing->whatsapp_numbers[0] ?? $listing->mobile_numbers[0] ?? null;
+    }
+
+    if ($clickType === 'call') {
+        return $listing->mobile_numbers[0] ?? $listing->landline_numbers[0] ?? null;
+    }
+
+    return null;
+}
+
 public function listingClickTrack(Request $request)
 {
     $listing = Listing::with(['category', 'location'])->find($request->listing_id);
@@ -2633,7 +2699,12 @@ public function listingClickTrack(Request $request)
         $click->location_name = optional($listing->location)->name;
         $click->owner_name    = $listing->contact_person ?? null;
         $click->owner_number  = $ownerNumber;
-        $click->clicked_number = $request->clicked_number;
+        // The listing cards no longer carry the business's number — there is
+        // nothing in the page for the beacon to send — so the number that
+        // click would have reached is resolved here instead. Without this the
+        // Enquiry Clicks report lost its "Number Clicked" column overnight.
+        $click->clicked_number = $request->clicked_number
+            ?: $this->clickedNumberFor($listing, $clickType);
         $click->type          = $clickType;
         $click->ip_address    = $request->ip();
         $click->user_agent    = $request->userAgent();

@@ -13,11 +13,16 @@ trait FileHandler
      * client-supplied extension as defense-in-depth; the actual image content
      * is still separately decoded/validated by Intervention Image below.
      */
-    private const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    private const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
     /**
      * Extensions that must never be written into a publicly web-served
      * directory, regardless of upload type.
+     *
+     * 'svg' stays on this list: it still blocks SVG arriving as a plain file
+     * upload. An SVG reaching an *image* field is checked against
+     * ALLOWED_IMAGE_EXTENSIONS above instead, and is stripped of anything
+     * executable on the way in — see App\Support\Images\SvgSanitizer.
      */
     private const BLOCKED_EXTENSIONS = [
         'php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'php8', 'phar', 'pht',

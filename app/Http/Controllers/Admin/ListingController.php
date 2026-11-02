@@ -790,12 +790,28 @@ private function forgetListingPages(Listing $listing): void
         $query = Listing::with('user','location','category','salesUser')->orderBy('id','desc');
         if ($request->filled('q')) {
             $term = $request->q;
-            $query->where(function ($sub) use ($term) {
+            // Searching a phone number found nothing: the numbers were never
+            // looked at, and they are stored as typed ("95871 64115",
+            // "+91-98765 43210"), so the separators come out on both sides
+            // before comparing. 6 digits is enough to be a number, not a name.
+            $digits = preg_replace('/\D+/', '', $term);
+            $bare = fn (string $column) => "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`{$column}`, ' ', ''), '-', ''), '+', ''), '(', ''), ')', ''), '.', '')";
+
+            $query->where(function ($sub) use ($term, $digits, $bare) {
                 $sub->where('name','like',"%{$term}%")
-                    ->orWhereHas('user', function ($userQuery) use ($term) {
+                    ->orWhereHas('user', function ($userQuery) use ($term, $digits, $bare) {
                         $userQuery->where('username','like',"%{$term}%")
                             ->orWhere('email','like',"%{$term}%");
+                        if (strlen($digits) >= 6) {
+                            $userQuery->orWhereRaw($bare('mobile') . ' LIKE ?', ["%{$digits}%"]);
+                        }
                     });
+
+                if (strlen($digits) >= 6) {
+                    foreach (['mobile', 'mobile_numbers', 'whatsapp_numbers', 'toll_free_numbers'] as $column) {
+                        $sub->orWhereRaw($bare($column) . ' LIKE ?', ["%{$digits}%"]);
+                    }
+                }
             });
         }
         if ($request->filled('category_id')) {

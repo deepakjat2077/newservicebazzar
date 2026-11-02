@@ -585,7 +585,9 @@ class WhatsappSender
             );
         }
 
-        if (!static::sessionOpenFor($phone)) {
+        // skip_session_check: the caller knows the number messaged us moments
+        // ago but kept that message out of this table (WhatsappRelay).
+        if (empty($meta['skip_session_check']) && !static::sessionOpenFor($phone)) {
             return $this->logFailure(
                 $phone,
                 '',
@@ -735,7 +737,7 @@ class WhatsappSender
         array $meta,
         array $extra = []
     ): WhatsappMessage {
-        return WhatsappMessage::create(array_merge([
+        $attributes = array_merge([
             'direction'    => 'outbound',
             'phone'        => $phone !== '' ? $phone : '-',
             'template_id'  => $templateId,
@@ -744,6 +746,17 @@ class WhatsappSender
             'enquiry_id'   => $meta['enquiry_id'] ?? null,
             'admin_id'     => $meta['admin_id'] ?? $this->currentAdminId(),
             'contact_name' => $meta['contact_name'] ?? null,
-        ], $extra));
+        ], $extra);
+
+        // no_log: an automatic reply that must not appear in the admin chats
+        // (WhatsappRelay); a failure still reaches the log file.
+        if (!empty($meta['no_log'])) {
+            if ($status === 'failed') {
+                Log::warning('WhatsApp unlogged send failed', ['phone' => $phone, 'error' => $attributes['error'] ?? null]);
+            }
+            return new WhatsappMessage($attributes);
+        }
+
+        return WhatsappMessage::create($attributes);
     }
 }

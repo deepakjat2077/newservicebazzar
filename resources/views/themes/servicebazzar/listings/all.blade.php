@@ -697,6 +697,139 @@ a {
             }
         }
 
+        .listing-top-info {
+            margin: 16px 12px 0;
+            padding: 14px 18px;
+            border: 1px solid #e7edf5;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f8fbff 0%, #fff 72%);
+            box-shadow: 0 6px 20px rgba(15, 35, 65, 0.05);
+        }
+
+        .listing-breadcrumb {
+            margin-top: 0;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .listing-breadcrumb .sep {
+            color: #a0aec0;
+        }
+
+        .listing-main-title {
+            margin: 7px 0 0;
+            color: #172033;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.35px;
+            line-height: 1.3;
+        }
+
+        .main-card {
+            margin: 12px 19px 18px;
+        }
+
+        .filters-wrapper {
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #e7edf5;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 5px 18px rgba(15, 35, 65, 0.06);
+        }
+
+        .filters-scroll {
+            gap: 8px;
+        }
+
+        .filter-pill {
+            min-height: 44px;
+            padding: 0 16px;
+            border-color: #e2e8f0;
+            color: #263345;
+            font-weight: 500;
+        }
+
+        .filter-pill:hover {
+            border-color: #2563eb;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .filter-pill.active-filter,
+        .custom-dropdown.active-filter .dropdown-btn {
+            border-color: #1d4ed8;
+            background: #1d4ed8;
+            color: #fff;
+        }
+
+        .all-filters-desktop,
+        .all-filters-mobile {
+            min-height: 42px;
+            padding: 0 16px;
+            border-radius: 12px;
+            background: #172033;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .scroll-btn {
+            border-color: #e2e8f0;
+            box-shadow: 0 2px 8px rgba(15, 35, 65, 0.08);
+        }
+
+        @media (max-width: 767px) {
+            .listing-top-info {
+                margin: 12px 12px 0;
+                padding: 12px 14px;
+                border-radius: 14px;
+            }
+
+            .listing-breadcrumb {
+                display: flex;
+                gap: 5px;
+                margin-bottom: 6px;
+                font-size: 12px;
+            }
+
+            .listing-main-title {
+                margin-top: 0;
+                font-size: 21px;
+            }
+
+            .main-card {
+                margin: 10px 12px 16px;
+            }
+
+            .filters-wrapper {
+                padding: 9px 42px;
+                border-radius: 14px;
+            }
+
+            .filter-pill {
+                min-height: 42px;
+                padding: 0 14px;
+                font-size: 14px;
+            }
+
+            .all-filters-mobile {
+                min-height: 42px;
+                padding: 0 13px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .listing-top-info {
+                margin: 22px 12px 0;
+                padding: 18px 22px;
+            }
+
+            .listing-main-title {
+                font-size: 28px;
+            }
+        }
+
 .all-filters-desktop,
 .all-filters-mobile{
     background:#000;
@@ -1102,12 +1235,7 @@ a {
                                 @csrf
                                 @include('themes.servicebazzar.partials.form-guard')
 
-                                <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
-                                <input type="hidden" name="category_name"
-                                    value="{{ $selectedCategory->name ?? request('categorysearch') }}">
-                                <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-                                <input type="hidden" name="location_id"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}">
+                                @include('themes.servicebazzar.partials.enquiry-context')
 
                                 <div class="mb-2 input-icon-group">
                                     <span class="input-icon"><i class="las la-user"></i></span>
@@ -1225,12 +1353,7 @@ a {
                             @csrf
                             @include('themes.servicebazzar.partials.form-guard')
 
-                            <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
-                            <input type="hidden" name="category_name"
-                                value="{{ $selectedCategory->name ?? request('categorysearch') }}">
-                            <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-  <input type="hidden" name="location_id"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}">
+                            @include('themes.servicebazzar.partials.enquiry-context')
                             <div class="mb-2 input-icon-group">
                                 <span class="input-icon"><i class="las la-user"></i></span>
                                 <input type="text" name="name" class="form-control enquiry-input" placeholder="Name"
@@ -1842,6 +1965,8 @@ a {
             </section>
         @endif
 
+        @include('themes.servicebazzar.partials.pasf-faq')
+
         @if(!empty(trim(strip_tags($cleanDescription))))
             <div class="category-content-body rich-content">
                 {!! $cleanDescription !!}
@@ -2315,6 +2440,18 @@ a {
     .featured-links-section--collapsible .featured-links-list.mobile-open {
         display: flex;
     }
+}
+section.py-4.enquiry-box {
+    background: #eaf3fb !important;
+    margin-right: 10px !important;
+    border: 1px solid #dbe6f3 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+	padding-right: 10px !important;
+}
+.listing-top-info {
+    margin: 22px 20px 0 ! important;
 }
 </style>
 

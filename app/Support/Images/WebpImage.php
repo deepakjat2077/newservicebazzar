@@ -70,6 +70,21 @@ class WebpImage
 
         $basename = $basename ?: uniqid().time();
 
+        // An SVG is already resolution-independent and weighs a fraction of a
+        // raster icon, so there is nothing for WebP to improve — and rendering
+        // one to WebP would throw the vector away. It is stored as given, with
+        // anything executable taken out of it first. See SvgSanitizer.
+        if (self::isSvg($file)) {
+            $name = $basename.'.svg';
+
+            file_put_contents(
+                $directory.'/'.$name,
+                SvgSanitizer::clean($file->getRealPath())
+            );
+
+            return $name;
+        }
+
         // An animation cannot survive the conversion, so it does not get one.
         if (self::isAnimatedGif($file)) {
             $name = $basename.'.gif';
@@ -106,6 +121,29 @@ class WebpImage
             unset($image);
             gc_collect_cycles();
         }
+    }
+
+    /**
+     * True when the upload is an SVG.
+     *
+     * The extension alone is what the admin chose to call it, so the file's
+     * own detected type has to agree before it is written out as markup.
+     */
+    public static function isSvg($file): bool
+    {
+        if (!is_object($file) || !method_exists($file, 'getClientOriginalExtension')) {
+            return false;
+        }
+
+        if (strtolower((string) $file->getClientOriginalExtension()) !== 'svg') {
+            return false;
+        }
+
+        $mime = method_exists($file, 'getMimeType') ? (string) $file->getMimeType() : '';
+
+        // finfo reports a minimal SVG as plain text or XML often enough that
+        // image/svg+xml alone would reject valid icons.
+        return in_array($mime, ['image/svg+xml', 'image/svg', 'text/xml', 'application/xml', 'text/plain'], true);
     }
 
     /**

@@ -203,14 +203,20 @@
 
 .subcat-chip {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 5px 15px;
     font-size: 13px;
     line-height: 1.2;
-    color: #333;
-    background: #f5f5f5;
-    border: 1px solid #ddd;
+    color: #fff;
+    background: #138808 !important;
+
     border-radius: 6px;
     font-weight: 500;
+}
+.subcat-chip:hover {
+
+    background: #116b0a !important;
+
+    transform:translateY(-2px);
 }
 
 .listing-contact {
@@ -239,6 +245,32 @@
     transition: 0.2s ease;
     border: none;
 }
+.btn-call:hover {
+
+        translate: 0 -4px;
+        scale: 1.07;
+        border-color: #8bbaf0;
+        box-shadow: 0 10px 15px rgba(23,105,210,.22);
+        color: inherit;
+        text-decoration: none;
+    }
+    .btn-whatsapp:hover{
+         translate: 0 -4px;
+        scale: 1.07;
+        border-color: #8bbaf0;
+        box-shadow: 0 10px 15px rgba(23,105,210,.22);
+        color: inherit;
+        text-decoration: none;
+    }
+    .btn-best-price:hover{
+
+        translate: 0 -4px;
+        scale: 1.07;
+        border-color: #8bbaf0;
+        box-shadow: 0 10px 15px rgba(23,105,210,.22);
+        color: inherit;
+        text-decoration: none;
+    }
 
 .btn-whatsapp {
     background: #f8f9fa;
@@ -704,6 +736,72 @@
     object-fit: contain;
     margin-left: 6px;
     vertical-align: middle;
+}
+
+#listingWrapper .listing-card .listing-area {
+    border: 1px solid #e7edf5 !important;
+    border-radius: 16px !important;
+    background: #fff;
+    box-shadow: 0 5px 18px rgba(15, 35, 65, 0.06) !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+#listingWrapper .listing-card .listing-gallery {
+    border-radius: 12px !important;
+    background: #f1f5f9;
+}
+#listingWrapper .listing-card .listing-gallery:hover {
+
+        translate: 0 -4px;
+        scale: 1.07;
+        border-color: #8bbaf0;
+        box-shadow: 0 10px 24px rgba(23,105,210,.22);
+        color: inherit;
+        text-decoration: none;
+}
+
+#listingWrapper .listing-card .listing-title a {
+    color: #172033 !important;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+#listingWrapper .listing-card .listing-title a:hover {
+    color: #1d4ed8 !important;
+}
+
+#listingWrapper .listing-card .listing-contact .btn-call,
+#listingWrapper .listing-card .listing-contact .btn-whatsapp,
+#listingWrapper .listing-card .listing-contact .btn-best-price {
+    min-height: 42px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+@media (hover: hover) and (min-width: 768px) {
+    #listingWrapper .listing-card .listing-area:hover {
+        transform: translateY(-2px);
+        border-color: #cbd8ea !important;
+        box-shadow: 0 10px 26px rgba(15, 35, 65, 0.1) !important;
+    }
+}
+
+@media (max-width: 767px) {
+    #listingWrapper .listing-card .listing-area {
+        padding: 12px !important;
+        border-radius: 14px !important;
+    }
+
+    #listingWrapper .listing-card .listing-gallery {
+        border-radius: 10px !important;
+    }
+
+    #listingWrapper .listing-card .listing-contact .btn-call,
+    #listingWrapper .listing-card .listing-contact .btn-best-price {
+        min-height: 42px;
+        border-radius: 10px;
+    }
 }
 
 </style>
@@ -1187,38 +1285,16 @@
                     </div>
 
                     <div class="listing-contact mt-3 desktop-buttons">
-                      @if(!empty($mobile_numbers))
-
-   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_country_code[0] ?? '+91' }}
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
+                      @include('themes.servicebazzar.partials.contact-button')
 
                         @if(!empty($whatsappNumber))
-                          <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
+                          <a href="{{ \App\Support\WhatsappRelay::url($listing, 'https://wa.me/' . preg_replace('/[^0-9]/', '', $whatsappNumber)) }}"
    target="_blank"
    class="btn-whatsapp list-track-click"
    data-type="whatsapp"
    data-listing-id="{{ $listing->id }}"
    data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-   data-number="{{ $whatsappNumber }}">
+   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}">
                                 <i class="lab la-whatsapp"></i>
                                 WhatsApp
                             </a>
@@ -1239,27 +1315,7 @@
             </div>
 
             <div class="listing-contact mobile-buttons mt-3">
-               @if(!empty($mobile_numbers))
-
- <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
+               @include('themes.servicebazzar.partials.contact-button')
 
               <button type="button"
         class="btn-best-price open-enquiry-modal list-track-click"
@@ -1380,6 +1436,18 @@
                         } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
                             $ratingCount = (int) $listing->ratings_count;
                         }
+
+                        // Same blend the card at the top of this file and the
+                        // listing page use. Without it a business whose only
+                        // rating is its Google one (most of them) showed a
+                        // blank where the stars belong.
+                        $gRating = (float) ($listing->gmb_rating ?? 0);
+                        $gCount = (int) ($listing->gmb_review_count ?? 0);
+                        $combinedCount = $ratingCount + $gCount;
+                        $rating = $combinedCount > 0
+                            ? round((($rating * $ratingCount) + ($gRating * $gCount)) / $combinedCount, 1)
+                            : 0;
+                        $ratingCount = $combinedCount;
                     @endphp
 
                     @php
@@ -1452,38 +1520,16 @@
                     @endif
 
                     <div class="listing-contact mt-3 desktop-buttons">
-                    @if(!empty($mobile_numbers))
-
-<a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_country_code[0] ?? '+91' }}
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
+                    @include('themes.servicebazzar.partials.contact-button')
 
                         @if(!empty($whatsappNumber))
-                          <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
+                          <a href="{{ \App\Support\WhatsappRelay::url($listing, 'https://wa.me/' . preg_replace('/[^0-9]/', '', $whatsappNumber)) }}"
    target="_blank"
    class="btn-whatsapp list-track-click"
    data-type="whatsapp"
    data-listing-id="{{ $listing->id }}"
    data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-   data-number="{{ $whatsappNumber }}">
+   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}">
                                 <i class="lab la-whatsapp"></i>
                                 WhatsApp
                             </a>
@@ -1504,27 +1550,7 @@
             </div>
 
             <div class="listing-contact mobile-buttons mt-3">
-              @if(!empty($mobile_numbers))
-
-   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    Call Now
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
+              @include('themes.servicebazzar.partials.contact-button')
 
                <button type="button"
         class="btn-best-price open-enquiry-modal list-track-click"
@@ -1668,6 +1694,15 @@
                                     } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
                                         $ratingCount = (int) $listing->ratings_count;
                                     }
+
+                                    // See the note on the same blend above.
+                                    $gRating = (float) ($listing->gmb_rating ?? 0);
+                                    $gCount = (int) ($listing->gmb_review_count ?? 0);
+                                    $combinedCount = $ratingCount + $gCount;
+                                    $rating = $combinedCount > 0
+                                        ? round((($rating * $ratingCount) + ($gRating * $gCount)) / $combinedCount, 1)
+                                        : 0;
+                                    $ratingCount = $combinedCount;
                                 @endphp
 
                                 @php
@@ -1745,38 +1780,16 @@
                                 @endif
 
                                 <div class="listing-contact mt-3 desktop-buttons">
-                                  @if(!empty($mobile_numbers))
-
-  <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    {{ $mobile_numbers }}
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_country_code[0] ?? '+91' }}
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
+                                  @include('themes.servicebazzar.partials.contact-button')
 
                                     @if(!empty($whatsappNumber))
-                                      <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNumber) }}"
+                                      <a href="{{ \App\Support\WhatsappRelay::url($listing, 'https://wa.me/' . preg_replace('/[^0-9]/', '', $whatsappNumber)) }}"
    target="_blank"
    class="btn-whatsapp list-track-click"
    data-type="whatsapp"
    data-listing-id="{{ $listing->id }}"
    data-category-id="{{ $listing->category_id ?? optional($listing->category)->id ?? '' }}"
-   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}"
-   data-number="{{ $whatsappNumber }}">
+   data-location-id="{{ $listing->location_id ?? optional($listing->location)->id ?? '' }}">
                                             <i class="lab la-whatsapp"></i>
                                             WhatsApp
                                         </a>
@@ -1796,27 +1809,7 @@
                         </div>
 
                         <div class="listing-contact mobile-buttons mt-3">
-                           @if(!empty($mobile_numbers))
-
-   <a href="tel:{{ preg_replace('/[^0-9+]/', '', $mobile_numbers) }}"
-   class="btn-call list-track-click"
-   data-type="call"
-   data-listing-id="{{ $listing->id }}"
-   data-category-id="{{ $listing->category_id }}"
-   data-location-id="{{ $listing->location_id }}"
-   data-number="{{ $mobile_numbers }}">
-    <i class="las la-phone"></i>
-    Call Now
-</a>
-
-@elseif(!empty($listing->landline_numbers[0]))
-
-    <a href="tel:{{ $listing->landline_numbers[0] }}" class="btn-call">
-        <i class="las la-headset"></i>
-        {{ $listing->landline_numbers[0] }}
-    </a>
-
-@endif
+                           @include('themes.servicebazzar.partials.contact-button')
 
                         <button type="button"
         class="btn-best-price open-enquiry-modal list-track-click"
@@ -1855,11 +1848,7 @@
                                                 @csrf
                                                 @include('themes.servicebazzar.partials.form-guard')
 
-                                                <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
-                                                <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">
-                                                <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-                                                 <input type="hidden" name="location_id"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}">
+                                                @include('themes.servicebazzar.partials.enquiry-context')
 
                                                 <div style="cursor: pointer;" class="row align-items-center ">
                                                     <div class="col-md-5">
@@ -1922,12 +1911,7 @@
                          it, so nobody could tell which listing it was for. --}}
                     <input type="hidden" name="listing_id" id="popupListingInput" value="">
 
-                    <input type="hidden" name="category_id" id="popupCategoryIdInput" value="{{ $selectedCategory->id ?? '' }}" data-page-value="{{ $selectedCategory->id ?? '' }}">
-                    <input type="hidden" name="category_name" id="popupCategoryInput" value="{{ $selectedCategory->name ?? request('categorysearch') ?? 'Listings' }}">
-                    <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-                     <input type="hidden" name="location_id" id="popupLocationIdInput"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}"
-       data-page-value="{{ request('location_id') ?? ($location->id ?? '') }}">
+                    @include('themes.servicebazzar.partials.enquiry-context', ['ectxIds' => true])
 
                     <div class="best-price-field">
                         <label>Name*</label>
@@ -2134,11 +2118,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <form action="{{ route('contact.author') }}" method="POST">
                                         @csrf
                                         @include('themes.servicebazzar.partials.form-guard')
-                                        <input type="hidden" name="category_id" value="{{ $selectedCategory->id ?? '' }}">
-                                        <input type="hidden" name="category_name" value="{{ $selectedCategory->name ?? request('categorysearch') }}">
-                                        <input type="hidden" name="location_name" value="{{ request('location_name') }}">
-                                         <input type="hidden" name="location_id"
-       value="{{ request('location_id') ?? ($location->id ?? '') }}">
+                                        @include('themes.servicebazzar.partials.enquiry-context')
                                         <div style="cursor: pointer;" class="row align-items-center ">
                                             <div class="col-md-5">
                                                 <input type="text" class="form-control form-control-sm" name="name" placeholder="Name">

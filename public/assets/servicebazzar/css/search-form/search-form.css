@@ -1,5 +1,4 @@
-
-    /* ========== HEADER SEARCH BASE STYLES ========== */
+/* ========== HEADER SEARCH BASE STYLES ========== */
     #scrollSearchHolder .header-input_search {
         white-space: nowrap;
         overflow: hidden;
@@ -204,7 +203,7 @@
     display: none;
     display: inline-block;
     width: 480px;
-   
+
     -webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .1);
     -moz-box-shadow: 0px 2px 4px rgba(0,0,0,.1);
      box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
@@ -441,7 +440,7 @@
     }
 
     /* ========== VOICE MODAL ========== */
-  
+
 
     /* ========== MOBILE RESPONSIVE ========== */
     @media (max-width: 767px) {
@@ -494,4 +493,71 @@
         display: none !important;
     }
 
+}
+
+
+
+
+@media (max-width: 991px) {
+    /* Search box ki height aur padding kam karein */
+    #stickyScrollHeader #scrollSearchHolder {
+        min-height: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    #stickyScrollHeader .header-search-row-custom {
+        gap: 6px !important;
+    }
+
+    #stickyScrollHeader .header-input_location,
+    #stickyScrollHeader .header-input_search {
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: 13px !important;
+    }
+
+    /* Free Listing ko search ke upar visible rakhein */
+    #stickyScrollHeader .mobile-action-btn {
+        position: relative;
+        z-index: 10001 !important;
+        white-space: nowrap;
+    }
+}
+
+/* Inner-page header: Search fields alignment fix */
+@media (min-width: 992px) {
+    #stickyScrollHeader .header-search-row-custom,
+    .header-area .header-search-row-custom {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    #stickyScrollHeader .header-location-col-custom,
+    .header-area .header-location-col-custom {
+        flex: 0 0 280px !important;
+        width: 280px !important;
+        max-width: 280px !important;
+        min-width: 0 !important;
+    }
+
+    #stickyScrollHeader .header-search-col-custom,
+    .header-area .header-search-col-custom {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+    }
+
+    #stickyScrollHeader .header-input_location_box,
+    #stickyScrollHeader .header-custom-search-wrap,
+    .header-area .header-input_location_box,
+    .header-area .header-custom-search-wrap {
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
 }

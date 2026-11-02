@@ -1379,6 +1379,27 @@
         color:#111;
     }
 
+    .rating-source-google{
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .google-g-icon{
+        vertical-align: -2px;
+        flex: 0 0 auto;
+    }
+    .review-google-more{
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .review-google-more .google-g-icon{
+        width: 16px;
+        height: 16px;
+    }
+
     .rating-summary-content p{
         margin:0;
         font-size:15px;
@@ -1722,7 +1743,7 @@
         /* The phone design at iPad width looked stretched: 12–17px text, five
            44px icons spread 150px apart, stars scattered across the card.
            Same layout, sized for a tablet. */
-        #listingTopCard .listing-card { border-radius: 16px !important; margin: 12px 16px !important; padding: 18px !important; box-shadow: 0 4px 18px rgba(15,23,42,.06); }
+        #listingTopCard .listing-card { border: 1px solid #e7edf5 !important; border-radius: 16px !important; margin: 12px 16px !important; padding: 18px !important; background: #fff; box-shadow: 0 5px 18px rgba(15, 35, 65, 0.06) !important; transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
         #listingTopCard .listing-logo,
         #listingTopCard .listing-logo img { border-radius: 14px !important; }
         #listingTopCard h1 { font-size: 26px !important; line-height: 1.3 !important; margin: 16px 0 6px !important; }
@@ -2973,6 +2994,25 @@
             color: #0b5ed7;
         }
 
+        /* The sidebar is narrow, and a long address pushed the envelope icon
+           onto a line of its own. flex keeps the icon beside the text, and
+           the span wraps inside the space that is left. */
+        .contact-link--email {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .contact-link--email i {
+            flex: none;
+            margin-top: 3px;
+        }
+
+        .contact-link--email span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
         .address-text {
             font-size: 15px;
             color: #222;
@@ -3286,6 +3326,131 @@
             }
         }
         
+
+
+    /* ===== Card design pass (2026-11-02) — matches the listing/category
+       pages: bordered white cards, blue title hover, lift on hover. ===== */
+
+    #listingTopCard .listing-card {
+        width: 100%;
+        border: 1px solid #e7edf5 !important;
+        border-radius: 16px !important;
+        background: #fff;
+        box-shadow: 0 5px 18px rgba(15, 35, 65, 0.06) !important;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    #listingTopCard .listing-card:hover {
+        transform: translateY(-2px);
+        border-color: #cbd8ea !important;
+        box-shadow: 0 10px 26px rgba(15, 35, 65, 0.1) !important;
+    }
+
+    .listing-logo:hover,
+    .photo-thumb img:hover {
+        translate: 0 -4px;
+        scale: 1.07;
+        border-color: #8bbaf0;
+        box-shadow: 0 10px 24px rgba(23,105,210,.22);
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .btn-call-main:hover,
+    .btn-whatsapp-main:hover,
+    .btn-best-price:hover {
+        transform: translateY(-2px);
+        border-color: #cbd8ea !important;
+        box-shadow: 0 10px 26px rgba(15, 35, 65, 0.1) !important;
+    }
+
+    .btn-whatsapp-main:hover {
+        background: #12852f;
+        color: #fff;
+    }
+
+    .listing-action-buttons {
+        gap: 10px !important;
+    }
+
+    .listing-top-info {
+        margin: 16px 12px 0;
+        padding: 14px 18px;
+        border: 1px solid #e7edf5;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f8fbff 0%, #fff 72%);
+        box-shadow: 0 6px 20px rgba(15, 35, 65, 0.05);
+    }
+
+    .listing-top-info .listing-breadcrumb {
+        margin-top: 0;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .listing-top-info .listing-breadcrumb .sep {
+        color: #a0aec0;
+    }
+
+    @media (max-width: 767px) {
+        .listing-top-info {
+            margin: 12px 12px 0;
+            padding: 12px 14px;
+            border-radius: 14px;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .listing-top-info {
+            margin: 22px 20px 0;
+            padding: 18px 22px;
+        }
+    }
+
+    /* Share popup must sit above the sections under it. */
+    @media (min-width: 992px) {
+        .custom-right {
+            margin-left: 18px !important;
+            margin-right: 18px !important;
+        }
+
+        #listingTopCard {
+            position: relative !important;
+            z-index: 9999 !important;
+            overflow: visible !important;
+        }
+
+        #listingTopCard .listing-card,
+        #listingTopCard .card-body,
+        #listingTopCard .listing-action-buttons {
+            overflow: visible !important;
+        }
+
+        #listingTopCard .listing-action-buttons {
+            position: relative !important;
+            z-index: 9999 !important;
+        }
+
+        #listingTopCard .share-hover-wrap {
+            position: relative !important;
+            display: inline-flex;
+            overflow: visible !important;
+            z-index: 10000 !important;
+        }
+
+        #listingTopCard .share-hover-popup {
+            position: absolute !important;
+            top: calc(100% + 8px) !important;
+            left: auto !important;
+            right: 0 !important;
+            width: 235px !important;
+            min-width: 235px !important;
+            max-height: none !important;
+            overflow: visible !important;
+            z-index: 10001 !important;
+        }
+    }
 
     /* --- relocated from inline <style> block (originally after line 7084) to prevent FOUC --- */
         body{
@@ -3795,17 +3960,46 @@
                             <div class="listing-action-buttons">
 
         @php
-         
+
             $bridgeCategoryIds = config('exotel.restricted_category_ids', []);
             $bridgeLocationIds = config('exotel.restricted_location_ids', []);
             $bridgeCallEligible = config('exotel.enabled')
                 && !empty($listing->mobile_numbers[0])
                 && (empty($bridgeCategoryIds) || in_array((string) ($listing->category_id ?? optional($listing->category)->id), $bridgeCategoryIds, true))
                 && (empty($bridgeLocationIds) || in_array((string) ($listing->location_id ?? optional($listing->location)->id), $bridgeLocationIds, true));
+
+            /*
+             * The same "Contact" gate the listing cards use: the number stays
+             * off the page until a visitor proves a mobile with an OTP, so the
+             * most valuable click on this page finally leaves a lead. It
+             * replaces both the plain tel: link and the older bridge-call
+             * button, which asked the visitor to log in instead.
+             *
+             * $ccAttrs is built once because four places on this page — the
+             * top card, the mobile quick actions, the sticky bottom bar and
+             * the sidebar — all open the same popup.
+             *
+             * @see partials/contact-call.blade.php
+             */
+            $ccContact = config('contact_call.enabled')
+                && (!empty($listing->mobile_numbers[0]) || !empty($listing->landline_numbers[0]));
+
+            $ccArea  = collect([$listing->area ?? null, optional($listing->location)->name])->filter()->implode(', ');
+            $ccAttrs = 'data-track="call_click" data-type="call"'
+                . ' data-listing-id="' . e($listing->id) . '"'
+                . ' data-category-id="' . e($listing->category_id ?? optional($listing->category)->id ?? '') . '"'
+                . ' data-location-id="' . e($listing->location_id ?? optional($listing->location)->id ?? '') . '"'
+                . ' data-listing-name="' . e($listing->name) . '"'
+                . ' data-listing-area="' . e($ccArea) . '"';
         @endphp
 
         <!-- CALL BUTTON -->
-        @if($bridgeCallEligible)
+        @if($ccContact)
+    <button type="button" class="listing-btn btn-call-main track-click sb-contact-call" {!! $ccAttrs !!}>
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
+        Contact
+    </button>
+    @elseif($bridgeCallEligible)
     <a href="javascript:void(0)"
     class="listing-btn btn-call-main track-click bridge-call-btn"
     data-track="call_click"
@@ -3835,7 +4029,9 @@
     @endif
 
 
-    @if(!empty($listing->landline_numbers[0]))
+    {{-- The landline is a number too: behind the same gate, or it is the way
+         round the Contact button. --}}
+    @if(!$ccContact && !empty($listing->landline_numbers[0]))
     <a href="tel:{{ $listing->landline_numbers[0] }}"
     class="listing-btn btn-landline-main track-click"
     data-type="landline"
@@ -3855,15 +4051,14 @@
         $categoryName = $listing->category?->name ?? 'services';
         $businessName = $listing->name ?? 'your business';
         $message = "Hi, I found you on Service Bazzar. I'm interested in your {$categoryName}. Please tell me more.";
-        $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
+        $whatsappUrl = \App\Support\WhatsappRelay::url($listing, 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message));
     @endphp
     <a href="{{ $whatsappUrl }}"
     target="_blank"
     class="listing-btn btn-whatsapp-main track-click"
     data-track="whatsapp_click"
     data-type="whatsapp"
-    data-listing-id="{{ $listing->id }}"
-    data-number="{{ $listing->whatsapp_numbers[0] ?? '' }}">
+    data-listing-id="{{ $listing->id }}">
 
         <img src="{{ asset('assets/wtseappp.svg') }}" class="whatsapp-icon" alt="WhatsApp">
 
@@ -3977,7 +4172,12 @@
                             --}}
                             <div class="mobile-quick-actions">
 
-                                @if($bridgeCallEligible)
+                                @if($ccContact)
+                                    <button type="button" class="mqa-btn mqa-call track-click sb-contact-call" {!! $ccAttrs !!}>
+                                        <span class="mqa-icon"><i class="las la-phone"></i></span>
+                                        <span class="mqa-label">Contact</span>
+                                    </button>
+                                @elseif($bridgeCallEligible)
                                     <a href="javascript:void(0)"
                                        class="mqa-btn mqa-call track-click bridge-call-btn"
                                        data-track="call_click"
@@ -4006,15 +4206,14 @@
                                     @php
                                         $categoryName = $listing->category?->name ?? 'services';
                                         $message = "Hi, I found you on Service Bazzar. I'm interested in your {$categoryName}. Please tell me more.";
-                                        $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
+                                        $whatsappUrl = \App\Support\WhatsappRelay::url($listing, 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message));
                                     @endphp
                                     <a href="{{ $whatsappUrl }}"
                                        target="_blank"
                                        class="mqa-btn mqa-whatsapp track-click"
                                        data-track="whatsapp_click"
                                        data-type="whatsapp"
-                                       data-listing-id="{{ $listing->id }}"
-                                       data-number="{{ $listing->whatsapp_numbers[0] ?? '' }}">
+                                       data-listing-id="{{ $listing->id }}">
                                         <span class="mqa-icon"><i class="lab la-whatsapp"></i></span>
                                         <span class="mqa-label">WhatsApp</span>
                                     </a>
@@ -4878,7 +5077,12 @@
 
         <div class="listing-action-buttons">
 
-            @if($bridgeCallEligible)
+            @if($ccContact)
+    <button type="button" class="listing-btn btn-call-main track-click sb-contact-call" {!! $ccAttrs !!}>
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
+        Contact
+    </button>
+    @elseif($bridgeCallEligible)
     <a href="javascript:void(0)"
     class="listing-btn btn-call-main track-click bridge-call-btn"
     data-track="call_click"
@@ -4906,7 +5110,7 @@
     @endif
 
 
-    @if(!empty($listing->landline_numbers[0]))
+    @if(!$ccContact && !empty($listing->landline_numbers[0]))
     <a href="tel:{{ $listing->landline_numbers[0] }}"
     class="listing-btn btn-landline-main track-click"
     data-type="landline"
@@ -4923,15 +5127,14 @@
         @php
             $categoryName = $listing->category?->name ?? 'services';
             $message = "Hi, I found you on Service Bazzar. I'm interested in your {$categoryName}. Please tell me more.";
-            $whatsappUrl = 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message);
+            $whatsappUrl = \App\Support\WhatsappRelay::url($listing, 'https://wa.me/91' . ($listing->whatsapp_numbers[0] ?? '') . '?text=' . urlencode($message));
         @endphp
         <a href="{{ $whatsappUrl }}"
         target="_blank"
         class="listing-btn btn-whatsapp-main track-click"
         data-track="whatsapp_click"
         data-type="whatsapp"
-        data-listing-id="{{ $listing->id }}"
-        data-number="{{ $listing->whatsapp_numbers[0] ?? '' }}">
+        data-listing-id="{{ $listing->id }}">
         <img src="{{ asset('assets/wtseappp.svg') }}" class="whatsapp-icon" alt="WhatsApp">
 
             WhatsApp
@@ -4942,7 +5145,6 @@
                 class="listing-btn btn-best-price open-enquiry-modal track-click"
                 data-type="enquiry"
                 data-listing-id="{{ $listing->id }}"
-                data-number="{{ $listing->mobile_numbers[0] ?? '' }}"
                 data-category="{{ $listing->category->name ?? '' }}">
               
             Get Best Price
@@ -5709,6 +5911,11 @@
     $existingRatingSum = $avgRating * $totalRatings;
     $googleRatingSum = $gRating * $gCount;
 
+    // Kept so the line under the score can name the real source. Google's
+    // policy asks for its content to be credited, and on most listings the
+    // whole count is Google's, so "from Service Bazzar" was simply wrong.
+    $ownRatingCount = $totalRatings;
+
     $combinedCount = $totalRatings + $gCount;
 
     if ($combinedCount > 0) {
@@ -5731,13 +5938,19 @@
     <div class="rating-summary-content">
         <h3>{{ $totalRatings }} {{ $totalRatings === 1 ? 'Rating' : 'Ratings' }}</h3>
 
-        <p>
+        <p class="rating-summary-source">
             @if($totalRatings === 0)
                 No ratings yet. Be the first to rate this business.
+            @elseif($gCount > 0 && $ownRatingCount === 0)
+                Average of {{ number_format($gCount) }} {{ $gCount === 1 ? 'rating' : 'ratings' }} from
+                <span class="rating-source-google">@include($themeView.'partials.google-g') Google</span>
+            @elseif($gCount > 0)
+                Average of {{ number_format($totalRatings) }} ratings from Service Bazzar and
+                <span class="rating-source-google">@include($themeView.'partials.google-g') Google</span>
             @elseif($totalRatings === 1)
-                Based on 1 rating from customers on Service Bazzar 
+                Based on 1 rating from customers on Service Bazzar
             @else
-                Average of {{ $totalRatings }} ratings from Service Bazzar 
+                Average of {{ number_format($totalRatings) }} ratings from Service Bazzar
             @endif
         </p>
     </div>
@@ -6096,6 +6309,20 @@
         </div>
     @endif
 
+    {{-- Only five Google reviews come back from the Places API, so the rest
+         are read on Google itself — which is also where its policy wants the
+         full set to be seen. --}}
+    @if(!empty($listing->gmb_place_id) && $gCount > 0)
+        <div class="text-center mt-3">
+            <a href="https://search.google.com/local/reviews?placeid={{ urlencode($listing->gmb_place_id) }}"
+               target="_blank" rel="noopener nofollow"
+               class="btn btn-outline-secondary review-google-more">
+                @include($themeView.'partials.google-g')
+                View all {{ number_format($gCount) }} reviews on Google
+            </a>
+        </div>
+    @endif
+
 </div>
 
     </div>
@@ -6295,7 +6522,42 @@
                 <div class="contact-block">
                     <h5>Contact</h5>
 
-                @if($bridgeCallEligible)
+                @php
+        /*
+         * An account created from a WhatsApp enquiry carries a made-up
+         * address (…@whatsapp.servicebazzar.com) that reaches nobody, so it
+         * must never be printed as a way to contact the business.
+         */
+        $ccEmail = trim((string) ($listing->email ?? ''));
+
+        if ($ccEmail !== '' && (
+            !filter_var($ccEmail, FILTER_VALIDATE_EMAIL)
+            || str_ends_with(strtolower($ccEmail), '@whatsapp.servicebazzar.com')
+        )) {
+            $ccEmail = '';
+        }
+    @endphp
+
+    {{-- The email is this box's whole job. The call lives in the top card
+         and in the bar that follows the visitor down the page, so repeating
+         it here only crowded the one thing that is not shown anywhere else.
+         Without an email there is nothing to show, so the Contact button
+         stands in rather than leaving the box empty. --}}
+    @if($ccEmail !== '')
+
+        <a href="mailto:{{ $ccEmail }}" class="contact-link contact-link--email">
+            <i class="las la-envelope"></i>
+            <span>{{ $ccEmail }}</span>
+        </a>
+
+    @elseif($ccContact)
+
+        <button type="button" class="contact-link d-block track-click sb-contact-call" {!! $ccAttrs !!}>
+            <i class="las la-phone"></i>
+            Contact
+        </button>
+
+    @elseif($bridgeCallEligible)
 
         <a href="javascript:void(0)" class="contact-link d-block bridge-call-btn" data-listing-id="{{ $listing->id }}">
             <i class="las la-phone"></i>
@@ -6315,7 +6577,7 @@
 
     @endif
 
-    @if(!empty($listing->landline_numbers) && count(array_filter($listing->landline_numbers)))
+    @if(!$ccContact && !empty($listing->landline_numbers) && count(array_filter($listing->landline_numbers)))
 
         @foreach($listing->landline_numbers as $index => $number)
             @if(!empty($number))
@@ -6331,7 +6593,8 @@
 
     @if(
         empty(array_filter($listing->mobile_numbers ?? [])) &&
-        empty(array_filter($listing->landline_numbers ?? []))
+        empty(array_filter($listing->landline_numbers ?? [])) &&
+        $ccEmail === ''
     )
         <p class="mb-0">No contact number available.</p>
     @endif

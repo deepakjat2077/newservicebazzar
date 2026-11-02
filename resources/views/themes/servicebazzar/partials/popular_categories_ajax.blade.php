@@ -133,7 +133,7 @@
 
                                 </a>
 
-                                <span class="spn desktop-separator">|</span>
+                                <span class="spn desktop-separator">·</span>
 
                             @else
 
@@ -142,7 +142,7 @@
                                     {{ $subcat->name }}
                                 </span>
 
-                                <span class="spn desktop-separator">|</span>
+                                <span class="spn desktop-separator">·</span>
 
                             @endif
 

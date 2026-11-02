@@ -75,7 +75,6 @@ class AnalyticsController extends Controller
      * cache down with it every fifteen minutes.
      */
     public const SWEEP_STAMP_KEY = 'analytics:sweep-stamp';
-
     protected function cachedStats($from, $to, string $range): array
     {
         $stamp = Cache::get(self::SWEEP_STAMP_KEY, 0);
@@ -279,6 +278,20 @@ class AnalyticsController extends Controller
                 ->distinct('visitor_id')->count('visitor_id'),
             'paid' => $stageVisitors('payment_success'),
         ];
+
+        // ---- Call / WhatsApp taps and how many actually opened the dialer or
+        // WhatsApp (tracking.js lead_tap / lead_opened, every tel: and WhatsApp
+        // link on the site). ----
+        $leadCounts = $this->eventQuery()->whereIn('event_type', ['lead_tap', 'lead_opened'])
+            ->whereBetween('created_at', [$from, $to])
+            ->selectRaw("event_type, JSON_UNQUOTE(JSON_EXTRACT(meta, '$.lead')) AS lead_type, COUNT(*) AS total")
+            ->groupBy('event_type', 'lead_type')->get();
+
+        $data['leadQuality'] = [];
+        foreach (['call', 'whatsapp'] as $type) {
+            $count = fn (string $event) => (int) $leadCounts->where('event_type', $event)->where('lead_type', $type)->sum('total');
+            $data['leadQuality'][$type] = ['taps' => $count('lead_tap'), 'opened' => $count('lead_opened')];
+        }
 
         // ---- Conversion totals by type ----
         $data['conversionTotals'] = $this->eventQuery()->where('event_category', 'conversion')

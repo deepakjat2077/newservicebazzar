@@ -85,13 +85,26 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K89FJVC5E6"></script>
+<!-- G-GRSL7JRMTH: the owner's own GA4 property (26 Oct 2026). G-K89FJVC5E6:
+     the older property, kept running alongside; events go to both. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GRSL7JRMTH"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
+  gtag('config', 'G-GRSL7JRMTH');
   gtag('config', 'G-K89FJVC5E6');
+</script>
+
+<!-- Microsoft Clarity (project z3owg8t7bu). Started 2.5s after the page has
+     loaded so it doesn't cost PageSpeed; very short visits are not recorded. -->
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "z3owg8t7bu");
+    }, 2500);
+  });
 </script>
 
 @php

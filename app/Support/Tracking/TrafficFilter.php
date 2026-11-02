@@ -2,6 +2,7 @@
 
 namespace App\Support\Tracking;
 
+use App\Models\ExcludedIp;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -79,6 +80,22 @@ class TrafficFilter
         return false;
     }
 
+    /**
+     * The addresses whose traffic is not analytics: the office wifi, a staff
+     * phone on it. ANALYTICS_EXCLUDED_IPS still works, and the admin list
+     * (Tracking → Excluded IPs) is added to it so a changed connection does
+     * not need a file edited on both servers.
+     *
+     * @return string[]
+     */
+    public static function excludedIps(): array
+    {
+        return array_values(array_unique(array_merge(
+            (array) config('analytics.excluded_ips', []),
+            ExcludedIp::values()
+        )));
+    }
+
     public static function isExcludedIp(?string $ip): bool
     {
         $ip = trim((string) $ip);
@@ -87,13 +104,34 @@ class TrafficFilter
             return false;
         }
 
-        foreach (config('analytics.excluded_ips', []) as $rule) {
-            if ($rule === $ip || static::ipInCidr($ip, $rule)) {
+        foreach (static::excludedIps() as $rule) {
+            if (static::ipMatches($ip, $rule)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /** One address against one rule: an address, or a range like …::/64. */
+    public static function ipMatches(string $ip, string $rule): bool
+    {
+        $rule = trim($rule);
+
+        if ($rule === '') {
+            return false;
+        }
+
+        if (!str_contains($rule, '/')) {
+            // Through inet_pton, so the same IPv6 address written two ways
+            // still counts as the same address.
+            $a = @inet_pton($ip);
+            $b = @inet_pton($rule);
+
+            return $a !== false && $b !== false ? $a === $b : $rule === $ip;
+        }
+
+        return static::ipInCidr($ip, $rule);
     }
 
     /**
@@ -112,7 +150,13 @@ class TrafficFilter
             $q->whereNull($table . '.is_bot')->orWhere($table . '.is_bot', false);
         });
 
-        $excludedIps = config('analytics.excluded_ips', []);
+        // Only the plain addresses. A range cannot be expressed in SQL here,
+        // and does not need to be: adding one flags the traffic already
+        // recorded from it as bot, and nothing new from it is ever stored.
+        $excludedIps = array_values(array_filter(
+            static::excludedIps(),
+            fn ($rule) => !str_contains((string) $rule, '/')
+        ));
 
         if ($hasIp && $excludedIps) {
             $query->whereNotIn($table . '.ip_address', $excludedIps);
@@ -121,6 +165,12 @@ class TrafficFilter
         return $query;
     }
 
+    /**
+     * Compared as raw bytes, so one routine covers both families. IPv6
+     * matters here: a home or office connection hands every device its own
+     * IPv6 address out of one shared /64, so excluding a single address would
+     * miss every other phone on the same wifi.
+     */
     protected static function ipInCidr(string $ip, string $cidr): bool
     {
         if (!str_contains($cidr, '/')) {
@@ -129,19 +179,32 @@ class TrafficFilter
 
         [$subnet, $bits] = explode('/', $cidr, 2);
 
-        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
-            || !filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        $ipBytes = @inet_pton(trim($ip));
+        $subnetBytes = @inet_pton(trim($subnet));
+
+        if ($ipBytes === false || $subnetBytes === false || strlen($ipBytes) !== strlen($subnetBytes)) {
             return false;
         }
 
         $bits = (int) $bits;
 
-        if ($bits < 0 || $bits > 32) {
+        if ($bits < 0 || $bits > strlen($ipBytes) * 8) {
             return false;
         }
 
-        $mask = -1 << (32 - $bits);
+        $whole = intdiv($bits, 8);
+        $spare = $bits % 8;
 
-        return (ip2long($ip) & $mask) === (ip2long($subnet) & $mask);
+        if ($whole > 0 && strncmp($ipBytes, $subnetBytes, $whole) !== 0) {
+            return false;
+        }
+
+        if ($spare === 0) {
+            return true;
+        }
+
+        $mask = chr((0xFF << (8 - $spare)) & 0xFF);
+
+        return ($ipBytes[$whole] & $mask) === ($subnetBytes[$whole] & $mask);
     }
 }

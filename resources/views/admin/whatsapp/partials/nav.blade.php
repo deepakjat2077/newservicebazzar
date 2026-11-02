@@ -55,7 +55,7 @@
     <div class="col-md-2 col-6 mb-2">
         <div class="card h-100">
             <div class="card-body text-center p-3">
-                <h4 class="mb-0 text-primary">{{ $stats['unread'] }}</h4>
+                <h4 class="mb-0 text-primary wa-stat-unread">{{ $stats['unread'] }}</h4>
                 <small class="text-muted">@lang('Unread replies')</small>
             </div>
         </div>

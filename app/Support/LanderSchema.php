@@ -88,6 +88,18 @@ class LanderSchema
             $data['schemaFaqs'] = array_merge($data['landerFacts']['faqs'], $data['schemaFaqs']);
         }
 
+        // "People also search for" Q&As (seo:pasf-faq), once an admin has approved them.
+        $data['pasfFaq'] = self::pasfFaq($item, $cityName);
+        if (request()->has('pasf_preview')) {
+            $data['seoRobots'] = 'noindex, nofollow';
+        }
+        if ($data['pasfFaq']) {
+            $data['schemaFaqs'] = array_merge($data['schemaFaqs'], array_map(
+                fn ($f) => ['question' => $f['question'], 'answer' => $f['answer']],
+                $data['pasfFaq']['faqs']
+            ));
+        }
+
         // ItemList of the providers on the page, each a LocalBusiness.
         $items = [];
         foreach ($listings as $listing) {
@@ -160,6 +172,61 @@ class LanderSchema
                 "{$cityName} {$item->name}: browse listings, compare prices and reviews, and get in touch on {$siteName}.",
             ]);
         }
+    }
+
+    /**
+     * Approved Q&As for a city x category page, each answer also as HTML with
+     * the businesses it names linked to their pages. Null on any other page
+     * (a city-less hub, an area page, a subcategory, a category not in the trial).
+     */
+    private static function pasfFaq($item, ?string $cityName): ?array
+    {
+        if (!$cityName || !($item instanceof \App\Models\Category) || !\App\Models\CategoryPageFaq::enabledFor($item->id)) {
+            return null;
+        }
+
+        $row = \App\Models\CategoryPageFaq::where('category_id', $item->id)
+            ->whereHas('location', fn ($q) => $q->where('name', $cityName))
+            ->first();
+        // A draft shows only through the admin's "Preview on page" link.
+        $preview = $row && hash_equals($row->previewToken(), (string) request()->query('pasf_preview'));
+        if (!$row || empty($row->faqs) || ($row->status !== 'approved' && !$preview)) {
+            return null;
+        }
+
+        // Longest names first, so "Pet Zoo World" is linked before "Pet Zoo".
+        $links = (array) $row->links;
+        uksort($links, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        $faqs = [];
+        foreach ($row->faqs as $i => $f) {
+            $html = e($f['answer']);
+            $linked = [];
+            foreach ($links as $name => $url) {
+                $safe = e($name);
+                if (isset($linked[$name]) || !str_contains($html, $safe)) {
+                    continue;
+                }
+                // First mention only, and never inside a link already added.
+                $html = preg_replace(
+                    '/(?<![">])' . preg_quote($safe, '/') . '(?![^<]*<\/a>)/u',
+                    '<a href="' . e($url) . '">' . $safe . '</a>',
+                    $html,
+                    1
+                );
+                $linked[$name] = true;
+            }
+            $faqs[] = [
+                'id'          => 'pasf-' . ($i + 1),
+                'keyword'     => $f['keyword'] ?? '',
+                'keywords'    => array_values(array_filter((array) ($f['keywords'] ?? [$f['keyword'] ?? '']))),
+                'question'    => $f['question'],
+                'answer'      => $f['answer'],
+                'answer_html' => $html,
+            ];
+        }
+
+        return ['city' => $cityName, 'faqs' => $faqs];
     }
 
     private const TITLE_LEADS = ['Top', 'Best', 'Trusted', 'Verified'];

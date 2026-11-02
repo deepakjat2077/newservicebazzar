@@ -92,8 +92,8 @@
 
     @media (max-width: 767px) {
         /*
-         * "Follow us on" sat 5px further left than "Site Link" / "Useful
-         * Links" etc. below it — this section uses a plain Bootstrap
+         * "Follow us on" sat 5px further left than "Quick Links" /
+         * "Helpful Resources" etc. below it — this section uses a plain Bootstrap
          * .container (15px padding), while the rest of the footer's
          * content sits inside .just, which nets out to 20px on the left
          * (measured live: 20px margin-left on .just, -15px from .row,
@@ -121,7 +121,7 @@
     display:flex;
    justify-content: end;
     flex-wrap:wrap;
-   
+
 }
 .footer-contact-item{
     display:flex;
@@ -134,11 +134,12 @@
 .footer-contact-item i{
 
     font-size:25px;
+	color:#fff;
 }
 
 .footer-contact-item a,
 .footer-contact-item span{
-    color:#222;
+    color:#fff;
     text-decoration:none;
 }
 
@@ -155,6 +156,19 @@
    only affects this one link in the footer. */
 .footer-bottom p a.sh {
     text-decoration: underline;
+	color:#fff;
+    display: inline-block;
+    padding: 4px 6px;
+    margin: -4px -6px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+.footer-bottom p a.sh:hover {
+    color: #fff;
+    text-decoration: none;
+    background-color: rgba(255, 255, 255, 0.16);
+    box-shadow: none;
+    padding: 4px 6px !important;
 }
 </style>
 
@@ -204,22 +218,24 @@
                     <div class="footer-widget">
                         {{-- The logo image is hidden by CSS on small screens, which leaves this link
                              in the tab order with no name at all. --}}
-                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" width="150" height="33" class="site-logo" alt="logo"></a>
-                        <p>{{ __($footer->content->description) }}</p>
-                     
+                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" width="190" height="42" class="site-logo" alt="{{ $setting->site_name ?? 'Service Bazzar' }}"></a>
+                        @if(!empty($footer?->content?->description))
+                            <p>{{ __($footer->content->description) }}</p>
+                        @endif
+
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
                     <div class="footer-widget">
                         <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
-                            <h4 class="h5">@lang('Site Link')</h4>
+                            <h4 class="h5">@lang('Quick Links')</h4>
                             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
                         </div>
                         <div class="widget-body">
                             <ul>
                                 <li><a href="{{ route('home') }}">@lang('Home')</a></li>
-            
-                             
+
+
                                 <li><a href="{{ route('blogs') }}">@lang('News')</a></li>
                                 <li><a href="{{ route('contact') }}">@lang('Contact')</a></li>
                                 <li><a href="{{ route('faq') }}">@lang('FAQ')</a></li>
@@ -231,7 +247,7 @@
                 <div class="col-lg-2 col-md-6">
                     <div class="footer-widget">
                         <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
-                            <h4 class="h5">@lang('Useful Links')</h4>
+                            <h4 class="h5">@lang('Helpful Resources')</h4>
                             <span class="footer-widget-toggle-icon" aria-hidden="true"><i class="fas fa-plus"></i></span>
                         </div>
                         <div class="widget-body">
@@ -243,7 +259,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-2 col-md-6">
     <div class="footer-widget">
         <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
@@ -270,7 +286,7 @@
     </div>
 </div>
 
-                
+
              <div class="col-lg-3 col-md-6">
     <div class="footer-widget">
 
@@ -327,7 +343,7 @@
       {{-- <div class="col-lg-4 col-md-6">
                 <div class="footer-widget">
                     <div class="widget-body">
-                     
+
                         <form action="{{ route('subscribe') }}" method="post" class="subscribe-form">
                             @csrf
                             <div class="form-group">
@@ -394,6 +410,88 @@
     .footer-play-text small { font-size: 9px; letter-spacing: .4px; color: #fff; }
     .footer-play-text b { font-size: 17px; font-weight: 600; color: #fff; }
 }
+</style>
+
+<style>
+    .footer-area {
+        border-top: 2px solid rgba(22, 130, 13, .72);
+        background: linear-gradient(180deg, #fbfcfa 0%, #f5f8f3 100%) !important;
+        color: #273345 !important;
+    }
+
+    .footer-area .footer-widget p {
+        color: #697586 !important;
+        line-height: 1.75;
+    }
+
+    .footer-area .footer-widget .widget-title h4,
+    .footer-area .footer-widget .widget-title h5 {
+        color: #263345 !important;
+        font-weight: 700;
+    }
+
+    .footer-area .footer-widget .widget-body ul li a,
+    .footer-area .footer-widget .widget-body a,
+    .footer-area .footer-contact-item a,
+    .footer-area .footer-contact-item span {
+        color: #596577 !important;
+    }
+
+    .footer-area .footer-widget .widget-body ul li a:before {
+        color: #16820d;
+    }
+
+    .footer-area .footer-widget .widget-body ul li a:hover,
+    .footer-area .footer-contact-item a:hover {
+        color: #116b0a !important;
+        background-color: rgba(22, 130, 13, .07);
+    }
+
+    .footer-area .footer-contact-item i {
+        color: #16820d;
+    }
+
+    .footer-area .footer-widget .site-logo {
+        border: 1px solid #e8ece8;
+        box-shadow: 0 3px 12px rgba(22, 34, 48, .06);
+    }
+
+    .footer-area .footer-bottom {
+        border-top: 1px solid #e2e9e0;
+        background: rgba(255, 255, 255, .55);
+    }
+
+    .footer-area .footer-bottom p {
+        color: #778195;
+    }
+
+    .footer-area .footer-bottom p a.sh {
+        color: #116b0a !important;
+    }
+
+    .footer-area .footer-widget .widget-title {
+        border-color: #dfe7dd;
+    }
+
+    .footer-area .footer-widget .widget-title:before,
+    .footer-area .footer-widget .widget-title:after {
+        background: linear-gradient(90deg, #16820d, rgba(22, 130, 13, .35));
+    }
+
+    .footer-area .footer-widget-toggle-icon {
+        color: #16820d;
+    }
+
+    @media (max-width: 767px) {
+        .footer-area .footer-widget .widget-title {
+            border-bottom-color: #dfe7dd;
+        }
+
+        .footer-area .footer-widget .widget-title h4,
+        .footer-area .footer-widget .widget-title h5 {
+            color: #263345 !important;
+        }
+    }
 </style>
 
 @push('js')

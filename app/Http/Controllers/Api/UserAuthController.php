@@ -132,6 +132,10 @@ class UserAuthController extends Controller
         // email-verification page (they may have no email at all).
         $user->markMobileVerified();
 
+        // The same proof says they are the business whose listings print this
+        // number, so hand those over before the dashboard is fetched.
+        \App\Support\ListingClaim::forUser($user, $request->phone);
+
         return $this->issueTokenResponse($user, 'whatsapp', $isNewUser);
     }
 

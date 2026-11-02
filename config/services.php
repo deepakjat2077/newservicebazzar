@@ -105,6 +105,18 @@ return [
     'app_name'        => env('GUPSHUP_APP_NAME'),
     'source'          => env('GUPSHUP_SOURCE'),
 
+    // Listing WhatsApp buttons open a chat with our number and the message
+    // becomes an enquiry (App\Support\WhatsappRelay). false = buttons go
+    // straight to the business's own WhatsApp again.
+    'whatsapp_relay'  => env('WHATSAPP_RELAY', true),
+    // Same customer + same listing within this many minutes = one lead (they
+    // get an "already sent" reply). 0 = every message is a new lead.
+    'relay_repeat_minutes' => env('WHATSAPP_RELAY_REPEAT_MINUTES', 30),
+    // Utility template "new_customer_lead" (approved 26 Oct 2026) the relay
+    // sends to the business: {{1}} business, {{2}} customer name,
+    // {{3}} customer mobile, {{4}} service, {{5}} city.
+    'lead_template_id' => env('GUPSHUP_LEAD_TEMPLATE_ID', '4ce32485-55ca-4dd2-8602-2240626d0944'),
+
     // Marketing template
     'template_id'     => env('GUPSHUP_TEMPLATE_ID'),
 
@@ -124,6 +136,22 @@ return [
     // Shared secret Gupshup must include (as a `token` query parameter) on
     // its webhook callback URL so the endpoint can reject spoofed requests.
     'webhook_secret'  => env('GUPSHUP_WEBHOOK_SECRET'),
+],
+
+// GA4 Measurement Protocol: server-side conversions (enquiry, sign up, new
+// listing) sent to the same property as the gtag on the site. The API secret
+// comes from GA4 Admin > Data streams > (web stream) > Measurement Protocol
+// API secrets; without it nothing is sent.
+// Google "People also ask" / related searches for seo:pasf-faq
+// (App\Support\RelatedSearches). Optional: without it, Google's free search
+// suggestions are used instead.
+'serpapi' => [
+    'key' => env('SERPAPI_KEY'),
+],
+
+'ga4' => [
+    'measurement_id' => env('GA4_MEASUREMENT_ID', 'G-GRSL7JRMTH'),
+    'api_secret'     => env('GA4_API_SECRET'),
 ],
 
 ];
