@@ -132,6 +132,7 @@
     padding:0;
     background:transparent;
     line-height:normal;
+    width:auto;
 }
 .header-area .bottom-header .navbar ul li a.nav-btn.profile-dashboard-link:hover{
     background:transparent;
