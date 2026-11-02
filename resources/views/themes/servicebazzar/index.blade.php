@@ -1,3 +1,4 @@
+
 @extends($themeView.'layouts.site')
 @php
     $ogTitle = 'Service Bazzar — Find Trusted Local Businesses Near You';
@@ -28,7 +29,7 @@ Local Businesses & Trusted Services Near You
         return el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
     }
     function fit() {
-        if (window.innerWidth <= 767) return;
+        if (window.innerWidth <= 767) return; 
         document.querySelectorAll(SEL).forEach(function (el) {
             el.style.removeProperty('font-size');
             el.style.removeProperty('white-space');
@@ -144,10 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .home-search-controls-row{
         box-sizing:border-box;
         align-items:center;
-        /* The missing semicolon here made the browser throw away BOTH this
-           width and the margin below it as one malformed declaration, which
-           is why the search row sat flush against the section under it. */
-        width:100%;
+        width:100%
         margin:10px auto 15px !important;
         padding:8px 12px;
         gap:10px;
@@ -272,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <div class="location-col-custom mobile-home-location-box" id="mobileHomeLocationBox">
     <div class="input_location_box">
-
+      
 
 <input type="text"
     name="location_name"
@@ -287,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
     aria-expanded="false"
     aria-controls="homeLocationSuggestions">
 
-
+         
         <input type="hidden" name="latitude" id="homeSearchLatitude" value="{{ request()->latitude }}">
         <input type="hidden" name="longitude" id="homeSearchLongitude" value="{{ request()->longitude }}">
         <input type="hidden" name="location_id" id="homeSearchLocationId" value="">
@@ -354,12 +352,12 @@ window.SB = {
 
 </div>
 
-
+       
         <noscript>
-
+        
             <div style="margin-top: 8px;">
                 <div style="display: flex; gap: 4px; align-items: center;">
-
+                   
                     <select name="categorysearch" id="noScriptCategoryFallback"
                             style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                         <option value="">Select a popular category</option>
@@ -381,7 +379,7 @@ window.SB = {
 
 
 
-
+           
             </div>
 
             <div id="searchError" style="color:#dc3545; font-size:14px; margin-top:8px; display:none;">
@@ -492,7 +490,7 @@ window.SB = {
     .sb-home-hero-art { display: flex; flex-direction: column; justify-content: center; gap: 5px; }
     .sb-home-hero-art-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #344054; font-size: 12px; font-weight: 750; }
     .sb-home-hero-art-heading span { color: #107306; font-size: 10px; font-weight: 650; }
-    .sb-home-business-orbit { position: relative; height: 350px; overflow: hidden; }
+    .sb-home-business-orbit { position: relative; height: 375px; overflow: hidden; }
     .sb-home-orbit-ring {
         position: absolute;
         top: 50%;
@@ -583,6 +581,7 @@ window.SB = {
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
     }
+    .sb-home-business-category { overflow: hidden; max-width: 100%; color: #116b0a; font-size: 10px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
     .sb-home-business-city { overflow: hidden; max-width: 100%; color: #26364b; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
     .sb-home-business-position-1 { --business-x: 50%; --business-y: 18%; --business-size: 110px; --business-mobile-size: 72px; --business-delay: 0s; }
     .sb-home-business-position-2 { --business-x: 74%; --business-y: 25%; --business-size: 110px; --business-mobile-size: 68px; --business-delay: .08s; }
@@ -712,9 +711,7 @@ window.SB = {
     </div>
 </section>
 
-
-
-
+    
 @php
     // Pehle woh categories jo pehle use nahi hui hain
     $unusedCategories = $categories
@@ -782,7 +779,7 @@ window.SB = {
             @endforeach
 
             <div class="category-item text-center more-category-item">
-
+             
                 <label
                     for="categoryPopupToggle"
                     class="more-btn"
@@ -804,7 +801,7 @@ window.SB = {
 
 @if($featureds->isNotEmpty())
 <section class="featured featured-business-listings pt-4 pb-4" id="featured-business-listings">
-
+   
     @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-07.css'])
     <div class="container-fluid">
         <div class="row">
@@ -822,11 +819,11 @@ window.SB = {
 
                     $mobileNumbers = is_array($featured->mobile_numbers)
                         ? $featured->mobile_numbers
-                        : (json_decode($featured->mobile_numbers, true) ?: []);
+                        : json_decode($featured->mobile_numbers, true);
 
                     $whatsappNumbers = is_array($featured->whatsapp_numbers)
                         ? $featured->whatsapp_numbers
-                        : (json_decode($featured->whatsapp_numbers, true) ?: []);
+                        : json_decode($featured->whatsapp_numbers, true);
 
                     $mobilePhone = $mobileNumbers[0] ?? '';
                     $whatsappPhone = $whatsappNumbers[0] ?? '';
@@ -834,48 +831,10 @@ window.SB = {
                     $cleanMobilePhone = preg_replace('/[^0-9]/', '', $mobilePhone);
                     $cleanWhatsappPhone = preg_replace('/[^0-9]/', '', $whatsappPhone);
 
-                    // Service Bazzar rating
-                    $rating = 0;
-                    $ratingCount = 0;
+                    $rating = (float) ($featured->verified_ratings_avg ?? 0);
+                    $ratingCount = (int) ($featured->verified_ratings_count ?? 0);
 
-                    if (isset($featured->review) && is_numeric($featured->review)) {
-                        $rating = (float) $featured->review;
-                    } elseif (isset($featured->avg_rating) && is_numeric($featured->avg_rating)) {
-                        $rating = (float) $featured->avg_rating;
-                    } elseif (isset($featured->rating) && is_numeric($featured->rating)) {
-                        $rating = (float) $featured->rating;
-                    } elseif (isset($featured->verified_ratings_avg) && is_numeric($featured->verified_ratings_avg)) {
-                        $rating = (float) $featured->verified_ratings_avg;
-                    }
-
-                    if (isset($featured->total_review) && is_numeric($featured->total_review)) {
-                        $ratingCount = (int) $featured->total_review;
-                    } elseif (isset($featured->review_count) && is_numeric($featured->review_count)) {
-                        $ratingCount = (int) $featured->review_count;
-                    } elseif (isset($featured->ratings_count) && is_numeric($featured->ratings_count)) {
-                        $ratingCount = (int) $featured->ratings_count;
-                    } elseif (isset($featured->verified_ratings_count) && is_numeric($featured->verified_ratings_count)) {
-                        $ratingCount = (int) $featured->verified_ratings_count;
-                    }
-
-                    // Google rating and review count
-                    $gRating = (float) ($featured->gmb_rating ?? 0);
-                    $gCount = (int) ($featured->gmb_review_count ?? 0);
-
-                    // Combine Service Bazzar and Google ratings
-                    $existingRatingSum = $rating * $ratingCount;
-                    $googleRatingSum = $gRating * $gCount;
-                    $combinedCount = $ratingCount + $gCount;
-
-                    if ($combinedCount > 0) {
-                        $rating = round(($existingRatingSum + $googleRatingSum) / $combinedCount, 1);
-                    } else {
-                        $rating = 0;
-                    }
-
-                    $ratingCount = $combinedCount;
-
-
+                    
 
                     $yearsInBusiness = null;
 
@@ -928,7 +887,7 @@ window.SB = {
                                 @endif
 
 
-
+                                
  </div>
 
 
@@ -1001,7 +960,7 @@ window.SB = {
 
                                 @if(!empty($cleanWhatsappPhone))
 
-                                    <a href="{{ \App\Support\WhatsappRelay::url($featured, 'https://wa.me/' . $cleanWhatsappPhone) }}"
+                                    <a href="https://wa.me/{{ $cleanWhatsappPhone }}"
                                        target="_blank" rel="noopener noreferrer"
                                        class="btn-whatsapp">
 
@@ -1033,13 +992,13 @@ window.SB = {
 <!-- Panel -->
 <div class="category-popup" id="categoryPopup">
     <div class="popup-top">
-
+     
         <div class="d-flex align-items-center">
             <label for="categoryPopupToggle" class="close-btn mr-3" tabindex="0">✕</label>
             <h3 class="mb-0 hh-h5-size">Popular Categories</h3>
         </div>
 
-
+        
         <div class="search-wrapper">
             <input type="text" id="categorySearch"
                    placeholder="Search"
@@ -1048,7 +1007,7 @@ window.SB = {
         </div>
     </div>
 
-
+  
     <div class="popup-location-notice" id="popupLocationNotice" hidden>
         <button type="button" class="popup-location-notice__close" id="popupLocationNoticeClose" aria-label="Close location popup">
             &times;
@@ -1064,7 +1023,7 @@ window.SB = {
             </button>
         </div>
 
-
+       
         <ol class="popup-location-notice__steps" id="popupLocationSteps" hidden>
             <li>Click the lock or info icon next to the website address.</li>
             <li>Open <strong>Site settings</strong> (or <strong>Permissions</strong>).</li>
@@ -1073,9 +1032,9 @@ window.SB = {
         </ol>
     </div>
 
-
+    
    @php
-
+    
     $rotationCities = function_exists('activeLocations')
         ? activeLocations()->where('is_popular', 1)->pluck('name')->values()
         : collect();
@@ -1096,7 +1055,7 @@ window.SB = {
 <div class="popup-grid" id="popupCategoryList">
     @foreach($categories as $categoryItem)
 
-
+     
         <a href="{{ cityCategoryUrl($categoryItem->slug) }}"
    class="popup-item dynamic-category-link"
    data-slug="{{ $categoryItem->slug }}">
@@ -1152,14 +1111,14 @@ window.SB = {
    class="mini-service-card dynamic-category-link"
    data-slug="{{ $category->slug }}">
 
-
+   
                                             <img width="300" height="200" src="{{ asset('assets/images/category/' . $category->image) }}"
                                               loading="lazy"   alt="{{ $category->name }} Services">
 
+                                         
+                                              
 
-
-
-
+                                          
                                         </a>
                                         <div class="color111 font14 pt-10">
     {{ $category->name }}
@@ -1258,17 +1217,17 @@ window.SB = {
   <button class="trend-nav prev-btn" type="button" aria-label="Scroll left">
                         <i class="las la-angle-left"></i>
                     </button>
-
+              
 
                 <div class="trending-scroll" onscroll="updateTrendingProgress(this)">
                     @foreach($locations as $location)
                         <div class="trend-card-item">
-
+                     
                       <a href="{{ url($location->slug) }}"
    class="trend-card-link select-home-location"
    data-location-name="{{ $location->name }}"
    data-location-slug="{{ $location->slug }}">
-
+                                
      <img width="300" height="200" src="{{ loadImage('assets/images/location/'.$location->image) }}"
                                   loading="lazy"   alt="{{ $location->name }}">
 
@@ -1279,7 +1238,7 @@ window.SB = {
                                         <div class="trend-card-subtitle">Explore Now</div>
                                     </div>
 
-
+                                   
                                 </div>
                             </a>
                         </div>
@@ -1390,7 +1349,7 @@ window.SB = {
 
             <div class="trending-wrapper position-relative">
 
-
+              
                 <div class="trending-scroll">
 
                     @foreach($section->selected_categories as $category)
@@ -1411,7 +1370,7 @@ window.SB = {
                                             {{ $category->name }}
                                         </h3>
 
-
+                                       
                                     </div>
                                 </div>
 
@@ -1565,7 +1524,7 @@ $cleanPhone=preg_replace('/[^0-9]/','',$phone);
 Call Now
 </a>
 
-<a href="{{ \App\Support\WhatsappRelay::url($catListing, 'https://wa.me/' . $cleanPhone) }}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+<a href="https://wa.me/{{ $cleanPhone }}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
 <i class="lab la-whatsapp"></i>
 WhatsApp
 </a>
@@ -1592,158 +1551,133 @@ WhatsApp
 
   @include('themes.servicebazzar.partials.inline-css', ['file' => 'home/home-08.css'])
 <!-- COMPLETE FAIL-SAFE SLIDER  -->
-@php
-    $rawImage = $banner->content->image ?? null;
-    $rawMobileImage = $banner->content->mobile_banner ?? null;
-
-    $bannerImages = [];
-    $mobileBannerImages = [];
-
-    if (!empty($rawImage)) {
-        $decoded = json_decode($rawImage, true);
-
-        if (is_array($decoded)) {
-            foreach ($decoded as $row) {
-                if (is_array($row)) {
-                    $bannerImages[] = [
-                        'image' => $row['image'] ?? '',
-                        'link'  => $row['link'] ?? ''
-                    ];
-                } else {
-                    $bannerImages[] = [
-                        'image' => $row,
-                        'link'  => ''
-                    ];
-                }
-            }
-        }
-    }
-
-    if (!empty($rawMobileImage)) {
-        $decodedMobile = json_decode($rawMobileImage, true);
-
-        if (is_array($decodedMobile)) {
-            foreach ($decodedMobile as $row) {
-                if (is_array($row)) {
-                    $mobileBannerImages[] = [
-                        'image' => $row['image'] ?? '',
-                        'link'  => $row['link'] ?? ''
-                    ];
-                } else {
-                    $mobileBannerImages[] = [
-                        'image' => $row,
-                        'link'  => ''
-                    ];
-                }
-            }
-        }
-    }
-@endphp
-
-@if(!empty($bannerImages))
-
-    {{-- Preload the first (LCP) banner image in <head> --}}
-    @php
-        $firstBannerSrc = !empty($bannerImages[0]['image'])
-            ? 'assets/servicebazzar/images/banner/'.$bannerImages[0]['image']
-            : null;
-        $firstMobileSrc = !empty($mobileBannerImages[0]['image'])
-            ? 'assets/servicebazzar/images/banner/'.$mobileBannerImages[0]['image']
-            : $firstBannerSrc;
-    @endphp
-
-    @if($firstBannerSrc)
-        @push('lcp')
-            {{-- Mobile LCP preload (WebP preferred) --}}
-            <link rel="preload" as="image"
-                href="{{ narrowWebp($firstMobileSrc) }}"
-                imagesrcset="{{ narrowWebp($firstMobileSrc) }}"
-                media="(max-width: 767px)"
-                fetchpriority="high">
-            {{-- Desktop LCP preload (WebP preferred) --}}
-            <link rel="preload" as="image"
-                href="{{ loadImageWebp($firstBannerSrc) }}"
-                imagesrcset="{{ loadImageWebp($firstBannerSrc) }}"
-                media="(min-width: 768px)"
-                fetchpriority="high">
-        @endpush
-    @endif
 
 <div class="bazzar-slider-wrapper">
   <div class="bazzar-slides-container" id="bazzarSlider">
+    
+	 @php
+                            $rawImage = $banner->content->image ?? null;
+                            $rawMobileImage = $banner->content->mobile_banner ?? null;
 
-    @foreach($bannerImages as $imgData)
-        @php
-            $mobileImgData = $mobileBannerImages[$loop->index] ?? null;
-            $isFirst        = $loop->first;
-            $loadPriority   = $isFirst ? 'eager' : 'lazy';
-            $fetchPriority  = $isFirst ? 'high'  : 'low';
-            $desktopSrc     = 'assets/servicebazzar/images/banner/'.$imgData['image'];
-            $mobileSrc      = !empty($mobileImgData['image'])
-                                ? 'assets/servicebazzar/images/banner/'.$mobileImgData['image']
-                                : $desktopSrc;
+                            $bannerImages = [];
+                            $mobileBannerImages = [];
 
-            // An SVG banner is served as-is. Offering it through a
-            // type="image/webp" <source> would hand the browser a file that
-            // is not the type it was promised.
-            $bannerIsSvg = (bool) preg_match('/\.svg$/i', $desktopSrc.$mobileSrc);
+                            if (!empty($rawImage)) {
+                                $decoded = json_decode($rawImage, true);
 
-            $bannerLink    = $imgData['link'] ?? '';
-            $bannerCatSlug = '';
-            if (!empty($bannerLink)) {
-                $bHost = parse_url($bannerLink, PHP_URL_HOST);
-                $bPath = trim((string) parse_url($bannerLink, PHP_URL_PATH), '/');
-                $bSegs = $bPath === '' ? [] : explode('/', $bPath);
-                $reservedFirst = ['listings','blogs','blog','user','admin','dashboard','category','search','contact','location','free-listing','pricing','popular-services'];
-                if ((!$bHost || $bHost === request()->getHost())
-                    && count($bSegs) === 2
-                    && !in_array(strtolower($bSegs[0]), $reservedFirst, true)) {
-                    $bannerCatSlug = $bSegs[1];
-                }
-            }
-        @endphp
+                                if (is_array($decoded)) {
+                                    foreach ($decoded as $row) {
+                                        if (is_array($row)) {
+                                            $bannerImages[] = [
+                                                'image' => $row['image'] ?? '',
+                                                'link'  => $row['link'] ?? ''
+                                            ];
+                                        } else {
+                                            $bannerImages[] = [
+                                                'image' => $row,
+                                                'link'  => ''
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
 
-        {{-- active-slide, not active: active-slide is the class the CSS and the
-             script below both use, so the first banner is visible immediately
-             instead of the slider sitting blank until the first 4s tick. --}}
-        <div class="bazzar-slide {{ $isFirst ? 'active-slide' : '' }}">
-            <div class="bazzar-overlay"></div>
+                            if (!empty($rawMobileImage)) {
+                                $decodedMobile = json_decode($rawMobileImage, true);
 
-            @if(!empty($bannerLink))
-                <a href="{{ $bannerLink }}"
-                   @if($bannerCatSlug) class="dynamic-category-link" data-slug="{{ $bannerCatSlug }}" @endif>
-            @endif
+                                if (is_array($decodedMobile)) {
+                                    foreach ($decodedMobile as $row) {
+                                        if (is_array($row)) {
+                                            $mobileBannerImages[] = [
+                                                'image' => $row['image'] ?? '',
+                                                'link'  => $row['link'] ?? ''
+                                            ];
+                                        } else {
+                                            $mobileBannerImages[] = [
+                                                'image' => $row,
+                                                'link'  => ''
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        @endphp
 
-                {{-- One <picture>, phone copy first: this is what the preload
-                     above asks for, so the phone doesn't download the desktop
-                     banner as well. --}}
-                <picture>
-                    @unless($bannerIsSvg)
-                        <source media="(max-width: 767px)" srcset="{{ narrowWebp($mobileSrc) }}" type="image/webp">
-                        <source media="(max-width: 767px)" srcset="{{ loadImage($mobileSrc) }}">
-                        <source srcset="{{ loadImageWebp($desktopSrc) }}" type="image/webp">
-                    @else
-                        <source media="(max-width: 767px)" srcset="{{ loadImage($mobileSrc) }}">
-                    @endunless
-                    <img src="{{ loadImage($desktopSrc) }}" width="1200" height="534"
-                         alt="{{ $banner->content->title }}"
-                         loading="{{ $loadPriority }}"
-                         fetchpriority="{{ $fetchPriority }}"
-                         decoding="async">
-                </picture>
+                            {{-- Preload the first (LCP) banner image in <head> --}}
+                            @php
+                            $firstBannerSrc    = !empty($bannerImages[0]['image'])
+                                ? 'assets/servicebazzar/images/banner/'.$bannerImages[0]['image']
+                                : null;
+                            $firstMobileSrc    = !empty($mobileBannerImages[0]['image'])
+                                ? 'assets/servicebazzar/images/banner/'.$mobileBannerImages[0]['image']
+                                : $firstBannerSrc;
+                            @endphp
 
-            @if(!empty($bannerLink))
-                </a>
-            @endif
+                        {{-- Inject LCP preload links into <head> via stack --}}
+                        @if($firstBannerSrc)
+                            @push('lcp')
+                                {{-- Mobile LCP preload (WebP preferred) --}}
+                                <link rel="preload" as="image"
+                                    href="{{ narrowWebp($firstMobileSrc) }}"
+                                    imagesrcset="{{ narrowWebp($firstMobileSrc) }}"
+                                    media="(max-width: 767px)"
+                                    fetchpriority="high">
+                                {{-- Desktop LCP preload (WebP preferred) --}}
+                                <link rel="preload" as="image"
+                                    href="{{ loadImageWebp($firstBannerSrc) }}"
+                                    imagesrcset="{{ loadImageWebp($firstBannerSrc) }}"
+                                    media="(min-width: 768px)"
+                                    fetchpriority="high">
+                            @endpush
+                        @endif
 
-        </div>
-    @endforeach
+                        @foreach($bannerImages as $imgData) 
+                            @php
+                                $mobileImgData = $mobileBannerImages[$loop->index] ?? null;
+                                $isFirst        = $loop->first;
+                                $loadPriority   = $isFirst ? 'eager' : 'lazy';
+                                $fetchPriority  = $isFirst ? 'high'  : 'low';
+                                $desktopSrc     = 'assets/servicebazzar/images/banner/'.$imgData['image'];
+                                $mobileSrc      = !empty($mobileImgData['image'])
+                                                    ? 'assets/servicebazzar/images/banner/'.$mobileImgData['image']
+                                                    : $desktopSrc;
+                            @endphp
 
+                            @php
+                             
+                                $bannerLink    = $imgData['link'] ?? '';
+                                $bannerCatSlug = '';
+                                if (!empty($bannerLink)) {
+                                    $bHost = parse_url($bannerLink, PHP_URL_HOST);
+                                    $bPath = trim((string) parse_url($bannerLink, PHP_URL_PATH), '/');
+                                    $bSegs = $bPath === '' ? [] : explode('/', $bPath);
+                                    $reservedFirst = ['listings','blogs','blog','user','admin','dashboard','category','search','contact','location','free-listing','pricing','popular-services'];
+                                    if ((!$bHost || $bHost === request()->getHost())
+                                        && count($bSegs) === 2
+                                        && !in_array(strtolower($bSegs[0]), $reservedFirst, true)) {
+                                        $bannerCatSlug = $bSegs[1];
+                                    }
+                                }
+                            @endphp
+	
+    <!-- Slide 1 -->
+    <div class="bazzar-slide {{ $isFirst ? 'active' : '' }}">
+      <div class="bazzar-overlay"></div>
+	   @if(!empty($bannerLink))
+                                        <a href="{{ $bannerLink }}"
+                                           @if($bannerCatSlug) class="dynamic-category-link" data-slug="{{ $bannerCatSlug }}" @endif>
+                                    @endif
+
+      <img src="{{ loadImage($desktopSrc) }}" width="1200" height="534" alt="{{ $banner->content->title }}"  loading="{{ $loadPriority }}" fetchpriority="{{ $fetchPriority }}" decoding="async">
+     
+    </div>
+ @endforeach
+  
   </div>
 
   <!-- Manual Buttons (Left/Right) -->
-  <button class="bazzar-arrow arrow-left" type="button" onclick="changeBazzarSlide(-1)" aria-label="Previous banner">&#10094;</button>
-  <button class="bazzar-arrow arrow-right" type="button" onclick="changeBazzarSlide(1)" aria-label="Next banner">&#10095;</button>
+  <button class="bazzar-arrow arrow-left" onclick="changeBazzarSlide(-1)">&#10094;</button>
+  <button class="bazzar-arrow arrow-right" onclick="changeBazzarSlide(1)">&#10095;</button>
 </div>
 
 <!-- INLINE STYLES (No CSS file needed) -->
@@ -1778,12 +1712,6 @@ WhatsApp
   opacity: 1;
   z-index: 2;
 }
-.bazzar-slide a,
-.bazzar-slide picture {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
 .bazzar-slide img {
   width: 100%;
   height: 100%;
@@ -1797,16 +1725,43 @@ WhatsApp
   height: 100%;
   background: rgba(0, 0, 0, 0.15);
   z-index: 2;
-  /* The overlay sits on top of the banner's own link, so without this the
-     whole banner stops being clickable. */
-  pointer-events: none;
+}
+.bazzar-text-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  text-align: center;
+  z-index: 3;
+  width: 80%;
+}
+.bazzar-text-box h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+.bazzar-text-box p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+.bazzar-btn {
+  display: inline-block;
+  padding: 12px 30px;
+  background: #ffc107;
+  color: #000000;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 .bazzar-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   background: rgba(255,255,255,0.2);
-  color: #fff;
+  color: #fff; 
   border: none;
   padding: 15px 20px;
   cursor: pointer;
@@ -1821,12 +1776,6 @@ WhatsApp
 }
 .arrow-left { left: 20px; }
 .arrow-right { right: 20px; }
-@media (max-width: 767px) {
-  .bazzar-slider-wrapper { height: 190px; margin: 10px; width: auto; }
-  .bazzar-arrow { padding: 10px 14px; font-size: 16px; }
-  .arrow-left { left: 10px; }
-  .arrow-right { right: 10px; }
-}
 </style>
 
 <!-- SELF CONTAINED INDEPENDENT JAVASCRIPT -->
@@ -1853,116 +1802,23 @@ function changeBazzarSlide(direction) {
 }
 
 // Automatic slide rotation every 4 seconds
-if (bazzarSlides.length > 1) {
-  setInterval(() => {
-    changeBazzarSlide(1);
-  }, 4000);
-}
+setInterval(() => {
+  changeBazzarSlide(1);
+}, 4000);
 </script>
 
-@endif
+
+
 <!-- End COMPLETE FAIL-SAFE SLIDER  -->
-
-{{-- Hidden on the owner's request, 2026-11-02: the wide "Find the Right
-     Business" strip (Admin > Home Banners Bottom). The markup is kept so it
-     can be switched back on; change false to true to show it again. --}}
-@if (false)
-  <section class="category-banner-slider m-1">
-    <div id="categoryBannerCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000">
-
-        <div class="carousel-indicators">
-            @foreach($hbbs as $key => $hbb)
-                <button type="button"
-                        data-bs-target="#categoryBannerCarousel"
-                        data-bs-slide-to="{{ $key }}"
-                        class="{{ $key == 0 ? 'active' : '' }}"
-                        aria-current="{{ $key == 0 ? 'true' : 'false' }}"
-                        aria-label="Slide {{ $key + 1 }}">
-                </button>
-            @endforeach
-        </div>
-
-        {{-- <div class="carousel-inner">
-            @foreach($hbbs as $key => $hbb)
-                <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
-                    <a href="{{ $hbb->link ?? '#' }}" target="_blank" rel="noopener noreferrer">
-                        <picture>
-                            @if(!empty($hbb->mobile_banner))
-                                <source media="(max-width: 767px)"
-                                        srcset="{{ asset('assets/images/category/hbb/' . $hbb->mobile_banner) }}">
-                            @endif
-
-                            <img width="1200" height="534" src="{{ asset('assets/images/category/hbb/' . $hbb->desktop_banner) }}"
-                                 class="d-block w-100 category-banner-img"
-                             loading="lazy"    alt="{{ $hbb->title ?? 'Banner' }}">
-                        </picture>
-                    </a>
-                </div>
-            @endforeach
-        </div> --}}
-
-
-
-    </div>
-</section>
-@endif
-
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+  
 
-{{-- Hidden on the owner's request, 2026-11-02: "Our Latest News". The
-     markup is kept so it can be switched back on; change false to true. --}}
-@if (false)
-    <!-- Blog section start -->
-    <section class="blog-section pb-4 pt-4">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="section-title">
-                        <h2 class="hh-h4-size">{{ __($blog_section->content->title) }}</h2>
-                        <p class="bgl">{{ __($blog_section->content->sub_title) }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="row mb__30">
-                @foreach($blogs as $blog)
-                <div class="col-md-4">
-                  <div class="blog-area"
-     data-url="{{ route('blog.details', $blog->content->slug) }}"
-     style="cursor:pointer;">
-                        <div class="thumb">
-                            <img width="400" height="250" src="{{ blogThumb($blog->content->image) }}" loading="lazy" alt="blog">
-                        </div>
-                       
-                       <div class="content-area">
-    <h3 class="hh-h5-size">
-        <a href="{{ route('blog.details', $blog->content->slug) }}">
-            {{ __($blog->content->title) }}
-        </a>
-    </h3>
+   
 
-    <p>{{ __($blog->content->sub_title) }}</p>
-
-    <a href="{{ route('blog.details', $blog->content->slug) }}" class="btn btn__base">
-        @lang('Read')
-    </a>
-</div>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-    <!-- Blog section end -->
-@endif
-
-
-
-
-
-
-
+    
+   
     {{-- ================= CATEGORY CONTENT SECTION ================= --}}
 <section class=" category-content-section py-4">
     <div class="container-fluid px-4">
@@ -2051,8 +1907,8 @@ if (bazzarSlides.length > 1) {
             <span class=" spn mb-0">
                Along with these popular categories, you can also find many other daily-use services such as Pest Control, Skin Care Clinics, Painters, Laundry Services, Interior Designers, Mobile Phone Repair, AC Repair Services, Internet Service Providers, Travel & Vacation Centres, Wedding Bands, Event Organisers, Packers and Movers and more. Our platform helps you quickly connect with reliable local businesses and service providers as per your needs.
             </span>
-        </div>
-
+        </div>  
+        
 
     </div>
 

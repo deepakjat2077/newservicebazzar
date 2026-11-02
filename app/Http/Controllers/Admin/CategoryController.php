@@ -126,8 +126,7 @@ public function create(Request $request)
         $category->seo_title = $request->seo_title;
         $category->seo_keywords = $request->seo_keywords;
         $category->seo_description = $request->seo_description;
-        // Normalised on the way in, so what is stored is already the same
-        // small set of tags the category page is styled for — see ContentHtml.
+    
         $category->description = \App\Support\ContentHtml::clean($request->description);
         $category->status = $request->has('status') ? 1 : 0;
         $category->save();
