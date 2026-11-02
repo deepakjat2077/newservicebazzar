@@ -121,7 +121,7 @@
     display:flex;
    justify-content: end;
     flex-wrap:wrap;
-
+   
 }
 .footer-contact-item{
     display:flex;
@@ -211,18 +211,18 @@
 }
 </style>
 <footer class="footer-area">
-    <div  class="container-fulde ssss custom-right ">
+    <div  class="container-fulde ssss">
         <div class="pt-5 just pb-5">
             <div class="row mb__30 justify-content-between">
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-widget">
                         {{-- The logo image is hidden by CSS on small screens, which leaves this link
                              in the tab order with no name at all. --}}
-                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" width="190" height="42" class="site-logo" alt="{{ $setting->site_name ?? 'Service Bazzar' }}"></a>
+                        <a href="{{ route('home') }}" aria-label="{{ $setting->site_name ?? 'Service Bazzar' }} home"><img src="{{ asset('assets/images/logo/logo.png') }}" width="190" class="site-logo" alt="{{ $setting->site_name ?? 'Service Bazzar' }}"></a>
                         @if(!empty($footer?->content?->description))
                             <p>{{ __($footer->content->description) }}</p>
                         @endif
-
+                     
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
@@ -234,8 +234,8 @@
                         <div class="widget-body">
                             <ul>
                                 <li><a href="{{ route('home') }}">@lang('Home')</a></li>
-
-
+            
+                             
                                 <li><a href="{{ route('blogs') }}">@lang('News')</a></li>
                                 <li><a href="{{ route('contact') }}">@lang('Contact')</a></li>
                                 <li><a href="{{ route('faq') }}">@lang('FAQ')</a></li>
@@ -259,7 +259,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="col-lg-2 col-md-6">
     <div class="footer-widget">
         <div class="widget-title" role="button" tabindex="0" aria-expanded="false">
@@ -286,7 +286,7 @@
     </div>
 </div>
 
-
+                
              <div class="col-lg-3 col-md-6">
     <div class="footer-widget">
 
@@ -343,7 +343,7 @@
       {{-- <div class="col-lg-4 col-md-6">
                 <div class="footer-widget">
                     <div class="widget-body">
-
+                     
                         <form action="{{ route('subscribe') }}" method="post" class="subscribe-form">
                             @csrf
                             <div class="form-group">
