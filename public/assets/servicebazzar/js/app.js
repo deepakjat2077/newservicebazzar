@@ -16,7 +16,7 @@
     dots: false,
     infinite: true,
     speed: 300,
-    slidesToShow: 3,
+    slidesToShow: 4,
     arrows: true,
     prevArrow: '<div class="prev"><i class="las la-angle-left"></i></div>',
     nextArrow: '<div class="next"><i class="las la-angle-right"></i></div>',
@@ -25,16 +25,18 @@
       {
         breakpoint: 1500,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 4,
         }
       },
       {
         breakpoint: 1400,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: 4,
         }
       },
       {
+        // Below this a fourth card leaves each one too narrow for the
+        // business name and the two buttons under it, so it drops to three.
         breakpoint: 1200,
         settings: {
           slidesToShow: 3,

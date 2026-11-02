@@ -149,11 +149,15 @@ class SvgSanitizer
 
                 // fill, stroke, filter, mask, clip-path and style all take
                 // url(). Pointing one at another site turns a stored icon into
-                // a tracking pixel, so only url(#something) in this same file
-                // is kept.
-                if (preg_match('/url\s*\(\s*[\'"]?(?!#)/i', $value)) {
-                    $remove[] = $attribute;
-                    continue;
+                // a tracking pixel, so the target has to pass the same check as
+                // a plain reference.
+                if (preg_match_all('/url\s*\(\s*[\'"]?([^\'")]*)/i', $value, $matches)) {
+                    foreach ($matches[1] as $target) {
+                        if (!self::isSafeReference($target)) {
+                            $remove[] = $attribute;
+                            continue 2;
+                        }
+                    }
                 }
 
                 if (in_array($name, self::URL_ATTRIBUTES, true) && !self::isSafeReference($value)) {
@@ -168,14 +172,29 @@ class SvgSanitizer
     }
 
     /**
-     * Only an in-document reference such as "#logo-gradient" is kept. Anything
-     * that leaves the file — a URL, a data: blob, a javascript: scheme — goes,
-     * so a stored icon cannot phone home or carry a second payload.
+     * What a reference inside the file is allowed to point at.
+     *
+     * An in-document reference ("#logo-gradient"), or a bitmap embedded in the
+     * file itself. Converters routinely export an icon as a traced outline
+     * wrapping a base64 PNG in <image xlink:href="data:image/png;base64,…">,
+     * and dropping that leaves a blank drawing — which is exactly what
+     * happened to the first SVGs uploaded here.
+     *
+     * Everything else goes: an http(s) URL turns a stored icon into a tracking
+     * pixel, javascript: runs code, and data:image/svg+xml is a second SVG
+     * that would never pass through this sanitizer.
      */
     private static function isSafeReference(string $value): bool
     {
         $value = trim($value);
 
-        return $value === '' || str_starts_with($value, '#');
+        if ($value === '' || str_starts_with($value, '#')) {
+            return true;
+        }
+
+        return (bool) preg_match(
+            '#^data:image/(png|jpe?g|gif|webp|bmp);base64,[a-z0-9+/=\s]+$#i',
+            $value
+        );
     }
 }
