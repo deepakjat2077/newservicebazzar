@@ -626,7 +626,7 @@ window.SB = {
             top: auto;
             left: auto;
             flex: 0 0 264px;
-            width: 200px;
+            width: 264px;
             height: 180px;
             padding: 12px;
             border-radius: 14px;
