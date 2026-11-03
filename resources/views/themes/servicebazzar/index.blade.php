@@ -491,6 +491,8 @@ window.SB = {
     .sb-home-hero-art-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #344054; font-size: 12px; font-weight: 750; }
     .sb-home-hero-art-heading span { color: #107306; font-size: 10px; font-weight: 650; }
     .sb-home-business-orbit { position: relative; height: 375px; overflow: hidden; }
+    .sb-home-business-nav { display: none; }
+    .sb-home-business-controls { display: none; }
     .sb-home-orbit-ring {
         position: absolute;
         top: 50%;
@@ -609,26 +611,46 @@ window.SB = {
         .sb-home-business-orbit {
             display: flex;
             height: auto;
-            gap: 12px;
-            margin: 0 -4px;
-            padding: 4px 4px 12px;
+            box-sizing: border-box;
+            gap: 8px;
+            width: 100%;
+            margin: 0;
+            padding: 4px 0 12px;
             overflow-x: auto;
             overflow-y: hidden;
             scroll-snap-type: x mandatory;
-            scrollbar-color: rgba(19,136,8,.35) transparent;
-            scrollbar-width: thin;
+            scrollbar-width: none;
             overscroll-behavior-inline: contain;
             -webkit-overflow-scrolling: touch;
         }
+        .sb-home-business-orbit::-webkit-scrollbar { display: none; }
+        .sb-home-business-slider { display: flex; flex-direction: column; gap: 6px; }
+        .sb-home-business-controls { display: flex; justify-content: flex-end; gap: 8px; }
+        .sb-home-business-nav {
+            display: grid;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            place-items: center;
+            border: 1px solid #dce8d9;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 3px 10px rgba(19,136,8,.15);
+            color: #16820d;
+            font-size: 15px;
+        }
+        .sb-home-business-nav:focus-visible { outline: 2px solid #16820d; outline-offset: 2px; }
         .sb-home-orbit-ring, .sb-home-orbit-center { display: none; }
         .sb-home-business {
             position: relative;
             top: auto;
             left: auto;
-            flex: 0 0 264px;
-            width: 264px;
-            height: 180px;
-            padding: 12px;
+            box-sizing: border-box;
+            flex: 0 0 calc((100% - 8px) / 2) !important;
+            width: calc((100% - 8px) / 2) !important;
+            min-width: 0;
+            height: 160px;
+            padding: 8px 6px;
             border-radius: 14px;
             opacity: 1;
             transform: none;
@@ -636,21 +658,23 @@ window.SB = {
             scroll-snap-align: start;
         }
         .sb-home-business:hover, .sb-home-business:focus-visible { translate: 0 0; scale: 1; }
-        .sb-home-business-image, .sb-home-business-initial { width: 42px; height: 42px; font-size: 17px; }
-        .sb-home-business-name { font-size: 14px; font-weight: 700; line-height: 1.2; }
+        .sb-home-business-image, .sb-home-business-initial { width: 34px; height: 34px; font-size: 14px; }
+        .sb-home-business-name { font-size: 11px; font-weight: 700; line-height: 1.2; }
         .sb-home-business-category {
             display: -webkit-box;
+            max-width: 100%;
+            overflow: hidden;
             padding: 3px 8px;
             border-radius: 12px;
             background: #eaf5e8;
-            font-size: 11px;
+            font-size: 9px;
             line-height: 1.2;
-            text-overflow: clip;
             white-space: normal;
             -webkit-box-orient: vertical;
             -webkit-line-clamp: 2;
         }
-        .sb-home-business-city { display: inline-flex; align-items: center; gap: 4px; color: #475467; font-size: 12px; font-weight: 500; }
+        .sb-home-business-city { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; overflow: hidden; color: #475467; font-size: 10px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+        .sb-home-business-city i { flex: 0 0 auto; color: #d04444; font-size: 12px; }
         .sb-home-business-city i { flex: 0 0 auto; color: #d04444; font-size: 14px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -683,35 +707,67 @@ window.SB = {
                 <div>Top Verified Businesses Across India</div>
                 <span>Multiple Cities &middot; One Place</span>
             </div>
-            <div class="sb-home-business-orbit">
-                <div class="sb-home-orbit-ring" aria-hidden="true"></div>
-                <div class="sb-home-orbit-center" aria-hidden="true">INDIA</div>
-                @foreach($featureds->take(8) as $index => $featured)
-                    @php
-                        $heroBusinessCategory = optional($featured->category)->slug;
-                        $heroBusinessCategoryName = optional($featured->category)->name
-                            ?: ucwords(str_replace('-', ' ', $heroBusinessCategory ?? 'service'));
-                        $heroBusinessCity = optional($featured->location)->name ?: 'Across India';
-                    @endphp
-                    <a class="sb-home-business sb-home-business-position-{{ $index + 1 }}"
-                       href="{{ route('listings.details', ['category' => $heroBusinessCategory, 'slug' => $featured->slug]) }}"
-                       aria-label="{{ $featured->name }}, {{ $heroBusinessCategoryName }} in {{ $heroBusinessCity }}">
-                        @if(!empty($featured->thumb))
-                            <img class="sb-home-business-image" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}" alt="" loading="lazy" decoding="async">
-                        @else
-                            <span class="sb-home-business-initial" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($featured->name, 0, 1)) }}</span>
-                        @endif
-                        <span class="sb-home-business-name">{{ $featured->name }}</span>
-                        <span class="sb-home-business-category">{{ $heroBusinessCategoryName }}</span>
-                        <span class="sb-home-business-city"><i class="las la-map-marker-alt" aria-hidden="true"></i>{{ $heroBusinessCity }}</span>
-                    </a>
-                @endforeach
+            <div class="sb-home-business-slider">
+                @if($featureds->take(8)->count() > 2)
+                    <div class="sb-home-business-controls">
+                        <button class="sb-home-business-nav sb-home-business-nav--prev" type="button" aria-label="Show previous two businesses" aria-controls="sbHomeBusinessOrbit">
+                            <i class="las la-angle-left" aria-hidden="true"></i>
+                        </button>
+                        <button class="sb-home-business-nav sb-home-business-nav--next" type="button" aria-label="Show next two businesses" aria-controls="sbHomeBusinessOrbit">
+                            <i class="las la-angle-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                @endif
+                <div class="sb-home-business-orbit" id="sbHomeBusinessOrbit">
+                    <div class="sb-home-orbit-ring" aria-hidden="true"></div>
+                    <div class="sb-home-orbit-center" aria-hidden="true">INDIA</div>
+                    @foreach($featureds->take(8) as $index => $featured)
+                        @php
+                            $heroBusinessCategory = optional($featured->category)->slug;
+                            $heroBusinessCategoryName = optional($featured->category)->name
+                                ?: ucwords(str_replace('-', ' ', $heroBusinessCategory ?? 'service'));
+                            $heroBusinessCity = optional($featured->location)->name ?: 'Across India';
+                        @endphp
+                        <a class="sb-home-business sb-home-business-position-{{ $index + 1 }}"
+                           href="{{ route('listings.details', ['category' => $heroBusinessCategory, 'slug' => $featured->slug]) }}"
+                           aria-label="{{ $featured->name }}, {{ $heroBusinessCategoryName }} in {{ $heroBusinessCity }}">
+                            @if(!empty($featured->thumb))
+                                <img class="sb-home-business-image" src="{{ loadImage('assets/images/listing/thumb/'.$featured->thumb) }}" alt="" loading="lazy" decoding="async">
+                            @else
+                                <span class="sb-home-business-initial" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($featured->name, 0, 1)) }}</span>
+                            @endif
+                            <span class="sb-home-business-name">{{ $featured->name }}</span>
+                            <span class="sb-home-business-category">{{ $heroBusinessCategoryName }}</span>
+                            <span class="sb-home-business-city"><i class="las la-map-marker-alt" aria-hidden="true"></i>{{ $heroBusinessCity }}</span>
+                        </a>
+                    @endforeach
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-    
+<script>
+(function () {
+    var orbit = document.getElementById('sbHomeBusinessOrbit');
+    if (!orbit) return;
+
+    document.querySelectorAll('.sb-home-business-nav').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var card = orbit.querySelector('.sb-home-business');
+            if (!card) return;
+
+            var gap = parseFloat(getComputedStyle(orbit).columnGap) || 0;
+            var direction = button.classList.contains('sb-home-business-nav--next') ? 1 : -1;
+            orbit.scrollBy({
+                left: direction * (card.getBoundingClientRect().width + gap) * 2,
+                behavior: 'smooth'
+            });
+        });
+    });
+})();
+</script>
+
 @php
     // Pehle woh categories jo pehle use nahi hui hain
     $unusedCategories = $categories
