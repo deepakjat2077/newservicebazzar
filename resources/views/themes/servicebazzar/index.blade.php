@@ -1668,7 +1668,7 @@ WhatsApp
                                            @if($bannerCatSlug) class="dynamic-category-link" data-slug="{{ $bannerCatSlug }}" @endif>
                                     @endif
 
-      <img src="https://www.servicebazzar.com/assets/servicebazzar/images/banner/6ae85aa20590a7.09643384_1793612450.webp" width="1200" height="534" alt="{{ $banner->content->title }}"  loading="{{ $loadPriority }}" fetchpriority="{{ $fetchPriority }}" decoding="async">
+      <img src="{{ loadImage($desktopSrc) }}" width="1200" height="534" alt="{{ $banner->content->title }}"  loading="{{ $loadPriority }}" fetchpriority="{{ $fetchPriority }}" decoding="async">
      
     </div>
  @endforeach
