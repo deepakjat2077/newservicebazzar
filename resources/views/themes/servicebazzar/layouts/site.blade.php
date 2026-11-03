@@ -621,10 +621,6 @@
 
 @include('themes.servicebazzar.partials.enquiry-otp')
 
-@if(config('contact_call.enabled'))
-    @include('themes.servicebazzar.partials.contact-call')
-@endif
-
 @auth
 
 <div id="sbProfilePanelOverlay" class="sb-profile-overlay"></div>

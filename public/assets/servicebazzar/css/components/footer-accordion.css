@@ -1,6 +1,6 @@
 /**
- * Mobile-only accordion behavior for the site-wide footer's "Site Link",
- * "Useful Links", "Services", and "Contact Info" columns
+ * Mobile-only accordion behavior for the site-wide footer's "Quick Links",
+ * "Helpful Resources", "Services", and "Contact Info" columns
  * (resources/views/themes/servicebazzar/includes/footer.blade.php).
  *
  * Desktop/tablet: untouched — all four columns stay always-visible, no
@@ -13,7 +13,7 @@
 
 /*
  * On the home page specifically, this wrapper (directly inside
- * <footer>, holding Site Link/Useful Links/Services/Contact Info plus
+ * <footer>, holding Quick Links/Helpful Resources/Services/Contact Info plus
  * the copyright line) was computing `overflow: hidden auto` with a
  * `height` a few pixels shorter than its own content — enough to show
  * a real, visible internal scrollbar cutting across the footer. No
@@ -33,9 +33,7 @@
     /* The logo + description column (the only .footer-widget without a
        .widget-title/.widget-body pair) isn't part of the accordion — its
        logo image is simply hidden on mobile. */
-    .footer-area .footer-widget .site-logo {
-        display: none;
-    }
+    
 
     /* style.css gives every .footer-widget a 30px margin-bottom — barely
        noticeable on desktop where columns sit side by side, but on
@@ -70,7 +68,7 @@
         font-size: 14px !important;
         font-weight: 600;
         line-height: 1.4;
-        color: #222222;
+        color: #fff;
     }
 
     .footer-widget-toggle-icon {
@@ -81,7 +79,7 @@
         align-items: center;
         justify-content: center;
         margin-left: 10px;
-        color: #222;
+        color: #fff;
         font-size: 12px;
         line-height: 1;
     }

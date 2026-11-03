@@ -2032,6 +2032,25 @@ setInterval(() => {
         .trending-same-section .trend-nav,
         .location-same-section .trend-nav,
         .popular-same-section .trend-nav{
+            display:flex !important;
+            width:30px;
+            height:40px;
+            border-radius:50%;
+            z-index:6;
+        }
+        .trending-same-section .prev-btn,
+        .location-same-section .prev-btn,
+        .popular-same-section .prev-btn{
+            left:2px;
+        }
+        .trending-same-section .next-btn,
+        .location-same-section .next-btn,
+        .popular-same-section .next-btn{
+            right:2px;
+        }
+        .trending-same-section .trending-progress,
+        .location-same-section .location-progress,
+        .popular-same-section .popular-progress{
             display:none !important;
         }
     }
@@ -2570,7 +2589,8 @@ setInterval(() => {
 	 .jd-rating-count {
             font-size: 14px ! important;
         }
-		@media (max-width: 767px) {
+@media (max-width: 767px) {
+  .popup-grid {grid-template-columns: repeat(4, minmax(0, 1fr)) !important;}
   .popup-grid img {
     width: 50px !important;
   }

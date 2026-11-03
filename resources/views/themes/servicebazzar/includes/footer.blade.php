@@ -485,12 +485,17 @@
     @media (max-width: 767px) {
         .footer-area .footer-widget .widget-title {
             border-bottom-color: #dfe7dd;
+			width: 100% ! important;
         }
 
         .footer-area .footer-widget .widget-title h4,
         .footer-area .footer-widget .widget-title h5 {
             color: #263345 !important;
         }
+		footer-area .footer-widget .site-logo {
+			display: inline-block ! important;
+		  }
+		  
     }
 </style>
 
