@@ -625,9 +625,9 @@ window.SB = {
             position: relative;
             top: auto;
             left: auto;
-            flex: 0 0 164px;
-            width: 164px;
-            height: 164px;
+            flex: 0 0 264px;
+            width: 200px;
+            height: 180px;
             padding: 12px;
             border-radius: 14px;
             opacity: 1;
@@ -2028,13 +2028,15 @@ setInterval(() => {
         .popular-same-section .trending-scroll{
             grid-auto-columns:calc((100% - 12px) / 2) !important;
             padding:0 0 8px !important;
+			gap:10px !important;
         }
+		
         .trending-same-section .trend-nav,
         .location-same-section .trend-nav,
         .popular-same-section .trend-nav{
             display:flex !important;
-            width:30px;
-            height:40px;
+            width:25px;
+            height:25px;
             border-radius:50%;
             z-index:6;
         }
@@ -2181,7 +2183,7 @@ setInterval(() => {
             border-radius:15px;
         }
         .category-area .category-grid{
-            grid-template-columns:repeat(4,minmax(0,1fr));
+            grid-template-columns:repeat(3,minmax(0,1fr));
             gap:10px 8px;
         }
         .category-area .category-item{

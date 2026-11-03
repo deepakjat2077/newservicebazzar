@@ -1,8 +1,7 @@
+
 #buyerPopup.buyer-popup{
     position: fixed;
-    /* Bottom-left: on the right it sat over the category cards and the
-       "Get Nearest Vendor" links, and over the chat assistant's launcher. */
-    left: 30px;
+    right: 80px;
     bottom: 30px;
     width: 390px;
     height: 200px;
@@ -106,8 +105,7 @@
 #buyerPopup .buyer-close{
     position: absolute;
     top: 0;
-    /* Same side as the popup itself, which now sits bottom-left. */
-    left: 0;
+    right: 0;
     width: 28px;
     height: 28px;
     border: none;
@@ -244,6 +242,17 @@
 }
 
 @media (max-width: 767px){
+	
+	.trending-same-section .trend-nav{
+    width: 25px !important;
+    height: 25px !important;
+   
+}
+    .top-location-section .trend-nav{ width: 25px !important;
+    height: 25px !important;}
+	.popular-search-section.popular-same-section .trend-nav{ width: 25px !important;
+    height: 25px !important;}
+	
     .trending-same-section .trending-scroll{
         grid-auto-columns: 140px !important;
         gap: 12px !important;
@@ -845,5 +854,21 @@
 
     .featured-business-listings .premium-listings-title{
         font-size: 18px !important;
+    }
+	
+	.homepage-category-group .subcategory-col .font14{
+   
+    font-size: 11.5px ! important;
+   
+    }
+	.top-location-section .trend-nav{
+		width: 25px !important;
+		height: 25px !important;
+	   
+		}
+ .popular-search-section.popular-same-section .trend-nav{
+    width: 25px !important;
+    height: 25px !important;
+    
     }
 }
