@@ -1668,7 +1668,7 @@ WhatsApp
                                            @if($bannerCatSlug) class="dynamic-category-link" data-slug="{{ $bannerCatSlug }}" @endif>
                                     @endif
 
-      <img src="{{ loadImage($desktopSrc) }}" width="1200" height="534" alt="{{ $banner->content->title }}"  loading="{{ $loadPriority }}" fetchpriority="{{ $fetchPriority }}" decoding="async">
+      <img src="https://www.servicebazzar.com/assets/servicebazzar/images/banner/6ae85aa20590a7.09643384_1793612450.webp" width="1200" height="534" alt="{{ $banner->content->title }}"  loading="{{ $loadPriority }}" fetchpriority="{{ $fetchPriority }}" decoding="async">
      
     </div>
  @endforeach
@@ -1776,6 +1776,34 @@ WhatsApp
 }
 .arrow-left { left: 20px; }
 .arrow-right { right: 20px; }
+@media (max-width: 767px) {
+  .bazzar-slider-wrapper {
+    width: calc(100% - 20px);
+    height: auto;
+    aspect-ratio: 25 / 7;
+    margin: 8px auto 16px;
+    border-radius: 10px;
+  }
+  .bazzar-slides-container,
+  .bazzar-slide {
+    height: 100%;
+  }
+  .bazzar-slide img {
+    display: block;
+    object-fit: cover;
+  }
+  .bazzar-arrow {
+    display: flex;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 16px;
+  }
+  .arrow-left { left: 8px; }
+  .arrow-right { right: 8px; }
+}
 </style>
 
 <!-- SELF CONTAINED INDEPENDENT JAVASCRIPT -->
@@ -2525,7 +2553,7 @@ setInterval(() => {
             border-radius:15px;
         }
         .rr-section .cardhotkey__wrap{
-            padding:10px 0px 10px 10px
+            padding:10px 0px 10px 10px;
             border-radius:12px;
         }
         .category-content-section > .container-fluid{
@@ -2533,6 +2561,8 @@ setInterval(() => {
             border-radius:14px;
         }
         .category-content-row > [class*="col-"]{
+            flex-basis:100%;
+            max-width:100% !important;
             min-height:0;
             padding:14px;
         }
