@@ -154,6 +154,30 @@ class SitemapController extends Controller
         $subCounts = $counts[$location->id]['sub'] ?? [];
         $min = PageIndexability::minimumListings();
 
+        // "-in-{area}" locality landers for this city (e.g. pet-shop-in-jhotwara).
+        $areaCounts = $this->cityAreaCounts();
+        $catAreas = $areaCounts[$location->id]['cat'] ?? [];
+        $subAreas = $areaCounts[$location->id]['sub'] ?? [];
+        $citySlugForArea = \Illuminate\Support\Str::slug($city);
+
+        // Add one URL per area that holds at least $min listings in this
+        // service — the same threshold the area lander indexes on. An area
+        // whose slug just repeats the city ("…-in-jaipur" under /jaipur/) is
+        // the city page again and 301s, so it is skipped.
+        $addAreaUrls = function (string $serviceSlug, array $areaMap, ?string $lastmod) use (&$urls, $city, $citySlugForArea, $min) {
+            foreach ($areaMap as $areaSlug => $n) {
+                if ($n < $min || $areaSlug === '' || $areaSlug === $citySlugForArea) {
+                    continue;
+                }
+                $urls[] = [
+                    'loc'        => url('/' . $city . '/' . $serviceSlug . '-in-' . $areaSlug),
+                    'lastmod'    => $lastmod,
+                    'priority'   => '0.6',
+                    'changefreq' => 'weekly',
+                ];
+            }
+        };
+
         // Same doorway-page test the lander itself applies before rendering
         // noindex — see the mentions map below.
         $mentions = $this->landerCityMentions();
@@ -178,6 +202,7 @@ class SitemapController extends Controller
                 'priority'   => '0.8',
                 'changefreq' => 'daily',
             ];
+            $addAreaUrls($c->slug, $catAreas[$c->id] ?? [], optional($c->updated_at)->toAtomString());
         }
 
         $subcategories = Subcategory::where('status', 1)->select(['id', 'name', 'slug', 'updated_at'])->get();
@@ -197,6 +222,7 @@ class SitemapController extends Controller
                 'priority'   => '0.7',
                 'changefreq' => 'daily',
             ];
+            $addAreaUrls($s->slug, $subAreas[$s->id] ?? [], optional($s->updated_at)->toAtomString());
         }
 
         return $this->urlset($urls);
@@ -354,6 +380,83 @@ class SitemapController extends Controller
                                 if ($sid > 0) {
                                     $counts[$locId]['sub'][$sid] =
                                         ($counts[$locId]['sub'][$sid] ?? 0) + 1;
+                                }
+                            }
+                        }
+                    }
+                });
+
+            return $counts;
+        });
+    }
+
+    /**
+     * Live-listing counts per city x category/subcategory x AREA, keyed by the
+     * area's slug — the data behind the "-in-{area}" locality landers (e.g.
+     * /jaipur/pet-shop-in-jhotwara). Shape:
+     *   [locId => ['cat' => [catId => [areaSlug => n]], 'sub' => [subId => [...]]]]
+     *
+     * Counted off the listings' own `area` text, the same field the city x
+     * category page lists its localities from (ListingController's
+     * $categoryLocalities) and the same primary filter the area lander renders
+     * on. A listing matched on area text is always in the lander's own list, so
+     * a slug with n >= minimumListings() here renders `index` there — the area
+     * lander's render set is a superset (it also matches address/landmark and a
+     * 5km radius), so this never over-counts a page into the sitemap that would
+     * come back noindex. Cached like cityCounts(), for the same reason.
+     */
+    private function cityAreaCounts(): array
+    {
+        return Cache::remember('sitemap:city_area_counts:v1', now()->addHours(self::COUNTS_TTL_HOURS), function () {
+            $nameToLoc = Location::where('status', 1)
+                ->get(['id', 'name'])
+                ->mapWithKeys(fn ($l) => [strtolower(trim($l->name)) => $l->id]);
+
+            $counts = [];
+
+            Listing::where('status', 1)
+                ->whereNotNull('area')->where('area', '!=', '')
+                ->select(['location_id', 'city', 'category_id', 'subcategory_ids', 'area'])
+                ->chunk(2000, function ($rows) use (&$counts, $nameToLoc) {
+                    foreach ($rows as $r) {
+                        $areaSlug = \Illuminate\Support\Str::slug(trim((string) $r->area));
+                        if ($areaSlug === '') {
+                            continue;
+                        }
+
+                        $locIds = [];
+                        if (!empty($r->location_id)) {
+                            $locIds[$r->location_id] = true;
+                        }
+                        if (!empty($r->city)) {
+                            $byName = $nameToLoc[strtolower(trim($r->city))] ?? null;
+                            if ($byName) {
+                                $locIds[$byName] = true;
+                            }
+                        }
+                        if (empty($locIds)) {
+                            continue;
+                        }
+
+                        $subs = $r->subcategory_ids;
+                        if (is_string($subs)) {
+                            $subs = json_decode($subs, true);
+                        }
+                        $subs = is_array($subs) ? $subs : [];
+
+                        foreach (array_keys($locIds) as $locId) {
+                            if (!isset($counts[$locId])) {
+                                $counts[$locId] = ['cat' => [], 'sub' => []];
+                            }
+                            if (!empty($r->category_id)) {
+                                $counts[$locId]['cat'][$r->category_id][$areaSlug] =
+                                    ($counts[$locId]['cat'][$r->category_id][$areaSlug] ?? 0) + 1;
+                            }
+                            foreach ($subs as $sid) {
+                                $sid = (int) $sid;
+                                if ($sid > 0) {
+                                    $counts[$locId]['sub'][$sid][$areaSlug] =
+                                        ($counts[$locId]['sub'][$sid][$areaSlug] ?? 0) + 1;
                                 }
                             }
                         }

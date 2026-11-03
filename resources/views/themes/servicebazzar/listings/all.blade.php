@@ -2056,6 +2056,8 @@ a {
             </div>
         @endif
 
+        @include($themeView . 'partials.pasf-faq', ['pasfFaq' => $pasfFaq ?? null])
+
         {{-- Nearby-cities internal-link module: same service in other cities.
              Builds the siloed Service → City internal linking the SEO audit
              asked for, and gives crawlers a path into every city variant. --}}

@@ -3039,6 +3039,25 @@
             color: #0b5ed7;
         }
 
+        /* The sidebar is narrow, and a long email pushed the envelope icon
+           onto a line of its own. flex keeps the icon beside the text, and
+           the span wraps inside the space that is left. */
+        .contact-link--email {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .contact-link--email i {
+            flex: none;
+            margin-top: 3px;
+        }
+
+        .contact-link--email span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
         .address-text {
             font-size: 15px;
             color: #222;
@@ -4141,10 +4160,30 @@
                 && !empty($listing->mobile_numbers[0])
                 && (empty($bridgeCategoryIds) || in_array((string) ($listing->category_id ?? optional($listing->category)->id), $bridgeCategoryIds, true))
                 && (empty($bridgeLocationIds) || in_array((string) ($listing->location_id ?? optional($listing->location)->id), $bridgeLocationIds, true));
+
+            // Connect-by-Call OTP popup (same as the listing cards): the number
+            // stays hidden behind a verified call so a lead is captured. Built
+            // once and reused by all four call buttons on this page — the top
+            // card, the mobile quick actions, the sticky bottom bar and the
+            // sidebar. @see partials/contact-call.blade.php
+            $ccContact = config('contact_call.enabled')
+                && (!empty($listing->mobile_numbers[0]) || !empty($listing->landline_numbers[0]));
+            $ccArea  = collect([$listing->area ?? null, optional($listing->location)->name])->filter()->implode(', ');
+            $ccAttrs = 'data-track="call_click" data-type="call"'
+                . ' data-listing-id="' . e($listing->id) . '"'
+                . ' data-category-id="' . e($listing->category_id ?? optional($listing->category)->id ?? '') . '"'
+                . ' data-location-id="' . e($listing->location_id ?? optional($listing->location)->id ?? '') . '"'
+                . ' data-listing-name="' . e($listing->name) . '"'
+                . ' data-listing-area="' . e($ccArea) . '"';
         @endphp
 
         <!-- CALL BUTTON -->
-        @if($bridgeCallEligible)
+        @if($ccContact)
+    <button type="button" class="listing-btn btn-call-main track-click sb-contact-call" {!! $ccAttrs !!}>
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
+        Contact
+    </button>
+    @elseif($bridgeCallEligible)
     <a href="javascript:void(0)"
     class="listing-btn btn-call-main track-click bridge-call-btn"
     data-track="call_click"
@@ -4174,7 +4213,7 @@
     @endif
 
 
-    @if(!empty($listing->landline_numbers[0]))
+    @if(!$ccContact && !empty($listing->landline_numbers[0]))
     <a href="tel:{{ $listing->landline_numbers[0] }}"
     class="listing-btn btn-landline-main track-click"
     data-type="landline"
@@ -4318,7 +4357,13 @@
                             --}}
                             <div class="mobile-quick-actions">
 
-                                @if($bridgeCallEligible)
+                                @if($ccContact)
+                                    <button type="button"
+                                       class="mqa-btn mqa-call track-click sb-contact-call" {!! $ccAttrs !!}>
+                                        <span class="mqa-icon"><i class="las la-phone"></i></span>
+                                        <span class="mqa-label">Contact</span>
+                                    </button>
+                                @elseif($bridgeCallEligible)
                                     <a href="javascript:void(0)"
                                        class="mqa-btn mqa-call track-click bridge-call-btn"
                                        data-track="call_click"
@@ -5417,7 +5462,12 @@
 
         <div class="listing-action-buttons">
 
-            @if($bridgeCallEligible)
+            @if($ccContact)
+    <button type="button" class="listing-btn btn-call-main track-click sb-contact-call" {!! $ccAttrs !!}>
+        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
+        Contact
+    </button>
+    @elseif($bridgeCallEligible)
     <a href="javascript:void(0)"
     class="listing-btn btn-call-main track-click bridge-call-btn"
     data-track="call_click"
@@ -5445,7 +5495,7 @@
     @endif
 
 
-    @if(!empty($listing->landline_numbers[0]))
+    @if(!$ccContact && !empty($listing->landline_numbers[0]))
     <a href="tel:{{ $listing->landline_numbers[0] }}"
     class="listing-btn btn-landline-main track-click"
     data-type="landline"
@@ -6852,7 +6902,41 @@
                 <div class="contact-block">
                     <h5>Contact</h5>
 
-                @if($bridgeCallEligible)
+                @php
+        /*
+         * An account created from a WhatsApp enquiry carries a made-up
+         * address (…@whatsapp.servicebazzar.com) that reaches nobody, so it
+         * must never be printed as a way to contact the business.
+         */
+        $ccEmail = trim((string) ($listing->email ?? ''));
+        if ($ccEmail !== '' && (
+            !filter_var($ccEmail, FILTER_VALIDATE_EMAIL)
+            || str_ends_with(strtolower($ccEmail), '@whatsapp.servicebazzar.com')
+        )) {
+            $ccEmail = '';
+        }
+    @endphp
+
+    {{-- The email is this box's whole job. The call already lives in the top
+         card and the sticky bar that follows the visitor down the page, so
+         repeating it here only crowds the one thing not shown anywhere else.
+         Without an email the Contact button stands in rather than leaving the
+         box empty. --}}
+    @if($ccEmail !== '')
+
+        <a href="mailto:{{ $ccEmail }}" class="contact-link contact-link--email">
+            <i class="las la-envelope"></i>
+            <span>{{ $ccEmail }}</span>
+        </a>
+
+    @elseif($ccContact)
+
+        <button type="button" class="contact-link d-block track-click sb-contact-call" {!! $ccAttrs !!}>
+            <i class="las la-phone"></i>
+            Contact
+        </button>
+
+    @elseif($bridgeCallEligible)
 
         <a href="javascript:void(0)" class="contact-link d-block bridge-call-btn" data-listing-id="{{ $listing->id }}">
             <i class="las la-phone"></i>
@@ -6872,7 +6956,7 @@
 
     @endif
 
-    @if(!empty($listing->landline_numbers) && count(array_filter($listing->landline_numbers)))
+    @if(!$ccContact && !empty($listing->landline_numbers) && count(array_filter($listing->landline_numbers)))
 
         @foreach($listing->landline_numbers as $index => $number)
             @if(!empty($number))
@@ -6888,7 +6972,8 @@
 
     @if(
         empty(array_filter($listing->mobile_numbers ?? [])) &&
-        empty(array_filter($listing->landline_numbers ?? []))
+        empty(array_filter($listing->landline_numbers ?? [])) &&
+        $ccEmail === ''
     )
         <p class="mb-0">No contact number available.</p>
     @endif
