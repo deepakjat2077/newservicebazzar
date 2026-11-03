@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-IN">
 <head>
-
+	
 	@stack('lcp')
 
 	@include('includes.seo')
@@ -25,7 +25,7 @@
 	<link rel="preload" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/line-awesome.min.css') }}"></noscript>
 
-
+	
 	<link rel="preload" href="{{ asset($themeAsset.'css/slick.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript><link rel="stylesheet" href="{{ asset($themeAsset.'css/slick.css') }}"></noscript>
 
@@ -51,10 +51,10 @@
 @php
     $sbIsHomeLike = request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug');
 
-
+  
     $sbBodyClass = trim(($sbIsHomeLike ? 'home-page' : '')
         . (request()->routeIs('home') ? '' : ' mobile-yt-search-open')
-
+       
         . (request()->routeIs('home') ? '' : ' jd-head'));
 @endphp
 <body class="{{ $sbBodyClass }}"
@@ -69,9 +69,9 @@
 >
 @auth
     @php
-
+      
         $sbHeaderBusiness = auth()->user()->listings()->where('status', 1)->latest()->first();
-
+       
         $sbHasBusinessListing = $sbHeaderBusiness || auth()->user()->listings()->exists();
     @endphp
 @endauth
@@ -169,6 +169,10 @@
             min-height: 70px;
             align-items: center;
         }
+        body.home-page #stickyScrollHeader .navbar {
+            padding-left: 15px;
+            padding-right: 7px;
+        }
         #stickyScrollHeader .navbar-brand {
             display: inline-flex;
             flex: 0 0 auto;
@@ -176,12 +180,11 @@
             margin: 0 10px 0 0;
             padding: 0;
         }
-        /* Same 40px height the logo has always had (site-01.css) — forcing a
-           200px width here made it taller than the rest of the header. */
         #stickyScrollHeader .navbar-brand .logo-hight {
             display: block;
-            width: auto;
-            height: 40px;
+            width: 200px;
+            height: auto;
+            max-height: 50px;
             object-fit: contain;
         }
         #stickyScrollHeader .navbar-collapse {
@@ -190,9 +193,6 @@
         }
     }
     @media (max-width: 991px) {
-        /* The inner pages carry their own logo in the .jdh-top row, so the
-           navbar brand is hidden there — but the home page has no jdh-top,
-           and hiding it everywhere left that page with no logo at all. */
         body:not(.jd-head) #stickyScrollHeader .navbar-brand {
             display: inline-flex !important;
             flex: 0 0 auto;
@@ -207,10 +207,10 @@
 
 	<header class="header-area" id="stickyScrollHeader">
 		<div class="bottom-header">
-			<div class="container-fuldie  .head-right ">
+			<div class="container-fuldie">
 				<nav class="navbar navbar-expand-lg navbar-light">
                 @if(!request()->routeIs('home'))
-
+              
                 <div class="jdh-top">
                     <button type="button" class="jdh-ico" aria-label="Go back" onclick="goBackPage()"><i class="las la-angle-left"></i></button>
                     <a href="{{ route('home') }}" class="jdh-logo"><img src="{{ asset('assets/images/logo/logo.png') }}" alt="Service Bazzar"></a>
@@ -270,7 +270,7 @@
 
 </div>
 
-
+        
     </form>
 </div>
 
@@ -287,7 +287,7 @@
 </a>
 @endguest
 
-
+				
 
 					<div class="collapse navbar-collapse" id="navbarSupportedContent">
 						@php
@@ -382,7 +382,7 @@
 					</div>
 				</nav>
 
-
+			
 				<div class="jd-mobile-location-strip" id="jdMobileLocationStrip">
 				<button type="button" class="jd-mobile-city-btn detecting" id="jdMobileCityBtn">
 						<i class="las la-map-marker"></i>
@@ -390,7 +390,7 @@
 						<i class="las la-angle-down"></i>
 					</button>
 
-
+                    
 				<div class="jd-mobile-location-box" id="jdMobileLocationBox">
 
     <div class="jd-location-modal-head">
@@ -419,7 +419,7 @@
 		</div>
 	</header>
 
-
+    
     <main id="main-content">
     @yield('content')
     </main>
@@ -499,7 +499,7 @@
 	<script src="{{ asset($themeAsset.'js/slick.min.js') }}" defer></script>
 	<script src="{{ asset($themeAsset.'js/app.js') }}?v={{ filemtime(public_path($themeAsset.'js/app.js')) }}" defer></script>
 
-	<script src="{{ asset('assets/js/tracking.js') }}?v={{ @filemtime(public_path('assets/js/tracking.js')) }}" defer></script>
+	<script src="{{ asset('assets/js/tracking.js') }}" defer></script>
 
 	@stack('js')
 
@@ -621,10 +621,6 @@
 
 @include('themes.servicebazzar.partials.enquiry-otp')
 
-@if(config('contact_call.enabled'))
-    @include('themes.servicebazzar.partials.contact-call')
-@endif
-
 @auth
 
 <div id="sbProfilePanelOverlay" class="sb-profile-overlay"></div>
@@ -641,7 +637,7 @@
     </div>
 
     @php
-
+       
         $sbMyBusiness = $sbHeaderBusiness;
     @endphp
 
@@ -670,7 +666,7 @@
             <span>Dashboard</span>
         </a>
 
-
+    
         <a href="{{ $sbMyBusiness ? route('user.listing.leads', $sbMyBusiness->id) : route('user.listing.index') }}" class="sb-profile-item">
             <i class="fa-solid fa-inbox"></i>
             <span>Leads &amp; Enquiries</span>
@@ -720,7 +716,6 @@
 @include('themes.servicebazzar.layouts.site.site-11')
 
 @include('themes.servicebazzar.partials.notification_bell')
-@include('themes.servicebazzar.partials.ai-assistant')
 @include('themes.servicebazzar.partials.inline-js', ['file' => 'layout/site-08.js'])
 </body>
 </html>

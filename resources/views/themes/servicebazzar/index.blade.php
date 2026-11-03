@@ -2570,6 +2570,11 @@ setInterval(() => {
 	 .jd-rating-count {
             font-size: 14px ! important;
         }
+		@media (max-width: 767px) {
+  .popup-grid img {
+    width: 50px !important;
+  }
+}
 </style>
 
 
