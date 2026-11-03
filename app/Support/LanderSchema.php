@@ -160,7 +160,9 @@ class LanderSchema
             $ownDesc = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($item->seo_description ?? ''))));
             if ($ownDesc !== '') {
                 $cityOnly = trim(Str::afterLast($cityName, ','));
-                $data['seoDescription'] = sb_clamp_meta_description(str_ireplace('Jaipur', $cityOnly, $ownDesc), 160);
+                $desc = str_ireplace('Jaipur', $cityOnly, $ownDesc);
+                $desc = str_ireplace('near you', 'in ' . $cityOnly, $desc);
+                $data['seoDescription'] = sb_clamp_meta_description($desc, 160);
                 return;
             }
 

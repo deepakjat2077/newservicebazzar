@@ -3755,6 +3755,15 @@
         } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
             $ratingCount = (int) $listing->ratings_count;
         }
+
+        // Combine with Google ratings (same logic as listing cards in ajax-listings.blade.php)
+        $gRating = (float) ($listing->gmb_rating ?? 0);
+        $gCount  = (int)   ($listing->gmb_review_count ?? 0);
+        $combinedCount = $ratingCount + $gCount;
+        if ($combinedCount > 0) {
+            $rating = round((($rating * $ratingCount) + ($gRating * $gCount)) / $combinedCount, 1);
+        }
+        $ratingCount = $combinedCount;
     @endphp
 
     {{-- jd-rating-line1/2 are display:contents by default (see CSS), so on
@@ -6217,27 +6226,38 @@
             <h4 class="media-title  ddd mb-0">@lang('Review & Ratings')</h4>
     
     @php
-    $avgRating = round($listing->ratings->avg('ratings') ?? 0, 1);
-    $totalRatings = $listing->ratings->count();
+    $sbAvgRating   = round($listing->ratings->avg('ratings') ?? 0, 1);
+    $sbTotalRatings = $listing->ratings->count();
+
+    $summaryGRating = (float) ($listing->gmb_rating ?? 0);
+    $summaryGCount  = (int)   ($listing->gmb_review_count ?? 0);
+    $summaryTotal   = $sbTotalRatings + $summaryGCount;
+    if ($summaryTotal > 0) {
+        $summaryAvg = round((($sbAvgRating * $sbTotalRatings) + ($summaryGRating * $summaryGCount)) / $summaryTotal, 1);
+    } else {
+        $summaryAvg = 0;
+    }
     @endphp
 
-    {{-- Only this listing's own ratings on Service Bazzar feed these numbers —
-         nothing from other sites, so the text must not say "across the web". --}}
     <div class="rating-summary-box">
         <div class="rating-summary-score">
-            {{ number_format($avgRating, 1) }}
+            {{ number_format($summaryAvg > 0 ? $summaryAvg : $sbAvgRating, 1) }}
         </div>
 
         <div class="rating-summary-content">
-            <h3>{{ $totalRatings }} {{ $totalRatings === 1 ? 'Rating' : 'Ratings' }}</h3>
+            <h3>{{ $summaryTotal }} {{ $summaryTotal === 1 ? 'Rating' : 'Ratings' }}</h3>
 
             <p>
-                @if($totalRatings === 0)
+                @if($summaryTotal === 0)
                     No ratings yet. Be the first to rate this business.
-                @elseif($totalRatings === 1)
+                @elseif($sbTotalRatings > 0 && $summaryGCount > 0)
+                    {{ $sbTotalRatings }} {{ $sbTotalRatings === 1 ? 'rating' : 'ratings' }} on Service Bazzar &amp; {{ $summaryGCount }} on Google Maps
+                @elseif($summaryGCount > 0)
+                    Based on {{ $summaryGCount }} ratings from Google Maps
+                @elseif($sbTotalRatings === 1)
                     Based on 1 rating from a customer on Service Bazzar
                 @else
-                    Average of {{ $totalRatings }} ratings from customers on Service Bazzar
+                    Average of {{ $sbTotalRatings }} ratings from customers on Service Bazzar
                 @endif
             </p>
         </div>

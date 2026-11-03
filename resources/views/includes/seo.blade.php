@@ -1,5 +1,7 @@
 @php
-    $defaultTitle = $setting->site_name . (!empty(trim($__env->yieldContent('title'))) ? ' | ' . trim($__env->yieldContent('title')) : '');
+    $defaultTitle = !empty(trim($__env->yieldContent('title')))
+        ? trim($__env->yieldContent('title'))
+        : $setting->site_name;
 
     $defaultDescription = $setting->seo->meta_description ?? '';
     $defaultKeywords = !empty($setting->seo->keywords)
