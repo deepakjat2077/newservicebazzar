@@ -88,7 +88,11 @@ class Subcategory extends Model
         static::saving(function ($sub) {
             $current = trim((string) ($sub->seo_title ?? ''));
             $len = mb_strlen($current);
-            $healthy = $current !== '' && $len >= self::SEO_TITLE_MIN && $len <= self::SEO_TITLE_MAX;
+            // Min-length (30) is NOT checked here — an admin who typed
+            // e.g. "Trusted Accountants in Jaipur" (29 chars) wants that
+            // kept; the name-in-title and uniqueness checks below are
+            // sufficient guards. Only the max (60) is hard.
+            $healthy = $current !== '' && $len <= self::SEO_TITLE_MAX;
 
             // The audit also wants the whole name in the title, so a title
             // missing it is not healthy however well-sized it is. A name that
