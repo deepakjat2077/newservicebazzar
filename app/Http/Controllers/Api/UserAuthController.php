@@ -51,8 +51,18 @@ class UserAuthController extends Controller
             'success'   => true,
             'providers' => [
                 'whatsapp' => $this->whatsappConfigured(),
-                'google'   => $this->providerEnabled('google'),
-                'facebook' => $this->providerEnabled('facebook'),
+                // The app reads the client id from here instead of hard-coding
+                // it, so changing it in Setting > Social Login takes effect with
+                // no app release. client_id is public (it ships inside the app);
+                // the secret stays server-side only.
+                'google'   => [
+                    'enabled'   => $this->providerEnabled('google'),
+                    'client_id' => config('services.google.client_id'),
+                ],
+                'facebook' => [
+                    'enabled'   => $this->providerEnabled('facebook'),
+                    'client_id' => config('services.facebook.client_id'),
+                ],
             ],
             'otp' => [
                 'length'            => 6,
