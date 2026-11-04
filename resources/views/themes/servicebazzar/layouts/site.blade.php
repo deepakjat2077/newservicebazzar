@@ -716,6 +716,7 @@
 @include('themes.servicebazzar.layouts.site.site-11')
 
 @include('themes.servicebazzar.partials.notification_bell')
+@include('themes.servicebazzar.partials.ai-assistant')
 @include('themes.servicebazzar.partials.inline-js', ['file' => 'layout/site-08.js'])
 </body>
 </html>
