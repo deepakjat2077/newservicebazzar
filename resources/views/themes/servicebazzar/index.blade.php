@@ -1741,7 +1741,7 @@ WhatsApp
 .bazzar-slider-wrapper {
   position: relative;
   width: 100%;
-  max-width: 1230px;
+ 
   height: 350px;
   margin: 10px auto;
   overflow: hidden;
@@ -2114,7 +2114,7 @@ setInterval(() => {
     }
     .category-area{
         width:calc(100% - 40px);
-        max-width:1270px;
+        
         margin:5px auto !important;
         padding:0 !important;
     }
@@ -2436,7 +2436,7 @@ setInterval(() => {
     .featured-business-listings > .container-fluid{
         box-sizing:border-box;
         width:calc(100% - 40px);
-        max-width:1270px;
+        
         padding:24px;
         border:1px solid #dce8d9;
         border-radius:18px;
@@ -2665,6 +2665,11 @@ setInterval(() => {
   .popup-grid img {
     width: 50px !important;
   }
+}
+@media screen and (min-width: 1200px) and (max-width: 1280px) {
+	 .category-area{ max-width:1270px ! important; }
+	 .featured-business-listings > .container-fluid{ max-width:1270px ! important;}
+	 .bazzar-slider-wrapper { max-width: 1230px ! important;}
 }
 </style>
 
