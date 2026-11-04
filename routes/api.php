@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AdminAuthController;
 use App\Http\Controllers\Api\BrowseController;
 use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\SalesPackageController;
 use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessEditController;
 use App\Http\Controllers\Api\ProfileController;
@@ -125,8 +126,16 @@ Route::middleware('user.api.optional')->group(function () {
     // Homepage banner carousel, the same rows the admin's Banner Section edits.
     Route::get('banners',       [ContentController::class, 'banners']);
 
-    // Premium plans.
+    // Premium plans (legacy Package model).
     Route::get('plans',         [ContentController::class, 'plans']);
+
+    // "More ways to grow" sales packages (CertificatePackage): SB Verified,
+    // banners, certificates, business websites, Top positions. Buying one
+    // needs a login (POST sales-deposit, below); browsing does not.
+    Route::get('sales-packages',             [SalesPackageController::class, 'index']);
+    Route::get('sales-packages/{id}',        [SalesPackageController::class, 'show'])->whereNumber('id');
+    Route::get('sales-packages/{id}/areas',  [SalesPackageController::class, 'areas'])->whereNumber('id');
+    Route::get('website-templates',          [SalesPackageController::class, 'templates']);
 
     // The pages behind the website's SERVICES menu.
     Route::get('services',          [ContentController::class, 'services']);
@@ -160,6 +169,11 @@ Route::middleware('user.api')->group(function () {
     Route::get('payment-methods',       [PaymentController::class, 'methods']);
     Route::post('deposit',              [PaymentController::class, 'deposit']);
     Route::get('deposit/{trx}/status',  [PaymentController::class, 'status']);
+
+    // Buying a "More ways to grow" sales package onto one of the user's own
+    // listings. Returns checkout_url (/pay/{trx}) for paid plans — poll the
+    // same deposit/{trx}/status above — or activates a free plan immediately.
+    Route::post('sales-deposit',        [SalesPackageController::class, 'deposit']);
 });
 
 
