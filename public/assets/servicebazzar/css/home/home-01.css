@@ -1341,7 +1341,7 @@
     color: #111;
 }
 .rr-section .subcategory-col .font14{
-    font-size: 15px;
+    font-size: 11.5px;
     line-height: 20px;
     text-align: center;
     font-weight: 500;
@@ -2040,6 +2040,7 @@ label.popup-overlay {
         max-width: 100%;
         margin: 0;
         text-align: center;
+		min-height:175px ! important;
     }
 
     .rr-section .mini-service-card{
@@ -2794,6 +2795,17 @@ label.popup-overlay {
         min-height: 15px !important;
         max-height: 15px !important;
     }
+	 .popup-item span{
+        font-size: 9.5px !important;
+        line-height: 1.2 !important;
+        
+    }
+	 .popup-item{
+       
+        padding: 8px 0px !important;
+       
+    }
+	.popup-grid {gap: 10px 0px !important; }
 }
 /* Narrow phones (360px): 12px side padding left a long name only 78px. */
 @media (max-width: 400px){
