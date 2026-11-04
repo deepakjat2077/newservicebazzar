@@ -2798,6 +2798,7 @@ label.popup-overlay {
 	 .popup-item span{
         font-size: 9.5px !important;
         line-height: 1.2 !important;
+		font-weight: 600 ! important;
         
     }
 	 .popup-item{
