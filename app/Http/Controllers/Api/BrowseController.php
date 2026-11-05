@@ -43,7 +43,10 @@ class BrowseController extends Controller
 
         $featured = Listing::notExpired()
             ->where('status', 1)->where('trust', 1)
-            ->with('category', 'location')
+            ->with([
+                'category', 'location',
+                'salesPackages' => fn ($q) => $q->where('expires_at', '>', now())->with('package'),
+            ])
             ->orderByDesc('id')->limit(12)->get();
 
         return response()->json([
@@ -203,7 +206,10 @@ class BrowseController extends Controller
                 ->whereJsonContains('subcategory_ids', (string) $subcategory->id)
                 ->orWhereJsonContains('subcategory_ids', $subcategory->id)))
             ->when(!$subcategory, fn ($q) => $q->where('category_id', $category->id))
-            ->with('category', 'location')->withCount('ratings');
+            ->with([
+                'category', 'location',
+                'salesPackages' => fn ($q) => $q->where('expires_at', '>', now())->with('package'),
+            ])->withCount('ratings');
 
         if ($area !== null && $area !== '') {
             $listings->where(fn ($q) => $q->where('area', 'like', "%{$area}%")
@@ -369,7 +375,10 @@ class BrowseController extends Controller
 
         $listings = Listing::notExpired()->where('status', 1)
             ->whereRaw("{$norm} LIKE ?", ['%' . $qn . '%'])
-            ->with('category', 'location')->withCount('ratings')
+            ->with([
+                'category', 'location',
+                'salesPackages' => fn ($q) => $q->where('expires_at', '>', now())->with('package'),
+            ])->withCount('ratings')
             ->when($location, fn ($q) => $q->orderByRaw('CASE WHEN location_id = ? THEN 0 ELSE 1 END', [$location->id]))
             ->orderByRaw('CASE WHEN top_rank IS NULL THEN 1 ELSE 0 END')->orderBy('top_rank')->orderByDesc('id')
             ->limit(5)->get()
@@ -643,7 +652,10 @@ class BrowseController extends Controller
         $lng      = $request->filled('longitude') ? (float) $request->longitude : null;
 
         $listings = Listing::notExpired()->where('status', 1)
-            ->with('category', 'location')->withCount('ratings');
+            ->with([
+                'category', 'location',
+                'salesPackages' => fn ($q) => $q->where('expires_at', '>', now())->with('package'),
+            ])->withCount('ratings');
 
         // Match by category slug first (for URL-friendly search like /api/find/delhi/packers-and-movers)
         if ($term !== '') {
@@ -745,7 +757,10 @@ class BrowseController extends Controller
     public function detail(Request $request, string $slug)
     {
         $listing = Listing::notExpired()->where('status', 1)->where('slug', $slug)
-            ->with('category', 'location', 'ratings.user', 'ratings.comments.user')
+            ->with([
+                'category', 'location', 'ratings.user', 'ratings.comments.user',
+                'salesPackages' => fn ($q) => $q->where('expires_at', '>', now())->with('package'),
+            ])
             ->withCount('ratings')
             ->firstOrFail();
 
@@ -1000,6 +1015,10 @@ class BrowseController extends Controller
 
     protected function listingCard(Listing $l, array $favIds): array
     {
+        $packages = $this->activePackages($l);
+        $topPosition = collect($packages)->where('type', 'top_position')
+            ->pluck('position')->filter(fn ($p) => $p !== null)->min();
+
         return [
             'id'           => $l->id,
             'name'         => $l->name,
@@ -1013,8 +1032,50 @@ class BrowseController extends Controller
             'review_count' => (int) ($l->ratings_count ?? $l->ratings()->count()),
             'verified'     => (bool) $l->verified,
             'trust'        => (bool) $l->trust,
+            // True when the business holds any live paid package (badge, Top
+            // position, certificate, banner…) — a single "is this paid" signal.
+            'is_premium'   => (bool) ($l->verified || $l->trust || $l->is_star || count($packages) > 0),
+            // Best (lowest) Top-N slot it currently holds, else null.
+            'top_position' => $topPosition !== null ? (int) $topPosition : null,
+            // Every active paid package with its validity (see activePackages()).
+            'packages'     => $packages,
             'is_favorited' => in_array($l->id, $favIds, true),
         ];
+    }
+
+    /**
+     * Every paid package a listing currently holds, each with how long it runs.
+     *
+     * Reads the eager-loaded `salesPackages` when present (so lists stay one
+     * query), else loads this listing's own live rows. Only packages whose
+     * window is still open are returned.
+     */
+    protected function activePackages(Listing $l): array
+    {
+        $rows = $l->relationLoaded('salesPackages')
+            ? $l->salesPackages
+            : $l->salesPackages()->where('expires_at', '>', now())->with('package')->get();
+
+        return collect($rows)
+            ->filter(fn ($b) => $b->expires_at && $b->expires_at->isFuture())
+            ->map(function ($b) {
+                $pkg = $b->package;
+
+                return [
+                    'name'       => $pkg->name ?? $b->plan,
+                    'type'       => $pkg->perk_type ?? null,   // badge_verified | badge_trusted | top_position | certificate | banner | none
+                    'plan'       => $b->plan,
+                    'position'   => $b->position !== null && $b->position !== '' ? (int) $b->position : null,
+                    'city'       => $b->city ?: null,
+                    'area'       => $b->area ?: null,
+                    'days'       => (int) $b->days,
+                    'started_at' => optional($b->starts_at)->toIso8601String(),
+                    'expires_at' => optional($b->expires_at)->toIso8601String(),
+                    'days_left'  => max(0, (int) ceil(now()->floatDiffInDays($b->expires_at))),
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     protected function reviewPayload(Rating $r, $myId): array

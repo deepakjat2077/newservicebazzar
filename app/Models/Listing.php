@@ -347,6 +347,12 @@ public static function forgetSubcategoryLookup(): void
         return $this->hasMany(Rating::class);
     }
 
+    /** Paid sales packages (SB Verified, Trusted, Top position, certificate, banner…). */
+    public function salesPackages()
+    {
+        return $this->hasMany(ListingSalesPackage::class, 'listing_id');
+    }
+
     
 
     public function scopeNotExpired($query)
