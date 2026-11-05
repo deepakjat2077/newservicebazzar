@@ -27,6 +27,14 @@ use Illuminate\Http\Request;
  */
 class SalesPackageController extends Controller
 {
+    /**
+     * The only gateways the sales-package checkout runs through (the website's
+     * flow for these packages uses exactly these). The methods list and the
+     * deposit validation both read this, so the app is never shown a method
+     * that deposit() would reject.
+     */
+    public const SALES_GATEWAYS = ['razorpay', 'cashfree'];
+
     /** The card list — every active sales package, lightest payload. */
     public function index()
     {
@@ -55,12 +63,19 @@ class SalesPackageController extends Controller
         return response()->json([
             'success' => true,
             'package' => $this->card($package) + [
-                'tiers'         => $package->tierLabels(),
-                'price_tree'    => $package->positionPriceTree(),
-                'cities'        => $this->cities($package),
-                'templates'     => $package->needsTemplate() ? $this->templateList($listingId) : [],
+                'tiers'           => $package->tierLabels(),
+                'price_tree'      => $package->positionPriceTree(),
+                'cities'          => $this->cities($package),
+                'templates'       => $package->needsTemplate() ? $this->templateList($listingId) : [],
+                'payment_methods' => $this->salesMethods(),
             ],
         ]);
+    }
+
+    /** Only the gateways the sales checkout accepts (Razorpay, Cashfree). */
+    public function methods()
+    {
+        return response()->json(['success' => true, 'methods' => $this->salesMethods()]);
     }
 
     /** Areas of a city, for the city/area picker (same as the website). */
@@ -185,7 +200,7 @@ class SalesPackageController extends Controller
 
         // Paid: only the gateways this checkout actually uses on the website.
         $method = MethodCurrency::where('enable_status', 1)->where('id', $request->method)
-            ->whereHas('paymentMethod', fn ($q) => $q->whereIn('act', ['razorpay', 'cashfree']))
+            ->whereHas('paymentMethod', fn ($q) => $q->whereIn('act', self::SALES_GATEWAYS))
             ->firstOrFail();
 
         $amount = $choice['price'];
@@ -292,6 +307,32 @@ class SalesPackageController extends Controller
             $out[] = $row;
         }
         return $out;
+    }
+
+    /**
+     * The enabled Razorpay / Cashfree methods the sales checkout accepts,
+     * in the same shape as the generic /api/payment-methods list so the app
+     * renders them the same way.
+     */
+    protected function salesMethods(): array
+    {
+        return MethodCurrency::where('enable_status', 1)
+            ->whereHas('paymentMethod', fn ($q) => $q->whereIn('act', self::SALES_GATEWAYS))
+            ->with('paymentMethod')
+            ->get()
+            ->map(fn ($m) => [
+                'id'             => $m->id,
+                'name'           => optional($m->paymentMethod)->name,
+                'currency'       => $m->currency,
+                'symbol'         => $m->currency_name ?: $m->currency,
+                'is_manual'      => (bool) $m->is_manual,
+                'image'          => optional($m->paymentMethod)->image ? asset(optional($m->paymentMethod)->image) : null,
+                'minimum'        => $m->minimum,
+                'maximum'        => $m->maximum,
+                'percent_charge' => $m->p_charge,
+                'fixed_charge'   => $m->f_charge,
+                'rate'           => $m->cv_rate,
+            ])->values()->all();
     }
 
     /** A valid, live listing id from the request (for design previews), or null. */

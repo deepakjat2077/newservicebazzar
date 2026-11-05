@@ -133,6 +133,7 @@ Route::middleware('user.api.optional')->group(function () {
     // banners, certificates, business websites, Top positions. Buying one
     // needs a login (POST sales-deposit, below); browsing does not.
     Route::get('sales-packages',             [SalesPackageController::class, 'index']);
+    Route::get('sales-packages/methods',     [SalesPackageController::class, 'methods']);
     Route::get('sales-packages/{id}',        [SalesPackageController::class, 'show'])->whereNumber('id');
     Route::get('sales-packages/{id}/areas',  [SalesPackageController::class, 'areas'])->whereNumber('id');
     Route::get('website-templates',          [SalesPackageController::class, 'templates']);
