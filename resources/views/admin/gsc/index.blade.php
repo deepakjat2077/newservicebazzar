@@ -1,246 +1,171 @@
 @extends('admin.layouts.master')
-@section('title','Google Search Console')
+@section('title','Search Console')
 @section('content')
 
 <style>
-.gsc-wrap { padding: 24px; }
-.gsc-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
-.gsc-title { font-size:20px; font-weight:600; color:#1e293b; }
-.gsc-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:28px; }
-.gsc-card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:18px 20px; }
-.gsc-card-label { font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
-.gsc-card-value { font-size:26px; font-weight:700; color:#1e293b; }
-.gsc-card.clicks  .gsc-card-value { color:#2563eb; }
-.gsc-card.impr    .gsc-card-value { color:#7c3aed; }
-.gsc-card.ctr     .gsc-card-value { color:#059669; }
-.gsc-card.pos     .gsc-card-value { color:#d97706; }
+.gsc-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:22px; }
+.gsc-card { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:16px 18px; }
+.gsc-card-label { font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:.4px; margin-bottom:5px; }
+.gsc-card-value { font-size:25px; font-weight:700; color:#1e293b; }
+.gsc-card.clicks .gsc-card-value { color:#2563eb; }
+.gsc-card.impr   .gsc-card-value { color:#7c3aed; }
+.gsc-card.ctr    .gsc-card-value { color:#059669; }
+.gsc-card.pos    .gsc-card-value { color:#d97706; }
 .gsc-section { background:#fff; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:20px; overflow:hidden; }
-.gsc-section-title { font-size:14px; font-weight:600; color:#1e293b; padding:14px 18px; border-bottom:1px solid #f1f5f9; }
+.gsc-section-head { padding:14px 18px; border-bottom:1px solid #f1f5f9; }
+.gsc-section-title { font-size:15px; font-weight:700; color:#1e293b; margin:0; }
+.gsc-section-sub { font-size:12.5px; color:#64748b; margin:3px 0 0; }
 .gsc-table { width:100%; border-collapse:collapse; font-size:13px; }
-.gsc-table th { background:#f8fafc; padding:10px 16px; text-align:left; color:#64748b; font-weight:600; border-bottom:1px solid #e2e8f0; }
-.gsc-table td { padding:10px 16px; border-bottom:1px solid #f1f5f9; color:#334155; }
-.gsc-table tr:last-child td { border-bottom:none; }
-.gsc-table tr:hover td { background:#f8fafc; }
-.gsc-table td.url { color:#2563eb; word-break:break-all; max-width:320px; font-size:12px; }
-.badge-clicks { background:#dbeafe; color:#1d4ed8; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; }
-.badge-pos    { background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; }
-.connect-box  { text-align:center; padding:60px 20px; }
-.connect-box h2 { font-size:18px; font-weight:600; margin-bottom:10px; color:#1e293b; }
-.connect-box p  { color:#64748b; margin-bottom:24px; }
-.btn-connect { display:inline-flex; align-items:center; gap:8px; background:#2563eb; color:#fff; padding:12px 28px; border-radius:8px; font-weight:600; text-decoration:none; }
-.btn-connect:hover { background:#1d4ed8; color:#fff; }
-.btn-disconnect { background:none; border:1px solid #e2e8f0; color:#64748b; padding:8px 16px; border-radius:6px; font-size:13px; cursor:pointer; }
-.btn-disconnect:hover { background:#fee2e2; border-color:#fca5a5; color:#dc2626; }
+.gsc-table th { background:#f8fafc; padding:9px 16px; text-align:left; color:#64748b; font-weight:600; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+.gsc-table td { padding:9px 16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+.gsc-table td.num, .gsc-table th.num { text-align:right; }
+.gsc-kw { word-break:break-word; color:#1e293b; }
+.gsc-url { word-break:break-all; font-size:12px; color:#2563eb; }
+.gsc-badge { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; }
+.gsc-badge.p2 { background:#fef3c7; color:#b45309; }
+.gsc-badge.ok { background:#dcfce7; color:#15803d; }
+.gsc-badge.lo { background:#fee2e2; color:#b91c1c; }
+.gsc-filter { display:flex; gap:8px; margin-bottom:18px; }
+.gsc-filter a { padding:6px 14px; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; color:#475569; text-decoration:none; }
+.gsc-filter a.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+.gsc-trend { display:flex; align-items:flex-end; gap:3px; height:60px; padding:14px 18px 0; }
+.gsc-trend .bar { flex:1; background:#bfdbfe; border-radius:2px 2px 0 0; min-height:2px; }
+.gsc-empty { padding:22px 18px; color:#94a3b8; font-size:13px; }
 </style>
 
-<div class="gsc-wrap">
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0">Search Console <small class="text-muted" style="font-size:13px;">{{ $from }} → {{ $end }}</small></h4>
+    @if($lastPull)
+        <span class="text-muted" style="font-size:12px;">Last pull: {{ \Carbon\Carbon::parse($lastPull)->format('d M, h:i A') }}</span>
+    @endif
+</div>
 
-    <div class="gsc-header">
-        <div class="gsc-title">
-            <img src="https://www.google.com/favicon.ico" style="width:18px;vertical-align:-3px;margin-right:8px" alt="">
-            Google Search Console
-        </div>
-        @if($connected)
-        <form action="{{ route('admin.gsc.disconnect') }}" method="POST">
-            @csrf @method('DELETE')
-            <button type="submit" class="btn-disconnect" onclick="return confirm('Disconnect GSC?')">Disconnect</button>
-        </form>
-        @endif
+@if(!$configured)
+    <div class="alert alert-danger">Google service-account key missing — Search Console data can't be pulled.</div>
+@elseif(!$hasData)
+    <div class="alert alert-info">
+        No data yet. Run <code>php artisan seo:gsc-pull</code> once (it pulls automatically every day), then refresh.
     </div>
+@endif
 
-    @if(session('success'))
-        <div class="alert alert-success mb-3">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger mb-3">{{ session('error') }}</div>
-    @endif
+<div class="gsc-filter">
+    <a href="{{ route('admin.gsc.index', ['days'=>7]) }}"  class="{{ $days==7  ? 'active' : '' }}">7 days</a>
+    <a href="{{ route('admin.gsc.index', ['days'=>28]) }}" class="{{ $days==28 ? 'active' : '' }}">28 days</a>
+    <a href="{{ route('admin.gsc.index', ['days'=>90]) }}" class="{{ $days==90 ? 'active' : '' }}">90 days</a>
+</div>
 
-    @if(!$connected)
-        <div class="gsc-section">
-            <div class="connect-box">
-                <h2>Google Search Console Connect Nahi Hai</h2>
-                <p>Last 28 days ke clicks, impressions, top pages aur keywords dekhne ke liye connect karo.</p>
-                <a href="{{ route('admin.gsc.auth') }}" class="btn-connect">
-                    <img src="https://www.google.com/favicon.ico" style="width:16px" alt=""> Connect with Google
-                </a>
-            </div>
+<div class="gsc-cards">
+    <div class="gsc-card clicks"><div class="gsc-card-label">Clicks</div><div class="gsc-card-value">{{ number_format($totals->clicks) }}</div></div>
+    <div class="gsc-card impr"><div class="gsc-card-label">Impressions</div><div class="gsc-card-value">{{ number_format($totals->impressions) }}</div></div>
+    <div class="gsc-card ctr"><div class="gsc-card-label">Avg CTR</div><div class="gsc-card-value">{{ $totals->ctr }}%</div></div>
+    <div class="gsc-card pos"><div class="gsc-card-label">Avg Position</div><div class="gsc-card-value">{{ $totals->position }}</div></div>
+</div>
+
+@if($trend->count())
+    <div class="gsc-section">
+        <div class="gsc-section-head"><h5 class="gsc-section-title">Clicks per day</h5></div>
+        @php $maxC = max(1, $trend->max('clicks')); @endphp
+        <div class="gsc-trend">
+            @foreach($trend as $t)
+                <div class="bar" style="height:{{ max(2, round($t->clicks / $maxC * 100)) }}%"
+                     title="{{ \Carbon\Carbon::parse($t->date)->format('d M') }}: {{ $t->clicks }} clicks"></div>
+            @endforeach
         </div>
-    @else
+        <div class="gsc-empty" style="padding-top:6px;">Peak {{ number_format($maxC) }} clicks/day</div>
+    </div>
+@endif
 
-        {{-- Performance Cards --}}
-        @if($performance)
-        <div class="gsc-cards">
-            <div class="gsc-card clicks">
-                <div class="gsc-card-label">Total Clicks</div>
-                <div class="gsc-card-value">{{ number_format($performance['clicks']) }}</div>
-            </div>
-            <div class="gsc-card impr">
-                <div class="gsc-card-label">Impressions</div>
-                <div class="gsc-card-value">{{ number_format($performance['impressions']) }}</div>
-            </div>
-            <div class="gsc-card ctr">
-                <div class="gsc-card-label">Avg CTR</div>
-                <div class="gsc-card-value">{{ $performance['ctr'] }}%</div>
-            </div>
-            <div class="gsc-card pos">
-                <div class="gsc-card-label">Avg Position</div>
-                <div class="gsc-card-value">{{ $performance['position'] }}</div>
-            </div>
-        </div>
-        <p style="color:#94a3b8;font-size:12px;margin-bottom:20px;">Last 28 days ka data ({{ now()->subDays(28)->format('d M') }} – {{ now()->subDays(1)->format('d M Y') }})</p>
+{{-- ============ CLICK OPPORTUNITIES — the point of this page ============ --}}
 
-        {{-- Daily Chart --}}
-        @if(!empty($performance['rows']))
+<div class="gsc-section">
+    <div class="gsc-section-head">
+        <h5 class="gsc-section-title">🎯 Fastest clicks — fix the title/meta</h5>
+        <p class="gsc-section-sub">Pages already on page 1 (pos ≤ 10) getting lots of impressions but almost no clicks. The title/snippet isn't tempting the click — rewrite it and clicks come <strong>without</strong> waiting for ranking.</p>
+    </div>
+    <table class="gsc-table">
+        <thead><tr><th>Page</th><th class="num">Impressions</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">Pos</th></tr></thead>
+        <tbody>
+        @forelse($ctrOpps as $r)
+            <tr>
+                <td><a class="gsc-url" href="{{ $r->value }}" target="_blank" rel="noopener">{{ \Illuminate\Support\Str::after($r->value, 'servicebazzar.com') ?: $r->value }}</a></td>
+                <td class="num">{{ number_format($r->impressions) }}</td>
+                <td class="num">{{ number_format($r->clicks) }}</td>
+                <td class="num"><span class="gsc-badge lo">{{ $r->ctr }}%</span></td>
+                <td class="num">{{ $r->position }}</td>
+            </tr>
+        @empty
+            <tr><td colspan="5" class="gsc-empty">No page-1 low-CTR pages in this window — nice.</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+
+<div class="gsc-section">
+    <div class="gsc-section-head">
+        <h5 class="gsc-section-title">⬆️ Page-2 opportunities — push the ranking</h5>
+        <p class="gsc-section-sub">Queries ranking 8–20 (bottom of page 1 / top of page 2) with real demand. Strengthen these pages' content + internal links to lift them a few spots and win the clicks.</p>
+    </div>
+    <table class="gsc-table">
+        <thead><tr><th>Query</th><th class="num">Impressions</th><th class="num">Clicks</th><th class="num">CTR</th><th class="num">Pos</th></tr></thead>
+        <tbody>
+        @forelse($page2 as $r)
+            <tr>
+                <td class="gsc-kw">{{ $r->value }}</td>
+                <td class="num">{{ number_format($r->impressions) }}</td>
+                <td class="num">{{ number_format($r->clicks) }}</td>
+                <td class="num">{{ $r->ctr }}%</td>
+                <td class="num"><span class="gsc-badge p2">{{ $r->position }}</span></td>
+            </tr>
+        @empty
+            <tr><td colspan="5" class="gsc-empty">No page-2 queries with enough demand in this window.</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+
+{{-- ============ Reference tables ============ --}}
+
+<div class="row">
+    <div class="col-lg-6">
         <div class="gsc-section">
-            <div style="padding:16px 20px 0;">
-                <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;">
-                    <button onclick="switchMetric('clicks',this)" class="gsc-tab active" style="color:#1a73e8;border-bottom:2px solid #1a73e8;">
-                        <span class="gsc-tab-val" id="tab-clicks">{{ number_format($performance['clicks']) }}</span>
-                        <span class="gsc-tab-label">Total clicks</span>
-                    </button>
-                    <button onclick="switchMetric('impressions',this)" class="gsc-tab">
-                        <span class="gsc-tab-val" id="tab-impressions">{{ number_format($performance['impressions']) }}</span>
-                        <span class="gsc-tab-label">Total impressions</span>
-                    </button>
-                    <button onclick="switchMetric('ctr',this)" class="gsc-tab">
-                        <span class="gsc-tab-val" id="tab-ctr">{{ $performance['ctr'] }}%</span>
-                        <span class="gsc-tab-label">Average CTR</span>
-                    </button>
-                    <button onclick="switchMetric('position',this)" class="gsc-tab">
-                        <span class="gsc-tab-val" id="tab-position">{{ $performance['position'] }}</span>
-                        <span class="gsc-tab-label">Average position</span>
-                    </button>
-                </div>
-            </div>
-            <div style="padding:20px;">
-                <canvas id="gscChart" height="70"></canvas>
-            </div>
-        </div>
-        <style>
-        .gsc-tab { background:none; border:none; border-bottom:2px solid transparent; padding:10px 24px 12px; cursor:pointer; text-align:left; margin-bottom:-2px; }
-        .gsc-tab-val { display:block; font-size:20px; font-weight:600; color:#1e293b; }
-        .gsc-tab-label { display:block; font-size:12px; color:#64748b; margin-top:2px; }
-        .gsc-tab.active .gsc-tab-label { color:#1a73e8; }
-        </style>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <script>
-        (function(){
-            var rows = @json($performance['rows']);
-            var labels = rows.map(function(r){ return r.keys[0].slice(5); });
-            var datasets = {
-                clicks:      { data: rows.map(function(r){ return r.clicks; }),      color:'#1a73e8' },
-                impressions: { data: rows.map(function(r){ return r.impressions; }), color:'#9334e6' },
-                ctr:         { data: rows.map(function(r){ return +(r.ctr*100).toFixed(2); }), color:'#1e8e3e' },
-                position:    { data: rows.map(function(r){ return +r.position.toFixed(1); }), color:'#e37400' }
-            };
-            var current = 'clicks';
-            var chart = new Chart(document.getElementById('gscChart'), {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: datasets.clicks.data,
-                        borderColor: '#1a73e8',
-                        backgroundColor: 'rgba(26,115,232,.08)',
-                        tension: .4, pointRadius: 3, pointHoverRadius: 5,
-                        borderWidth: 2, fill: true
-                    }]
-                },
-                options:{
-                    responsive:true,
-                    interaction:{ mode:'index', intersect:false },
-                    plugins:{ legend:{ display:false } },
-                    scales:{
-                        x:{ grid:{ color:'#f1f5f9' }, ticks:{ color:'#64748b', font:{size:11} } },
-                        y:{ grid:{ color:'#f1f5f9' }, ticks:{ color:'#64748b', font:{size:11} } }
-                    }
-                }
-            });
-            window.switchMetric = function(metric, btn) {
-                current = metric;
-                chart.data.datasets[0].data        = datasets[metric].data;
-                chart.data.datasets[0].borderColor  = datasets[metric].color;
-                chart.data.datasets[0].backgroundColor = datasets[metric].color.replace(')',',0.08)').replace('rgb','rgba');
-                chart.update();
-                document.querySelectorAll('.gsc-tab').forEach(function(b){
-                    b.classList.remove('active');
-                    b.style.color = '';
-                    b.style.borderBottomColor = 'transparent';
-                    b.querySelector('.gsc-tab-label').style.color = '';
-                });
-                btn.classList.add('active');
-                btn.style.borderBottomColor = datasets[metric].color;
-                btn.querySelector('.gsc-tab-val').style.color = datasets[metric].color;
-                btn.querySelector('.gsc-tab-label').style.color = datasets[metric].color;
-            };
-        })();
-        </script>
-        @endif
-        @endif
-
-        {{-- Top Pages --}}
-        @if(!empty($topPages))
-        <div class="gsc-section">
-            <div class="gsc-section-title">Top 10 Pages (by Clicks)</div>
+            <div class="gsc-section-head"><h5 class="gsc-section-title">Top queries</h5></div>
             <table class="gsc-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Page URL</th>
-                        <th>Clicks</th>
-                        <th>Impressions</th>
-                        <th>CTR</th>
-                        <th>Position</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Query</th><th class="num">Clicks</th><th class="num">Impr</th><th class="num">Pos</th></tr></thead>
                 <tbody>
-                    @foreach($topPages as $i => $row)
+                @forelse($topQueries as $r)
                     <tr>
-                        <td>{{ $i + 1 }}</td>
-                        <td class="url">{{ str_replace('https://www.servicebazzar.com', '', $row['keys'][0]) ?: '/' }}</td>
-                        <td><span class="badge-clicks">{{ number_format($row['clicks']) }}</span></td>
-                        <td>{{ number_format($row['impressions']) }}</td>
-                        <td>{{ round($row['ctr'] * 100, 1) }}%</td>
-                        <td><span class="badge-pos">{{ round($row['position'], 1) }}</span></td>
+                        <td class="gsc-kw">{{ $r->value }}</td>
+                        <td class="num">{{ number_format($r->clicks) }}</td>
+                        <td class="num">{{ number_format($r->impressions) }}</td>
+                        <td class="num">{{ $r->position }}</td>
                     </tr>
-                    @endforeach
+                @empty
+                    <tr><td colspan="4" class="gsc-empty">No data.</td></tr>
+                @endforelse
                 </tbody>
             </table>
         </div>
-        @endif
-
-        {{-- Top Queries --}}
-        @if(!empty($topQueries))
+    </div>
+    <div class="col-lg-6">
         <div class="gsc-section">
-            <div class="gsc-section-title">Top 10 Search Queries (by Clicks)</div>
+            <div class="gsc-section-head"><h5 class="gsc-section-title">Top pages</h5></div>
             <table class="gsc-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Keyword</th>
-                        <th>Clicks</th>
-                        <th>Impressions</th>
-                        <th>CTR</th>
-                        <th>Position</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Page</th><th class="num">Clicks</th><th class="num">Impr</th><th class="num">Pos</th></tr></thead>
                 <tbody>
-                    @foreach($topQueries as $i => $row)
+                @forelse($topPages as $r)
                     <tr>
-                        <td>{{ $i + 1 }}</td>
-                        <td>{{ $row['keys'][0] }}</td>
-                        <td><span class="badge-clicks">{{ number_format($row['clicks']) }}</span></td>
-                        <td>{{ number_format($row['impressions']) }}</td>
-                        <td>{{ round($row['ctr'] * 100, 1) }}%</td>
-                        <td><span class="badge-pos">{{ round($row['position'], 1) }}</span></td>
+                        <td><a class="gsc-url" href="{{ $r->value }}" target="_blank" rel="noopener">{{ \Illuminate\Support\Str::after($r->value, 'servicebazzar.com') ?: $r->value }}</a></td>
+                        <td class="num">{{ number_format($r->clicks) }}</td>
+                        <td class="num">{{ number_format($r->impressions) }}</td>
+                        <td class="num">{{ $r->position }}</td>
                     </tr>
-                    @endforeach
+                @empty
+                    <tr><td colspan="4" class="gsc-empty">No data.</td></tr>
+                @endforelse
                 </tbody>
             </table>
         </div>
-        @endif
-
-    @endif
+    </div>
 </div>
 
 @endsection

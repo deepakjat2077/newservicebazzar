@@ -96,6 +96,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Pixel sizes of newly uploaded listing photos, for the small-images Excel.
         $schedule->command('listings:scan-image-sizes')->dailyAt('04:15')->withoutOverlapping();
+
+        // Daily Search Console performance (queries + pages) into gsc_metrics,
+        // for the admin Search Console page's click-opportunity reports. GSC
+        // data lags ~2 days, so this re-pulls the recent window each morning.
+        $schedule->command('seo:gsc-pull')->dailyAt('05:30')->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([

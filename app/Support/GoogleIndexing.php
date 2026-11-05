@@ -132,4 +132,41 @@ class GoogleIndexing
 
         return [$status, $error];
     }
+
+    /**
+     * Run a Search Console Search Analytics query (same read-only scope as the
+     * URL Inspection API — needs "Google Search Console API" enabled and the
+     * service account added to the property). Returns the raw `rows` array.
+     * Pass $startRow to page through results (25,000 max per request).
+     *
+     * @return array<int, array{keys: array<int,string>, clicks: int, impressions: int, ctr: float, position: float}>
+     */
+    public static function searchAnalytics(string $start, string $end, array $dimensions, int $rowLimit = 1000, int $startRow = 0, array $orderBy = []): array
+    {
+        $body = [
+            'startDate'  => $start,
+            'endDate'    => $end,
+            'dimensions' => $dimensions,
+            'rowLimit'   => min($rowLimit, 25000),
+            'startRow'   => $startRow,
+        ];
+        if ($orderBy) {
+            $body['orderBy'] = $orderBy;
+        }
+
+        $res = Http::withToken(self::token(self::INSPECT_SCOPE))->timeout(40)->post(
+            'https://searchconsole.googleapis.com/webmasters/v3/sites/' . rawurlencode(self::SITE) . '/searchAnalytics/query',
+            $body
+        );
+
+        if ($res->status() === 401) {
+            Cache::forget('google-indexing:token:' . md5(self::INSPECT_SCOPE));
+        }
+
+        if (!$res->successful()) {
+            throw new \RuntimeException('GSC searchAnalytics HTTP ' . $res->status() . ': ' . mb_substr((string) ($res->json('error.message') ?? $res->body()), 0, 300));
+        }
+
+        return (array) ($res->json('rows') ?? []);
+    }
 }

@@ -227,15 +227,10 @@ Route::get('/jaipur/maintenance', function () {
                 Route::get('export/pdf', 'AnalyticsController@exportPdf')->name('export.pdf');
             });
 
-            Route::prefix('gsc')->name('gsc.')->group(function () {
+            Route::prefix('gsc')->name('gsc.')->middleware('permission:analytics.view')->group(function () {
                 Route::get('/',          'GscController@index')->name('index');
-                Route::get('/auth',      'GscController@auth')->name('auth');
-                Route::get('/callback',  'GscController@callback')->name('callback');
-                Route::delete('/disconnect', 'GscController@disconnect')->name('disconnect');
-                Route::middleware('permission:analytics.view')->group(function () {
-                    Route::get('/indexing', 'GoogleIndexingController@index')->name('indexing');
-                    Route::post('/indexing/{id}/inspect', 'GoogleIndexingController@inspect')->whereNumber('id')->name('indexing.inspect');
-                });
+                Route::get('/indexing', 'GoogleIndexingController@index')->name('indexing');
+                Route::post('/indexing/{id}/inspect', 'GoogleIndexingController@inspect')->whereNumber('id')->name('indexing.inspect');
             });
 
             // Pinged by long admin forms so a slow one doesn't lose its

@@ -52,7 +52,7 @@
                     </a>
                 </li>
                 <li class="sidebar-menu-item">
-                    <a href="{{ route('admin.gsc.index') }}" class="{{ menuActive(['admin.gsc.index', 'admin.gsc.auth', 'admin.gsc.callback'])[0] }}">
+                    <a href="{{ route('admin.gsc.index') }}" class="{{ menuActive('admin.gsc.index')[0] }}">
                         <i class="fab fa-google"></i>
                         <span class="sidebar-menu-title">Search Console</span>
                     </a>
