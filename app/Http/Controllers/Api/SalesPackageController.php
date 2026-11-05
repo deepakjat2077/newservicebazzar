@@ -43,9 +43,14 @@ class SalesPackageController extends Controller
      * it needs a city/area or a website design, the per-city/area price tree,
      * and the list of cities to choose from.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $package = CertificatePackage::where('status', 1)->findOrFail($id);
+
+        // When the app passes the business it is buying for, each website design
+        // comes back with a live preview_url (that listing's own name, photos and
+        // details), exactly like the website's "Choose a design" screen.
+        $listingId = $this->previewListingId($request);
 
         return response()->json([
             'success' => true,
@@ -53,7 +58,7 @@ class SalesPackageController extends Controller
                 'tiers'         => $package->tierLabels(),
                 'price_tree'    => $package->positionPriceTree(),
                 'cities'        => $this->cities($package),
-                'templates'     => $package->needsTemplate() ? $this->templateList() : [],
+                'templates'     => $package->needsTemplate() ? $this->templateList($listingId) : [],
             ],
         ]);
     }
@@ -69,10 +74,16 @@ class SalesPackageController extends Controller
         return response()->json(['success' => true, 'areas' => $areas->values()]);
     }
 
-    /** The website designs offered by the business-website packages. */
-    public function templates()
+    /**
+     * The website designs offered by the business-website packages.
+     * Pass ?listing_id= to get each design's live preview_url for that business.
+     */
+    public function templates(Request $request)
     {
-        return response()->json(['success' => true, 'templates' => $this->templateList()]);
+        return response()->json([
+            'success'   => true,
+            'templates' => $this->templateList($this->previewListingId($request)),
+        ]);
     }
 
     /**
@@ -264,13 +275,32 @@ class SalesPackageController extends Controller
             ->filter()->unique()->sort()->values()->all();
     }
 
-    /** Website designs as a flat list the app can render. */
-    protected function templateList(): array
+    /**
+     * Website designs as a flat list the app can render. When $listingId is a
+     * live listing, each design carries a preview_url — a full home page drawn
+     * from that business's own name, photos and details, the same render the
+     * website shows. The app loads it in a web-view/iframe per design.
+     */
+    protected function templateList(?int $listingId = null): array
     {
         $out = [];
         foreach (WebsiteTemplates::all() as $key => $t) {
-            $out[] = ['key' => $key] + $t;
+            $row = ['key' => $key] + $t;
+            if ($listingId) {
+                $row['preview_url'] = route('website.preview.public', ['id' => $listingId, 'template' => $key]);
+            }
+            $out[] = $row;
         }
         return $out;
+    }
+
+    /** A valid, live listing id from the request (for design previews), or null. */
+    protected function previewListingId(Request $request): ?int
+    {
+        $id = (int) $request->query('listing_id');
+        if ($id <= 0) {
+            return null;
+        }
+        return Listing::where('id', $id)->where('status', 1)->exists() ? $id : null;
     }
 }

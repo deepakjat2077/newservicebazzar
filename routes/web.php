@@ -1259,6 +1259,12 @@ Route::get('popular-services', 'SiteController@serviceKeywords')
     Route::get('/location/{location}', 'SiteController@index')
         ->name('home.location');
 
+    // Public website-design preview (same live render as the rep/owner flow),
+    // for the mobile app to load one design in a web-view/iframe. Only public
+    // business info is shown, so no auth — before the {location}/{slug} catch-all.
+    Route::get('website-preview/{id}/{template}', [\App\Http\Controllers\SalesGenioController::class, 'websitePreview'])
+        ->whereNumber('id')->name('website.preview.public');
+
     // ── SB Sales (formerly Sales Genio) — before {location}/{slug} catch-all ──
     // 308 keeps the method and body, so a form left open on the old URL still submits.
     Route::any('sales_genio/{rest?}', fn (\Illuminate\Http\Request $r, $rest = '') =>
