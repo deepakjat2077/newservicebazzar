@@ -867,6 +867,32 @@ class BrowseController extends Controller
         ]);
     }
 
+    /** Delete the caller's own review on a listing (and its likes/comments). */
+    public function deleteReview(Request $request, $id)
+    {
+        $user   = $request->user();
+        $rating = Rating::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+
+        $listingId = (int) $rating->listing_id;
+
+        // Remove dependent rows first so nothing is orphaned.
+        RatingLike::where('rating_id', $rating->id)->delete();
+        RatingComment::where('rating_id', $rating->id)->delete();
+        $rating->delete();
+
+        // Keep the listing's cached average in step, same as submitReview().
+        $listing = Listing::find($listingId);
+        if ($listing) {
+            $listing->review = Rating::where('listing_id', $listingId)->where('is_verified', 1)->avg('ratings') ?: 0;
+            $listing->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Review deleted.',
+        ]);
+    }
+
     public function likeReview(Request $request, $ratingId)
     {
         $rating = Rating::findOrFail($ratingId);

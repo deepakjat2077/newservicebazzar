@@ -161,6 +161,7 @@ Route::middleware('user.api')->group(function () {
     Route::post('listings/{id}/review',  [BrowseController::class, 'submitReview'])->whereNumber('id');
     Route::post('listings/{id}/enquiry', [BrowseController::class, 'enquiry'])->whereNumber('id');
 
+    Route::delete('reviews/{id}',       [BrowseController::class, 'deleteReview'])->whereNumber('id');
     Route::post('reviews/{id}/like',    [BrowseController::class, 'likeReview'])->whereNumber('id');
     Route::post('reviews/{id}/comment', [BrowseController::class, 'commentReview'])->whereNumber('id');
     Route::delete('reviews/comments/{id}', [BrowseController::class, 'deleteComment'])->whereNumber('id');
