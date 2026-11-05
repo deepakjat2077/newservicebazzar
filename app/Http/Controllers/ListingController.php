@@ -3394,6 +3394,29 @@ public function cityCategoryArea($city, $categoryArea)
         if (\Str::slug($areaSlug) === \Str::slug($city)) {
             return redirect('/' . $city . '/' . $maybeServiceSlug, 301);
         }
+
+        // CRAWLER-TRAP GUARD. A relative-link loop let bots (PerplexityBot &
+        // co., 4 Nov) walk slugs like "...-in-jaipur-in-jaipur-in-jaipur..."
+        // 100+ deep. Each was served as a 200 heavy page (geocode + radius
+        // search over 100+ area words, ~5s, self-canonical index,follow),
+        // which drained php-fpm on both app servers and returned 502s. A
+        // genuine area never repeats the SAME "-in-<token>" back to back
+        // (legit multi-"-in-" like "...-in-south-delhi-in-jagatpura" has
+        // distinct tokens and is untouched). Detect a consecutive duplicate
+        // and send it to the clean city/category URL (or 404) BEFORE any DB
+        // or geocode work runs.
+        $inSegs = explode('-in-', $categoryArea);
+        for ($k = 1; $k < count($inSegs); $k++) {
+            if ($inSegs[$k] !== '' && $inSegs[$k] === $inSegs[$k - 1]) {
+                $base = $inSegs[0];
+                $baseLive = Category::where('status', 1)->where('slug', $base)->exists()
+                    || Subcategory::where('status', 1)->where('slug', $base)->exists();
+
+                return $baseLive
+                    ? redirect('/' . \Str::slug($city) . '/' . $base, 301)
+                    : abort(404);
+            }
+        }
     }
 
     $category = Category::where('status', 1)
