@@ -1036,6 +1036,9 @@ Route::post('quick-auth/resend', 'Auth\RegisterController@quickAuthResend')->mid
     Route::post('assistant/chat', 'AiAssistantController@chat')
         ->middleware('throttle:15,1')->name('assistant.chat');
 
+    Route::post('assistant/lead', 'AiAssistantController@lead')
+        ->middleware('throttle:10,1')->name('assistant.lead');
+
     Route::prefix('guest-chat')->name('guest-chat.')->group(function () {
         Route::get('session', 'GuestChatController@sessionStatus')->middleware('throttle:30,1')->name('session');
         Route::get('notifications', 'GuestChatController@notifications')->middleware('throttle:30,1')->name('notifications');

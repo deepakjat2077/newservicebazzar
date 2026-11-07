@@ -2009,7 +2009,7 @@ a {
 
         {{-- Direct-answer TL;DR. AI Overviews and featured snippets preferentially
              cite a short, self-contained answer at the top of the page. --}}
-        <p class="lander-answer-tldr">
+        <p class="lander-answer-tldr" data-nosnippet>
             @if($landerHasCity)
                 {{ $seoSiteName }} lists
                 @php
@@ -2029,7 +2029,7 @@ a {
         </p>
 
         @if(!empty($landerFacts))
-            <section class="lander-facts">
+            <section class="lander-facts" data-nosnippet>
                 <h2>{{ $landerFacts['service'] }} in {{ $landerFacts['place'] }}: at a glance</h2>
                 <ul class="lander-facts-stats">
                     <li><b>{{ $landerFacts['providers'] }}</b><span>listed</span></li>
@@ -2051,12 +2051,14 @@ a {
         @endif
 
         @if(!empty(trim(strip_tags($cleanDescription))))
-            <div class="category-content-body rich-content">
+            <div class="category-content-body rich-content" data-nosnippet>
                 {!! $cleanDescription !!}
             </div>
         @endif
 
-        @include($themeView . 'partials.pasf-faq', ['pasfFaq' => $pasfFaq ?? null])
+        <div data-nosnippet>
+            @include($themeView . 'partials.pasf-faq', ['pasfFaq' => $pasfFaq ?? null])
+        </div>
 
         {{-- Nearby-cities internal-link module: same service in other cities.
              Builds the siloed Service → City internal linking the SEO audit

@@ -636,6 +636,23 @@ public static function forgetSubcategoryLookup(): void
             })->afterResponse();
         });
 
+        // When a listing goes live (approved), send the business the
+        // "listing approved" WhatsApp once — whether an admin approves a
+        // pending listing or one is created already-approved. All the guards
+        // (configured, has number, not-already-sent, afterResponse) live in
+        // queueApprovalWhatsapp().
+        static::created(function ($listing) {
+            if ((int) $listing->status === 1) {
+                static::queueApprovalWhatsapp($listing);
+            }
+        });
+
+        static::updated(function ($listing) {
+            if ($listing->wasChanged('status') && (int) $listing->status === 1) {
+                static::queueApprovalWhatsapp($listing);
+            }
+        });
+
         // A deleted listing's claim rows have nothing left to point at, and
         // listing_claims carries no foreign key to clear them. Every delete
         // path goes through the model, so doing it here covers the admin
@@ -775,6 +792,58 @@ public static function forgetSubcategoryLookup(): void
         });
 
 
+    }
+
+    /**
+     * Fire the "business listing approved" WhatsApp to the business once its
+     * listing is live. Runs afterResponse (the queue can't load new job
+     * classes — the same reason the Google review sync above uses it), never
+     * in console (imports, seeders and bulk scripts must not blast messages),
+     * only when Gupshup is configured and the listing has a number, and only
+     * ONCE — a listing that already received this template is skipped, so a
+     * re-approve or any later edit never re-sends.
+     */
+    protected static function queueApprovalWhatsapp(self $listing): void
+    {
+        if (app()->runningInConsole()) {
+            return;
+        }
+
+        $id = $listing->id;
+
+        dispatch(function () use ($id) {
+            $fresh = static::find($id);
+            if (!$fresh || (int) $fresh->status !== 1) {
+                return;
+            }
+
+            $sender = app(\App\Services\WhatsappSender::class);
+            if (!$sender->isConfigured()) {
+                return;
+            }
+
+            $template = $sender->defaultTemplateId();
+            if (!$template) {
+                return;
+            }
+
+            // Already sent this approval template to this listing? Never repeat.
+            $already = \App\Models\WhatsappMessage::outbound()
+                ->where('listing_id', $id)
+                ->where('template_id', $template)
+                ->where('status', '!=', 'failed')
+                ->exists();
+            if ($already) {
+                return;
+            }
+
+            // No usable number — sendToListing would only log a failure row.
+            if (!\App\Services\WhatsappSender::listingPhone($fresh)) {
+                return;
+            }
+
+            $sender->sendToListing($fresh, $template, null, ['auto' => 'listing_approved']);
+        })->afterResponse();
     }
 
     public function getSubcategoryIdsArrayAttribute()

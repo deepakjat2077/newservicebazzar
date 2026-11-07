@@ -70,6 +70,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // hour keeps inside Google's 200-a-day quota and sends new pages within the hour.
         $schedule->command('seo:google-index --limit=9')->hourly()->withoutOverlapping();
 
+        // Priority set (Jaipur Mehndi Artist listings) claims the day's quota
+        // first — runs at :50, just before the top-of-hour general run above.
+        // Idempotent: does nothing once that set is indexed.
+        $schedule->command('seo:google-index-priority')->hourlyAt(50)->withoutOverlapping();
+
         // Whether those sent URLs are now indexed (Search Console URL Inspection,
         // 2,000 a day allowed; 50 an hour = 1,200), for the admin Google Indexing page.
         $schedule->command('seo:google-index-check --limit=50')->hourlyAt(30)->withoutOverlapping();

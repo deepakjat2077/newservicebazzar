@@ -10,8 +10,10 @@ use App\Models\Location;
 use App\Models\MethodCurrency;
 use App\Models\Payment;
 use App\Support\SalesPerks;
+use App\Http\Traits\PaymentGateway;
 use App\Support\WebsiteTemplates;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * The "More ways to grow" packages (SB Verified, SB Trusted, certificates,
@@ -27,6 +29,10 @@ use Illuminate\Http\Request;
  */
 class SalesPackageController extends Controller
 {
+    // Reused only for cashfree() — the same Cashfree order creation the
+    // website's checkout runs (self-contained, uses no controller state).
+    use PaymentGateway;
+
     /**
      * The only gateways the sales-package checkout runs through (the website's
      * flow for these packages uses exactly these). The methods list and the
@@ -237,14 +243,18 @@ class SalesPackageController extends Controller
             'after_convert'      => $afterConvert,
         ]);
 
-        return response()->json([
+        // Create the gateway order server-side and hand the app the native
+        // payment data (Razorpay order / Cashfree session) so it opens its own
+        // SDK — no web page needed. checkout_url stays as a fallback.
+        $native = $this->nativeGatewayData($payment, $method);
+
+        return response()->json(array_merge([
             'success'      => true,
             'free'         => false,
             'trx_number'   => $trx,
-            // Opened in an in-app web-view. Runs the site's existing Razorpay /
-            // Cashfree flow for this exact transaction; on success the package
-            // activates on the listing automatically. Then poll
-            // GET /api/deposit/{trx}/status until status = 1.
+            // Fallback only — the app pays natively from the gateway data below.
+            // /pay/{trx} runs the site's Razorpay/Cashfree flow; on success the
+            // package activates and GET /api/deposit/{trx}/status returns 1.
             'checkout_url' => url('/pay/' . $trx),
             'payment'      => [
                 'label'        => $choice['label'],
@@ -252,7 +262,73 @@ class SalesPackageController extends Controller
                 'charge'       => $charge,
                 'after_charge' => $afterCharge,
             ],
-        ], 201);
+        ], $native), 201);
+    }
+
+    /**
+     * Create the gateway order on the server and return the native payment data
+     * the app opens its Razorpay/Cashfree SDK with — the SAME order creation the
+     * website checkout runs. On failure it logs the reason and returns [], so
+     * the response still carries checkout_url and laravel.log shows why.
+     */
+    protected function nativeGatewayData(Payment $payment, MethodCurrency $method): array
+    {
+        $pm  = $method->paymentMethod;
+        $act = $pm->act ?? '';
+
+        try {
+            if ($act === 'razorpay') {
+                $s     = $pm->setting;
+                $paise = (int) round($payment->after_convert * 100);
+                $api   = new \Razorpay\Api\Api($s->key_id, $s->key_secret);
+                $order = $api->order->create([
+                    'receipt'         => $payment->trx_number,
+                    'amount'          => $paise,
+                    'currency'        => $method->currency,
+                    'payment_capture' => '0',
+                ]);
+
+                $payment->extra_data = $order->id;
+                $payment->save();
+
+                return [
+                    'gateway'  => 'razorpay',
+                    'razorpay' => [
+                        'key_id'      => $s->key_id,
+                        'order_id'    => $order->id,
+                        'amount'      => $paise,
+                        'currency'    => $method->currency,
+                        'name'        => config('app.name') ?: 'Service Bazzar',
+                        'description' => (string) $payment->sales_plan,
+                    ],
+                ];
+            }
+
+            if ($act === 'cashfree') {
+                $result = $this->cashfree($payment, $method, $pm);
+                if (!empty($result['error'])) {
+                    throw new \RuntimeException($result['error']);
+                }
+                $v = $result['value'];
+
+                return [
+                    'gateway'  => 'cashfree',
+                    'cashfree' => [
+                        'payment_session_id' => $v['payment_session_id'],
+                        'order_id'           => $payment->trx_number,
+                        'environment'        => ($v['mode'] ?? 'sandbox') === 'production' ? 'PRODUCTION' : 'SANDBOX',
+                    ],
+                ];
+            }
+        } catch (\Throwable $e) {
+            Log::error('Sales deposit gateway order failed', [
+                'trx'     => $payment->trx_number,
+                'gateway' => $act,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+
+        return [];
     }
 
     /** The shared card payload for a package. */

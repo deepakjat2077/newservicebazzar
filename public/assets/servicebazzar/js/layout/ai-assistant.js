@@ -15,6 +15,7 @@
     }
 
     var endpoint = panel.getAttribute('data-endpoint') || '/assistant/chat';
+    var leadEndpoint = panel.getAttribute('data-lead-endpoint') || '/assistant/lead';
     var greeting = panel.getAttribute('data-greeting') || 'Hi there! What are you looking for?';
     var suggestions = [];
 
@@ -174,6 +175,68 @@
         body.appendChild(wrap);
     }
 
+    // A small name + mobile form, shown once the bot has a service to forward
+    // to. Submitting it records a lead that reaches the matching businesses on
+    // WhatsApp — the visitor never has to type their number into the chat.
+    function showLeadForm() {
+        var old = body.querySelector('.sb-lead-form:not(.is-done)');
+        if (old) old.remove();
+
+        var form = document.createElement('form');
+        form.className = 'sb-lead-form';
+        form.innerHTML =
+            '<input type="text" name="name" placeholder="Your name" autocomplete="name">' +
+            '<input type="tel" name="phone" placeholder="Mobile number" inputmode="numeric" maxlength="14" autocomplete="tel" required>' +
+            '<button type="submit">Get a call back</button>' +
+            '<div class="sb-lead-note"></div>';
+        body.appendChild(form);
+        body.scrollTop = body.scrollHeight;
+
+        var nameEl = form.querySelector('input[name="name"]');
+        var phoneEl = form.querySelector('input[name="phone"]');
+        var note = form.querySelector('.sb-lead-note');
+        var btn = form.querySelector('button');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var phone = phoneEl.value.replace(/\D+/g, '');
+            if (phone.length < 10) { note.textContent = 'Please enter a valid mobile number.'; return; }
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            note.textContent = '';
+
+            fetch(leadEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrf
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ name: nameEl.value.trim(), phone: phone, history: history.slice(-8) })
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data && data.success) {
+                        form.classList.add('is-done');
+                        form.innerHTML = '';
+                        bubble((data && data.message) || 'Thanks! These businesses will contact you shortly.', 'bot');
+                        body.scrollTop = body.scrollHeight;
+                    } else {
+                        note.textContent = (data && data.message) || 'Please try again.';
+                        btn.disabled = false;
+                        btn.textContent = 'Get a call back';
+                    }
+                })
+                .catch(function () {
+                    note.textContent = 'Sorry, something went wrong. Please try again.';
+                    btn.disabled = false;
+                    btn.textContent = 'Get a call back';
+                });
+        });
+    }
+
     /**
      * Scroll so the visitor's own question sits at the top of the view and
      * the answer reads downward from it. Scrolling to the very bottom put
@@ -226,6 +289,7 @@
                 var reply = (data && data.reply) || 'Sorry, I could not answer that.';
                 bubble(reply, 'bot');
                 showLinks(data && data.links);
+                if (data && data.collect_lead) showLeadForm();
                 revealFrom(asked);
                 history.push({ role: 'user', text: text });
                 history.push({ role: 'assistant', text: reply });

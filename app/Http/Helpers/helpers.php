@@ -79,11 +79,11 @@ function sb_clamp_meta_description(?string $text, int $max = 160): string
  * Listing meta_titles are admin-authored and carry the brand in three
  * spellings ("Service Bazzar", "Services Bazzar", "ServiceBazzar"), often
  * pushing the title past ~60 chars so Google cuts the brand off anyway. This
- * strips whatever brand tail is present and re-appends the ONE canonical brand
- * only when it still fits within $max; otherwise the title keeps the business
- * name + keywords and drops the brand (which was getting truncated regardless).
- * It never hard-cuts mid-phrase — an over-long core is left for Google to
- * truncate cleanly in the SERP.
+ * strips whatever brand tail is present and returns the clean title WITHOUT a
+ * brand suffix. Google already prints the site name beside the title in the
+ * SERP, so a "| Service Bazzar" tail only ate space the business name, category
+ * and area keywords can use instead. It never hard-cuts mid-phrase — an
+ * over-long core is left for Google to truncate cleanly in the SERP.
  */
 function normalizeSeoTitle(?string $title, ?string $brand = null, int $max = 60): string
 {
@@ -97,13 +97,9 @@ function normalizeSeoTitle(?string $title, ?string $brand = null, int $max = 60)
     // ("... | Service Bazzar", "... - services bazzar", "...ServiceBazzar").
     $core = preg_replace('/[\s|·\-–—,]*services?\s*bazzar\s*$/i', '', $title);
     $core = trim(rtrim($core, " \t|·-–—,;:."));
-    if ($core === '') {
-        $core = $title; // title was only the brand — keep it
-    }
 
-    $withBrand = $core . ' | ' . $brand;
-
-    return mb_strlen($withBrand) <= $max ? $withBrand : $core;
+    // Never re-append the brand — the title stays business name + keywords.
+    return $core !== '' ? $core : $title;
 }
 
 /**
