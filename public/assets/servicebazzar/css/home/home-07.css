@@ -3,14 +3,7 @@
             display:flex; flex-wrap:nowrap; overflow:hidden; gap:16px;
         }
         .featured-listing-slider:not(.slick-initialized) > .listing-area{
-            flex:0 0 calc((100% - 48px) / 4); max-width:calc((100% - 48px) / 4);
-        }
-        /* These match the slidesToShow steps in js/app.js — the row must not
-           change card count the moment slick takes over. */
-        @media (max-width:1200px){
-            .featured-listing-slider:not(.slick-initialized) > .listing-area{
-                flex:0 0 calc((100% - 32px) / 3); max-width:calc((100% - 32px) / 3);
-            }
+            flex:0 0 calc((100% - 32px) / 3); max-width:calc((100% - 32px) / 3);
         }
         @media (max-width:992px){
             .featured-listing-slider:not(.slick-initialized) > .listing-area{

@@ -235,7 +235,7 @@
 
     .breadcrumb-location-link:hover,
     .breadcrumb-category-link:hover{
-        color:#0d6efd;
+        color:#012d71;
     }
 
     .listing-main-title{
@@ -272,12 +272,19 @@
         width:22px;
         height:22px;
         object-fit:contain;
+        padding:2px;
+        border-radius:50%;
+        background:#fff;
     }
     .btn-whatsapp-main{
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 6px;
+    }
+
+    #listingTopCard#listingTopCard .listing-action-buttons .btn-whatsapp-main .whatsapp-icon{
+        filter:none !important;
     }
 
     .whatsapp-icon{
@@ -475,17 +482,25 @@
         display:inline-flex !important;
         align-items:center !important;
         justify-content:center !important;
-        color:#0d6efd;
+        color:#012d71;
         cursor:pointer;
         transition:all 0.2s ease;
         text-decoration:none;
         flex:0 0 auto !important;
     }
 
-    .listing-action-buttons .edit-listing-btn:hover{
-        background:#0d6efd !important;
-        color:#fff;
-        border-color:#0d6efd !important;
+    #listingTopCard#listingTopCard .listing-action-buttons .edit-listing-btn:hover{
+        background:#012d71 !important;
+        color:#fff !important;
+        border-color:#012d71 !important;
+    }
+
+    #listingTopCard#listingTopCard .listing-action-buttons .edit-listing-btn:hover i{
+        color:#fff !important;
+    }
+
+    #listingTopCard#listingTopCard .listing-action-buttons .edit-listing-btn:hover .edit-icon-img{
+        filter:brightness(0) invert(1);
     }
 
     .listing-action-buttons .edit-listing-btn i{
@@ -671,7 +686,7 @@
         #quickRatingStars:hover .jd-star{ background:#fff; color:#bbb; border-color:#ddd; }
         #quickRatingStars:hover .jd-star:hover,
         #quickRatingStars .jd-star:has(~ .jd-star:hover){
-            background:#ff5a00; color:#fff; border-color:#ff5a00;
+            background:#012d71; color:#fff; border-color:#012d71;
         }
     }
 
@@ -933,7 +948,7 @@
     }
 
     .best-price-submit {
-        background: #0d6efd;
+        background: #012d71;
         color: #fff;
         border: none;
         border-radius: 6px;
@@ -954,7 +969,7 @@
 
 
         .btn-best-price {
-        background: #0d6efd;
+            background: #012d71;
         color: #fff;
         padding: 8px 18px;
         border-radius: 6px;
@@ -970,7 +985,7 @@
     }
 
     .btn-best-price:hover {
-        background: #0b5ed7;
+        background: #001f52;
         color: #fff;
     }
         .dot-separator {
@@ -984,7 +999,7 @@
         align-items: center;
         gap: 4px;
         font-size: 14px;
-        color: #000000;
+        color: #012d71;
         font-weight: 400;
     }
     .jd-rating-wrap {
@@ -992,7 +1007,7 @@
     }
 
     .jd-rating-badge {
-        background: #12874f;
+        background: #012d71;
         color: #fff;
         font-size: 13px;
         font-weight: 600;
@@ -1002,9 +1017,15 @@
         align-items: center;
     }
 
+    #listingTopCard .jd-rating-badge:hover {
+        background: #012d71 !important;
+        border-color: #012d71 !important;
+        color: #fff !important;
+    }
+
     .jd-rating-count {
         font-size: 13px;
-        color: #555;
+        color: #012d71;
     }
 
     .jd-badge-img {
@@ -1128,33 +1149,33 @@
     }
 
     .sticky-call-btn{
-        background: #128c2f;
+        background: #012d71;
         color: #fff;
     }
 
     .sticky-call-btn:hover{
         color: #fff;
-        background: #0e7427;
+        background: #001f52;
     }
 
     .sticky-enquire-btn{
-        background: #0d6efd;
+        background: #012d71;
         color: #fff;
     }
 
     .sticky-enquire-btn:hover{
         color: #fff;
-        background: #0b5ed7;
+        background: #001f52;
     }
 
     .sticky-whatsapp-btn{
-        background: #fff;
-        color: #111;
-        border: 2px solid #20b15a;
+        background: #012d71;
+        color: #fff;
+        border: 2px solid #012d71;
     }
 
     .sticky-whatsapp-btn:hover{
-        background: #20b15a;
+        background: #001f52;
         color: #fff;
     }
 
@@ -1236,7 +1257,7 @@
         /* Order: Call Now, Enquire Now, WhatsApp */
         #stickyListingBar .listing-action-buttons .btn-call-main {
             order: 1;
-            background: #0d6efd !important;
+            background: #012d71 !important;
             color: #fff !important;
             border: none !important;
             font-size: 0 !important;
@@ -1261,7 +1282,7 @@
 
         #stickyListingBar .listing-action-buttons .btn-whatsapp-main {
             order: 3;
-            background: #0d6efd !important;
+            background: #012d71 !important;
             color: #fff !important;
             border: none !important;
         }
@@ -1400,15 +1421,15 @@
     }
 
     .rating-summary-score{
-        width:72px;
-        height:72px;
-        background:rgb(0, 122, 12);
+        width:55px;
+        height:55px;
+        background:#012d71; 
         color:#fff;
         border-radius:18px;
         display:flex;
         align-items:center;
         justify-content:center;
-        font-size:36px;
+        font-size:24px;
         font-weight:500;
         flex-shrink:0;
     }
@@ -1710,7 +1731,7 @@
         .related-searches-box{
             font-size: 13px;
         line-height: 2;
-        color: #666;
+        color: #001f52 ;
         padding: 0px 0px 10px 0px;
     }
 
@@ -1957,20 +1978,20 @@
         align-items:center;
         justify-content:center;
         padding:10px 18px;
-        border:1px solid #e5e5e5;
+        border:1px solid #012d71;
         border-radius:999px;
-        background:#fff;
-        color:#333;
+        background:#012d71;
+        color:#fff;
         text-decoration:none;
-        font-size:15px;
+        font-size:13px
         font-weight:500;
         transition:all 0.25s ease;
         line-height:1.4;
     }
 
     .related-search-tag:hover{
-        color:#0d6efd;
-        border-color:#0d6efd;
+        color:#fff;
+        border-color:#012d71;
         text-decoration:none;
     }
 
@@ -1996,7 +2017,7 @@
         }
 
         .related-search-tag{
-            font-size:14px;
+            font-size:13px;
             padding:8px 14px;
         }
 
@@ -2071,19 +2092,19 @@
     }
 
     .btn-call-main{
-        background:#18a63b;
+        background:#012d71;
         color:#fff;
     }
 
     .btn-call-main:hover{
-        background:#12852f;
+        background:#001f52;
         color:#fff;
 		transform: translateY(-2px);
         border-color: #cbd8ea !important;
         box-shadow: 0 10px 26px rgba(15, 35, 65, 0.1) !important;
     }
 	.btn-whatsapp-main:hover{
-        background:#12852f;
+        background:#001f52;
         color:#fff;
 		transform: translateY(-2px);
         border-color: #cbd8ea !important;
@@ -2091,19 +2112,19 @@
     }
 
     .btn-whatsapp-main{
-        background:#fff;
-        color:#1b1b1b;
-        border:1px solid #28b446 !important;
+        background:#012d71;
+        color:#fff;
+        border:1px solid #012d71 !important;
     }
 
     
     .btn-best-price{
-        background:#0d6efd;
+        background:#012d71;
         color:#fff;
     }
 
     .btn-best-price:hover{
-        background:#0b5ed7;
+        background:#001f52;
         color:#fff;
 		transform: translateY(-2px);
         border-color: #cbd8ea !important;
@@ -2126,7 +2147,7 @@
     }
 
     .enquiry-title span{
-        color:#0d6efd;
+        color:#012d71;
     }
 
     .enquiry-subtitle{
@@ -2177,7 +2198,7 @@
     }
 
     .enquiry-btn{
-        background:#0d6efd;
+        background:#012d71;
         color:#fff;
         font-weight:700;
         border:none;
@@ -2187,7 +2208,7 @@
     }
 
     .enquiry-btn:hover{
-        background:#0b5ed7;
+        background:#001f52;
         color:#fff;
     }
 
@@ -2257,18 +2278,19 @@
     .related-search-btn{
         display:inline-block;
         padding:6px 14px;
-        border:1px solid #0d6efd;
-        color:#0d6efd;
+        border:1px solid #dfe7f2;
+        color:#012d71;
         border-radius:6px;
         font-size:13px;
         font-weight:600;
         text-decoration:none;
-        background:#fff;
+        background:#f0f5fc;
         transition:0.2s ease;
     }
 
     .related-search-btn:hover{
-        background:#0d6efd;
+        background:#012d71;
+        border-color:#012d71;
         color:#fff;
     }
 
@@ -2513,7 +2535,7 @@
     }
 
     .share-icon.wa{
-        background:#25d366;
+        background:#012d71;
     }
 
     .share-icon.cp{
@@ -3026,7 +3048,7 @@
         }
 
         .contact-link {
-            color: #0d6efd;
+            color: #012d71;
             font-size: 15px;
             font-weight: 500;
             text-decoration: none;
@@ -3036,26 +3058,7 @@
         }
 
         .contact-link:hover {
-            color: #0b5ed7;
-        }
-
-        /* The sidebar is narrow, and a long email pushed the envelope icon
-           onto a line of its own. flex keeps the icon beside the text, and
-           the span wraps inside the space that is left. */
-        .contact-link--email {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-        }
-
-        .contact-link--email i {
-            flex: none;
-            margin-top: 3px;
-        }
-
-        .contact-link--email span {
-            min-width: 0;
-            overflow-wrap: anywhere;
+            color: #001f52;
         }
 
         .address-text {
@@ -3073,7 +3076,7 @@
 
         .address-btn {
             font-size: 18px;
-            color: #0d6efd;
+            color: #012d71;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -3082,7 +3085,7 @@
         }
 
         .address-btn:hover {
-            color: #0b5ed7;
+            color: #001f52;
         }
 
         .contact-info-box hr {
@@ -3211,7 +3214,7 @@
         
 
         .open-text{
-            color:#149c43;
+            color:#012d71;
             font-weight:600;
         }
 
@@ -3224,7 +3227,7 @@
         }
 
         .phone-btn{
-            background:#0a9b28;
+            background:#012d71;
             color:#fff;
             font-weight:700;
             border-radius:10px;
@@ -3233,12 +3236,12 @@
         }
 
         .phone-btn:hover{
-            background:#088420;
+            background:#001f52;
             color:#fff;
         }
 
         .enquire-btn{
-            background:#0d6efd;
+            background:#012d71;
             color:#fff;
             font-weight:700;
             border-radius:10px;
@@ -3254,21 +3257,21 @@
         }
 
         .enquire-btn:hover{
-            background:#0b5ed7;
+            background:#001f52;
             color:#fff;
         }
 
         .whatsapp-btn{
-            background:#fff;
-            color:#111;
+            background:#012d71;
+            color:#fff;
             font-weight:700;
-            border:2px solid #20b15a;
+            border:2px solid #012d71;
             border-radius:10px;
             padding:10px 18px;
         }
 
         .whatsapp-btn:hover{
-            background:#20b15a;
+            background:#001f52;
             color:#fff;
         }
 
@@ -3774,15 +3777,6 @@
         } elseif (!empty($listing->ratings_count) && is_numeric($listing->ratings_count)) {
             $ratingCount = (int) $listing->ratings_count;
         }
-
-        // Combine with Google ratings (same logic as listing cards in ajax-listings.blade.php)
-        $gRating = (float) ($listing->gmb_rating ?? 0);
-        $gCount  = (int)   ($listing->gmb_review_count ?? 0);
-        $combinedCount = $ratingCount + $gCount;
-        if ($combinedCount > 0) {
-            $rating = round((($rating * $ratingCount) + ($gRating * $gCount)) / $combinedCount, 1);
-        }
-        $ratingCount = $combinedCount;
     @endphp
 
     {{-- jd-rating-line1/2 are display:contents by default (see CSS), so on
@@ -4160,30 +4154,10 @@
                 && !empty($listing->mobile_numbers[0])
                 && (empty($bridgeCategoryIds) || in_array((string) ($listing->category_id ?? optional($listing->category)->id), $bridgeCategoryIds, true))
                 && (empty($bridgeLocationIds) || in_array((string) ($listing->location_id ?? optional($listing->location)->id), $bridgeLocationIds, true));
-
-            // Connect-by-Call OTP popup (same as the listing cards): the number
-            // stays hidden behind a verified call so a lead is captured. Built
-            // once and reused by all four call buttons on this page — the top
-            // card, the mobile quick actions, the sticky bottom bar and the
-            // sidebar. @see partials/contact-call.blade.php
-            $ccContact = config('contact_call.enabled')
-                && (!empty($listing->mobile_numbers[0]) || !empty($listing->landline_numbers[0]));
-            $ccArea  = collect([$listing->area ?? null, optional($listing->location)->name])->filter()->implode(', ');
-            $ccAttrs = 'data-track="call_click" data-type="call"'
-                . ' data-listing-id="' . e($listing->id) . '"'
-                . ' data-category-id="' . e($listing->category_id ?? optional($listing->category)->id ?? '') . '"'
-                . ' data-location-id="' . e($listing->location_id ?? optional($listing->location)->id ?? '') . '"'
-                . ' data-listing-name="' . e($listing->name) . '"'
-                . ' data-listing-area="' . e($ccArea) . '"';
         @endphp
 
         <!-- CALL BUTTON -->
-        @if($ccContact)
-    <button type="button" class="listing-btn btn-call-main track-click sb-contact-call" {!! $ccAttrs !!}>
-        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
-        Contact
-    </button>
-    @elseif($bridgeCallEligible)
+        @if($bridgeCallEligible)
     <a href="javascript:void(0)"
     class="listing-btn btn-call-main track-click bridge-call-btn"
     data-track="call_click"
@@ -4213,7 +4187,7 @@
     @endif
 
 
-    @if(!$ccContact && !empty($listing->landline_numbers[0]))
+    @if(!empty($listing->landline_numbers[0]))
     <a href="tel:{{ $listing->landline_numbers[0] }}"
     class="listing-btn btn-landline-main track-click"
     data-type="landline"
@@ -4357,13 +4331,7 @@
                             --}}
                             <div class="mobile-quick-actions">
 
-                                @if($ccContact)
-                                    <button type="button"
-                                       class="mqa-btn mqa-call track-click sb-contact-call" {!! $ccAttrs !!}>
-                                        <span class="mqa-icon"><i class="las la-phone"></i></span>
-                                        <span class="mqa-label">Contact</span>
-                                    </button>
-                                @elseif($bridgeCallEligible)
+                                @if($bridgeCallEligible)
                                     <a href="javascript:void(0)"
                                        class="mqa-btn mqa-call track-click bridge-call-btn"
                                        data-track="call_click"
@@ -4731,15 +4699,15 @@
             }
 
             #listingTopCard .mqa-call .mqa-icon {
-                background: #18a63b;
+                background: #012d71;
             }
 
             #listingTopCard .mqa-whatsapp .mqa-icon {
-                background: #25d366;
+                background: #012d71;
             }
 
             #listingTopCard .mqa-direction .mqa-icon {
-                background: #2f6fed;
+                background: #012d71;
             }
 
             #listingTopCard .mqa-share .mqa-icon {
@@ -4832,7 +4800,7 @@
                    DOM — it had no spacing of its own, so the two were
                    touching. */
                 margin-bottom: 16px;
-                background: #0d6efd;
+                background: #012d71;
                 color: #fff;
                 border: 0;
                 border-radius: 10px;
@@ -4855,7 +4823,7 @@
             }
 
             #listingTopCard .mqa-enquire-btn:active {
-                background: #0b5ed7;
+                background: #001f52;
             }
 
             /* Category badge / quick-rate widget: keep it (not part of the
@@ -4983,7 +4951,7 @@
             }
 
             #listingTopCard .jd-status-dot.is-open {
-                background: #1aa350;
+                background: #012d71;
             }
 
             #listingTopCard .jd-status-dot.is-closed {
@@ -4991,7 +4959,7 @@
             }
 
             #listingTopCard .jd-status-text.is-open {
-                color: #1aa350;
+                color: #012d71;
             }
 
             #listingTopCard .jd-status-text.is-closed {
@@ -5462,12 +5430,7 @@
 
         <div class="listing-action-buttons">
 
-            @if($ccContact)
-    <button type="button" class="listing-btn btn-call-main track-click sb-contact-call" {!! $ccAttrs !!}>
-        <img src="{{ asset('assets/download.svg') }}" class="call-icon" alt="Call">
-        Contact
-    </button>
-    @elseif($bridgeCallEligible)
+            @if($bridgeCallEligible)
     <a href="javascript:void(0)"
     class="listing-btn btn-call-main track-click bridge-call-btn"
     data-track="call_click"
@@ -5495,7 +5458,7 @@
     @endif
 
 
-    @if(!$ccContact && !empty($listing->landline_numbers[0]))
+    @if(!empty($listing->landline_numbers[0]))
     <a href="tel:{{ $listing->landline_numbers[0] }}"
     class="listing-btn btn-landline-main track-click"
     data-type="landline"
@@ -6276,38 +6239,27 @@
             <h4 class="media-title  ddd mb-0">@lang('Review & Ratings')</h4>
     
     @php
-    $sbAvgRating   = round($listing->ratings->avg('ratings') ?? 0, 1);
-    $sbTotalRatings = $listing->ratings->count();
-
-    $summaryGRating = (float) ($listing->gmb_rating ?? 0);
-    $summaryGCount  = (int)   ($listing->gmb_review_count ?? 0);
-    $summaryTotal   = $sbTotalRatings + $summaryGCount;
-    if ($summaryTotal > 0) {
-        $summaryAvg = round((($sbAvgRating * $sbTotalRatings) + ($summaryGRating * $summaryGCount)) / $summaryTotal, 1);
-    } else {
-        $summaryAvg = 0;
-    }
+    $avgRating = round($listing->ratings->avg('ratings') ?? 0, 1);
+    $totalRatings = $listing->ratings->count();
     @endphp
 
+    {{-- Only this listing's own ratings on Service Bazzar feed these numbers —
+         nothing from other sites, so the text must not say "across the web". --}}
     <div class="rating-summary-box">
         <div class="rating-summary-score">
-            {{ number_format($summaryAvg > 0 ? $summaryAvg : $sbAvgRating, 1) }}
+            {{ number_format($avgRating, 1) }}
         </div>
 
         <div class="rating-summary-content">
-            <h3>{{ $summaryTotal }} {{ $summaryTotal === 1 ? 'Rating' : 'Ratings' }}</h3>
+            <h3>{{ $totalRatings }} {{ $totalRatings === 1 ? 'Rating' : 'Ratings' }}</h3>
 
             <p>
-                @if($summaryTotal === 0)
+                @if($totalRatings === 0)
                     No ratings yet. Be the first to rate this business.
-                @elseif($sbTotalRatings > 0 && $summaryGCount > 0)
-                    {{ $sbTotalRatings }} {{ $sbTotalRatings === 1 ? 'rating' : 'ratings' }} on Service Bazzar &amp; {{ $summaryGCount }} on Google Maps
-                @elseif($summaryGCount > 0)
-                    Based on {{ $summaryGCount }} ratings from Google Maps
-                @elseif($sbTotalRatings === 1)
+                @elseif($totalRatings === 1)
                     Based on 1 rating from a customer on Service Bazzar
                 @else
-                    Average of {{ $sbTotalRatings }} ratings from customers on Service Bazzar
+                    Average of {{ $totalRatings }} ratings from customers on Service Bazzar
                 @endif
             </p>
         </div>
@@ -6902,41 +6854,7 @@
                 <div class="contact-block">
                     <h5>Contact</h5>
 
-                @php
-        /*
-         * An account created from a WhatsApp enquiry carries a made-up
-         * address (…@whatsapp.servicebazzar.com) that reaches nobody, so it
-         * must never be printed as a way to contact the business.
-         */
-        $ccEmail = trim((string) ($listing->email ?? ''));
-        if ($ccEmail !== '' && (
-            !filter_var($ccEmail, FILTER_VALIDATE_EMAIL)
-            || str_ends_with(strtolower($ccEmail), '@whatsapp.servicebazzar.com')
-        )) {
-            $ccEmail = '';
-        }
-    @endphp
-
-    {{-- The email is this box's whole job. The call already lives in the top
-         card and the sticky bar that follows the visitor down the page, so
-         repeating it here only crowds the one thing not shown anywhere else.
-         Without an email the Contact button stands in rather than leaving the
-         box empty. --}}
-    @if($ccEmail !== '')
-
-        <a href="mailto:{{ $ccEmail }}" class="contact-link contact-link--email">
-            <i class="las la-envelope"></i>
-            <span>{{ $ccEmail }}</span>
-        </a>
-
-    @elseif($ccContact)
-
-        <button type="button" class="contact-link d-block track-click sb-contact-call" {!! $ccAttrs !!}>
-            <i class="las la-phone"></i>
-            Contact
-        </button>
-
-    @elseif($bridgeCallEligible)
+                @if($bridgeCallEligible)
 
         <a href="javascript:void(0)" class="contact-link d-block bridge-call-btn" data-listing-id="{{ $listing->id }}">
             <i class="las la-phone"></i>
@@ -6956,7 +6874,7 @@
 
     @endif
 
-    @if(!$ccContact && !empty($listing->landline_numbers) && count(array_filter($listing->landline_numbers)))
+    @if(!empty($listing->landline_numbers) && count(array_filter($listing->landline_numbers)))
 
         @foreach($listing->landline_numbers as $index => $number)
             @if(!empty($number))
@@ -6972,8 +6890,7 @@
 
     @if(
         empty(array_filter($listing->mobile_numbers ?? [])) &&
-        empty(array_filter($listing->landline_numbers ?? [])) &&
-        $ccEmail === ''
+        empty(array_filter($listing->landline_numbers ?? []))
     )
         <p class="mb-0">No contact number available.</p>
     @endif

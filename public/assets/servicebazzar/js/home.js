@@ -1173,6 +1173,17 @@ function scrollTrending(direction) {
     });
 }
 
+function updateTrendingProgress(container) {
+    const section = container?.closest('.trending-same-section, .top-location-section, .popular-search-section');
+    const indicator = section?.querySelector('.trending-progress span, .location-progress span, .popular-progress span');
+    if (!container || !indicator) return;
+
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    const progress = maxScroll > 0 ? container.scrollLeft / maxScroll : 1;
+    indicator.style.transform = `scaleX(${Math.max(0.05, progress)})`;
+}
+
+  try { window.updateTrendingProgress = updateTrendingProgress; } catch (e) {}
   try { window.scrollTrending = scrollTrending; } catch (e) {}
 })();
 

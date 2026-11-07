@@ -1,3 +1,4 @@
+
 .listing-area {
         position: relative;
     }
@@ -24,9 +25,9 @@
     max-height: unset !important;
 }
 
-/* Zorko only (matches the name however it is written): its shop board sits at the top of the photo, so show the top
+/* Zorko only: its shop board sits at the top of the photo, so show the top
    instead of the centre. Other cards stay centred. (Owner's request, 2026-10-13) */
-.listing-area .thumb img.listing-thumb[alt^="zorko" i]{
+.listing-area .thumb img.listing-thumb[alt="Zorko"]{
     object-position: center top !important;
 }
 
@@ -58,11 +59,11 @@
     }
 
     .jd-rating-badge {
-        background: #12874f;
+        background: #012d71;
         color: #fff;
         font-size: 11px;
         font-weight: 600;
-        padding: 3px 5px;
+        padding: 3px 7px;
         border-radius: 6px;
         display: inline-flex;
         align-items: center;
@@ -72,7 +73,7 @@
 
     .jd-rating-count {
         font-size: 11px;
-        color: #555;
+        color: #012d71;
     }
 
     .jd-badge-img {
@@ -117,7 +118,7 @@
     }
 
     .btn-call {
-        background: #138808;
+        background: #012d71;
         color: #fff;
         padding: 8px 0;
         border-radius: 6px;
@@ -138,7 +139,7 @@
         background: #f8f9fa;
         border: 1px solid #cfcfcf;
         color: #333;
-        padding: 8px 0;
+        padding: 0px 0;
         border-radius: 6px;
         font-weight: 500;
         text-decoration: none;
@@ -149,7 +150,7 @@
     }
 
     .btn-whatsapp i {
-        color: #25D366;
+        color: #012d71;
     }
 
     .btn-whatsapp:hover {
@@ -233,8 +234,8 @@
                 line-height: 1.67;
                 margin-top: 15px;
                 font-size: 12px;
-
-color: #555;
+    
+color: #012d71;
             }
             .bgl{
                 font-size: 16px;
@@ -281,9 +282,9 @@ color: #555;
 
 .category-content-heading .popular-services-title {
     padding-left: 10px;
-    border-left: 3px solid #138808;
+    border-left: 3px solid #012d71;
     border-radius: 2px;
-    color: #333;
+    color: #012d71 ;
     font-size: 20px;
     font-weight: 700;
     line-height: 1.35;
@@ -342,7 +343,7 @@ color: #555;
 .category-content-row .spn {
     font-size: 14px;
     font-weight: 400;
-    color: #4b5563 !important;
+    color: #012d71 !important;
     line-height: 1.55;
     max-width: 300px;
 }

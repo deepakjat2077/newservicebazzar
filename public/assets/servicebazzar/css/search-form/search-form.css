@@ -1,4 +1,5 @@
-/* ========== HEADER SEARCH BASE STYLES ========== */
+
+    /* ========== HEADER SEARCH BASE STYLES ========== */
     #scrollSearchHolder .header-input_search {
         white-space: nowrap;
         overflow: hidden;
@@ -84,7 +85,7 @@
 
     /* ========== SEARCH INPUT BOX ========== */
     .header-input_search_box {
-        width: 100%;
+       
         height: 50px;
         -webkit-border-radius: 5px;
         -moz-border-radius: 5px;
@@ -203,7 +204,7 @@
     display: none;
     display: inline-block;
     width: 480px;
-
+   
     -webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .1);
     -moz-box-shadow: 0px 2px 4px rgba(0,0,0,.1);
      box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
@@ -440,7 +441,7 @@
     }
 
     /* ========== VOICE MODAL ========== */
-
+  
 
     /* ========== MOBILE RESPONSIVE ========== */
     @media (max-width: 767px) {

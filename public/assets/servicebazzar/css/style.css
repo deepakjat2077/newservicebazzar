@@ -2679,7 +2679,7 @@ table td:first-child {
     font-size: 13px;
     font-weight: 500;
     text-transform: uppercase;
-    margin: 0px 8px;
+    margin: 0px 0px;
 }
 
 .dropdown-menu {
@@ -2710,7 +2710,7 @@ table td:first-child {
     color: #1e90ff;
 }
 
-.header-area .bottom-header .navbar ul li a.nav-btn {
+.header-area .bottom-header .navbar ul li a.nav-btn { 
     border: 1px solid #0e77cd;
    
     line-height: 12px;
@@ -2724,7 +2724,7 @@ table td:first-child {
     transition: all .3s;
 	    background-color: #0e77cd;
 		color:#fff; font-weight:bold;
-		width: 145px;
+		
 
 }
 
@@ -3248,28 +3248,46 @@ i.fill {
 
 .featured .featured-listing-slider .prev {
     position: absolute;
-    top: 46%;
+    top: 50%;
     left: -7px;
-    background: #1e90ff;
-    color: #fff;
+    background: #fff ! important;
+    color: #012d71 !important;
     line-height: 1;
-    padding: 10px;
+    padding: 13px;
     z-index: 9;
-    border-radius: 50px;
+	border: 1px solid #012d71 !important;
+	
+    border-radius: 50% !important;
     cursor: pointer;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
 }
+.featured .featured-listing-slider .prev:hover {
+    
+   background: #012d71 !important;
+   color: #fff !important;
+    
+}
+
 
 .featured .featured-listing-slider .next {
     position: absolute;
-    top: 46%;
+    top: 50%;
     right: -7px;
-    background: #1e90ff;
-    color: #fff;
     line-height: 1;
-    padding: 10px;
-    z-index: 9;
-    border-radius: 50px;
-    cursor: pointer;
+    padding: 13px;
+	width: 42px !important;
+  height: 42px !important;
+  border: 1px solid #012d71 !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  color: #012d71 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+.featured .featured-listing-slider .next:hover {
+  background: #012d71 !important;
+    color: #fff !important;
 }
 
 /*featured section end*/
@@ -4144,7 +4162,7 @@ i.fill {
 .footer-area .footer-widget .widget-title {
     position: relative;
     margin-bottom: 22px;
-	width: 180px;
+	width: 185px;
 }
 
 .footer-area .footer-widget .widget-body ul li{
@@ -4156,7 +4174,7 @@ i.fill {
     color: #fff;
     text-decoration: none;
 	font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     display: inline-block;
     padding: 4px 6px;
@@ -4176,7 +4194,7 @@ i.fill {
 
 .footer-area .footer-widget .widget-body ul li a:hover {
     color: #fff !important;
-    background-color: rgba(255, 255, 255, 0.16);
+    background-color: #012d71;
     box-shadow: none;
     transform: none;
     padding: 4px 6px !important;
@@ -4450,4 +4468,255 @@ i.fill {
 .hh-h5-size {
     font-size: 1rem !important;
     /* h5 का default size */
+}
+
+/* Listing pages use the same navy accents as the home page. */
+.listing-top-info.custom-right {
+    border-color: #dfe7f2 !important;
+    background: linear-gradient(135deg, #f7faff 0%, #fff 76%) !important;
+    box-shadow: 0 6px 20px rgba(1, 45, 113, 0.06) !important;
+}
+
+.listing-top-info .breadcrumb-location-link,
+.listing-top-info .breadcrumb-category-link {
+    color: #012d71 !important;
+}
+
+.listing-top-info .breadcrumb-location-link:hover,
+.listing-top-info .breadcrumb-category-link:hover {
+    color: #001f52 !important;
+}
+
+.listing-top-info .listing-main-title {
+    color: #012d71  !important;
+}
+
+.main-card .filters-wrapper {
+    border-color: #dfe7f2 !important;
+    box-shadow: 0 5px 18px rgba(1, 45, 113, 0.06) !important;
+}
+
+.main-card .filter-pill:hover,
+.main-card .filter-pill:focus-visible {
+    border-color: #012d71 !important;
+    background: #f0f5fc !important;
+    color: #012d71 !important;
+}
+
+.main-card .filter-pill.active-filter,
+.main-card .custom-dropdown.active-filter .dropdown-btn {
+    border-color: #012d71 !important;
+    background: #012d71 !important;
+    color: #fff !important;
+}
+
+.main-card .custom-dropdown-menu a:hover {
+    background: #f0f5fc !important;
+    color: #012d71 !important;
+}
+
+.main-card .all-filters-desktop,
+.main-card .all-filters-mobile {
+    background: #012d71 !important;
+    color: #fff !important;
+}
+
+.main-card .scroll-btn {
+    color: #012d71 !important;
+    border-color: #dfe7f2 !important;
+}
+
+.filter-sidebar .btn-apply,
+.enquiry-btn {
+    background: #012d71 !important;
+    border-color: #012d71 !important;
+    color: #fff !important;
+}
+
+.filter-sidebar .btn-apply:hover,
+.enquiry-btn:hover {
+    background: #001f52 !important;
+    border-color: #001f52 !important;
+    color: #fff !important;
+}
+
+#listingSection {
+    background: #f8faff !important;
+}
+
+#listingSection #listingWrapper .listing-card .listing-area {
+    border-color: #dfe7f2 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 5px 18px rgba(1, 45, 113, 0.06) !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+#listingSection #listingWrapper .listing-card .listing-area:hover {
+    border-color: #b8c9e2 !important;
+    box-shadow: 0 9px 24px rgba(1, 45, 113, 0.1) !important;
+}
+
+#listingSection .listing-title a {
+    color: #012d71 !important;
+}
+
+#listingSection #listingWrapper .listing-card .listing-subcategories .subcat-chip,
+#listingSection #listingWrapper .listing-card .subcat-chip {
+    border: 1px solid #dfe7f2 !important;
+    background: #f0f5fc !important;
+    color: #012d71 !important;
+}
+
+#listingSection #listingWrapper .listing-card .listing-subcategories .subcat-chip:hover,
+#listingSection #listingWrapper .listing-card .subcat-chip:hover {
+    border-color: #012d71 !important;
+    background: #012d71 !important;
+    color: #fff !important;
+}
+
+#listingSection #listingWrapper .listing-card .jd-rating-badge {
+    border: 1px solid #012d71 !important;
+    background: #012d71 !important;
+    color: #fff !important;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+#listingSection #listingWrapper .listing-card .jd-rating-badge:hover {
+    border-color: #012d71 !important;
+    background: #012d71 !important;
+    color: #fff !important;
+}
+
+#listingSection #listingWrapper .listing-card .listing-title a:hover {
+    color: #012d71 !important;
+}
+
+#listingSection .btn-best-price,
+#listingTopCard .btn-best-price,
+#listingTopCard .mqa-enquire-btn,
+#stickyListingBar .btn-best-price {
+    background: #012d71 !important;
+    border-color: #012d71 !important;
+    color: #fff !important;
+}
+
+#listingSection #listingWrapper .listing-card .listing-contact .btn-call,
+#listingSection #listingWrapper .listing-card .listing-contact .btn-whatsapp {
+    background: #012d71 !important;
+    border-color: #012d71 !important;
+    color: #fff !important;
+}
+
+#listingSection #listingWrapper .listing-card .listing-contact .btn-call:hover,
+#listingSection #listingWrapper .listing-card .listing-contact .btn-whatsapp:hover {
+    background: #001f52 !important;
+    border-color: #001f52 !important;
+    color: #fff !important;
+}
+
+#listingSection #listingWrapper .listing-card .listing-contact .btn-whatsapp img,
+#listingSection #listingWrapper .listing-card .listing-contact .btn-whatsapp i {
+    filter: brightness(0) invert(1);
+    color: #fff !important;
+}
+
+#listingTopCard#listingTopCard .listing-action-buttons .btn-call-main,
+#listingTopCard#listingTopCard .listing-action-buttons .btn-landline-main,
+#listingTopCard#listingTopCard .listing-action-buttons .btn-whatsapp-main,
+#listingTopCard#listingTopCard .listing-action-buttons .btn-best-price,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-call-main,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-landline-main,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-whatsapp-main,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-best-price {
+    background: #012d71 !important;
+    border-color: #012d71 !important;
+    color: #fff !important;
+}
+
+#listingTopCard#listingTopCard .listing-action-buttons .btn-call-main:hover,
+#listingTopCard#listingTopCard .listing-action-buttons .btn-landline-main:hover,
+#listingTopCard#listingTopCard .listing-action-buttons .btn-whatsapp-main:hover,
+#listingTopCard#listingTopCard .listing-action-buttons .btn-best-price:hover,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-call-main:hover,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-landline-main:hover,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-whatsapp-main:hover,
+#stickyListingBar#stickyListingBar .listing-action-buttons .btn-best-price:hover {
+    background: #001f52 !important;
+    border-color: #001f52 !important;
+    color: #fff !important;
+}
+
+#listingTopCard#listingTopCard .mobile-quick-actions .mqa-call .mqa-icon,
+#listingTopCard#listingTopCard .mobile-quick-actions .mqa-whatsapp .mqa-icon,
+#listingTopCard#listingTopCard .mobile-quick-actions .mqa-direction .mqa-icon {
+    background: #012d71 !important;
+    border-color: #012d71 !important;
+}
+
+#listingTopCard#listingTopCard .mobile-quick-actions .mqa-call:hover .mqa-icon,
+#listingTopCard#listingTopCard .mobile-quick-actions .mqa-whatsapp:hover .mqa-icon,
+#listingTopCard#listingTopCard .mobile-quick-actions .mqa-direction:hover .mqa-icon {
+    background: #001f52 !important;
+    border-color: #001f52 !important;
+}
+
+#listingSection .btn-best-price:hover,
+#listingTopCard .btn-best-price:hover,
+#listingTopCard .mqa-enquire-btn:hover,
+#stickyListingBar .btn-best-price:hover {
+    background: #001f52 !important;
+    border-color: #001f52 !important;
+}
+
+#listingTopCard.listing-card-section,
+#listingMediaRow.listing-media-section {
+    background: #f8faff !important;
+}
+
+#listingTopCard.listing-card-section .listing-card,
+#listingTopCard .listing-card {
+    border-color: #dfe7f2 !important;
+    box-shadow: 0 5px 18px rgba(1, 45, 113, 0.07) !important;
+}
+
+#listingTopCard h1 {
+    color: #012d71 !important;
+}
+
+#listingTopCard .jd-category-chip {
+    border-color: #d8e3f2 !important;
+    background: #f0f5fc !important;
+    color: #012d71 !important;
+}
+
+#listingTopCard .jd-status-dot.is-open {
+    background: #012d71 !important;
+}
+
+#listingTopCard .jd-status-text.is-open {
+    color: #012d71 !important;
+}
+
+#listingTopCard .btn-whatsapp-main .whatsapp-icon {
+    filter: brightness(0) invert(1);
+}
+
+#listingTopCard .mqa-direction .mqa-icon {
+    background: #012d71 !important;
+}
+
+#listingTopCard .edit-listing-btn {
+    border-color: #dfe7f2 !important;
+    color: #012d71 !important;
+}
+
+#listingMediaRow .media-main-box,
+#listingMediaRow .contact-info-box {
+    border-color: #dfe7f2 !important;
+    box-shadow: 0 5px 18px rgba(1, 45, 113, 0.05) !important;
+}
+
+#listingMediaRow .media-tabs .nav-link.active {
+    border-bottom-color: #012d71 !important;
+    color: #012d71 !important;
 }

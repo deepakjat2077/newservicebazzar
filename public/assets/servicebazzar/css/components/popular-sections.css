@@ -16,9 +16,13 @@
 .popular-city-section {
     width: auto;
     background: #fff;
-    padding: 0px 15px 18px;
-    margin-left: 0px;
+    padding: 5px 10px 10px;
+    margin-left: 25px;
     margin-right: 0px;
+	border: 1px solid #012d71;
+    margin-top: 15px;
+    border-radius: 10px;
+	margin-bottom:10px;
 }
 
 .popular-city-list {
@@ -28,7 +32,7 @@
 }
 
 .popular-city-list a {
-    color: #333 !important;
+    color: #012d71 !important;
     text-decoration: none;
     margin: 0 4px;
     font-size: 16px !important;
@@ -41,7 +45,7 @@
 }
 
 .popular-city-list a:hover {
-    color: #222 !important;
+    color: #012d71 !important;
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -52,10 +56,12 @@
     overflow: hidden;
     box-sizing: border-box;
     background: #fff;
-    padding: 18px 16px;
-    border-top: 1px solid #eee;
-    margin-left: 0px;
+    padding: 10px 8px;
+    border: 1px solid #012d71;
+    margin-left: 25px;
     margin-right: 0px;
+	
+	border-radius: 10px;
 }
 
 .popular-category-section .popular-title,
@@ -64,12 +70,12 @@
     align-items: center;
     min-height: 28px;
     padding-left: 10px;
-    border-left: 3px solid #138808;
+    border-left: 3px solid #012d71;
     border-radius: 2px;
     font-size: 17px;
     font-weight: 700;
     margin-bottom: 12px;
-    color: #222;
+    color: #012d71;
     /* It is an <h2> now; keep the old line-height rather than the browser's. */
     line-height: 1.2;
 }
@@ -97,23 +103,23 @@
     background: #f8f8f8;
     padding: 12px 22px;
     border-radius: 4px;
-    font-size: 13.3px;
+    font-size: 13px;
     font-weight: 600;
-    color: #222;
+    color: #012d71;
     cursor: pointer;
     flex: 0 0 auto;
     white-space: nowrap;
 }
 
 .popular-cat-tab.active {
-    background: #138808;
-    border-color: #138808;
+    background: #012d71;
+    border-color: #012d71;
     color: #fff;
 }
 
 .popular-cat-tab:hover:not(.active) {
-    background: #138808;
-    border-color: #138808;
+    background: #012d71;
+    border-color: #012d71;
     color: #fff;
 }
 
@@ -138,7 +144,7 @@
 
 .popular-subcat-box a.popular-subcategory-link,
 .popular-subcat-box span.popular-subcategory-link {
-    color: #333;
+    color: #012d71;
     font-size: 14px !important;
     font-weight: 500;
     line-height: 1.9;
@@ -151,7 +157,7 @@
 
 .popular-subcat-box a.popular-subcategory-link:hover,
 .popular-subcat-box a.popular-subcategory-link:focus-visible {
-    color: #222;
+    color: #012d71;
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -242,7 +248,7 @@
         width: 3px;
         height: 20px;
         border-radius: 2px;
-        background: #138808;
+        background: #012d71;
         content: "";
     }
 
@@ -389,4 +395,15 @@
         font-size: 13px !important;
         font-weight: 500;
     }
+}
+@media screen and (min-width: 1200px) and (max-width: 1280px) {
+	 .category-area{ max-width:1270px ! important; }
+	 .featured-business-listings > .container-fluid{ max-width:1270px ! important;}
+	 .bazzar-slider-wrapper { max-width: 1230px ! important;}
+	 .rr-section{width: 1240px !important;margin-left: 20px !important;}
+	 .category-content-section > .container-fluid{width: 1230px !important;}
+	 .popular-category-section {width: 1230px !important;}
+	 .popular-city-section { width: 1230px !important; border-radius: 10px;}
+	 .container_socia{ max-width:1250px ! important;margin-left: 30px ! important}
+
 }

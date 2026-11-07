@@ -10,7 +10,7 @@
 
 	<link rel="preload" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<link rel="preload" href="{{ asset($themeAsset.'css/index.css') }}?v={{ filemtime(public_path($themeAsset.'css/index.css')) }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
-	<link rel="preload" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
+	<link rel="preload" href="{{ asset($themeAsset.'css/style.css') }}?v={{ filemtime(public_path($themeAsset.'css/style.css')) }}-listing-theme-20261106" as="style" onload="this.onload=null;this.rel='stylesheet';this.removeAttribute('as')">
 	<noscript>
 		<link rel="stylesheet" href="{{ asset($themeAsset.'css/bootstrap.min.css') }}">
 		<link rel="stylesheet" href="{{ asset($themeAsset.'css/index.css') }}">
@@ -89,15 +89,14 @@
 
 <style id="sb-main-menu-colors">
     #stickyScrollHeader {
-        background: linear-gradient(180deg, #fbfcfa 0%, #f5f8f3 100%) !important;
-        border-top: 2px solid rgba(22, 130, 13, 0.72);
+        background:#fff !important;
         border-bottom: 1px solid #edf0f3;
         box-shadow: 0 2px 8px rgba(32, 42, 59, 0.06) !important;
         color: #202a3b;
     }
     #stickyScrollHeader .bottom-header,
     #stickyScrollHeader .navbar-collapse {
-        background: linear-gradient(180deg, #fbfcfa 0%, #f5f8f3 100%) !important;
+        background:#fff !important;
     }
     .header-area .bottom-header .navbar .navbar-nav > .nav-item > .nav-link:not(.nav-btn),
     .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-toggle {
@@ -110,13 +109,13 @@
     }
     .header-area .bottom-header .navbar .navbar-nav > .nav-item:hover,
     .header-area .bottom-header .navbar .navbar-nav > .nav-item:focus-within {
-        background-color: #f5f8f4;
+        background-color: #f2f6fc;
     }
     .header-area .bottom-header .navbar .navbar-nav > .nav-item:hover > .nav-link:not(.nav-btn),
     .header-area .bottom-header .navbar .navbar-nav > .nav-item:focus-within > .nav-link:not(.nav-btn),
     .header-area .bottom-header .navbar .navbar-nav > .nav-item:hover > .dropdown-toggle,
     .header-area .bottom-header .navbar .navbar-nav > .nav-item:focus-within > .dropdown-toggle {
-        color: #116b0a !important;
+        color: #012d71 !important;
     }
     #stickyScrollHeader .add-business,
     #stickyScrollHeader .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link) {
@@ -125,24 +124,24 @@
     }
     #stickyScrollHeader .add-business,
     #stickyScrollHeader .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link) {
-        border-color: #16820d !important;
-        background: #16820d !important;
+        border-color: #012d71 !important;
+        background: #012d71 !important;
         color: #fff !important;
     }
     .header-area .bottom-header .navbar .add-business:hover,
     .header-area .bottom-header .navbar .add-business:focus-visible {
         color: #fff !important;
-        background-color: #116b0a !important;
-        border-color: #116b0a !important;
-        box-shadow: 0 3px 9px rgba(22, 130, 13, 0.16);
+        background-color: #012d71 !important;
+        border-color: #012d71 !important;
+        box-shadow: 0 3px 9px rgba(8, 47, 112, 0.16);
         transform: translateY(-1px);
     }
     .header-area .bottom-header .navbar .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link):hover,
     .header-area .bottom-header .navbar .navbar-nav > .nav-item > .nav-link.nav-btn:not(.profile-dashboard-link):focus-visible {
         color: #fff !important;
-        background-color: #116b0a !important;
-        border-color: #116b0a !important;
-        box-shadow: 0 3px 9px rgba(22, 130, 13, 0.16);
+        background-color: #012d71 !important;
+        border-color: #012d71 !important;
+        box-shadow: 0 3px 9px rgba(8, 47, 112, 0.16);
         transform: translateY(-1px);
     }
     #stickyScrollHeader .navbar-toggler {
@@ -156,12 +155,12 @@
     }
     .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-menu .dropdown-item:hover,
     .header-area .bottom-header .navbar .navbar-nav > .nav-item > .dropdown-menu .dropdown-item:focus {
-        background-color: #f1f7ef !important;
-        color: #116b0a !important;
+        background-color: #eff4fb !important;
+        color: #012d71 !important;
     }
     .header-area .bottom-header .navbar .navbar-nav a:focus-visible,
     #stickyScrollHeader .add-business:focus-visible {
-        outline: 2px solid rgba(22, 130, 13, 0.45);
+        outline: 2px solid rgba(8, 47, 112, 0.45);
         outline-offset: 3px;
     }
     @media (min-width: 992px) {
@@ -621,10 +620,6 @@
 
 @include('themes.servicebazzar.partials.enquiry-otp')
 
-@if(config('contact_call.enabled'))
-    @include('themes.servicebazzar.partials.contact-call')
-@endif
-
 @auth
 
 <div id="sbProfilePanelOverlay" class="sb-profile-overlay"></div>
@@ -720,7 +715,6 @@
 @include('themes.servicebazzar.layouts.site.site-11')
 
 @include('themes.servicebazzar.partials.notification_bell')
-@include('themes.servicebazzar.partials.ai-assistant')
 @include('themes.servicebazzar.partials.inline-js', ['file' => 'layout/site-08.js'])
 </body>
 </html>

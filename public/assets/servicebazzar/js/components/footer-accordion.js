@@ -1,6 +1,6 @@
 /**
- * Mobile-only accordion behavior for the site-wide footer's "Site Link",
- * "Useful Links", "Services", and "Contact Info" columns
+ * Mobile-only accordion behavior for the site-wide footer's "Quick Links",
+ * "Helpful Resources", "Services", and "Contact Info" columns
  * (resources/views/themes/servicebazzar/includes/footer.blade.php).
  *
  * Purely additive: on desktop/tablet the toggle icon this binds to is

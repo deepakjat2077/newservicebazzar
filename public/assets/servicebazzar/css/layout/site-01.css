@@ -18,11 +18,6 @@
         body.jd-head .yt-search-back,
         body.jd-head .sb-bell-mobile,
         body.jd-head .mobile-back-btn{display:none !important;}
-        /* the top row already has logo, share and bell/login: never show the old
-           logo/search/profile row too (it came back when the location box closed) */
-        body.jd-head #stickyScrollHeader .navbar-brand,
-        body.jd-head #stickyScrollHeader .navbar-toggler,
-        body.jd-head #mobileHeaderSearchBtn{display:none !important;}
     }
 
     @media (max-width: 991px){
@@ -83,7 +78,7 @@ body.header-fixed {
 	#stickyScrollHeader{
     position: relative;
     width: 100%;
-    z-index: 999;
+	    z-index: 10000;
     background:#fff;
 }
 
@@ -297,14 +292,14 @@ body.header-fixed {
 				margin-bottom: 4px;
 			}
 			.mobile-action-item.active{
-				color: #0072ed;
+				color: #012d71;
 			}
 			.mobile-action-btn{
 				text-decoration: none;
 				/* #007bff put white text at 3.98:1 against it, just under the 4.5:1
 				   an accessibility check wants. Seven percent darker clears it and
 				   is not a difference the eye picks up. */
-				background: #0072ed;
+				background: #012d71;
 				color: #fff;
 				padding: 10px 14px;
 				border-radius: 8px;

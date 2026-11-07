@@ -40,7 +40,7 @@
 @include($themeView.'partials.popular_cities')
 
 <div class="social-follow-section py-4 bg-white border-top border-bottom">
-    <div class="container">
+    <div class="container_socia">
         <div class="d-flex align-items-center follow-us-row">
             {{-- h5 after an h2 skips two levels, which screen readers report as
                  a missing section. The look comes from .follow-title, not the
@@ -414,19 +414,19 @@
 
 <style>
     .footer-area {
-        border-top: 2px solid rgba(22, 130, 13, .72);
-        background: linear-gradient(180deg, #fbfcfa 0%, #f5f8f3 100%) !important;
+        
+        background:#fff;
         color: #273345 !important;
     }
 
     .footer-area .footer-widget p {
-        color: #697586 !important;
+        color: #012d71  !important;
         line-height: 1.75;
     }
 
     .footer-area .footer-widget .widget-title h4,
     .footer-area .footer-widget .widget-title h5 {
-        color: #263345 !important;
+        color: #012d71 !important;
         font-weight: 700;
     }
 
@@ -434,21 +434,21 @@
     .footer-area .footer-widget .widget-body a,
     .footer-area .footer-contact-item a,
     .footer-area .footer-contact-item span {
-        color: #596577 !important;
+        color: #012d71 !important;
     }
 
     .footer-area .footer-widget .widget-body ul li a:before {
-        color: #16820d;
+        color: #012d71;
     }
 
     .footer-area .footer-widget .widget-body ul li a:hover,
     .footer-area .footer-contact-item a:hover {
-        color: #116b0a !important;
-        background-color: rgba(22, 130, 13, .07);
+        color: #012d71 !important;
+  background-color: #f2f6fc;
     }
 
     .footer-area .footer-contact-item i {
-        color: #16820d;
+        color: #012d71;
     }
 
     .footer-area .footer-widget .site-logo {
@@ -462,11 +462,11 @@
     }
 
     .footer-area .footer-bottom p {
-        color: #778195;
+        color: #012d71;
     }
 
     .footer-area .footer-bottom p a.sh {
-        color: #116b0a !important;
+        color: #E4060D  !important;
     }
 
     .footer-area .footer-widget .widget-title {
@@ -475,11 +475,11 @@
 
     .footer-area .footer-widget .widget-title:before,
     .footer-area .footer-widget .widget-title:after {
-        background: linear-gradient(90deg, #16820d, rgba(22, 130, 13, .35));
+        background: linear-gradient(90deg, #012d71, rgba(22, 130, 13, .35));
     }
 
     .footer-area .footer-widget-toggle-icon {
-        color: #16820d;
+        color: #012d71;
     }
 
     @media (max-width: 767px) {
@@ -490,7 +490,7 @@
 
         .footer-area .footer-widget .widget-title h4,
         .footer-area .footer-widget .widget-title h5 {
-            color: #263345 !important;
+            color:#012d71 !important;
         }
 		footer-area .footer-widget .site-logo {
 			display: inline-block ! important;

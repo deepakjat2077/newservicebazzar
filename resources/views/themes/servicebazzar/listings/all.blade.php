@@ -653,7 +653,7 @@ a {
         .related-search-title {
             font-size: 18px;
             font-weight: 600;
-            color: #111;
+            color: #012d71;
             margin: 0;
             line-height: 1.4;
         }
@@ -661,7 +661,7 @@ a {
         .category-label {
             font-size: 14px;
             font-weight: 600;
-            color: #111;
+            color: #012d71;
             margin: 0;
             line-height: 1.4;
         }
@@ -1481,7 +1481,7 @@ a {
                     }
 
                     .enquiry-title span {
-                        color: #0d6efd;
+                        color: #012d71;
                     }
 
                     .enquiry-subtitle {
@@ -1604,8 +1604,8 @@ a {
                     .related-search-btn {
                         display: inline-block;
                         padding: 6px 14px;
-                        border: 1px solid #0d6efd;
-                        color: #0d6efd;
+                        border: 1px solid #012d71;
+                        color: #012d71;
                         border-radius: 6px;
                         font-size: 13px;
                         font-weight: 600;
@@ -1615,7 +1615,7 @@ a {
                     }
 
                     .related-search-btn:hover {
-                        background: #0d6efd;
+                        background: #012d71;
                         color: #fff;
                     }
 
@@ -2009,7 +2009,7 @@ a {
 
         {{-- Direct-answer TL;DR. AI Overviews and featured snippets preferentially
              cite a short, self-contained answer at the top of the page. --}}
-        <p class="lander-answer-tldr" data-nosnippet>
+        <p class="lander-answer-tldr">
             @if($landerHasCity)
                 {{ $seoSiteName }} lists
                 @php
@@ -2029,7 +2029,7 @@ a {
         </p>
 
         @if(!empty($landerFacts))
-            <section class="lander-facts" data-nosnippet>
+            <section class="lander-facts">
                 <h2>{{ $landerFacts['service'] }} in {{ $landerFacts['place'] }}: at a glance</h2>
                 <ul class="lander-facts-stats">
                     <li><b>{{ $landerFacts['providers'] }}</b><span>listed</span></li>
@@ -2051,14 +2051,10 @@ a {
         @endif
 
         @if(!empty(trim(strip_tags($cleanDescription))))
-            <div class="category-content-body rich-content" data-nosnippet>
+            <div class="category-content-body rich-content">
                 {!! $cleanDescription !!}
             </div>
         @endif
-
-        <div data-nosnippet>
-            @include($themeView . 'partials.pasf-faq', ['pasfFaq' => $pasfFaq ?? null])
-        </div>
 
         {{-- Nearby-cities internal-link module: same service in other cities.
              Builds the siloed Service → City internal linking the SEO audit

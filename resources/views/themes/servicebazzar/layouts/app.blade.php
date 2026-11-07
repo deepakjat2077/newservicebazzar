@@ -137,7 +137,7 @@
         var currentRoute = @json(request()->route() ? request()->route()->getName() : '');
     </script>
     <script src="{{ asset($themeAsset.'js/app.js') }}"></script>
-    <script src="{{ asset('assets/js/tracking.js') }}?v={{ @filemtime(public_path('assets/js/tracking.js')) }}" defer></script>
+    <script src="{{ asset('assets/js/tracking.js') }}" defer></script>
     @stack('js')
       <script>
         "use strict";
