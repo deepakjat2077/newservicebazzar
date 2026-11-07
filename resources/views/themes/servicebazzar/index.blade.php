@@ -415,7 +415,7 @@ window.SB = {
         align-items: center;
         gap: 28px;
         overflow: hidden;
-        padding: 28px clamp(24px, 4vw, 60px);
+        padding: 5px clamp(24px, 4vw, 60px);
         border: 1px solid #012d71;
         border-radius: 18px;
         background:#fff;);
@@ -1025,7 +1025,7 @@ window.SB = {
                                        aria-label="WhatsApp {{ $whatsappCountryCode }} {{ $whatsappPhone }}">
 
                                         <i class="lab la-whatsapp"></i>
-                                        WhatsApp {{ $whatsappCountryCode }} {{ $whatsappPhone }}
+                                        WhatsApp 
 
                                     </a>
 
@@ -2055,8 +2055,8 @@ setInterval(() => {
     .popular-same-section .trending-scroll{
         box-sizing:border-box;
         grid-auto-columns:calc((100% - 72px) / 7) !important;
-        gap:20px !important;
-        padding:5px 50px 8px !important;
+        gap:11px !important;
+        padding:5px 0px 8px !important;
     }
     .trending-same-section .trend-card-item,
     .location-same-section .trend-card-item,
@@ -2294,7 +2294,7 @@ setInterval(() => {
         box-shadow:0 8px 24px rgba(19,136,8,.09);
     }
     .rr-section .cardhotkey__wrap{
-        padding:14px 12px;
+        padding:14px 4px ! important;
         border:1px solid #e5ede2;
         border-radius:13px;
         background:rgba(255,255,255,.75);
@@ -2465,7 +2465,7 @@ setInterval(() => {
     }
     .featured-business-listings .listing-area{
         display:flex;
-        height:520px;
+        height:480px;
         flex-direction:column;
         overflow:hidden;
         border:1px solid #e1e9df;
@@ -2529,9 +2529,9 @@ setInterval(() => {
         flex-wrap:nowrap !important;
         align-items:center;
         gap:6px;
-        min-height:45px;
-        max-height:45px;
-        margin-bottom:8px !important;
+        min-height:25px;
+        
+       
         overflow:hidden;
     }
     .featured-business-listings .jd-rating-count{
@@ -2572,7 +2572,7 @@ setInterval(() => {
     }
     .featured-business-listings .listing-content > .listing-contact:last-child{
         min-height:40px;
-        margin-top:auto !important;
+        margin-top:0 !important;
     }
     .featured-business-listings .listing-area .title a{
         color:#012d71 ;
@@ -2754,25 +2754,23 @@ setInterval(() => {
     body.home-page .featured-business-listings .btn-call{
         color:#fff;
     }
-    body.home-page .featured-business-listings .btn-call:hover{
-        border-color:#012d71;
-        background:#012d71;
-        color:#fff;
-    }
     body.home-page .featured-business-listings .btn-whatsapp{
         border-color:#dce5f0;
         color:#012d71;
         white-space:nowrap;
         transition:background-color .2s ease, border-color .2s ease, color .2s ease;
     }
+    body.home-page .featured-business-listings .btn-call:hover,
     body.home-page .featured-business-listings .btn-whatsapp:hover{
-        border-color:#012d71;
-        background:#FFF;
-        color:#fff;
+        border-color:#012d71 !important;
+        background:#012d71 !important;
+        color:#fff !important;
     }
+    body.home-page .featured-business-listings .btn-call:hover i,
     body.home-page .featured-business-listings .btn-whatsapp:hover i{
-        color:#fff;
+        color:#fff !important;
     }
+	.rr-section .subcategory-col{}
 </style>
 
 

@@ -3176,8 +3176,8 @@ i.fill {
 
 .listing-area .listing-content .listing-location {
     border-top: 1px solid #eaeaea;
-    margin-top: 5px;
-    padding-top: 5px;
+    margin-top: 0px;
+    padding-top: 0px;
     text-align: center;
 }
 
