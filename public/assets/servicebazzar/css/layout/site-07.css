@@ -77,6 +77,19 @@
         display:none !important;
     }
 
+    /* home page: keep the city picker above the search bar, like other pages */
+    body.home-page.mobile-yt-search-open #jdMobileLocationStrip{
+        display:block !important;
+        order:1 !important;
+    }
+    body.home-page.mobile-yt-search-open #stickyScrollHeader .container-fuldie{
+        display:flex !important;
+        flex-direction:column !important;
+    }
+    body.home-page.mobile-yt-search-open #stickyScrollHeader .navbar{
+        order:2 !important;
+    }
+
   body.mobile-yt-search-open.show-yt-location #jdMobileLocationStrip{
     display:block !important;
     position:relative !important;

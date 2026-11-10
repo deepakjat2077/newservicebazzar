@@ -60,6 +60,15 @@
     </div>
 </div>
 <style>
+    /* The wrapper is .container_socia, not Bootstrap's .container, so it has
+       no padding of its own: line it up with the footer logo/text (15px). */
+    .social-follow-section .container_socia {
+        width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+        box-sizing: border-box;
+    }
+
     .follow-title {
         font-size: 20px;
         font-weight: 500;
@@ -100,7 +109,8 @@
          * +15px from the Bootstrap column's own padding). Matching that
          * 20px here is what was needed to line the two up.
          */
-        .social-follow-section .container {
+        .social-follow-section .container,
+        .social-follow-section .container_socia {
             padding-left: 20px;
             padding-right: 20px;
         }
@@ -198,10 +208,10 @@
     .footer-area > .custom-right > .just{ margin-left:0 !important; margin-right:0 !important; }
     .footer-area .footer-widget ul li a{ font-size:16px !important; line-height:1.7 !important; }
     /* "Follow us on" lines up with the footer text below (24px edge) */
-    .social-follow-section .container{ max-width:100% !important; padding-left:24px !important; padding-right:24px !important; }
+    .social-follow-section .container, .social-follow-section .container_socia{ max-width:100% !important; padding-left:24px !important; padding-right:24px !important; }
 }
 @media (min-width:992px) and (max-width:1199px){
-    .social-follow-section .container{ max-width:100% !important; padding-left:40px !important; padding-right:40px !important; }
+    .social-follow-section .container, .social-follow-section .container_socia{ max-width:100% !important; padding-left:40px !important; padding-right:40px !important; }
 }
 @media (min-width:992px) and (max-width:1199px){
     .footer-area > .custom-right{ padding-left:40px !important; padding-right:40px !important; }

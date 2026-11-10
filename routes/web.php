@@ -1141,6 +1141,9 @@ Route::get('/jaipur/maintenance', function () {
 });
     Route::get('/', 'SiteController@index')->name('home');
 
+    // Hidden home redesign preview — secret URL only, not linked anywhere, noindex'd.
+    Route::get('/sb-home-preview-7xk29q', 'SiteController@homePreview')->name('home.preview');
+
     Route::get('faq/', 'SiteController@faq')->name('faq');
     Route::get('language/{code}', 'SiteController@changeLang');
 

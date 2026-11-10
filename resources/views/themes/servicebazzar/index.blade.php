@@ -1736,22 +1736,31 @@ WhatsApp
   </div>
 
   <!-- Manual Buttons (Left/Right) -->
-  <button class="bazzar-arrow arrow-left" onclick="changeBazzarSlide(-1)">&#10094;</button>
-  <button class="bazzar-arrow arrow-right" onclick="changeBazzarSlide(1)">&#10095;</button>
+  <button type="button" class="bazzar-arrow arrow-left" aria-label="Previous banner" onclick="changeBazzarSlide(-1)">&#10094;</button>
+  <button type="button" class="bazzar-arrow arrow-right" aria-label="Next banner" onclick="changeBazzarSlide(1)">&#10095;</button>
+  @if(count($bannerImages) > 1)
+  <div class="bazzar-dots">
+    @foreach($bannerImages as $dotImg)
+      <button type="button" class="bazzar-dot {{ $loop->first ? 'is-active' : '' }}" aria-label="Banner {{ $loop->iteration }}" onclick="showBazzarSlide({{ $loop->index }})"></button>
+    @endforeach
+  </div>
+  @endif
 </div>
 
 <!-- INLINE STYLES (No CSS file needed) -->
 <style>
+/* Banner sits in the page's column like the sections around it, and keeps the
+   artwork's own 2000x480 shape so nothing at the edges gets cropped. */
 .bazzar-slider-wrapper {
   position: relative;
-  width: 100%;
- 
-  height: 350px;
-  margin: 10px auto;
+  width: calc(100% - 32px);
+  max-width: 1340px;
+  aspect-ratio: 25 / 6;
+  margin: 14px auto 18px;
   overflow: hidden;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  font-family: Arial, sans-serif;
+  border-radius: 16px;
+  background: #eef3fb;
+  box-shadow: 0 10px 28px -14px rgba(1, 45, 113, 0.35);
 }
 .bazzar-slides-container {
   position: relative;
@@ -1768,6 +1777,7 @@ WhatsApp
   transition: opacity 0.8s ease-in-out;
   z-index: 1;
 }
+.bazzar-slide.active,
 .bazzar-slide.active-slide {
   opacity: 1;
   z-index: 2;
@@ -1783,7 +1793,9 @@ WhatsApp
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.15);
+  /* no tint: the banners are finished artwork and must show as uploaded */
+  background: transparent;
+  pointer-events: none;
   z-index: 2;
 }
 .bazzar-text-box {
@@ -1817,37 +1829,70 @@ WhatsApp
   text-transform: uppercase;
 }
 .bazzar-arrow {
- 
-    position: absolute;
-    top: 50%;
-    right: -7px;
-    line-height: 1;
-   padding: 10px 10px;
-	width: 42px !important;
-  height: 42px !important;
-  border: 1px solid #012d71 !important;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 0;
+  line-height: 1;
+  border: 0 !important;
   border-radius: 50% !important;
-  background: #fff !important;
+  background: rgba(255, 255, 255, 0.88) !important;
   color: #012d71 !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
-  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
-   z-index: 10;
-  font-size: 20px;
+  box-shadow: 0 4px 14px rgba(1, 45, 113, 0.22) !important;
+  opacity: 0.85;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease, opacity 180ms ease;
+  z-index: 10;
+  font-size: 16px;
 }
-.bazzar-arrow:hover {
-   background: #012d71 !important;
-    color: #fff !important;
+.bazzar-slider-wrapper:hover .bazzar-arrow { opacity: 1; }
+.bazzar-arrow:hover,
+.bazzar-arrow:focus-visible {
+  background: #012d71 !important;
+  color: #fff !important;
 }
-.arrow-left { left: 20px; }
-.arrow-right { right: 20px; }
+.arrow-left { left: 14px; }
+.arrow-right { right: 14px; }
+.bazzar-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(1, 45, 113, 0.28);
+  z-index: 10;
+}
+.bazzar-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: width 220ms ease, background-color 220ms ease;
+}
+.bazzar-dot.is-active {
+  width: 20px;
+  background: #fff;
+}
 @media (max-width: 767px) {
   .bazzar-slider-wrapper {
     width: calc(100% - 20px);
-    height: auto;
-    aspect-ratio: 25 / 7;
     margin: 8px auto 16px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
+  .bazzar-dots { bottom: 6px; padding: 4px 6px; gap: 5px; }
+  .bazzar-dot { width: 6px; height: 6px; }
+  .bazzar-dot.is-active { width: 16px; }
   .bazzar-slides-container,
   .bazzar-slide {
     height: 100%;
@@ -1857,16 +1902,12 @@ WhatsApp
     object-fit: cover;
   }
   .bazzar-arrow {
-    display: flex;
-    width: 36px;
-    height: 36px;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    font-size: 16px;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px;
   }
-  .arrow-left { left: 8px; }
-  .arrow-right { right: 8px; }
+  .arrow-left { left: 6px; }
+  .arrow-right { right: 6px; }
 }
 </style>
 
@@ -1881,11 +1922,12 @@ function showBazzarSlide(index) {
   else currentBazzarIndex = index;
 
   bazzarSlides.forEach((slide, i) => {
-    if (i === currentBazzarIndex) {
-      slide.classList.add('active-slide');
-    } else {
-      slide.classList.remove('active-slide');
-    }
+    // the first slide is rendered with "active"; drop it so only one shows
+    slide.classList.remove('active');
+    slide.classList.toggle('active-slide', i === currentBazzarIndex);
+  });
+  document.querySelectorAll('.bazzar-dot').forEach((dot, i) => {
+    dot.classList.toggle('is-active', i === currentBazzarIndex);
   });
 }
 
@@ -1893,10 +1935,18 @@ function changeBazzarSlide(direction) {
   showBazzarSlide(currentBazzarIndex + direction);
 }
 
-// Automatic slide rotation every 4 seconds
-setInterval(() => {
-  changeBazzarSlide(1);
-}, 4000);
+// Automatic slide rotation every 4 seconds, paused while the pointer is on it
+let bazzarPaused = false;
+const bazzarWrap = document.querySelector('.bazzar-slider-wrapper');
+if (bazzarWrap) {
+  bazzarWrap.addEventListener('mouseenter', () => { bazzarPaused = true; });
+  bazzarWrap.addEventListener('mouseleave', () => { bazzarPaused = false; });
+}
+if (bazzarSlides.length > 1) {
+  setInterval(() => {
+    if (!bazzarPaused) changeBazzarSlide(1);
+  }, 4000);
+}
 </script>
 
 

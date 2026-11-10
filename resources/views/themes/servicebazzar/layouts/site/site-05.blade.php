@@ -21,6 +21,9 @@
     const backBtn = e.target.closest("#ytSearchBackBtn");
     if (!backBtn) return;
 
+    // Home opens search on the same page: let the site-08 handler just close it.
+    if (@json(request()->routeIs('home'))) return;
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -170,6 +173,29 @@ const sessionSelectedCategory = @json(session('selected_category', ''));
             .replace(/-+/g, "-")
             .replace(/^-+|-+$/g, "");
     }
+
+    /*
+     * The mobile location list is position:fixed at top:95px (several CSS rules).
+     * That clears the input only when nothing above it is showing. When the
+     * logo row stays (home, business page) the input sits lower, the list
+     * covered it and there was no box to type in. Pin the list just under the
+     * input whenever it opens or the layout changes.
+     */
+    (function () {
+        var list = document.getElementById("jdMobileLocationSuggestions");
+        var input = document.getElementById("jdMobileLocationInput");
+        if (!list || !input || !window.MutationObserver) return;
+        var place = function () {
+            if (getComputedStyle(list).position !== "fixed") return;
+            var r = input.getBoundingClientRect();
+            if (r.height <= 0) return;
+            var top = Math.round(r.bottom + 2) + "px";
+            if (list.style.getPropertyValue("top") !== top) list.style.setProperty("top", top, "important");
+        };
+        new MutationObserver(place).observe(list, { attributes: true, attributeFilter: ["class"] });
+        new MutationObserver(place).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+        window.addEventListener("resize", place);
+    })();
 
     /*
      * Only real cities may become a URL. Typed text that was never picked from

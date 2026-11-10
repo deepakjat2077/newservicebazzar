@@ -18,6 +18,10 @@
         body.jd-head .yt-search-back,
         body.jd-head .sb-bell-mobile,
         body.jd-head .mobile-back-btn{display:none !important;}
+        /* top row already has logo/share/bell — hide the old nav row on listing page */
+        body.jd-head #stickyScrollHeader .navbar-brand,
+        body.jd-head #stickyScrollHeader .navbar-toggler,
+        body.jd-head #mobileHeaderSearchBtn{display:none !important;}
     }
 
     @media (max-width: 991px){
@@ -349,7 +353,8 @@ body.header-fixed {
     display:none !important;
 }
 
-body.mobile-yt-search-open.show-yt-location .jd-mobile-location-strip{
+body.mobile-yt-search-open.show-yt-location .jd-mobile-location-strip,
+body.home-page.mobile-yt-search-open .jd-mobile-location-strip{
     display:block !important;
     visibility:visible !important;
     order:0 !important;
@@ -774,13 +779,15 @@ body.mobile-yt-search-open #ytMobileSearchInput{
     body.mobile-yt-search-open .navbar-brand,
     body.mobile-yt-search-open .navbar-toggler,
     body.mobile-yt-search-open #mobileHeaderSearchBtn,
-    body.mobile-yt-search-open #scrollSearchHolder{
-        display:none ;
+    body.mobile-yt-search-open #scrollSearchHolder,
+    body.mobile-yt-search-open .sb-bell-mobile,
+    body.mobile-yt-search-open .mobile-back-btn{
+        display:none !important;
     }
 
     body.mobile-yt-search-open #youtubeMobileSearch{
-        display:flex ;
-        width:100% ;
+        display:flex !important;
+        width:100% !important;
     }
 }
 

@@ -63,7 +63,17 @@ class SiteController extends Controller
         }
     }
 
-public function index($location = null)
+/**
+ * Hidden full-page preview of the home — a secret-URL copy for trying a
+ * redesign without touching the live homepage. Not linked anywhere and
+ * noindex'd; renders the index-preview blade with the exact same data.
+ */
+public function homePreview()
+{
+    return $this->index(null, 'index-preview');
+}
+
+public function index($location = null, $view = 'index')
 {
     $currentLocationFromUrl = null;
 
@@ -311,7 +321,12 @@ if (!empty($currentLocationFromUrl)) {
     }
 }
 
-return view($this->theme . 'index', $data);
+// The preview copy must never be indexed by search engines.
+if ($view !== 'index') {
+    $data['seoRobots'] = 'noindex, nofollow';
+}
+
+return view($this->theme . $view, $data);
 }
 
 // The "Popular Categories" logic below is the single source of truth for

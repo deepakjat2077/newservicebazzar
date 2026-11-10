@@ -401,7 +401,14 @@ if (!showRecentTrending && data && data.length > 0) {
     // setDropdownPosition() above.
     const ytSearchBar = document.getElementById("youtubeMobileSearch");
     if (ytSearchBar) {
-        suggestions.style.top = ytSearchBar.getBoundingClientRect().bottom + "px";
+        let listTop = ytSearchBar.getBoundingClientRect().bottom;
+        // The city strip can sit under the search bar: start the list below
+        // it so the list doesn't cover it.
+        if (jdStrip) {
+            const stripRect = jdStrip.getBoundingClientRect();
+            if (stripRect.height > 0) listTop = Math.max(listTop, stripRect.bottom);
+        }
+        suggestions.style.top = listTop + "px";
     }
 
     suggestions.classList.add("show");
@@ -439,7 +446,6 @@ function fetchMobileCategorySuggestions(value){
     })
     .then(res => res.json())
     .then(function(data) {
-        console.log("Backend data:", data); // ✅ YE CHECK KARO
         renderSuggestions(data);
     })
     .catch(() => closeCategorySuggestions());

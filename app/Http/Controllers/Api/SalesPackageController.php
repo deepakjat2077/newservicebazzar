@@ -298,7 +298,7 @@ class SalesPackageController extends Controller
                         'order_id'    => $order->id,
                         'amount'      => $paise,
                         'currency'    => $method->currency,
-                        'name'        => config('app.name') ?: 'Service Bazzar',
+                        'name'        => 'Service Bazzar',
                         'description' => (string) $payment->sales_plan,
                     ],
                 ];

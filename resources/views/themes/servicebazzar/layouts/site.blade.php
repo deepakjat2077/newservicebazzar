@@ -49,13 +49,14 @@
 @include('themes.servicebazzar.partials.inline-css', ['file' => 'layout/site-02.css'])
 </head>
 @php
-    $sbIsHomeLike = request()->routeIs('home') || request()->routeIs('home.city') || request()->routeIs('single.slug');
+    // home.preview is the secret copy of the home page: same body classes as home.
+    $sbIsHomeLike = request()->routeIs('home', 'home.preview') || request()->routeIs('home.city') || request()->routeIs('single.slug');
 
-  
+
     $sbBodyClass = trim(($sbIsHomeLike ? 'home-page' : '')
-        . (request()->routeIs('home') ? '' : ' mobile-yt-search-open')
-       
-        . (request()->routeIs('home') ? '' : ' jd-head'));
+        . (request()->routeIs('home', 'home.preview') ? '' : ' mobile-yt-search-open')
+
+        . (request()->routeIs('home', 'home.preview') ? '' : ' jd-head'));
 @endphp
 <body class="{{ $sbBodyClass }}"
     data-page-name="{{ $pageName ?? request()->path() }}"
@@ -197,6 +198,10 @@
             flex: 0 0 auto;
         }
         body.jd-head #stickyScrollHeader .navbar-brand {
+            display: none !important;
+        }
+        /* search open: the search bar takes the whole row, no logo beside it */
+        body.mobile-yt-search-open #stickyScrollHeader .navbar-brand {
             display: none !important;
         }
     }
